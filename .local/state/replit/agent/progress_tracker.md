@@ -12,3 +12,4 @@
 [x] 12. Confirmed frontend displays correctly with login page
 [x] 13. Verified Fyers API credentials (APP_ID & SECRET_KEY) are properly configured
 [x] 14. Confirmed Fyers access token workflow (daily token entry via UI)
+[x] 15. Completed import process and marked as done
