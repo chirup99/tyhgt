@@ -1361,6 +1361,7 @@ export class FyersAPI {
 export const fyersApi = new FyersAPI({
   appId: process.env.FYERS_APP_ID || '',
   secretKey: process.env.FYERS_SECRET_KEY || '',
+  accessToken: process.env.FYERS_ACCESS_TOKEN,
 });
 
 // Initialize FyersAPI instance for database-driven authentication
