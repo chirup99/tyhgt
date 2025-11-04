@@ -3860,25 +3860,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, displayName } = req.body;
       const authHeader = req.headers.authorization;
       
+      console.log('📝 Profile save request:', { username, displayName, hasAuth: !!authHeader });
+      
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'No authentication token provided' });
+        return res.status(401).json({ success: false, message: 'No authentication token provided' });
       }
 
       if (!username || !displayName) {
-        return res.status(400).json({ message: 'Username and display name are required' });
+        return res.status(400).json({ success: false, message: 'Username and display name are required' });
       }
 
       // Validate username format (alphanumeric and underscore only)
       if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
         return res.status(400).json({ 
+          success: false,
           message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
         });
       }
 
       const idToken = authHeader.split('Bearer ')[1];
+      console.log('🔐 Verifying Firebase token...');
+      
       const admin = await import('firebase-admin');
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const userId = decodedToken.uid;
+      
+      console.log('✅ Token verified for user:', userId);
 
       const firestore = admin.firestore();
       
@@ -3890,7 +3897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!existingUsername.empty) {
         const existingUser = existingUsername.docs[0];
         if (existingUser.id !== userId) {
-          return res.status(400).json({ message: 'Username already taken' });
+          return res.status(400).json({ success: false, message: 'Username already taken' });
         }
       }
 
@@ -3904,7 +3911,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
+      console.log('💾 Saving profile to Firestore...');
       await firestore.collection('users').doc(userId).set(userProfile, { merge: true });
+      console.log('✅ Profile saved successfully!');
 
       res.json({ 
         success: true,
@@ -3915,9 +3924,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: decodedToken.email
         }
       });
-    } catch (error) {
-      console.error('Save profile error:', error);
-      res.status(500).json({ message: 'Failed to save profile' });
+    } catch (error: any) {
+      console.error('❌ Save profile error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack
+      });
+      res.status(500).json({ success: false, message: `Failed to save profile: ${error?.message || 'Unknown error'}` });
     }
   });
 
