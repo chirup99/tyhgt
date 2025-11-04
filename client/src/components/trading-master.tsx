@@ -4395,6 +4395,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   const streamingInterval = useRef<NodeJS.Timeout | null>(null);
   const [swipedStock, setSwipedStock] = useState<string | null>(null);
   
+  // Last traded prices (for when market is closed)
+  const [lastTradedPrices, setLastTradedPrices] = useState<{[key: string]: any}>({});
+  
   // Notes handling functions
   const handleEditNotes = () => {
     setTempNotesContent(notesContent);
@@ -4580,6 +4583,49 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     setSwipedStock(null);
   };
 
+  // Fetch last traded prices for stocks when market is closed
+  const fetchLastTradedPrices = async (symbols: string[]) => {
+    try {
+      const pricePromises = symbols.map(async (symbol) => {
+        try {
+          const response = await fetch(`/api/live-quotes/NSE:${symbol}-EQ`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              return {
+                symbol,
+                price: data.data.ltp,
+                change: data.data.ch,
+                changePercent: data.data.chp,
+                isPositive: data.data.ch >= 0,
+                volume: data.data.volume,
+                timestamp: data.data.timestamp,
+                isLastTraded: true
+              };
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to fetch price for ${symbol}:`, error);
+        }
+        return null;
+      });
+
+      const prices = await Promise.all(pricePromises);
+      const pricesMap: {[key: string]: any} = {};
+      
+      prices.forEach((priceData) => {
+        if (priceData) {
+          pricesMap[priceData.symbol] = priceData;
+        }
+      });
+
+      setLastTradedPrices(pricesMap);
+      console.log('📊 Fetched last traded prices:', pricesMap);
+    } catch (error) {
+      console.error('Failed to fetch last traded prices:', error);
+    }
+  };
+
   // SSE-based live price streaming using WebSocket infrastructure
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const [streamingStatus, setStreamingStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
@@ -4755,6 +4801,29 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       }
     };
   }, [eventSource]);
+
+  // Fetch last traded prices when live streaming is not active or prices are missing
+  useEffect(() => {
+    const allSymbols = Array.from(new Set([...feedStocks, ...watchlistStocks]));
+    
+    if (allSymbols.length === 0) return;
+
+    // Check if we need to fetch last traded prices (no live data after 5 seconds)
+    const checkTimer = setTimeout(() => {
+      const needsFetch = allSymbols.some(symbol => {
+        const feedHasData = feedStockPrices[symbol] && feedStockPrices[symbol].price > 0;
+        const watchlistHasData = watchlistPrices[symbol] && watchlistPrices[symbol].price > 0;
+        return !feedHasData && !watchlistHasData;
+      });
+
+      if (needsFetch) {
+        console.log('📊 Live data not available, fetching last traded prices...');
+        fetchLastTradedPrices(allSymbols);
+      }
+    }, 5000); // Wait 5 seconds for live data before fetching last traded prices
+
+    return () => clearTimeout(checkTimer);
+  }, [feedStocks, watchlistStocks, feedStockPrices, watchlistPrices]);
 
   // Simplified swipe detection
   const [startPos, setStartPos] = useState<{x: number, stock: string} | null>(null);
@@ -5598,20 +5667,25 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                     feedStocks.map((stock, index) => {
                       // Get live price data from streaming state
                       const liveData = feedStockPrices[stock];
+                      // Get last traded price data as fallback
+                      const lastTradedData = lastTradedPrices[stock];
                       
-                      // Use live data if available, otherwise show loading state
-                      const stockData = liveData ? {
-                        price: liveData.price,
-                        change: liveData.change,
-                        changePercent: liveData.changePercent,
-                        isPositive: liveData.isPositive,
-                        volume: liveData.volume
+                      // Use live data if available, otherwise use last traded price, otherwise show 0
+                      const dataSource = liveData || lastTradedData;
+                      const stockData = dataSource ? {
+                        price: dataSource.price,
+                        change: dataSource.change,
+                        changePercent: dataSource.changePercent,
+                        isPositive: dataSource.isPositive,
+                        volume: dataSource.volume,
+                        isLastTraded: dataSource.isLastTraded || false
                       } : {
                         price: 0,
                         change: 0,
                         changePercent: 0,
                         isPositive: true,
-                        volume: 0
+                        volume: 0,
+                        isLastTraded: false
                       };
                       
                       return (
@@ -5667,11 +5741,15 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                               <span className="text-xs text-slate-400">NSE</span>
                             </div>
                             <div className="flex flex-col items-end">
-                              {liveData ? (
+                              {dataSource ? (
                                 <>
                                   <div className="flex items-center gap-1">
                                     <span className="text-sm font-mono text-white">₹{stockData.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                    {stockData.isLastTraded ? (
+                                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                    ) : (
+                                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                    )}
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <span className={`text-xs ${stockData.isPositive ? 'text-green-400' : 'text-red-400'}`}>
@@ -5685,6 +5763,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                       <TrendingDown className="w-3 h-3 text-red-400" />
                                     }
                                   </div>
+                                  {stockData.isLastTraded && (
+                                    <span className="text-[10px] text-orange-400">Last Close</span>
+                                  )}
                                 </>
                               ) : (
                                 <div className="flex flex-col items-end">
@@ -5725,20 +5806,25 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                 {watchlistStocks.map((stock, index) => {
                   // Get live price data from streaming state
                   const liveData = watchlistPrices[stock];
+                  // Get last traded price data as fallback
+                  const lastTradedData = lastTradedPrices[stock];
                   
-                  // Use live data if available, otherwise show loading state
-                  const stockData = liveData ? {
-                    price: liveData.price,
-                    change: liveData.change,
-                    changePercent: liveData.changePercent,
-                    isPositive: liveData.isPositive,
-                    volume: liveData.volume
+                  // Use live data if available, otherwise use last traded price, otherwise show 0
+                  const dataSource = liveData || lastTradedData;
+                  const stockData = dataSource ? {
+                    price: dataSource.price,
+                    change: dataSource.change,
+                    changePercent: dataSource.changePercent,
+                    isPositive: dataSource.isPositive,
+                    volume: dataSource.volume,
+                    isLastTraded: dataSource.isLastTraded || false
                   } : {
                     price: 0,
                     change: 0,
                     changePercent: 0,
                     isPositive: true,
-                    volume: 0
+                    volume: 0,
+                    isLastTraded: false
                   };
 
                   return (
@@ -5748,11 +5834,15 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                         <span className="text-xs text-slate-400">NSE</span>
                       </div>
                       <div className="flex flex-col items-end">
-                        {liveData ? (
+                        {dataSource ? (
                           <>
                             <div className="flex items-center gap-1">
                               <span className="text-sm font-mono text-white">₹{stockData.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                              {stockData.isLastTraded ? (
+                                <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                              ) : (
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                              )}
                             </div>
                             <div className="flex items-center gap-1">
                               <span className={`text-xs ${stockData.isPositive ? 'text-green-400' : 'text-red-400'}`}>
@@ -5766,6 +5856,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                 <TrendingDown className="w-3 h-3 text-red-400" />
                               }
                             </div>
+                            {stockData.isLastTraded && (
+                              <span className="text-[10px] text-orange-400">Last Close</span>
+                            )}
                           </>
                         ) : (
                           <div className="flex flex-col items-end">
