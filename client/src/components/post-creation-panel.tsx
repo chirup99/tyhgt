@@ -44,16 +44,27 @@ export function PostCreationPanel() {
 
   const createPostMutation = useMutation({
     mutationFn: async (postData: InsertSocialPost) => {
+      const { auth } = await import('@/firebase');
+      const user = auth.currentUser;
+      
+      if (!user) {
+        throw new Error('You must be logged in to create posts');
+      }
+      
+      const idToken = await user.getIdToken();
+      
       const response = await fetch('/api/social-posts', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify(postData)
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create post');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create post');
       }
       
       return await response.json();

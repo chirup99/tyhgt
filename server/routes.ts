@@ -4681,8 +4681,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/social-posts', async (req, res) => {
     try {
-      const postData = insertSocialPostSchema.parse(req.body);
-      console.log('📝 Creating social post with data:', { ...postData, content: postData.content.substring(0, 50) + '...' });
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required to create posts' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      
+      // Verify the Firebase ID token
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      // Get user profile from Firestore
+      const firestore = admin.firestore();
+      const userDoc = await firestore.collection('users').doc(userId).get();
+      
+      if (!userDoc.exists) {
+        return res.status(400).json({ error: 'User profile not found. Please complete your profile setup first.' });
+      }
+      
+      const userData = userDoc.data();
+      if (!userData?.username || !userData?.displayName) {
+        return res.status(400).json({ error: 'User profile incomplete. Please complete your profile setup first.' });
+      }
+      
+      // Parse post data from request body (without author info)
+      const { content, stockMentions, sentiment, tags, hasImage, imageUrl } = req.body;
+      
+      // Create post data with authenticated user's profile information
+      const postData = {
+        content,
+        authorUsername: userData.username,
+        authorDisplayName: userData.displayName,
+        stockMentions: stockMentions || [],
+        sentiment: sentiment || 'neutral',
+        tags: tags || [],
+        hasImage: hasImage || false,
+        imageUrl: imageUrl || undefined
+      };
+      
+      console.log('📝 Creating social post for user:', userData.username, { content: postData.content.substring(0, 50) + '...' });
       
       // Use database as primary storage for speed and reliability
       if (storage.db?.insert) {
@@ -4719,7 +4759,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(newPost);
     } catch (error) {
       console.error('❌ Error creating social post:', error);
-      res.status(500).json({ error: 'Failed to create post' });
+      if (error.code === 'auth/id-token-expired') {
+        res.status(401).json({ error: 'Session expired. Please log in again.' });
+      } else if (error.code === 'auth/argument-error') {
+        res.status(401).json({ error: 'Invalid authentication token' });
+      } else {
+        res.status(500).json({ error: 'Failed to create post' });
+      }
     }
   });
 
