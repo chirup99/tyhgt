@@ -422,10 +422,33 @@ function Router() {
 
 function App() {
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
+        
+        try {
+          const idToken = await user.getIdToken();
+          const response = await fetch('/api/user/profile', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.profile) {
+              if (data.profile.username) {
+                localStorage.setItem('currentUsername', data.profile.username);
+              }
+              if (data.profile.displayName) {
+                localStorage.setItem('currentDisplayName', data.profile.displayName);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user profile:', error);
+        }
       } else {
         localStorage.removeItem('currentUserId');
         localStorage.removeItem('currentUserEmail');
