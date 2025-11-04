@@ -3814,6 +3814,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(401).json({ message: 'Google authentication failed' });
     }
   });
+
+  // User Profile Management Routes
+  app.get('/api/user/profile', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'No authentication token provided' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+
+      // Get user profile from Firestore
+      const firestore = admin.firestore();
+      const userDoc = await firestore.collection('users').doc(userId).get();
+      
+      if (!userDoc.exists) {
+        return res.json({ 
+          success: true,
+          profile: null,
+          userId: userId,
+          email: decodedToken.email
+        });
+      }
+
+      const userData = userDoc.data();
+      res.json({ 
+        success: true,
+        profile: userData,
+        userId: userId,
+        email: decodedToken.email
+      });
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({ message: 'Failed to get profile' });
+    }
+  });
+
+  app.post('/api/user/profile', async (req, res) => {
+    try {
+      const { username, displayName } = req.body;
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'No authentication token provided' });
+      }
+
+      if (!username || !displayName) {
+        return res.status(400).json({ message: 'Username and display name are required' });
+      }
+
+      // Validate username format (alphanumeric and underscore only)
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        return res.status(400).json({ 
+          message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
+        });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+
+      const firestore = admin.firestore();
+      
+      // Check if username is already taken by another user
+      const existingUsername = await firestore.collection('users')
+        .where('username', '==', username.toLowerCase())
+        .get();
+      
+      if (!existingUsername.empty) {
+        const existingUser = existingUsername.docs[0];
+        if (existingUser.id !== userId) {
+          return res.status(400).json({ message: 'Username already taken' });
+        }
+      }
+
+      // Save user profile
+      const userProfile = {
+        username: username.toLowerCase(),
+        displayName: displayName,
+        email: decodedToken.email,
+        userId: userId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      await firestore.collection('users').doc(userId).set(userProfile, { merge: true });
+
+      res.json({ 
+        success: true,
+        message: 'Profile saved successfully',
+        profile: {
+          username: username.toLowerCase(),
+          displayName: displayName,
+          email: decodedToken.email
+        }
+      });
+    } catch (error) {
+      console.error('Save profile error:', error);
+      res.status(500).json({ message: 'Failed to save profile' });
+    }
+  });
+
+  app.get('/api/user/check-username/:username', async (req, res) => {
+    try {
+      const { username } = req.params;
+      
+      // Validate username format
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        return res.json({ 
+          available: false,
+          message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores'
+        });
+      }
+
+      const admin = await import('firebase-admin');
+      const firestore = admin.firestore();
+      
+      // Check if username exists
+      const existingUsername = await firestore.collection('users')
+        .where('username', '==', username.toLowerCase())
+        .get();
+      
+      res.json({ 
+        available: existingUsername.empty,
+        message: existingUsername.empty ? 'Username available' : 'Username already taken'
+      });
+    } catch (error) {
+      console.error('Check username error:', error);
+      res.status(500).json({ message: 'Failed to check username availability' });
+    }
+  });
   
   // FAST BACKUP STATUS - bypass Google Cloud quota issues
   app.get('/api/backup/status', (req, res) => {

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PostCreationPanel } from './post-creation-panel';
 import { LiveBanner } from './live-banner';
+import { UserIdSetupDialog } from './user-id-setup-dialog';
 import type { SocialPost } from '@shared/schema';
 import { 
   Search, Bell, Settings, MessageCircle, Repeat, Heart, 
@@ -1430,7 +1431,21 @@ export default function NeoFeedSocialFeed() {
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
   const [isAtTop, setIsAtTop] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserIdDialog, setShowUserIdDialog] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { hasUsername, updateProfile, isLoggedIn, loading: userLoading } = useCurrentUser();
+  
+  // Check if user needs to set up their profile
+  useEffect(() => {
+    if (!userLoading && isLoggedIn() && !hasUsername()) {
+      setShowUserIdDialog(true);
+    }
+  }, [userLoading, isLoggedIn, hasUsername]);
+
+  const handleUserIdSetupSuccess = (username: string, displayName: string) => {
+    updateProfile(username, displayName);
+    setShowUserIdDialog(false);
+  };
   
   const { data: posts = [], isLoading, error, isFetching, refetch } = useQuery({
     queryKey: ['/api/social-posts'],
@@ -1759,6 +1774,12 @@ export default function NeoFeedSocialFeed() {
         </div>
       </div>
 
+      {/* User ID Setup Dialog */}
+      <UserIdSetupDialog 
+        isOpen={showUserIdDialog}
+        onClose={() => setShowUserIdDialog(false)}
+        onSuccess={handleUserIdSetupSuccess}
+      />
     </div>
   );
 }
