@@ -3513,58 +3513,62 @@ async function initializeGoogleCloud() {
 
 initializeGoogleCloud();
 
-// Auto-reconnection function - ALWAYS uses PostgreSQL database tokens
+// Auto-reconnection function - Checks Firebase first, then PostgreSQL, then environment
 async function attemptAutoReconnection() {
   try {
-    console.log('📋 Checking for saved tokens in PostgreSQL database...');
+    console.log('🔄 Starting auto-reconnection sequence...');
+    
+    // Step 1: Check Firebase for today's token first
+    console.log('🔥 [FIREBASE] Checking Firebase for today\'s Fyers token...');
+    const firebaseToken = await googleCloudService.getTodaysFyersToken();
+    
+    if (firebaseToken && firebaseToken.accessToken) {
+      console.log('🔑 [FIREBASE] Found token in Firebase, attempting reconnection...');
+      
+      // Set the stored access token from Firebase
+      fyersApi.setAccessToken(firebaseToken.accessToken);
+      
+      // Test the connection
+      const isConnected = await fyersApi.testConnection();
+      
+      if (isConnected) {
+        console.log('✅ [FIREBASE] Auto-reconnection successful with Firebase token');
+        
+        // Update PostgreSQL storage for consistency
+        await storage.updateApiStatus({
+          connected: true,
+          authenticated: true,
+          accessToken: firebaseToken.accessToken,
+          tokenExpiry: firebaseToken.expiryDate,
+          websocketActive: true,
+          responseTime: 45,
+          successRate: 99.8,
+          throughput: "2.3 MB/s",
+          activeSymbols: 250,
+          updatesPerSec: 1200,
+          uptime: 99.97,
+          latency: 12,
+        });
+        
+        await storage.addActivityLog({
+          type: "success",
+          message: "🎉 Auto-reconnected successfully using Firebase stored token"
+        });
+        
+        return true;
+      } else {
+        console.log('❌ [FIREBASE] Token found but failed validation');
+      }
+    } else {
+      console.log('📭 [FIREBASE] No valid token found in Firebase for today');
+    }
+    
+    // Step 2: Check PostgreSQL database
+    console.log('💾 [POSTGRES] Checking PostgreSQL database for saved token...');
     const apiStatus = await storage.getApiStatus();
     
     if (!apiStatus || !apiStatus.accessToken) {
-      console.log('❌ No database token found - checking Google Cloud and environment fallback');
-      
-      // First check Google Cloud Firestore for saved token
-      console.log('☁️ Checking Google Cloud for saved tokens...');
-      const cloudTokenResult = await googleCloudService.getFyersToken();
-      
-      if (cloudTokenResult.success && cloudTokenResult.data) {
-        console.log('🔑 Found valid token in Google Cloud, attempting reconnection...');
-        
-        // Set the stored access token from Google Cloud
-        fyersApi.setAccessToken(cloudTokenResult.data.accessToken);
-        
-        // Test the connection
-        const isConnected = await fyersApi.testConnection();
-        
-        if (isConnected) {
-          console.log('✅ Auto-reconnection successful with Google Cloud token');
-          
-          // Update local storage for immediate use
-          await storage.updateApiStatus({
-            connected: true,
-            authenticated: true,
-            accessToken: cloudTokenResult.data.accessToken,
-            tokenExpiry: cloudTokenResult.data.tokenExpiry,
-            websocketActive: true,
-            responseTime: 45,
-            successRate: 99.8,
-            throughput: "2.3 MB/s",
-            activeSymbols: 250,
-            updatesPerSec: 1200,
-            uptime: 99.97,
-            latency: 12,
-          });
-          
-          await storage.addActivityLog({
-            type: "success",
-            message: "Auto-reconnected successfully using Google Cloud stored token"
-          });
-          
-          return true;
-        } else {
-          console.log('❌ Google Cloud token failed validation during auto-reconnection');
-          await googleCloudService.clearFyersToken(); // Mark as inactive in Google Cloud
-        }
-      }
+      console.log('❌ [POSTGRES] No database token found - checking environment fallback');
       
       // Fallback: If environment token exists, save it to database for future use
       const envToken = process.env.FYERS_ACCESS_TOKEN;
@@ -3609,9 +3613,9 @@ async function attemptAutoReconnection() {
       }
       
       return false;
-    }
-    
-    console.log('🔍 Database API Status found:', {
+    } else {
+      // We have a token in the database - test it
+      console.log('🔍 Database API Status found:', {
       hasToken: !!apiStatus.accessToken,
       hasExpiry: !!apiStatus.tokenExpiry,
       connected: apiStatus.connected,
@@ -4816,8 +4820,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Access token is required" });
       }
 
+      // Clean the token (remove any duplicates or extra quotes)
+      const cleanedToken = accessToken.trim().replace(/["']/g, '').split('""')[0];
+      console.log(`🔧 Cleaned token length: ${cleanedToken.length} chars`);
+
       // Set the access token
-      fyersApi.setAccessToken(accessToken);
+      fyersApi.setAccessToken(cleanedToken);
       
       // Test the connection
       const isConnected = await fyersApi.testConnection();
@@ -4827,11 +4835,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tokenExpiry = new Date();
         tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
-        // Save token directly to PostgreSQL (bypass Google Cloud)
-        console.log('💾 [TOKEN-AUTH] Saving token directly to PostgreSQL database');
+        console.log('💾 [TOKEN-AUTH] Saving token to PostgreSQL and Firebase');
         
+        let postgresSuccess = false;
+        let firebaseSuccess = false;
+
+        // Save to PostgreSQL
         try {
-          // Update PostgreSQL with token for persistent storage
           await storage.updateApiStatus({
             connected: true,
             authenticated: true,
@@ -4846,43 +4856,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
             requestsUsed: 1500,
             version: "v3.0.0",
             dailyLimit: 100000,
-            accessToken: accessToken,
+            accessToken: cleanedToken,
             tokenExpiry: tokenExpiry,
           });
 
-          // Add success log
-          await storage.addActivityLog({
-            type: "success",
-            message: "Successfully authenticated with Fyers API and saved to PostgreSQL database"
-          });
-
-          console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL database successfully');
-          res.json({ 
-            success: true, 
-            message: "Token authenticated and saved to PostgreSQL database successfully",
-            savedToDatabase: true
-          });
+          console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL successfully');
+          postgresSuccess = true;
         } catch (dbError) {
           console.error('❌ [TOKEN-AUTH] Failed to save token to PostgreSQL:', dbError);
-          
-          await storage.addActivityLog({
-            type: "error",
-            message: `Token valid but failed to save to PostgreSQL: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`
-          });
-          
-          res.json({ 
-            success: true,
-            message: "Token authenticated but failed to save to PostgreSQL",
-            savedToDatabase: false,
-            error: dbError instanceof Error ? dbError.message : 'Unknown error'
-          });
         }
+
+        // Save to Firebase
+        try {
+          const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
+          if (firebaseResult.success) {
+            console.log('✅ [TOKEN-AUTH] Token saved to Firebase successfully');
+            firebaseSuccess = true;
+          }
+        } catch (firebaseError) {
+          console.error('❌ [TOKEN-AUTH] Failed to save token to Firebase:', firebaseError);
+        }
+
+        // Add success log
+        await storage.addActivityLog({
+          type: "success",
+          message: `Successfully authenticated with Fyers API (PostgreSQL: ${postgresSuccess ? 'Yes' : 'No'}, Firebase: ${firebaseSuccess ? 'Yes' : 'No'})`
+        });
+
+        res.json({ 
+          success: true, 
+          message: "Token authenticated and saved successfully",
+          savedToPostgres: postgresSuccess,
+          savedToFirebase: firebaseSuccess
+        });
       } else {
         await storage.addActivityLog({
           type: "error",
           message: "Invalid access token provided"
         });
-        res.status(401).json({ message: "Invalid access token" });
+        res.status(401).json({ message: "Invalid access token. Please check and try again." });
       }
     } catch (error) {
       console.error('Token auth error:', error);
@@ -4893,6 +4905,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
+  // Get today's Fyers token from Firebase (auto-fetch)
+  app.get("/api/auth/token/today", async (req, res) => {
+    try {
+      console.log('🔍 [FIREBASE] Fetching today\'s Fyers token from Firebase...');
+      const tokenData = await googleCloudService.getTodaysFyersToken();
+      
+      if (tokenData && tokenData.accessToken) {
+        // Test the token
+        fyersApi.setAccessToken(tokenData.accessToken);
+        const isConnected = await fyersApi.testConnection();
+        
+        if (isConnected) {
+          console.log('✅ [FIREBASE] Found valid token for today');
+          
+          // Update PostgreSQL for consistency
+          await storage.updateApiStatus({
+            connected: true,
+            authenticated: true,
+            accessToken: tokenData.accessToken,
+            tokenExpiry: tokenData.expiryDate,
+            websocketActive: true,
+          });
+          
+          res.json({
+            success: true,
+            hasToken: true,
+            dateKey: tokenData.dateKey,
+            expiryDate: tokenData.expiryDate,
+            message: "Valid token found and loaded from Firebase"
+          });
+        } else {
+          console.log('⚠️ [FIREBASE] Token found but validation failed');
+          res.json({
+            success: false,
+            hasToken: true,
+            expired: true,
+            message: "Token found but expired or invalid"
+          });
+        }
+      } else {
+        console.log('📭 [FIREBASE] No token found for today');
+        res.json({
+          success: false,
+          hasToken: false,
+          message: "No token found for today. Please enter your access token."
+        });
+      }
+    } catch (error) {
+      console.error('❌ [FIREBASE] Error fetching token:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch token from Firebase"
+      });
     }
   });
 

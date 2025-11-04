@@ -950,6 +950,68 @@ export class GoogleCloudService {
     }
   }
 
+  // Fyers Token Management Methods
+  async saveFyersToken(accessToken: string, expiryDate: Date) {
+    try {
+      const dateKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const tokenData = {
+        accessToken,
+        createdAt: new Date(),
+        expiryDate,
+        dateKey,
+        lastUpdated: new Date(),
+        status: 'active'
+      };
+
+      await this.storeData('fyers-tokens', dateKey, tokenData);
+      console.log(`🔑 Saved Fyers token to Firebase for date: ${dateKey}`);
+      return { success: true, dateKey };
+    } catch (error) {
+      console.error('❌ Error saving Fyers token to Firebase:', error);
+      return { success: false, error };
+    }
+  }
+
+  async getFyersTokenByDate(date?: string) {
+    try {
+      const dateKey = date || new Date().toISOString().split('T')[0];
+      const tokenData = await this.getData('fyers-tokens', dateKey);
+      
+      if (!tokenData) {
+        console.log(`📭 No Fyers token found in Firebase for date: ${dateKey}`);
+        return null;
+      }
+
+      // Check if token is expired
+      const expiryDate = tokenData.expiryDate?.toDate?.() || new Date(tokenData.expiryDate);
+      if (expiryDate && expiryDate < new Date()) {
+        console.log(`⏰ Fyers token expired for date: ${dateKey}`);
+        return null;
+      }
+
+      console.log(`🔑 Found valid Fyers token in Firebase for date: ${dateKey}`);
+      return tokenData;
+    } catch (error) {
+      console.error('❌ Error fetching Fyers token from Firebase:', error);
+      return null;
+    }
+  }
+
+  async getTodaysFyersToken() {
+    return this.getFyersTokenByDate();
+  }
+
+  async getAllFyersTokens() {
+    try {
+      const tokens = await this.getAllData('fyers-tokens');
+      console.log(`🔑 Retrieved ${tokens.length} Fyers tokens from Firebase`);
+      return tokens;
+    } catch (error) {
+      console.error('❌ Error fetching all Fyers tokens:', error);
+      return [];
+    }
+  }
+
 }
 
 // Export singleton instance
