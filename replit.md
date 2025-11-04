@@ -62,6 +62,7 @@ Preferred communication style: Simple, everyday language.
 - Trading signals and pattern analysis results
 - Historical market data cache
 - Social feed posts and interactions
+- User trading journal data (separate from shared demo data)
 
 ## Authentication & Authorization
 
@@ -123,6 +124,27 @@ Multi-timeframe fractal analysis:
 - Continuous backtesting from market open (9:15 AM) to close (3:30 PM IST)
 - Progressive candle formation with live breakout detection
 - WebSocket-ready architecture (polling currently implemented)
+
+### Demo Mode Feature
+The trading journal includes a toggle switch that allows users to switch between demo data and personal trading data:
+
+**Demo Mode (ON)**:
+- Displays shared demo data that is the same for all users
+- Uses Google Cloud Storage (Firestore) for data persistence
+- Ideal for learning and exploring the platform without affecting personal records
+- Saved in localStorage as `tradingJournalDemoMode = "true"`
+
+**Personal Mode (OFF)**:
+- Displays user-specific trading data stored per user in PostgreSQL
+- Each user has their own separate trading journal entries
+- Data is stored in the `userTradingJournal` table with `userId` foreign key
+- Saved in localStorage as `tradingJournalDemoMode = "false"`
+
+**Implementation Details**:
+- Toggle switch located in the trade book header next to the Save button
+- Preference persisted in browser localStorage
+- Switching modes clears the current data view and reloads appropriate data
+- Database table: `userTradingJournal` with columns for userId, date, trades, and journal entries
 
 ## API Structure
 
