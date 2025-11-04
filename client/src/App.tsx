@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 // Global window type declarations for tab state management
 declare global {
@@ -34,6 +34,8 @@ import { Badge } from "@/components/ui/badge";
 import Dashboard from "@/pages/home";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
+import { auth } from "@/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 // New Home Page Component
 function NewHome() {
@@ -419,6 +421,22 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        localStorage.setItem('currentUserId', user.uid);
+        localStorage.setItem('currentUserEmail', user.email || '');
+      } else {
+        localStorage.removeItem('currentUserId');
+        localStorage.removeItem('currentUserEmail');
+        localStorage.removeItem('currentUsername');
+        localStorage.removeItem('currentDisplayName');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
