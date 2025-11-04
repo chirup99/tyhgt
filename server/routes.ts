@@ -3721,6 +3721,100 @@ import { newsRouter } from './news-routes.js';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Firebase Authentication Routes
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email } = req.body;
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'No authentication token provided' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      
+      // Verify the Firebase ID token
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      
+      if (decodedToken.email !== email) {
+        return res.status(401).json({ message: 'Email mismatch' });
+      }
+
+      // Store user session - you can enhance this with actual user storage
+      res.json({ 
+        success: true, 
+        message: 'Login successful',
+        userId: decodedToken.uid,
+        email: decodedToken.email 
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(401).json({ message: 'Authentication failed' });
+    }
+  });
+
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { email, name } = req.body;
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'No authentication token provided' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      
+      // Verify the Firebase ID token
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      
+      if (decodedToken.email !== email) {
+        return res.status(401).json({ message: 'Email mismatch' });
+      }
+
+      // Store user data - you can enhance this with actual user storage
+      res.json({ 
+        success: true, 
+        message: 'Registration successful',
+        userId: decodedToken.uid,
+        email: decodedToken.email,
+        name: name 
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(401).json({ message: 'Registration failed' });
+    }
+  });
+
+  app.post('/api/auth/google', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'No authentication token provided' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      
+      // Verify the Firebase ID token
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+      // Store user session
+      res.json({ 
+        success: true, 
+        message: 'Google sign-in successful',
+        userId: decodedToken.uid,
+        email: decodedToken.email,
+        name: decodedToken.name 
+      });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      res.status(401).json({ message: 'Google authentication failed' });
+    }
+  });
+  
   // FAST BACKUP STATUS - bypass Google Cloud quota issues
   app.get('/api/backup/status', (req, res) => {
     console.log('📊 Fast backup status (bypassing quota limits)...');
