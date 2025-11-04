@@ -8,15 +8,6 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
-export const userTradingJournal = pgTable("user_trading_journal", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  date: text("date").notNull(),
-  tradingData: jsonb("trading_data").$type<any>().notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
 export const apiStatus = pgTable("api_status", {
   id: serial("id").primaryKey(),
   connected: boolean("connected").notNull().default(false),
@@ -176,12 +167,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
-export const insertUserTradingJournalSchema = createInsertSchema(userTradingJournal).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export const insertApiStatusSchema = createInsertSchema(apiStatus).omit({
   id: true,
 });
@@ -224,8 +209,6 @@ export const insertBackupSyncStatusSchema = createInsertSchema(backupSyncStatus)
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertUserTradingJournal = z.infer<typeof insertUserTradingJournalSchema>;
-export type SelectUserTradingJournal = typeof userTradingJournal.$inferSelect;
 export type InsertHistoricalBackupData = z.infer<typeof insertHistoricalBackupDataSchema>;
 export type InsertHistoricalBackupIndex = z.infer<typeof insertHistoricalBackupIndexSchema>;
 export type InsertBackupSyncStatus = z.infer<typeof insertBackupSyncStatusSchema>;

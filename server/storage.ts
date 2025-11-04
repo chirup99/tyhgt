@@ -1,4 +1,4 @@
-import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, userTradingJournal, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults, type InsertUserTradingJournal, type SelectUserTradingJournal } from "@shared/schema";
+import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults } from "@shared/schema";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { eq, desc as descOrder, and } from "drizzle-orm";
@@ -30,12 +30,6 @@ export interface IStorage {
   getAnalysisResults(instructionId?: number, limit?: number): Promise<AnalysisResults[]>;
   createAnalysisResult(result: InsertAnalysisResults): Promise<AnalysisResults>;
   deleteAnalysisResults(instructionId: number): Promise<void>;
-  
-  // User Trading Journal methods
-  getUserTradingJournal(userId: string, date: string): Promise<SelectUserTradingJournal | undefined>;
-  getUserTradingJournalRange(userId: string, startDate: string, endDate: string): Promise<SelectUserTradingJournal[]>;
-  saveUserTradingJournal(journal: InsertUserTradingJournal): Promise<SelectUserTradingJournal>;
-  deleteUserTradingJournal(userId: string, date: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -300,30 +294,6 @@ export class MemStorage implements IStorage {
       (result) => result.instructionId !== instructionId
     );
   }
-
-  async getUserTradingJournal(userId: string, date: string): Promise<SelectUserTradingJournal | undefined> {
-    return undefined;
-  }
-
-  async getUserTradingJournalRange(userId: string, startDate: string, endDate: string): Promise<SelectUserTradingJournal[]> {
-    return [];
-  }
-
-  async saveUserTradingJournal(journal: InsertUserTradingJournal): Promise<SelectUserTradingJournal> {
-    const newJournal: SelectUserTradingJournal = {
-      id: 1,
-      userId: journal.userId,
-      date: journal.date,
-      tradingData: journal.tradingData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    return newJournal;
-  }
-
-  async deleteUserTradingJournal(userId: string, date: string): Promise<void> {
-    return;
-  }
 }
 
 // PostgreSQL Storage Implementation
@@ -526,57 +496,6 @@ export class PgStorage implements IStorage {
 
   async deleteAnalysisResults(instructionId: number): Promise<void> {
     await this.db.delete(analysisResults).where(eq(analysisResults.instructionId, instructionId));
-  }
-
-  async getUserTradingJournal(userId: string, date: string): Promise<SelectUserTradingJournal | undefined> {
-    const result = await this.db
-      .select()
-      .from(userTradingJournal)
-      .where(and(
-        eq(userTradingJournal.userId, userId),
-        eq(userTradingJournal.date, date)
-      ))
-      .limit(1);
-    return result[0];
-  }
-
-  async getUserTradingJournalRange(userId: string, startDate: string, endDate: string): Promise<SelectUserTradingJournal[]> {
-    const result = await this.db
-      .select()
-      .from(userTradingJournal)
-      .where(eq(userTradingJournal.userId, userId));
-    return result.filter(j => j.date >= startDate && j.date <= endDate);
-  }
-
-  async saveUserTradingJournal(journal: InsertUserTradingJournal): Promise<SelectUserTradingJournal> {
-    const existing = await this.getUserTradingJournal(journal.userId, journal.date);
-    
-    if (existing) {
-      const updated = await this.db
-        .update(userTradingJournal)
-        .set({
-          tradingData: journal.tradingData,
-          updatedAt: new Date(),
-        })
-        .where(eq(userTradingJournal.id, existing.id))
-        .returning();
-      return updated[0];
-    } else {
-      const inserted = await this.db
-        .insert(userTradingJournal)
-        .values(journal)
-        .returning();
-      return inserted[0];
-    }
-  }
-
-  async deleteUserTradingJournal(userId: string, date: string): Promise<void> {
-    await this.db
-      .delete(userTradingJournal)
-      .where(and(
-        eq(userTradingJournal.userId, userId),
-        eq(userTradingJournal.date, date)
-      ));
   }
 }
 
