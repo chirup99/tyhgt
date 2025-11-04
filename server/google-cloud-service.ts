@@ -21,14 +21,14 @@ export class GoogleCloudService {
     
     // Initialize Google Cloud Storage
     this.storage = new Storage({
-      projectId: config?.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID,
+      projectId: config?.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
       keyFilename: config?.keyFilename,
       credentials: credentials
     });
 
     // Initialize Firestore
     this.firestore = new Firestore({
-      projectId: config?.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID,
+      projectId: config?.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
       keyFilename: config?.keyFilename,
       credentials: credentials
     });
@@ -68,9 +68,9 @@ export class GoogleCloudService {
   }
 
   private getCredentialsFromEnv() {
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
-    const privateKeyRaw = process.env.GOOGLE_CLOUD_PRIVATE_KEY;
-    const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL;
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.FIREBASE_PROJECT_ID;
+    const privateKeyRaw = process.env.GOOGLE_CLOUD_PRIVATE_KEY || process.env.FIREBASE_PRIVATE_KEY;
+    const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
 
     if (!projectId || !privateKeyRaw || !clientEmail) {
       console.log('⚠️ Missing Google Cloud credentials in environment variables');
