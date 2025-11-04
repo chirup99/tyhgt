@@ -3704,6 +3704,7 @@ async function attemptAutoReconnection() {
         message: "No saved access token found. Please authenticate using /api/auth/token endpoint."
       });
     }
+    } 
   } catch (error) {
     console.error('💥 Auto-reconnection failed:', error);
     await storage.addActivityLog({
