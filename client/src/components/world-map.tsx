@@ -146,10 +146,10 @@ export function WorldMap() {
               <span className="text-white/60 text-[10px] tracking-wide">
                 {region.name}
               </span>
-              {market && (
+              {market && market.change !== undefined && (
                 <span className="text-[9px]" style={{ color }}>
                   {market.isUp ? "+" : ""}
-                  {market.changePercent.toFixed(2)}%
+                  {market.change.toFixed(2)}%
                 </span>
               )}
             </div>
