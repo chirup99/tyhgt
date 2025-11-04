@@ -2986,6 +2986,19 @@ ${
   // Loading state for heatmap data
   const [isLoadingHeatmapData, setIsLoadingHeatmapData] = useState(true);
 
+  // Helper function to get or create userId from localStorage
+  const getUserId = () => {
+    if (typeof window === "undefined") return "default-user";
+    
+    let userId = localStorage.getItem("tradingJournalUserId");
+    if (!userId) {
+      // Generate a unique user ID if none exists
+      userId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem("tradingJournalUserId", userId);
+    }
+    return userId;
+  };
+
   // Load all heatmap data on startup
   useEffect(() => {
     const loadAllHeatmapData = async () => {
@@ -3634,7 +3647,7 @@ ${
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
 
-    // Load trading data from Google Cloud journal database for selected date
+    // Load trading data from appropriate source based on demo mode
     // Use formatDateKey for consistency with save function
     const dateKey = formatDateKey(date);
     console.log(
@@ -3642,12 +3655,29 @@ ${
     );
 
     try {
-      const response = await fetch(`/api/journal/${dateKey}`);
+      // Choose endpoint based on demo mode
+      let response;
+      if (isDemoMode) {
+        // Demo mode: Load from shared Google Cloud journal database
+        console.log("📊 Loading from demo data (shared)");
+        response = await fetch(`/api/journal/${dateKey}`);
+      } else {
+        // User mode: Load from Firebase (user-specific)
+        const userId = getUserId();
+        console.log(`👤 Loading from user-specific data (userId: ${userId})`);
+        response = await fetch(`/api/user-journal/${userId}/${dateKey}`);
+      }
       console.log(`📡 Load response status: ${response.status}`, response);
 
       if (response.ok) {
-        const journalData = await response.json();
+        let journalData = await response.json();
         console.log(`📊 Journal data received:`, journalData);
+
+        // Handle Firebase response format (has tradingData wrapper)
+        if (journalData && journalData.tradingData) {
+          journalData = journalData.tradingData;
+          console.log(`📦 Unwrapped Firebase tradingData:`, journalData);
+        }
 
         if (journalData && Object.keys(journalData).length > 0) {
           console.log(
@@ -4149,14 +4179,34 @@ ${
         journalData
       );
 
-      // Save to Google Cloud journal database
-      const response = await fetch(`/api/journal/${selectedDateStr}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(journalData),
-      });
+      // Choose endpoint based on demo mode
+      let response;
+      if (isDemoMode) {
+        // Demo mode: Save to shared Google Cloud journal database
+        console.log("📊 Saving to demo data (shared)");
+        response = await fetch(`/api/journal/${selectedDateStr}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(journalData),
+        });
+      } else {
+        // User mode: Save to Firebase (user-specific)
+        const userId = getUserId();
+        console.log(`👤 Saving to user-specific data (userId: ${userId})`);
+        response = await fetch(`/api/user-journal`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            date: selectedDateStr,
+            tradingData: journalData,
+          }),
+        });
+      }
 
       console.log(`📡 Save response status: ${response.status}`, response);
 
