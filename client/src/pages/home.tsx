@@ -70,6 +70,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -2971,6 +2972,15 @@ ${
       return stored ? JSON.parse(stored) : {};
     }
     return {};
+  });
+
+  // Demo mode state - toggle between demo data (same for all users) and user-specific data
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("tradingJournalDemoMode");
+      return stored === "true";
+    }
+    return false;
   });
 
   // Loading state for heatmap data
@@ -6391,15 +6401,34 @@ ${
                             trade book
                           </h3>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={saveAllTradingData}
-                          className="h-8 px-3 bg-black dark:bg-black border-black dark:border-black hover:bg-gray-800 dark:hover:bg-gray-800 text-white dark:text-white"
-                          data-testid="button-save-trade-book"
-                        >
-                          Save
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mr-2">
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              Demo
+                            </span>
+                            <Switch
+                              checked={isDemoMode}
+                              onCheckedChange={(checked) => {
+                                setIsDemoMode(checked);
+                                localStorage.setItem("tradingJournalDemoMode", String(checked));
+                                if (!checked) {
+                                  setTradingDataByDate({});
+                                  localStorage.removeItem("tradingDataByDate");
+                                }
+                              }}
+                              data-testid="switch-demo-mode"
+                            />
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={saveAllTradingData}
+                            className="h-8 px-3 bg-black dark:bg-black border-black dark:border-black hover:bg-gray-800 dark:hover:bg-gray-800 text-white dark:text-white"
+                            data-testid="button-save-trade-book"
+                          >
+                            Save
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Calendar Grid - Heatmap Default View */}
