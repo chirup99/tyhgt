@@ -1012,6 +1012,98 @@ export class GoogleCloudService {
     }
   }
 
+  // ==========================================
+  // USER TRADING JOURNAL - FIREBASE STORAGE
+  // ==========================================
+
+  /**
+   * Save user trading journal data to Firebase
+   * @param userId - User ID (from credentials/session)
+   * @param date - Date in YYYY-MM-DD format
+   * @param tradingData - Trading data object
+   */
+  async saveUserTradingJournal(userId: string, date: string, tradingData: any) {
+    try {
+      const docPath = `users/${userId}/trading-journal/${date}`;
+      await this.firestore.doc(docPath).set({
+        tradingData,
+        updatedAt: new Date(),
+        date,
+        userId
+      }, { merge: true });
+      
+      console.log(`📝 Saved trading journal for user ${userId}, date: ${date}`);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Error saving user trading journal:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Load user trading journal data from Firebase
+   * @param userId - User ID (from credentials/session)
+   * @param date - Date in YYYY-MM-DD format
+   */
+  async getUserTradingJournal(userId: string, date: string) {
+    try {
+      const docPath = `users/${userId}/trading-journal/${date}`;
+      const doc = await this.firestore.doc(docPath).get();
+      
+      if (!doc.exists) {
+        console.log(`📭 No trading journal found for user ${userId}, date: ${date}`);
+        return null;
+      }
+      
+      const data = doc.data();
+      console.log(`📖 Loaded trading journal for user ${userId}, date: ${date}`);
+      return data;
+    } catch (error) {
+      console.error('❌ Error loading user trading journal:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get all trading journal entries for a user
+   * @param userId - User ID (from credentials/session)
+   */
+  async getAllUserTradingJournals(userId: string) {
+    try {
+      const collectionPath = `users/${userId}/trading-journal`;
+      const snapshot = await this.firestore.collection(collectionPath).get();
+      
+      const journals = snapshot.docs.map(doc => ({
+        date: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log(`📚 Retrieved ${journals.length} trading journal entries for user ${userId}`);
+      return journals;
+    } catch (error) {
+      console.error('❌ Error loading all user trading journals:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete user trading journal entry
+   * @param userId - User ID (from credentials/session)
+   * @param date - Date in YYYY-MM-DD format
+   */
+  async deleteUserTradingJournal(userId: string, date: string) {
+    try {
+      const docPath = `users/${userId}/trading-journal/${date}`;
+      await this.firestore.doc(docPath).delete();
+      
+      console.log(`🗑️ Deleted trading journal for user ${userId}, date: ${date}`);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Error deleting user trading journal:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
 }
 
 // Export singleton instance

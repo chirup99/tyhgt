@@ -4145,11 +4145,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User-specific trading journal endpoints
+  // ==========================================
+  // USER-SPECIFIC TRADING JOURNAL - FIREBASE
+  // ==========================================
+  
+  // Get user trading journal for a specific date
   app.get('/api/user-journal/:userId/:date', async (req, res) => {
     try {
       const { userId, date } = req.params;
-      const journalData = await storage.getUserTradingJournal(userId, date);
+      console.log(`📖 Fetching user trading journal: userId=${userId}, date=${date}`);
+      
+      const journalData = await googleCloudService.getUserTradingJournal(userId, date);
       res.json(journalData || {});
     } catch (error) {
       console.error('❌ Error fetching user journal data:', error);
@@ -4157,38 +4163,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user-journal/:userId/range/:startDate/:endDate', async (req, res) => {
+  // Get all trading journal entries for a user
+  app.get('/api/user-journal/:userId/all', async (req, res) => {
     try {
-      const { userId, startDate, endDate } = req.params;
-      const journalData = await storage.getUserTradingJournalRange(userId, startDate, endDate);
-      res.json(journalData);
+      const { userId } = req.params;
+      console.log(`📚 Fetching all trading journals for userId=${userId}`);
+      
+      const journals = await googleCloudService.getAllUserTradingJournals(userId);
+      res.json(journals);
     } catch (error) {
-      console.error('❌ Error fetching user journal range:', error);
-      res.status(500).json({ error: 'Failed to fetch user journal range' });
+      console.error('❌ Error fetching user journal data:', error);
+      res.status(500).json({ error: 'Failed to fetch user journal data' });
     }
   });
 
+  // Save user trading journal
   app.post('/api/user-journal', async (req, res) => {
     try {
       const { userId, date, tradingData } = req.body;
-      const savedJournal = await storage.saveUserTradingJournal({ userId, date, tradingData });
-      res.json({ success: true, data: savedJournal });
+      console.log(`📝 Saving user trading journal: userId=${userId}, date=${date}`);
+      
+      if (!userId || !date || !tradingData) {
+        return res.status(400).json({ error: 'Missing required fields: userId, date, tradingData' });
+      }
+      
+      const result = await googleCloudService.saveUserTradingJournal(userId, date, tradingData);
+      res.json(result);
     } catch (error) {
       console.error('❌ Error saving user journal data:', error);
       res.status(500).json({ error: 'Failed to save user journal data' });
     }
   });
 
+  // Delete user trading journal entry
   app.delete('/api/user-journal/:userId/:date', async (req, res) => {
     try {
       const { userId, date } = req.params;
-      await storage.deleteUserTradingJournal(userId, date);
-      res.json({ success: true });
+      console.log(`🗑️ Deleting user trading journal: userId=${userId}, date=${date}`);
+      
+      const result = await googleCloudService.deleteUserTradingJournal(userId, date);
+      res.json(result);
     } catch (error) {
       console.error('❌ Error deleting user journal data:', error);
       res.status(500).json({ error: 'Failed to delete user journal data' });
     }
   });
+
+  // ==========================================
+  // END USER-SPECIFIC TRADING JOURNAL
+  // ==========================================
 
   app.get('/api/stock-news/:symbol', async (req, res) => {
     const { symbol } = req.params;
