@@ -389,10 +389,10 @@ export class GoogleCloudService {
         userIdExists,
         emailExists
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error checking if user exists:', error);
       // If quota exceeded, skip check and proceed with signup attempt
-      if (error.code === 8) {
+      if (error?.code === 8) {
         console.log('⚠️ Quota exceeded, skipping duplicate check');
         return { 
           success: true, 
