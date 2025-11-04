@@ -130,21 +130,26 @@ The trading journal includes a toggle switch that allows users to switch between
 
 **Demo Mode (ON)**:
 - Displays shared demo data that is the same for all users
-- Uses Google Cloud Storage (Firestore) for data persistence
+- Uses Google Cloud Storage for data persistence
 - Ideal for learning and exploring the platform without affecting personal records
 - Saved in localStorage as `tradingJournalDemoMode = "true"`
 
 **Personal Mode (OFF)**:
-- Displays user-specific trading data stored per user in PostgreSQL
+- Displays user-specific trading data stored per user in Firebase Firestore
 - Each user has their own separate trading journal entries
-- Data is stored in the `userTradingJournal` table with `userId` foreign key
+- Data is stored in Firebase with `userId` as the document identifier
 - Saved in localStorage as `tradingJournalDemoMode = "false"`
 
 **Implementation Details**:
 - Toggle switch located in the trade book header next to the Save button
 - Preference persisted in browser localStorage
 - Switching modes clears the current data view and reloads appropriate data
-- Database table: `userTradingJournal` with columns for userId, date, trades, and journal entries
+- User identification: Auto-generated userId stored in localStorage (`tradingJournalUserId`)
+- Firebase collection: `userTradingJournal` with documents per user/date combination
+- API Endpoints: 
+  - `POST /api/user-journal` - Save user-specific trading data
+  - `GET /api/user-journal/:userId/:date` - Load user-specific trading data
+  - `DELETE /api/user-journal/:userId/:date` - Delete user-specific trading data
 
 ## API Structure
 
