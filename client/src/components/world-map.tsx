@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
+import { useMarketData } from "../hooks/useMarketData";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
 interface MarketRegion {
   name: string;
-  color: string;
   x: number;
   y: number;
   pulseDelay: number;
 }
 
 const marketRegions: MarketRegion[] = [
-  { name: "USA", color: "#3b82f6", x: 22, y: 40, pulseDelay: 0 },
-  { name: "UK", color: "#8b5cf6", x: 48, y: 28, pulseDelay: 0.5 },
-  { name: "TOKYO", color: "#ec4899", x: 85, y: 30, pulseDelay: 1 },
-  { name: "ASIA", color: "#10b981", x: 72, y: 48, pulseDelay: 1.5 },
+  { name: "USA", x: 18, y: 40, pulseDelay: 0 },
+  // { name: "CANADA", x: 16, y: 26, pulseDelay: 0.3 },
+  { name: "INDIA", x: 55, y: 45, pulseDelay: 1.2 },
+  { name: "TOKYO", x: 70, y: 40, pulseDelay: 1 },
+  { name: "HONG KONG", x: 65, y: 45, pulseDelay: 1.4 },
+  //{ name: "ASIA", x: 55, y: 35, pulseDelay: 1.5 },
 ];
 
 // World map dot coordinates extracted from the SVG
@@ -24,8 +27,47 @@ const worldMapDots =
       return [parseFloat(x), parseFloat(y)];
     });
 
+// Function to determine region color based on coordinates and market status
+const getRegionColor = (x: number, y: number, marketData: any): string => {
+  let regionName = "";
+
+  // North America - Canada (approximate x: 100-400, y: 28-90)
+  if (x >= 100 && x <= 265 && y >= 70 && y <= 180) {
+    regionName = "CANADA";
+  }
+  // North America - USA (approximate x: 100-350, y: 90-260)
+  else if (x >= 100 && x <= 350 && y >= 180 && y <= 260) {
+    regionName = "USA";
+  }
+  // Japan/Tokyo (approximate x: 660-750, y: 90-170)
+  else if (x >= 680 && x <= 740 && y >= 180 && y <= 220) {
+    regionName = "TOKYO";
+  }
+  // Hong Kong (approximate x: 600-640, y: 220-270)
+  else if (x >= 650 && x <= 680 && y >= 180 && y <= 250) {
+    regionName = "HONG KONG";
+  }
+  // India (approximate x: 540-590, y: 200-280)
+  else if (x >= 540 && x <= 590 && y >= 200 && y <= 280) {
+    regionName = "INDIA";
+  }
+  // Rest of Asia (approximate x: 480-650, y: 90-340)
+  else if (x >= 520 && x <= 740 && y >= 90 && y <= 280) {
+    regionName = "ASIA";
+  }
+
+  // Return color based on market status
+  if (regionName && marketData && marketData[regionName]) {
+    return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Green if up, red if down
+  }
+
+  // Default white for other regions
+  return "white";
+};
+
 export function WorldMap() {
   const [pulseStates, setPulseStates] = useState<Set<number>>(new Set());
+  const { marketData, loading } = useMarketData(60000); // Refresh every 60 seconds
 
   useEffect(() => {
     // Randomly activate some dots for pulsing effect
@@ -44,17 +86,18 @@ export function WorldMap() {
   }, []);
 
   return (
-    <div className="mb-6 relative">
+    <div className="mb-5 relative">
       {/* World Map with Dots */}
-      <div className="relative h-24 overflow-hidden">
+      <div className="relative h-35 overflow-hidden">
         <svg
-          viewBox="0 0 845.2 258"
+          viewBox="-10 0 1045.2 458"
           className="w-full h-full"
           preserveAspectRatio="xMidYMid slice"
         >
           {/* Continent dots */}
           {worldMapDots.map(([cx, cy], index) => {
             const isPulsing = pulseStates.has(index);
+            const dotColor = getRegionColor(cx, cy, marketData);
 
             return (
               <g key={index}>
@@ -62,7 +105,7 @@ export function WorldMap() {
                   cx={cx}
                   cy={cy}
                   r="1.9"
-                  fill="white"
+                  fill={dotColor}
                   opacity={isPulsing ? 0.8 : 0.35}
                   className="transition-opacity duration-500"
                 />
@@ -71,7 +114,7 @@ export function WorldMap() {
                     cx={cx}
                     cy={cy}
                     r="1.9"
-                    fill="white"
+                    fill={dotColor}
                     opacity={0.4}
                     className="animate-ping"
                   />
@@ -82,48 +125,39 @@ export function WorldMap() {
         </svg>
 
         {/* Market Region Indicators */}
-        {marketRegions.map((region) => (
-          <div
-            key={region.name}
-            className="absolute flex items-center gap-2"
-            style={{
-              left: `${region.x}%`,
-              top: `${region.y}%`,
-              animation: `pulse 2s ease-in-out infinite ${region.pulseDelay}s`,
-            }}
-          >
-            {/* Pulsing dot */}
-            <div className="relative">
-              <div
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: region.color }}
-              />
-              <div
-                className="absolute inset-0 w-2.5 h-2.5 rounded-full animate-ping"
-                style={{ backgroundColor: region.color, opacity: 0.6 }}
-              />
-            </div>
-            {/* Region label */}
-            <span className="text-white text-[10px] whitespace-nowrap opacity-90 tracking-wide">
-              {region.name}
-            </span>
-          </div>
-        ))}
       </div>
 
-      {/* Trading hours indicator */}
-      <div className="flex justify-center gap-3 mt-3">
-        {marketRegions.map((region) => (
-          <div key={region.name} className="flex items-center gap-1.5">
-            <div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: region.color }}
-            />
-            <span className="text-white/60 text-[10px] tracking-wide">
-              {region.name}
-            </span>
-          </div>
-        ))}
+      {/* Trading hours indicator with live market data */}
+      <div className="flex justify-center gap-3 mt-3 flex-wrap">
+        {marketRegions.map((region) => {
+          const market = marketData?.[region.name as keyof typeof marketData];
+          const color = market
+            ? market.isUp
+              ? "#10b981"
+              : "#ef4444"
+            : "#64748b";
+
+          return (
+            <div key={region.name} className="flex items-center gap-1.5">
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <span className="text-white/60 text-[10px] tracking-wide">
+                {region.name}
+              </span>
+              {market && (
+                <span className="text-[9px]" style={{ color }}>
+                  {market.isUp ? "+" : ""}
+                  {market.changePercent.toFixed(2)}%
+                </span>
+              )}
+            </div>
+          );
+        })}
+        {loading && (
+          <span className="text-white/40 text-[9px]">Updating...</span>
+        )}
       </div>
 
       <style>{`
