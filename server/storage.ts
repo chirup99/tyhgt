@@ -1,7 +1,7 @@
 import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, userTradingJournal, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults, type InsertUserTradingJournal, type SelectUserTradingJournal } from "@shared/schema";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { eq, desc as descOrder } from "drizzle-orm";
+import { eq, desc as descOrder, and } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -532,8 +532,10 @@ export class PgStorage implements IStorage {
     const result = await this.db
       .select()
       .from(userTradingJournal)
-      .where(eq(userTradingJournal.userId, userId))
-      .where(eq(userTradingJournal.date, date))
+      .where(and(
+        eq(userTradingJournal.userId, userId),
+        eq(userTradingJournal.date, date)
+      ))
       .limit(1);
     return result[0];
   }
@@ -571,8 +573,10 @@ export class PgStorage implements IStorage {
   async deleteUserTradingJournal(userId: string, date: string): Promise<void> {
     await this.db
       .delete(userTradingJournal)
-      .where(eq(userTradingJournal.userId, userId))
-      .where(eq(userTradingJournal.date, date));
+      .where(and(
+        eq(userTradingJournal.userId, userId),
+        eq(userTradingJournal.date, date)
+      ));
   }
 }
 

@@ -4145,6 +4145,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User-specific trading journal endpoints
+  app.get('/api/user-journal/:userId/:date', async (req, res) => {
+    try {
+      const { userId, date } = req.params;
+      const journalData = await storage.getUserTradingJournal(userId, date);
+      res.json(journalData || {});
+    } catch (error) {
+      console.error('❌ Error fetching user journal data:', error);
+      res.status(500).json({ error: 'Failed to fetch user journal data' });
+    }
+  });
+
+  app.get('/api/user-journal/:userId/range/:startDate/:endDate', async (req, res) => {
+    try {
+      const { userId, startDate, endDate } = req.params;
+      const journalData = await storage.getUserTradingJournalRange(userId, startDate, endDate);
+      res.json(journalData);
+    } catch (error) {
+      console.error('❌ Error fetching user journal range:', error);
+      res.status(500).json({ error: 'Failed to fetch user journal range' });
+    }
+  });
+
+  app.post('/api/user-journal', async (req, res) => {
+    try {
+      const { userId, date, tradingData } = req.body;
+      const savedJournal = await storage.saveUserTradingJournal({ userId, date, tradingData });
+      res.json({ success: true, data: savedJournal });
+    } catch (error) {
+      console.error('❌ Error saving user journal data:', error);
+      res.status(500).json({ error: 'Failed to save user journal data' });
+    }
+  });
+
+  app.delete('/api/user-journal/:userId/:date', async (req, res) => {
+    try {
+      const { userId, date } = req.params;
+      await storage.deleteUserTradingJournal(userId, date);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('❌ Error deleting user journal data:', error);
+      res.status(500).json({ error: 'Failed to delete user journal data' });
+    }
+  });
+
   app.get('/api/stock-news/:symbol', async (req, res) => {
     const { symbol } = req.params;
     
