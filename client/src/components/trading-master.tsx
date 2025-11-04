@@ -4611,16 +4611,31 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       });
 
       const prices = await Promise.all(pricePromises);
-      const pricesMap: {[key: string]: any} = {};
+      const feedPrices: {[key: string]: any} = {};
+      const watchlistPriceUpdates: {[key: string]: any} = {};
       
       prices.forEach((priceData) => {
         if (priceData) {
-          pricesMap[priceData.symbol] = priceData;
+          // Update feed stocks
+          if (feedStocks.includes(priceData.symbol)) {
+            feedPrices[priceData.symbol] = priceData;
+          }
+          // Update watchlist stocks
+          if (watchlistStocks.includes(priceData.symbol)) {
+            watchlistPriceUpdates[priceData.symbol] = priceData;
+          }
         }
       });
 
-      setLastTradedPrices(pricesMap);
-      console.log('📊 Fetched last traded prices:', pricesMap);
+      // Update state with fetched prices
+      if (Object.keys(feedPrices).length > 0) {
+        setFeedStockPrices(prev => ({ ...prev, ...feedPrices }));
+        console.log('📊 Updated feed prices with last traded:', feedPrices);
+      }
+      if (Object.keys(watchlistPriceUpdates).length > 0) {
+        setWatchlistPrices(prev => ({ ...prev, ...watchlistPriceUpdates }));
+        console.log('📊 Updated watchlist prices with last traded:', watchlistPriceUpdates);
+      }
     } catch (error) {
       console.error('Failed to fetch last traded prices:', error);
     }
@@ -4703,12 +4718,26 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               }
             });
             
-            // Update state with real-time prices
-            if (Object.keys(feedPrices).length > 0) {
-              setFeedStockPrices(prev => ({ ...prev, ...feedPrices }));
-            }
-            if (Object.keys(watchlistPriceUpdates).length > 0) {
-              setWatchlistPrices(prev => ({ ...prev, ...watchlistPriceUpdates }));
+            // Check if we have any zero prices and need to fetch last traded prices
+            const zeroSymbols = Object.entries(data.prices)
+              .filter(([_, priceData]: [string, any]) => {
+                const price = (priceData as any).price || (priceData as any).ltp || (priceData as any).close || 0;
+                return price === 0;
+              })
+              .map(([fullSymbol]) => fullSymbol.replace('NSE:', '').replace('-EQ', ''));
+            
+            if (zeroSymbols.length > 0) {
+              console.log('🔄 Detected zero prices, fetching last traded prices for:', zeroSymbols);
+              // Fetch last traded prices for symbols with zero values
+              fetchLastTradedPrices(zeroSymbols);
+            } else {
+              // Update state with real-time prices only if they're not zero
+              if (Object.keys(feedPrices).length > 0) {
+                setFeedStockPrices(prev => ({ ...prev, ...feedPrices }));
+              }
+              if (Object.keys(watchlistPriceUpdates).length > 0) {
+                setWatchlistPrices(prev => ({ ...prev, ...watchlistPriceUpdates }));
+              }
             }
             
             console.log(`📈 Real-time SSE update: ${Object.keys(data.prices).length} symbols via WebSocket`);
@@ -4802,28 +4831,22 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     };
   }, [eventSource]);
 
-  // Fetch last traded prices when live streaming is not active or prices are missing
+  // Fetch last traded prices when stocks are loaded or changed
   useEffect(() => {
     const allSymbols = Array.from(new Set([...feedStocks, ...watchlistStocks]));
     
     if (allSymbols.length === 0) return;
 
-    // Check if we need to fetch last traded prices (no live data after 5 seconds)
-    const checkTimer = setTimeout(() => {
-      const needsFetch = allSymbols.some(symbol => {
-        const feedHasData = feedStockPrices[symbol] && feedStockPrices[symbol].price > 0;
-        const watchlistHasData = watchlistPrices[symbol] && watchlistPrices[symbol].price > 0;
-        return !feedHasData && !watchlistHasData;
-      });
+    // Immediately fetch last traded prices as fallback
+    console.log('📊 Fetching last traded prices for fallback...', allSymbols);
+    
+    // Delay the fetch slightly to avoid race conditions with SSE
+    const timer = setTimeout(() => {
+      fetchLastTradedPrices(allSymbols);
+    }, 100);
 
-      if (needsFetch) {
-        console.log('📊 Live data not available, fetching last traded prices...');
-        fetchLastTradedPrices(allSymbols);
-      }
-    }, 5000); // Wait 5 seconds for live data before fetching last traded prices
-
-    return () => clearTimeout(checkTimer);
-  }, [feedStocks, watchlistStocks, feedStockPrices, watchlistPrices]);
+    return () => clearTimeout(timer);
+  }, [feedStocks.length, watchlistStocks.length]);
 
   // Simplified swipe detection
   const [startPos, setStartPos] = useState<{x: number, stock: string} | null>(null);
