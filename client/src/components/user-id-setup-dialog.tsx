@@ -115,12 +115,12 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md" data-testid="dialog-userid-setup">
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-md" data-testid="dialog-userid-setup" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle data-testid="text-dialog-title">Complete Your Profile</DialogTitle>
           <DialogDescription data-testid="text-dialog-description">
-            Choose a unique username and display name to start posting on the social feed.
+            Choose a unique username and display name to start using the social feed. This is required for first-time users.
           </DialogDescription>
         </DialogHeader>
         
@@ -174,19 +174,12 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
           </div>
         </div>
 
-        <div className="flex justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={saving}
-            data-testid="button-cancel"
-          >
-            Cancel
-          </Button>
+        <div className="flex justify-end">
           <Button
             onClick={handleSave}
             disabled={!usernameAvailable || !displayName.trim() || saving}
             data-testid="button-save"
+            className="w-full"
           >
             {saving ? (
               <>
@@ -194,7 +187,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
                 Saving...
               </>
             ) : (
-              'Save Profile'
+              'Complete Profile & Continue'
             )}
           </Button>
         </div>
