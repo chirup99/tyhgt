@@ -10,3 +10,5 @@
 [x] 10. Installed cross-env package (was missing)
 [x] 11. Verified application is running successfully on port 5000
 [x] 12. Confirmed frontend displays correctly with login page
+[x] 13. Verified Fyers API credentials (APP_ID & SECRET_KEY) are properly configured
+[x] 14. Confirmed Fyers access token workflow (daily token entry via UI)
