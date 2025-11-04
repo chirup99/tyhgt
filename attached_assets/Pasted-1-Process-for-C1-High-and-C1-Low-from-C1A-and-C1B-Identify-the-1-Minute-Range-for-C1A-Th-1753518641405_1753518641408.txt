@@ -1,0 +1,106 @@
+1. Process for C1 High and C1 Low (from C1A and C1B):
+
+* **Identify the 1-Minute Range for C1A:** The system notes the exact start and end timestamps of the C1A candle (e.g., if C1A is a 10-minute candle from 10:00 AM to 10:10 AM, it knows to look at 1-minute candles from 10:00:00 to 10:09:59).
+* **Identify the 1-Minute Range for C1B:** Similarly, it notes the exact start and end timestamps of the C1B candle (e.g., 10:10 AM to 10:20 AM).
+
+* **Scan for C1A's True High/Low:**
+    * It iterates through all the **1-minute candles** that fall *within the duration of C1A*.
+    * It finds the **absolute highest `High`** among these 1-minute candles. This is C1A's true high.
+    * It finds the **absolute lowest `Low`** among these 1-minute candles. This is C1A's true low.
+
+* **Scan for C1B's True High/Low:**
+    * It iterates through all the **1-minute candles** that fall *within the duration of C1B*.
+    * It finds the **absolute highest `High`** among these 1-minute candles. This is C1B's true high.
+    * It finds the **absolute lowest `Low`** among these 1-minute candles. This is C1B's true low.
+
+* **Determine Overall C1 High and C1 Low:**
+    * **C1 High:** `MAX(C1A's True High, C1B's True High)`
+    * **C1 Low:** `MIN(C1A's True Low, C1B's True Low)`
+2. Process for C2 High and C2 Low (from C2A and C2B):
+
+* **Identify the 1-Minute Range for C2A:** Notes start/end timestamps.
+* **Identify the 1-Minute Range for C2B:** Notes start/end timestamps.
+
+* **Scan for C2A's True High/Low:**
+    * Iterates through all **1-minute candles** within C2A's duration.
+    * Finds the **absolute highest `High`** and **absolute lowest `Low`** among them.
+
+* **Scan for C2B's True High/Low:**
+    * Iterates through all **1-minute candles** within C2B's duration.
+    * Finds the **absolute highest `High`** and **absolute lowest `Low`** among them.
+
+* **Determine Overall C2 High and C2 Low:**
+    * **C2 High:** `MAX(C2A's True High, C2B's True High)`
+    * **C2 Low:** `MIN(C2A's True Low, C2B's True Low)`
+Example: Finding High/Low Points for a 4-Candle Block of 10-Minute Candles
+
+Let's use the same 10-minute block from before:
+
+C1A (10:00 - 10:10 AM): High: 200.50, Low: 199.80 (These are the 10-min candle's reported H/L)
+
+C1B (10:10 - 10:20 AM): High: 200.90, Low: 200.30
+
+C2A (10:20 - 10:30 AM): High: 200.70, Low: 200.10
+
+C2B (10:30 - 10:40 AM): High: 201.10, Low: 200.60
+
+Underlying 1-Minute Data (Hypothetical Snippets):
+
+For C1A (10:00-10:10):
+
+10:00: 200.00 (H), 199.90 (L)
+
+10:01: 200.20 (H), 199.85 (L)
+
+...
+
+10:06: 200.50 (H), 200.30 (L)  <-- This 1-min candle contained the 10-min C1A's high
+
+...
+
+10:08: 200.00 (H), 199.80 (L) <-- This 1-min candle contained the 10-min C1A's low
+
+For C1B (10:10-10:20):
+
+...
+
+10:12: 200.90 (H), 200.70 (L) <-- This 1-min candle contained the 10-min C1B's high
+
+...
+
+10:18: 200.50 (H), 200.30 (L) <-- This 1-min candle contained the 10-min C1B's low
+
+(And similarly for C2A and C2B)
+
+Applying the Process:
+
+1. Determine Overall C1 High and C1 Low:
+* C1A's True High (from 1-min scan): 200.50 (at 10:06 AM)
+* C1A's True Low (from 1-min scan): 199.80 (at 10:08 AM)
+* C1B's True High (from 1-min scan): 200.90 (at 10:12 AM)
+* C1B's True Low (from 1-min scan): 200.30 (at 10:18 AM)
+
+* **C1 High:** `MAX(200.50, 200.90)` = **200.90** (occurred at 10:12 AM)
+* **C1 Low:** `MIN(199.80, 200.30)` = **199.80** (occurred at 10:08 AM)
+2. Determine Overall C2 High and C2 Low:
+* (Assuming similar 1-min scans for C2A and C2B to find their true highs/lows)
+* C2A's True High: 200.70 (at, say, 10:22 AM)
+* C2A's True Low: 200.10 (at, say, 10:28 AM)
+* C2B's True High: 201.10 (at, say, 10:32 AM)
+* C2B's True Low: 200.60 (at, say, 10:38 AM)
+
+* **C2 High:** `MAX(200.70, 201.10)` = **201.10** (occurred at 10:32 AM)
+* **C2 Low:** `MIN(200.10, 200.60)` = **200.10** (occurred at 10:28 AM)
+Outcome:
+
+The "4-Candle Analysis" has now precisely identified:
+
+C1 High: 200.90 (occurred at 10:12 AM)
+
+C1 Low: 199.80 (occurred at 10:08 AM)
+
+C2 High: 201.10 (occurred at 10:32 AM)
+
+C2 Low: 200.10 (occurred at 10:28 AM)
+
+These precise values and their exact 1-minute timestamps are then used as Point A and Point B for the subsequent slope calculations and dual trendline drawing, ensuring maximum accuracy 

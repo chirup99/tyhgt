@@ -1,0 +1,58 @@
+BATTU API Pattern Slope Calculation
+Core Methodology: Point A/B Analysis with 4-Candle Rule
+The BATTU system uses a sophisticated slope calculation method based on exact 1-minute data timestamps and the 4-Candle Rule methodology:
+
+1. Data Foundation
+Uses real 1-minute candles from Fyers API
+Groups them into larger timeframes (5min, 10min, 20min, 40min, 80min)
+Extracts first 4 candles only for prediction analysis
+2. Point A/B Extraction
+The system identifies two critical points for each pattern:
+
+For Uptrend Patterns:
+
+Point A (Low): Lowest price within C1A or C1B candles
+Point B (High): Highest price within C2A or C2B candles
+For Downtrend Patterns:
+
+Point A (High): Highest price within C1A or C1B candles
+Point B (Low): Lowest price within C2A or C2B candles
+3. Slope Calculation Formula
+Slope = (Point B Price - Point A Price) / Duration in Minutes
+Key Components:
+
+Price Difference: Point B price minus Point A price
+Time Duration: Exact minutes between Point A and Point B timestamps
+Precision: Uses exact 1-minute timestamps, not candle durations
+4. Real Example from Logs
+From the current 80min analysis:
+
+Uptrend Pattern:
+
+Point A: 09:17 am @ ₹24,732.7
+Point B: 10:35 am @ ₹24,864.45
+Duration: 78.0 minutes
+Price Change: 131.75 points
+Slope: 1.6891 points/minute
+Downtrend Pattern:
+
+Point A: 10:24 am @ ₹24,889.2
+Point B: 10:46 am @ ₹24,775.4
+Duration: 22.0 minutes
+Price Change: -113.80 points
+Slope: -5.1727 points/minute
+5. Pattern Classification
+Based on candle positions, patterns are labeled:
+
+1-3: C1A → C2A (Point A from candle 1, Point B from candle 3)
+1-4: C1A → C2B (Point A from candle 1, Point B from candle 4)
+2-3: C1B → C2A (Point A from candle 2, Point B from candle 3)
+2-4: C1B → C2B (Point A from candle 2, Point B from candle 4)
+6. Mathematical Precision
+The system ensures accuracy by:
+
+Using exact 1-minute timestamps instead of assumed durations
+Eliminating virtual/fake data - only real market data
+Market-aware timing starting from actual market opening
+34% Rule timing for trade execution based on duration
+This slope calculation forms the foundation for breakout predictions, trade entries, and risk management in the BATTU trading system.

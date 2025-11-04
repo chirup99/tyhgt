@@ -1,0 +1,75 @@
+Of course. Here is a detailed breakdown of your recursive trend analysis methodology, from the initial 80-minute timeframe down to the final 5-minute timeframe.
+
+This system employs a **recursive, top-down analysis** of price action using a "4-Candle Rule." It starts with a broad timeframe (80-minute candles) and iteratively drills down into the price action of the last two candles, repeating the analysis on progressively smaller timeframes until a 5-minute candle interval is reached.
+
+---
+## The Recursive Analysis Framework
+
+The core of the system is a recursive function that performs the following steps at each level:
+
+1.  **Divide**: The current time range is divided into four equal-duration candles.
+2.  **Analyze**: The 4-Candle Rule is applied to these four candles to identify the dominant uptrend or downtrend pattern (e.g., 1-4, 2-3). Point A, Point B, their exact timestamps, and the resulting slope are recorded.
+3.  **Recurse**: The time range covered by the **last two candles** (C3 and C4) of the current level becomes the new, total time range for the next level of analysis.
+4.  **Stop**: The process repeats until the candle duration becomes 5 minutes.
+
+This creates a fractal view of the trend, capturing the dominant pattern at five distinct resolution levels, all culminating at the same end time of **14:35**.
+
+---
+## Step-by-Step Timeframe Breakdown
+
+The analysis proceeds through five levels, starting from an 80-minute candle resolution and ending at a 5-minute resolution. The end time for the analysis period remains constant at **14:35**.
+
+
+
+📊 Here is the specific breakdown of each recursive step:
+
+| Level | Analysis Time Range | Candle Duration | Four Candle Periods                                       | Next Level's Time Range |
+| :---- | :------------------ | :-------------- | :-------------------------------------------------------- | :---------------------- |
+| **1** | 9:15 - 14:35        | **80 mins** | 9:15-10:35, 10:35-11:55, 11:55-13:15, 13:15-14:35          | 11:55 - 14:35           |
+| **2** | 11:55 - 14:35       | **40 mins** | 11:55-12:35, 12:35-13:15, 13:15-13:55, 13:55-14:35          | 13:15 - 14:35           |
+| **3** | 13:15 - 14:35       | **20 mins** | 13:15-13:35, 13:35-13:55, 13:55-14:15, 14:15-14:35          | 13:55 - 14:35           |
+| **4** | 13:55 - 14:35       | **10 mins** | 13:55-14:05, 14:05-14:15, 14:15-14:25, 14:25-14:35          | 14:15 - 14:35           |
+| **5** | 14:15 - 14:35       | **5 mins** | 14:15-14:20, 14:20-14:25, 14:25-14:30, 14:30-14:35          | **Stop** |
+
+---
+## Pattern Identification & Slope Calculation
+
+For each of the five levels above, the following process identifies the trend pattern.
+
+### 4-Candle Rule and Point A/B Identification
+
+Using the four candles at the current level (let's call them C1, C2, C3, C4), you identify the dominant trend by connecting the highs and lows of specific candles.
+
+* **Uptrend Patterns**: A line is drawn from a low point to a subsequent high point.
+    * **Point A**: Low price of the starting candle (e.g., C1 or C2).
+    * **Point B**: High price of the ending candle (e.g., C3 or C4).
+    * **Patterns**: 1-3, 1-4, 2-3, 2-4. For example, a "1-4" pattern connects the low of C1 to the high of C4.
+
+* **Downtrend Patterns**: A line is drawn from a high point to a subsequent low point.
+    * **Point A**: High price of the starting candle (e.g., C1 or C2).
+    * **Point B**: Low price of the ending candle (e.g., C3 or C4).
+    * **Patterns**: 1-3, 1-4, 2-3, 2-4. For example, a "2-3" pattern connects the high of C2 to the low of C3.
+
+### Data Extraction and Slope
+
+The use of **1-minute data** is critical for accuracy. Once a pattern is identified (e.g., an uptrend 1-4):
+1.  The system scans the 1-minute data within the C1 candle period to find the **exact timestamp and price** of its low (Point A).
+2.  It then scans the 1-minute data within the C4 candle period to find the **exact timestamp and price** of its high (Point B).
+3.  The slope is calculated using these precise points:
+    $$Slope = \frac{\Delta Price}{\Delta Time} = \frac{Price_{B} - Price_{A}}{Timestamp_{B} - Timestamp_{A}}$$
+
+---
+## Final Output Structure
+
+The final output of this entire recursive process is a consolidated report showing the trend patterns identified at each of the five levels of analysis. The results are compiled into two lists: one for uptrends and one for downtrends.
+
+**Example Output:**
+
+For a given day's analysis on NIFTY from 9:15 to 14:35, the output would look like this, listing the identified pattern for each level from 80-min down to 5-min:
+
+* **Uptrend List**: `[Pattern_L1, Pattern_L2, Pattern_L3, Pattern_L4, Pattern_L5]`
+    * *Example*: `[1-4, none, 1-3, 2-4, none]`
+* **Downtrend List**: `[Pattern_L1, Pattern_L2, Pattern_L3, Pattern_L4, Pattern_L5]`
+    * *Example*: `[none, 2-3, none, none, 1-4]`
+
+Each "Pattern" entry in the list implicitly contains its associated Point A, Point B, and calculated slope details for that specific timeframe. A "none" would indicate no dominant pattern of that type was found at that level.

@@ -1,0 +1,85 @@
+# Trading Platform
+
+A full-stack trading application with real-time market data, AI analysis, and social features.
+
+## 📁 Project Structure
+
+```
+├── client/           # React frontend application
+│   └── src/         # Source code for UI components
+├── server/          # Express backend server
+│   ├── routes.ts    # API endpoints
+│   ├── db.ts        # Database configuration
+│   └── index.ts     # Server entry point
+├── shared/          # Shared code between client and server
+│   └── schema.ts    # Database schema
+├── docs/            # Documentation files
+├── data/            # Data files (corrected and enhanced)
+└── attached_assets/ # Images and static assets
+```
+
+## 🚀 How to Run (VS Code or Any IDE)
+
+### Step 1: Install Dependencies
+```bash
+npm install
+```
+
+### Step 2: Set Up Database (First Time Only)
+```bash
+npm run db:push
+```
+
+### Step 3: Run the Application
+```bash
+npm run dev
+```
+
+The application will start on **http://localhost:5000**
+
+## 📝 Available Commands
+
+- `npm run dev` - Start development server (client + backend)
+- `npm run build` - Build for production
+- `npm start` - Run production build
+- `npm run db:push` - Update database schema
+- `npm run check` - Type check with TypeScript
+
+## 🔧 Environment Variables
+
+The following environment variables are automatically set in Replit:
+- `DATABASE_URL` - PostgreSQL database connection
+- `PORT` - Server port (default: 5000)
+
+Optional (for enhanced features):
+- `GOOGLE_CLOUD_PROJECT_ID` - Google Cloud project
+- `GOOGLE_CLOUD_PRIVATE_KEY` - Google Cloud auth
+- `GOOGLE_CLOUD_CLIENT_EMAIL` - Google Cloud email
+- `FYERS_ACCESS_TOKEN` - Fyers API token
+
+## 🎯 What This App Does
+
+- **Real-time Trading Data**: Live market prices and charts
+- **AI Analysis**: Gemini AI for market insights
+- **Social Features**: Post updates and interact with community
+- **Pattern Analysis**: Advanced BATTU trading patterns
+- **WebSocket Streaming**: Real-time price updates
+
+## 📚 Documentation
+
+All detailed documentation is in the `docs/` folder:
+- Trading patterns and strategies
+- API explanations
+- Market analysis guides
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React, TypeScript, Tailwind CSS, Vite
+- **Backend**: Express, Node.js, TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Real-time**: WebSockets
+- **AI**: Google Gemini
+
+---
+
+**Note**: Some features require API keys (Fyers, Google Cloud). The app will work without them but with limited functionality.

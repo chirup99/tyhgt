@@ -1,0 +1,129 @@
+import { FeedContainer } from "./components/FeedContainer";
+import { FeedHeader } from "./components/FeedHeader";
+import { FeedPost } from "./components/FeedPost";
+import { motion } from "motion/react";
+
+const feedData = [
+  {
+    user: {
+      initial: "M",
+      username: "Market Pro",
+      handle: "@trader_pro",
+      verified: true,
+      online: true,
+    },
+    content:
+      "Just spotted a strong bullish pattern on $RELIANCE! The 4-candle rule is showing perfect alignment with volume surge. This could be the breakout we've been waiting for. 📈📊",
+    timestamp: "now",
+    tags: ["#technical_analysis", "#breakout", "#nse"],
+    sentiment: "bullish" as const,
+    ticker: "$RELIANCE",
+    metrics: {
+      comments: 23,
+      reposts: 45,
+      likes: 147,
+    },
+  },
+  {
+    user: {
+      initial: "N",
+      username: "Nifty Tracker",
+      handle: "@nifty_watcher",
+      verified: false,
+      online: true,
+    },
+    content:
+      "NIFTY showing some consolidation today. Key support at 24,650 and resistance at 24,950. Watch for a breakout either side for the next big move. Volume is decreasing, indicating a potential breakout soon.",
+    timestamp: "2h",
+    tags: ["#nifty", "#levels", "#support_resistance"],
+    sentiment: "neutral" as const,
+    ticker: "$NIFTY50",
+    metrics: {
+      comments: 12,
+      reposts: 28,
+      likes: 89,
+    },
+  },
+  {
+    user: {
+      initial: "T",
+      username: "Tech Stock Guru",
+      handle: "@tech_analyst",
+      verified: true,
+      online: false,
+    },
+    content:
+      "Warning: $TCS showing bearish divergence on multiple timeframes. RSI is overbought and price is forming lower highs. Consider booking profits if you're long. Target: 3,050 levels. ⚠️📉",
+    timestamp: "4h",
+    tags: ["#tcs", "#bearish", "#rsi", "#divergence"],
+    sentiment: "bearish" as const,
+    ticker: "$TCS",
+    metrics: {
+      comments: 34,
+      reposts: 67,
+      likes: 203,
+    },
+    hasMedia: true,
+  },
+];
+
+export default function App() {
+  return (
+    <FeedContainer>
+      <FeedHeader />
+
+      <div className="space-y-6">
+        {feedData.map((post, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: index * 0.2,
+              duration: 0.6,
+              type: "spring",
+              stiffness: 100,
+            }}
+          >
+            <FeedPost {...post} />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Floating action button */}
+      <motion.button
+        className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full shadow-2xl flex items-center justify-center text-white hover:shadow-3xl transition-all duration-300"
+        whileHover={{
+          scale: 1.1,
+          boxShadow:
+            "0 25px 50px -12px rgba(168, 85, 247, 0.3)",
+        }}
+        whileTap={{ scale: 0.95 }}
+        animate={{
+          y: [0, -5, 0],
+        }}
+        transition={{
+          y: {
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+        }}
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </motion.button>
+    </FeedContainer>
+  );
+}

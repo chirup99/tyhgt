@@ -1,0 +1,101 @@
+Here is the logic explained briefly and the steps to build it.
+
+The Core Logic: A 3-Cycle Loop
+The scanner runs continuously from market open (9:15 AM IST) to close. It always begins on a 5-minute timeframe.
+
+Let's call the current timeframe 'T'. Initially, T=5 minutes.
+
+Cycle 1: Data Gathering (The "Wait" Phase)
+
+Rule: Wait until 4 complete candles of the current timeframe (T) have formed.
+
+Example (T=5 min): The scanner starts at 9:15 AM. It will wait until 9:35 AM, by which time the first four 5-minute candles (9:15-9:20, 9:20-9:25, 9:25-9:30, 9:30-9:35) are complete.
+
+Cycle 2: Analysis (The "Find" Phase)
+
+Rule: Using the first 4 candles as a baseline, analyze the 5th and 6th candles as they form to find a trading signal.
+
+This "Find" logic is your secret sauce. You need to define what you're looking for. Examples:
+
+Breakout: Does the high of candle #5 or #6 break above the highest high of the first 4 candles?
+
+Volume Surge: Is the volume of candle #5 or #6 more than double the average volume of the first 4?
+
+Mean Reversion: If the first 4 candles showed a strong trend, do candles #5 and #6 show signs of reversal?
+
+Example (T=5 min): From 9:35 AM to 9:45 AM, the scanner analyzes the 9:35-9:40 candle (#5) and the 9:40-9:45 candle (#6) for your specific pattern.
+
+Cycle 3: Timeframe Transition (The "Zoom Out" Phase)
+
+Rule: As soon as the 6th candle of timeframe T is complete, immediately double the timeframe: New T=T×2.
+
+Critical Transition Step: The scanner re-evaluates its history. The 6 completed candles of the old timeframe become 3 candles of the new, doubled timeframe.
+
+For instance, six 5-minute candles (30 minutes of data) perfectly form three 10-minute candles.
+
+Loop: The scanner goes back to Cycle 1 with the new, larger timeframe.
+
+Walkthrough Example Timeline
+This timeline makes the process crystal clear:
+
+9:15 AM: Scanner Starts. Timeframe T=5 min.
+
+9:15 - 9:35 AM: (Cycle 1) Gathers the first 4 candles.
+
+9:35 - 9:45 AM: (Cycle 2) Analyzes candles #5 and #6.
+
+At 9:45 AM: (Cycle 3) 6th candle is complete. Timeframe becomes 10 min. The loop restarts.
+
+9:45 AM: Scanner Starts New Loop. Timeframe T=10 min.
+
+It checks history and sees that the data from 9:15 to 9:45 gives it 3 completed 10-min candles already.
+
+9:45 - 9:55 AM: (Cycle 1) It only needs to wait for the 4th candle to complete (the 9:45-9:55 candle).
+
+9:55 - 10:15 AM: (Cycle 2) Analyzes the 5th (9:55-10:05) and 6th (10:05-10:15) 10-minute candles.
+
+At 10:15 AM: (Cycle 3) 6th candle is complete. Timeframe becomes 20 min. The loop restarts.
+
+10:15 AM: Scanner Starts New Loop. Timeframe T=20 min.
+
+It checks history from 9:15 AM to 10:15 AM (60 minutes of data). This gives it 3 completed 20-min candles.
+
+10:15 - 10:35 AM: (Cycle 1) Waits for the 4th candle (10:15-10:35) to complete.
+
+...and this process continues, doubling to 40 min, 80 min, etc., until the market closes.
+
+How to Implement This Scanner
+You cannot use a simple web-based scanner for this. You need to write code. The best approach is using Python.
+
+Here are the essential components you'll need to code:
+
+Data Connection: Use a broker's API (like Zerodha's Kite Connect, Alpaca, Finvasia, etc.) to get live 1-minute candle data for the stocks you want to scan.
+
+State Management: Create variables in your code to keep track of the scanner's "memory":
+
+current_timeframe (e.g., 5, 10, 20)
+
+The OHLCV (Open, High, Low, Close, Volume) data of the candles in the current cycle.
+
+Time Resampling: This is the key technical step. Use the pandas library in Python. You will fetch 1-minute data and use the pandas.resample() function to group it into 5-min, 10-min, or 20-min candles as needed. This allows you to create any timeframe dynamically.
+
+Main Loop: Write a master loop (while market_is_open:) that runs every minute. Inside the loop, it will:
+
+Fetch the latest 1-minute data.
+
+Resample all data into the current_timeframe.
+
+Check how many candles are complete.
+
+Execute the logic for Cycle 1, 2, or 3 based on the candle count.
+
+Print alerts when your "find" condition is met.
+
+Your first and most important development task is to clearly define the rules for your analysis in Cycle 2. What specific pattern are you looking for in candles 5 and 6? Once you have that, you can build the rest of the structure around it.
+
+
+
+
+
+
+

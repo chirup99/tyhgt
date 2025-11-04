@@ -1,0 +1,100 @@
+🔁 Step-by-Step Process
+STEP 1: Identify the Candle Block and Its Time Window
+You are given a higher timeframe candle (e.g., 10-minute C1B)
+
+Example:
+
+C1B timeframe = 10 mins
+
+C1B start time = 10:20 AM
+
+C1B end time = 10:30 AM
+
+C1B.low = 498
+
+STEP 2: Get 1-Minute Candles Inside That Duration
+Query all 1-minute candles between 10:20 AM to 10:29 AM
+
+These candles will look like:
+
+10:20 - 10:21
+
+10:21 - 10:22
+
+…
+
+10:29 - 10:30
+
+STEP 3: Search for the Matching Price Point (Low or High)
+🔽 For Low:
+Loop through each 1-minute candle and compare:
+
+python
+Copy
+Edit
+if one_min_candle.low == c1b.low:
+    record time of this candle
+🔼 For High (if slope is based on highs):
+Loop through 1-minute candles and compare:
+
+python
+Copy
+Edit
+if one_min_candle.high == c1b.high:
+    record time of this candle
+📌 Note: If multiple 1-minute candles match the value, take the earliest one.
+
+STEP 4: Store the Timestamp
+Once found:
+
+C1B.low = 498
+
+Timestamp = 10:24 AM
+
+Store this as TimeA
+
+Repeat the same for C2B.low (or high):
+
+Get 1-minute candles from 11:00 to 11:10
+
+Find match
+
+Store as TimeB
+
+STEP 5: Calculate Slope
+With:
+
+PriceA = 498 (C1B.low)
+
+TimeA = 10:24 AM
+
+PriceB = 475 (C2B.low)
+
+TimeB = 11:02 AM
+
+Then:
+
+python
+Copy
+Edit
+price_diff = PriceB - PriceA  # 475 - 498 = -23
+time_diff = minutes_between(TimeA, TimeB)  # 38 minutes
+slope = price_diff / time_diff  # -23 / 38
+🔧 Functions Used (Pseudocode)
+python
+Copy
+Edit
+def find_exact_time(candle_price, one_minute_data, start_time, end_time, type='low'):
+    for candle in one_minute_data:
+        if start_time <= candle.timestamp < end_time:
+            if type == 'low' and candle.low == candle_price:
+                return candle.timestamp
+            elif type == 'high' and candle.high == candle_price:
+                return candle.timestamp
+    return None  # if not found
+✅ Example Summary:
+Candle	Type	Value	Start	End	Found Time
+C1B	Low	498	10:20	10:30	10:24 AM
+C2B	Low	475	11:00	11:10	11:02 AM
+
+Slope = (475 - 498) / (11:02 - 10:24) = -0.605

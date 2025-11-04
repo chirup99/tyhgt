@@ -1,0 +1,130 @@
+When the system has a completed block of four candles (C1A, C1B, C2A, C2B), the purpose of "Pre-Analysis" is to determine the direction of potential trendlines (both uptrend AND downtrend) strictly using the raw high and low values of these four candles. This identifies the start and end points for these trendlines.
+
+Parent Candle Definition:
+The "parent candle" for this analysis is the combination or block formed by the four individual candles: C1A + C1B + C2A + C2B (or conceptually, C1 block + C2 block).
+
+Logic Steps:
+
+Identify High/Low of C1 Block (C1 High, C1 Low):
+
+Compare C1A vs C1B: The system looks at the Highs and Lows of these two candles.
+
+C1 High: This is the higher of (High of C1A, High of C1B).
+
+C1 Low: This is the lower of (Low of C1A, Low of C1B).
+
+Identify High/Low of C2 Block (C2 High, C2 Low):
+
+Compare C2A vs C2B: The system looks at the Highs and Lows of these two candles.
+
+C2 High: This is the higher of (High of C2A, High of C2B).
+
+C2 Low: This is the lower of (Low of C2A, Low of C2B).
+
+(Important Note: A single candle, C1A for example, can contribute its high to C1 High and its low to C1 Low if it contains the extreme values for that segment).
+
+Determine Trend Direction (Start and End Points):
+The system now defines the potential start and end points for both downtrend and uptrend based on the calculated C1 and C2 Highs/Lows:
+
+Downtrend:
+
+Start Point: The Higher candle (C1). This means the downtrend begins from the C1 High.
+
+End Point: The Lower candle (C2). This means the downtrend aims towards the C2 Low.
+
+(Conceptual Connection: This identifies a bearish pattern where the price moves from an overall higher point in the first half of the 4-candle block to an overall lower point in the second half).
+
+Uptrend:
+
+Start Point: The Lower candle (C1). This means the uptrend begins from the C1 Low.
+
+End Point: The Higher candle (C2). This means the uptrend aims towards the C2 High.
+
+(Conceptual Connection: This identifies a bullish pattern where the price moves from an overall lower point in the first half of the 4-candle block to an overall higher point in the second half).
+
+(The system is designed to identify and track both a potential uptrend and a potential downtrend simultaneously if the raw high/low values allow for it. It's looking for two possible scenarios playing out from the same 4-candle block.)
+
+Assign Trendline Labels (Strategy Patterns):
+Finally, based on which specific candles (C1A, C1B, C2A, C2B) define the start and end points, the system assigns a specific "trendline label" or strategy pattern. These labels correspond to how the AB slope (the primary trendline) will be drawn.
+
+1-4 pattern: Trendline drawn from C1A → C2B.
+
+2-4 pattern: Trendline drawn from C1B → C2B.
+
+1-3 pattern: Trendline drawn from C1A → C2A.
+
+2-3 pattern: Trendline drawn from C1B → C2A.
+
+(Special Case for 2-3 pattern: Due to the nature of C1B to C2A being "side by side," implying higher risk or a specific type of consolidation, the system handles this differently. While the primary slope is C1B to C2A, if this specific pattern triggers a trade, the trendline's effectiveness might be treated as ending at C2B, implying a more conservative target or exit point for this high-risk pattern.)
+
+Example: Applying Pre-Analysis to a Hypothetical 4-Candle Block
+Let's use 20-minute candles for this example:
+
+C1A (9:15-9:35 AM): High: 100.50, Low: 99.80
+
+C1B (9:35-9:55 AM): High: 100.90, Low: 100.30
+
+C2A (9:55-10:15 AM): High: 100.70, Low: 100.10
+
+C2B (10:15-10:35 AM): High: 101.10, Low: 100.60
+
+Step 1: Identify High/Low of C1 Block
+
+C1 High: higher of (C1A High: 100.50, C1B High: 100.90) = 100.90
+
+C1 Low: lower of (C1A Low: 99.80, C1B Low: 100.30) = 99.80
+
+Step 2: Identify High/Low of C2 Block
+
+C2 High: higher of (C2A High: 100.70, C2B High: 101.10) = 101.10
+
+C2 Low: lower of (C2A Low: 100.10, C2B Low: 100.60) = 100.10
+
+Step 3: Determine Trend Direction (Start and End Points)
+
+Potential Downtrend:
+
+Start Point: C1 High = 100.90 (from C1B)
+
+End Point: C2 Low = 100.10 (from C2A)
+
+Interpretation: A potential downtrend exists if the price moves from 100.90 down to 100.10.
+
+Potential Uptrend:
+
+Start Point: C1 Low = 99.80 (from C1A)
+
+End Point: C2 High = 101.10 (from C2B)
+
+Interpretation: A potential uptrend exists if the price moves from 99.80 up to 101.10.
+
+(In this example, both a downtrend and an uptrend are identified as plausible scenarios within the same 4-candle block.)
+
+Step 4: Assign Trendline Labels (Strategy Patterns)
+
+Based on the identified trends, the system will apply specific pattern labels for the AB slope:
+
+For the Potential Downtrend:
+
+Start Point (C1 High = 100.90) originated from C1B.
+
+End Point (C2 Low = 100.10) originated from C2A.
+
+This implies a trendline from C1B → C2A. According to your rules, this matches the 2-3 pattern. The system notes this as a potential high-risk downtrend where the trendline might effectively end at C2B's low for stricter management.
+
+For the Potential Uptrend:
+
+Start Point (C1 Low = 99.80) originated from C1A.
+
+End Point (C2 High = 101.10) originated from C2B.
+
+This matches the 1-4 pattern (C1A → C2B).
+
+Outcome of Pre-Analysis:
+The system now has two potential active trendlines, each with a defined start and end point, and a corresponding strategy pattern label:
+
+A potential Downtrend (2-3 pattern) from C1B (100.90) to C2A (100.10).
+
+A potential Uptrend (1-4 pattern) from C1A (99.80) to C2B (101.10).
+
+The system will now use these precisely identified trendlines for subsequent validation steps (

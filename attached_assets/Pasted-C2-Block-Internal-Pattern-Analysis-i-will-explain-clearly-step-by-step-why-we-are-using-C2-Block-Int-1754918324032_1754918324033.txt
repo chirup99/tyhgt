@@ -1,0 +1,32 @@
+C2 Block Internal Pattern Analysis i will explain clearly step by step why we are using C2 Block Internal Pattern Analysis is to find accurate pattern from pain pattern which we found from Point A/B Analysis (4 Candle Rule Methodology) according to time frame its very simple to find accurate patterns example todays niifty data time frame 80mins from Point A/B Analysis (4 Candle Rule Methodology) we found main patterns Uptrend Pattern
+1-3
+Point A (Low):
+09:17 am
+Price: 24732.7
+C1A
+Point B (High):
+12:00 pm
+Price: 24820.4
+C2A
+Duration:
+163 min
+Change:
++87.7 pts
+Slope:
+0.538 pts/min
+Downtrend Pattern
+1-4
+Point A (High):
+10:24 am
+Price: 24889.2
+C1A
+Point B (Low):
+02:12 pm
+Price: 24646.6
+C2B
+Duration:
+228 min
+Change:
+-242.6 pts
+Slope:
+-1.064 pts/min but its not pefect pattern few time it makes fails break out in order to find accurate pattern we have to break down existing pattern now we had two patterns 80min is uptrend 1-3 for downtrend 1-4 of C1A,C1B,C2A,C2B for range is9:30-14:35 now we will breakdown current patter to get accurate pattern for that we have to use only c2a3rd,c2b 4th of current candle range is 11:55 to 14:35 but its one problem now we had only 2 candles in order to get patterns we need 4 candles so its very simple for 80 mins time frame we had 2 candles for range 11:55 to 14:35 to get split time frame to half now we get 4 candles(c3a1,c3b,c4a,c4b2 for range 11:55 to 14:35 with time 40 mins then find patterns for uptrend ,downtrend for todays nifty 40mins range 11:55 to 14:35 uptrend is 2-3,downtrend 1-4 always use 1 min data for exact time for point A and Point B now we got mini pattern for 40 mins but its not over we do recusrves till 5 mins example now we found 40 mins pattern from 80 mins next find 20mins pattern from 40 mins of 3rd,4th candles example for 40 mins range is 11:55 to 14:35 for 3rd ,4th candle range is 13:15 to 14:35 split it half to get 4 candles for 20 mins time frame find patterns then use 3rd and 4th candle of 20mins range 13:55 to 14:35 split it into half 10mins find pattern then use 3rd and 4th candle range 14:15 to 14:35 find patterns do same for fin5 mins patterns list out all patterns uptrend and downtrend todys nity list is down trend (1-4(80min),1-4(40mins),1-4(20mn),1-4(10mins),1-4(5mins)) uptrend(2-3,2-3,2-3,2-3,1-3)  integrate Point A/B Analysis (4 Candle Rule Methodology) for real data avoid fake data
