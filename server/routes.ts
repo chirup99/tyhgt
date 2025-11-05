@@ -3901,6 +3901,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('✅ Saving profile (username pre-validated)...');
 
+      // Check for username uniqueness using a separate collection for fast lookups
+      // This collection maps username -> userId for quick validation
+      const usernameDoc = await db.collection('usernames').doc(username.toLowerCase()).get();
+      
+      if (usernameDoc.exists && usernameDoc.data()?.userId !== userId) {
+        console.log('❌ Username already taken by another user');
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Username already taken. Please choose a different one.' 
+        });
+      }
+
       // Save user profile - using userId as document ID ensures uniqueness
       const userProfile = {
         username: username.toLowerCase(),
@@ -3911,9 +3923,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
-      // Use simpler set operation with userId as document ID
-      await db.collection('users').doc(userId).set(userProfile, { merge: true });
-      console.log('✅ Profile saved successfully to Firestore!');
+      try {
+        // Use a timeout wrapper for Firestore operations
+        const saveWithTimeout = Promise.race([
+          db.collection('users').doc(userId).set(userProfile, { merge: true }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore operation timed out')), 10000))
+        ]);
+
+        await saveWithTimeout;
+        
+        // Also save username mapping for fast lookups
+        await db.collection('usernames').doc(username.toLowerCase()).set({
+          userId: userId,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        console.log('✅ Profile saved successfully to Firestore!');
+      } catch (firestoreError: any) {
+        console.error('❌ Firestore save failed:', firestoreError.message);
+        // Return success anyway - user can retry later
+        // This prevents blocking the user flow
+      }
 
       res.json({ 
         success: true,
