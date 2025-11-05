@@ -182,3 +182,9 @@
 [x] 182. Profile save now returns actual errors if Firestore fails (no false success)
 [x] 183. Restarted workflow successfully - application running on port 5000
 [x] 184. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ FIRESTORE PROFILE SAVE FIX COMPLETED - PROFILES NOW PERSIST CORRECTLY!
+[x] 185. Updated signup flow to save "Name" as displayName in Firebase during registration
+[x] 186. Modified UserIdSetupDialog to remove displayName field and add DOB (Date of Birth) field
+[x] 187. Updated backend /api/user/profile to accept dob instead of displayName
+[x] 188. Updated profile check logic to only require username (displayName saved during signup)
+[x] 189. Restarted workflow successfully - application running on port 5000
+[x] 190. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ SIGNUP FLOW REDESIGN COMPLETED - NAME IN SIGNUP, USERNAME+DOB IN POPUP!
