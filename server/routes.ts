@@ -4698,19 +4698,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const dailyNewsPosts = [];
       
-      // Get existing posts from the last 24 hours to check for duplicates (prevent same news with different sources)
+      // Get existing finance news from Firebase (last 24 hours) to check for duplicates
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       let existingPosts = [];
       try {
-        if (storage.db && storage.db.select) {
-          const { gte } = await import('drizzle-orm');
-          existingPosts = await storage.db.select().from(socialPosts).where(gte(socialPosts.createdAt, twentyFourHoursAgo)) || [];
-        }
+        const admin = await import('firebase-admin');
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        
+        const financeNewsSnapshot = await db.collection('finance_news')
+          .where('createdAt', '>=', twentyFourHoursAgo)
+          .get();
+        
+        existingPosts = financeNewsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
       } catch (error) {
-        console.log('Error fetching existing posts, continuing without duplicate check:', error);
+        console.log('Error fetching existing finance news from Firebase, continuing without duplicate check:', error);
         existingPosts = [];
       }
-      console.log(`📰 Found ${existingPosts.length} existing posts from last 24 hours for duplicate check`);
+      console.log(`📰 Found ${existingPosts.length} existing finance news from last 24 hours for duplicate check`);
       
       // Get comprehensive finance news from Google News  
       try {
@@ -4754,21 +4762,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const stockMentions = article.stockMentions && article.stockMentions.length > 0 ? article.stockMentions : [];
               
               const newsPost = {
-                authorUsername: 'Daily_News_Profile',
+                authorUsername: 'finance_news',
                 authorDisplayName: 'Finance News',
                 content: `📰 ${article.title}\n\n${article.description}\n\n🔗 Source: ${article.source}`,
                 stockMentions: stockMentions,
                 tags: ['news', 'finance', 'market', 'google-news', ...(article.category ? [article.category] : [])],
-                createdAt: new Date()
+                sentiment: 'neutral',
+                likes: 0,
+                comments: 0,
+                reposts: 0,
+                hasImage: false,
+                createdAt: new Date(),
+                updatedAt: new Date()
               };
               
-              if (storage.db?.insert) {
-                const dbResult = await storage.db.insert(socialPosts).values({
-                  ...newsPost,
-                  updatedAt: new Date()
-                }).returning();
-                dailyNewsPosts.push(dbResult[0]);
-                console.log(`✅ Posted finance news: ${article.title.substring(0, 50)}...`);
+              // Save to Firebase 'finance_news' collection instead of PostgreSQL
+              try {
+                const admin = await import('firebase-admin');
+                const { getFirestore } = await import('firebase-admin/firestore');
+                const db = getFirestore();
+                
+                const docRef = await db.collection('finance_news').add(newsPost);
+                dailyNewsPosts.push({ id: docRef.id, ...newsPost });
+                console.log(`✅ Posted finance news to Firebase: ${article.title.substring(0, 50)}...`);
+              } catch (error) {
+                console.error(`❌ Error saving finance news to Firebase:`, error);
               }
             } else {
               console.log(`📰 Skipping duplicate news (ignoring source differences): ${article.title.substring(0, 50)}...`);
@@ -4796,7 +4814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Social Posts API endpoints
   app.get('/api/social-posts', async (req, res) => {
     try {
-      console.log('📱 Fetching social posts from Firebase (user posts) and PostgreSQL (finance news)');
+      console.log('📱 Fetching social posts from Firebase (user posts and finance news)');
       
       const allPosts = [];
       
@@ -4825,68 +4843,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('⚠️ Error fetching user posts from Firebase:', error.message);
       }
       
-      // 2. Fetch finance news from PostgreSQL database
-      if (storage.db?.select) {
-        try {
-          const newsPosts = await storage.db
-            .select()
-            .from(socialPosts)
-            .orderBy(desc(socialPosts.createdAt))
-            .limit(50);
-          
-          const formattedNewsPosts = newsPosts.map(post => ({
-            ...post,
-            source: 'postgresql'
-          }));
-          
-          allPosts.push(...formattedNewsPosts);
-          console.log(`💾 Retrieved ${newsPosts.length} finance news posts from PostgreSQL`);
-        } catch (error: any) {
-          if (error.code === '42703' && error.message.includes('has_images')) {
-            // Database still has old schema, use raw SQL for backward compatibility
-            console.log('⚠️ Using backward compatibility mode for database schema migration');
-            try {
-              const result = await storage.db.execute(sql`
-                SELECT id, author_username, author_display_name, author_avatar, 
-                       author_verified, author_followers, content, likes, comments, reposts,
-                       tags, stock_mentions, sentiment, 
-                       has_image, image_url, 
-                       created_at, updated_at
-                FROM social_posts 
-                ORDER BY created_at DESC 
-                LIMIT 100
-              `);
-              
-              const compatiblePosts = result.rows.map((row: any) => ({
-                id: row.id,
-                authorUsername: row.author_username,
-                authorDisplayName: row.author_display_name,
-                authorAvatar: row.author_avatar,
-                authorVerified: row.author_verified,
-                authorFollowers: row.author_followers,
-                content: row.content,
-                likes: row.likes,
-                comments: row.comments,
-                reposts: row.reposts,
-                tags: row.tags,
-                stockMentions: row.stock_mentions,
-                sentiment: row.sentiment,
-                hasImages: row.has_image, // Map old column to new property
-                imageUrls: row.image_url ? [row.image_url] : [], // Convert single image to array
-                createdAt: row.created_at,
-                updatedAt: row.updated_at
-              }));
-              
-              console.log(`✅ Retrieved ${compatiblePosts.length} social posts using compatibility mode`);
-              return res.json(compatiblePosts);
-            } catch (compatError) {
-              console.error('❌ Compatibility mode also failed:', compatError);
-              throw compatError;
-            }
-          } else {
-            throw error;
-          }
-        }
+      // 2. Fetch finance news from Firebase Firestore (separate collection)
+      try {
+        const admin = await import('firebase-admin');
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        
+        const financeNewsSnapshot = await db.collection('finance_news')
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get();
+        
+        const financePosts = financeNewsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : new Date(doc.data().createdAt),
+          updatedAt: doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : new Date(doc.data().updatedAt),
+          source: 'firebase',
+          isFinanceNews: true
+        }));
+        
+        allPosts.push(...financePosts);
+        console.log(`💰 Retrieved ${financePosts.length} finance news posts from Firebase`);
+      } catch (error: any) {
+        console.log('⚠️ Error fetching finance news from Firebase:', error.message);
       }
       
       // 3. Merge and sort all posts by createdAt (newest first)
@@ -4896,7 +4876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return dateB.getTime() - dateA.getTime();
       });
       
-      console.log(`✅ Total posts fetched: ${sortedPosts.length} (Firebase: ${sortedPosts.filter(p => p.source === 'firebase').length}, PostgreSQL: ${sortedPosts.filter(p => p.source === 'postgresql').length})`);
+      console.log(`✅ Total posts fetched: ${sortedPosts.length} (User posts + Finance news from Firebase)`);
       
       res.json(sortedPosts);
     } catch (error) {
