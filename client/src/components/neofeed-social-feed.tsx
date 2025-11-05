@@ -7,7 +7,7 @@ import {
   Search, Bell, Settings, MessageCircle, Repeat, Heart, 
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
-  Copy, ExternalLink, X, Send, Bot, Trash2
+  Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -729,7 +729,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
 
         {/* Filter Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['All', 'Bullish', 'Bearish', 'Symbol', 'Technical Analysis', 'News', 'Options'].map((filter, index) => (
+          {['All', 'Bullish', 'Bearish', 'Symbol', 'Technical Analysis', 'News', 'Options', 'Profile'].map((filter, index) => (
             <Button
               key={filter}
               onClick={filter === 'All' ? onAllClick : () => onFilterChange(filter)}
@@ -759,6 +759,100 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
         initialQuery={chatQuery}
       />
     </>
+  );
+}
+
+function ProfileHeader() {
+  const currentUser = auth.currentUser;
+  const displayName = localStorage.getItem('displayName') || '';
+  const username = localStorage.getItem('username') || '';
+  const bio = localStorage.getItem('bio') || '';
+  const [activeTab, setActiveTab] = useState('Posts');
+
+  // Get user initials for avatar
+  const initials = displayName ? displayName.charAt(0).toUpperCase() : username.charAt(0).toUpperCase();
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 mb-6">
+      {/* Cover Photo */}
+      <div className="h-48 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 relative">
+        {/* Profile Picture - overlapping cover */}
+        <div className="absolute -bottom-16 left-4">
+          <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-800">
+            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-4xl font-bold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+
+      {/* Profile Info */}
+      <div className="pt-20 px-4 pb-4">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-gray-900 dark:text-white font-bold text-2xl flex items-center gap-2">
+              {displayName || username}
+              <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-current" />
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">@{username}</p>
+          </div>
+          <Button variant="outline" className="rounded-full px-6 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+            Edit profile
+          </Button>
+        </div>
+
+        {/* Bio */}
+        {bio && (
+          <p className="text-gray-900 dark:text-white mb-4 text-base">
+            {bio}
+          </p>
+        )}
+
+        {/* Meta Info */}
+        <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400 text-sm mb-4">
+          <div className="flex items-center gap-1">
+            <MapPin className="w-4 h-4" />
+            <span>India</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Calendar className="w-4 h-4" />
+            <span>Joined {new Date().getFullYear()}</span>
+          </div>
+        </div>
+
+        {/* Follower Stats */}
+        <div className="flex gap-4 text-sm mb-4">
+          <button className="hover:underline">
+            <span className="font-bold text-gray-900 dark:text-white">200</span>
+            <span className="text-gray-600 dark:text-gray-400 ml-1">Following</span>
+          </button>
+          <button className="hover:underline">
+            <span className="font-bold text-gray-900 dark:text-white">111</span>
+            <span className="text-gray-600 dark:text-gray-400 ml-1">Followers</span>
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-8 border-b border-gray-200 dark:border-gray-700">
+          {['Posts', 'Media', 'Likes'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-3 px-2 font-medium transition-colors relative ${
+                activeTab === tab
+                  ? 'text-gray-900 dark:text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              {tab}
+              {activeTab === tab && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full"></div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1631,6 +1725,10 @@ export default function NeoFeedSocialFeed() {
     );
   }
 
+  // Get current user for Profile filter
+  const currentUser = auth.currentUser;
+  const currentUserUsername = localStorage.getItem('username');
+
   // Apply filter tabs to search results
   let filteredData: FeedPost[] = selectedFilter === 'All' 
     ? searchFilteredData
@@ -1640,6 +1738,8 @@ export default function NeoFeedSocialFeed() {
     ? searchFilteredData.filter(post => post.sentiment === 'bullish')
     : selectedFilter === 'Bearish'
     ? searchFilteredData.filter(post => post.sentiment === 'bearish')
+    : selectedFilter === 'Profile'
+    ? searchFilteredData.filter(post => post.authorUsername === currentUserUsername || post.user?.handle === currentUserUsername)
     : searchFilteredData.filter(post => post.tags?.some(tag => tag.toLowerCase().includes(selectedFilter.toLowerCase())));
 
   // Sort posts - prioritize posts with symbols (stockMentions) to display on top
@@ -1806,6 +1906,9 @@ export default function NeoFeedSocialFeed() {
       <div className="flex-1 flex gap-6 px-4 py-6 max-w-7xl mx-auto">
         {/* Social Feed Posts - Left Side */}
         <div className="flex-1 max-w-4xl">
+          {/* Show Profile Header when Profile filter is selected */}
+          {selectedFilter === 'Profile' && <ProfileHeader />}
+          
           <div className="space-y-6">
             {feedData.map((post) => (
               <PostCard key={post.id} post={post} />
