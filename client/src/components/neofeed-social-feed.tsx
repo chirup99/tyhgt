@@ -1605,6 +1605,7 @@ export default function NeoFeedSocialFeed() {
   const [isAtTop, setIsAtTop] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [currentUserUsername, setCurrentUserUsername] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
@@ -1636,7 +1637,7 @@ export default function NeoFeedSocialFeed() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check if user has profile (username) when component mounts
+  // Check if user has profile (username) when component mounts and fetch real username from Firebase
   useEffect(() => {
     const checkUserProfile = async () => {
       const user = auth.currentUser;
@@ -1668,6 +1669,11 @@ export default function NeoFeedSocialFeed() {
             hasDOB: !!profileData.profile?.dob,
             profileData: profileData.profile
           });
+
+          // Store real username from Firebase for Profile filter
+          if (profileData.profile?.username) {
+            setCurrentUserUsername(profileData.profile.username);
+          }
 
           // Show dialog only if user doesn't have username or DOB
           if (!profileData.profile || !profileData.profile.username || !profileData.profile.dob) {
@@ -1796,11 +1802,7 @@ export default function NeoFeedSocialFeed() {
     );
   }
 
-  // Get current user for Profile filter
-  const currentUser = auth.currentUser;
-  const currentUserUsername = localStorage.getItem('username');
-
-  // Apply filter tabs to search results
+  // Apply filter tabs to search results - using real Firebase username from state
   let filteredData: FeedPost[] = selectedFilter === 'All' 
     ? searchFilteredData
     : selectedFilter === 'Symbol' 
