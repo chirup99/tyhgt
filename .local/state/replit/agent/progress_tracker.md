@@ -82,3 +82,4 @@
 [x] 82. Restarted workflow - server running successfully on port 5000
 [x] 83. Verified frontend displays correctly - PERALA login page fully functional
 [x] 84. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅ NOVEMBER 5, 2025 MIGRATION COMPLETED - ALL SYSTEMS GO!
+[ ] 85. INVESTIGATING: Profile save to Firestore not completing - checking permissions
