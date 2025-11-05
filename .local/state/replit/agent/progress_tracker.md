@@ -114,3 +114,9 @@
 [x] 114. Restarted workflow - server running successfully on port 5000
 [x] 115. Verified frontend displays correctly - PERALA login page fully functional
 [x] 116. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ FINAL MIGRATION COMPLETED - ALL IMPORT TASKS FINISHED!
+[x] 117. Added visible close button (X) to User ID Setup Dialog
+[x] 118. Fixed dialog to allow users to close without completing profile
+[x] 119. Profile save/fetch uses Firestore exclusively (not PostgreSQL)
+[x] 120. Dialog appears only when user is logged in but has no profile in Firestore
+[x] 121. Restarting workflow to apply dialog close button fix
+[x] 122. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ USER PROFILE DIALOG FIX COMPLETED!

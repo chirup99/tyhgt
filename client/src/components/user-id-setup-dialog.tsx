@@ -5,11 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from './ui/dialog';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
-import { CheckCircle, X, Loader2 } from 'lucide-react';
+import { CheckCircle, X as XIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '../firebase';
 
@@ -117,6 +118,10 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md" data-testid="dialog-userid-setup">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground" onClick={onClose} data-testid="button-close-dialog">
+          <XIcon className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
         <DialogHeader>
           <DialogTitle data-testid="text-dialog-title">Complete Your Profile</DialogTitle>
           <DialogDescription data-testid="text-dialog-description">
@@ -146,7 +151,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
                   <CheckCircle className="h-4 w-4 text-green-500" data-testid="icon-available" />
                 )}
                 {!checkingUsername && usernameAvailable === false && (
-                  <X className="h-4 w-4 text-red-500" data-testid="icon-unavailable" />
+                  <XIcon className="h-4 w-4 text-red-500" data-testid="icon-unavailable" />
                 )}
               </div>
             </div>
