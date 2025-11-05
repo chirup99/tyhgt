@@ -156,3 +156,13 @@
 [x] 156. Removed incorrect use of getUserDisplayName() for both fields
 [x] 157. Restarting workflow to apply profile dialog and post creation fixes
 [x] 158. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ PROFILE DIALOG & POST CREATION FIX COMPLETED!
+[x] 159. Moved username/displayName setup to landing page (after login/signup)
+[x] 160. Profile dialog now appears on landing page after Google/email authentication
+[x] 161. Landing page checks Firebase for existing profile before showing dialog
+[x] 162. Removed profile dialog entirely from social feed component
+[x] 163. Social feed no longer shows any profile setup dialogs
+[x] 164. Profile data stored in Firebase and localStorage during login flow
+[x] 165. Posts correctly use saved username and displayName from user profile
+[x] 166. Simplified social feed to focus only on displaying posts
+[x] 167. Restarting workflow to apply all profile flow changes
+[x] 168. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ PROFILE SETUP ON LOGIN PAGE COMPLETED!

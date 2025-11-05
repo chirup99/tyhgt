@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from "firebase/auth";
+import { UserIdSetupDialog } from "@/components/user-id-setup-dialog";
 
 export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +19,8 @@ export default function Landing() {
   const [name, setName] = useState("");
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
@@ -38,7 +41,30 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        window.location.href = "/app";
+        // Check if user has a profile in Firebase
+        const profileResponse = await fetch('/api/user/profile', {
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+        
+        const profileData = await profileResponse.json();
+        
+        // Store user ID for later use
+        localStorage.setItem('currentUserId', user.uid);
+        localStorage.setItem('currentUserEmail', user.email || '');
+        setPendingUserId(user.uid);
+        
+        // If profile exists, go to app. Otherwise, show profile setup dialog
+        if (profileData.success && profileData.profile && profileData.profile.username) {
+          // Profile exists, save to localStorage and redirect
+          localStorage.setItem('currentUsername', profileData.profile.username);
+          localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+          window.location.href = "/app";
+        } else {
+          // No profile, show dialog
+          setShowProfileDialog(true);
+        }
       } else {
         toast({
           title: "Authentication Failed",
@@ -109,11 +135,34 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        toast({
-          title: "Success!",
-          description: isLogin ? "Welcome back!" : "Account created successfully!",
+        // Check if user has a profile in Firebase
+        const profileResponse = await fetch('/api/user/profile', {
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
         });
-        window.location.href = "/app";
+        
+        const profileData = await profileResponse.json();
+        
+        // Store user ID for later use
+        localStorage.setItem('currentUserId', user.uid);
+        localStorage.setItem('currentUserEmail', user.email || '');
+        setPendingUserId(user.uid);
+        
+        // If profile exists, go to app. Otherwise, show profile setup dialog
+        if (profileData.success && profileData.profile && profileData.profile.username) {
+          // Profile exists, save to localStorage and redirect
+          localStorage.setItem('currentUsername', profileData.profile.username);
+          localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+          toast({
+            title: "Success!",
+            description: isLogin ? "Welcome back!" : "Account created successfully!",
+          });
+          window.location.href = "/app";
+        } else {
+          // No profile, show dialog
+          setShowProfileDialog(true);
+        }
       } else {
         const data = await response.json();
         toast({
@@ -135,6 +184,20 @@ export default function Landing() {
     } finally {
       setIsEmailLoading(false);
     }
+  };
+
+  const handleProfileSetupSuccess = (username: string, displayName: string) => {
+    // Save profile to localStorage
+    localStorage.setItem('currentUsername', username);
+    localStorage.setItem('currentDisplayName', displayName);
+    
+    toast({
+      title: "Profile Created!",
+      description: "Welcome to PERALA!",
+    });
+    
+    // Redirect to app
+    window.location.href = "/app";
   };
 
   return (
@@ -250,6 +313,13 @@ export default function Landing() {
           </div>
         </div>
       </div>
+      
+      {/* Profile Setup Dialog */}
+      <UserIdSetupDialog 
+        isOpen={showProfileDialog}
+        onClose={() => {}} // Don't allow closing without completing profile
+        onSuccess={handleProfileSetupSuccess}
+      />
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PostCreationPanel } from './post-creation-panel';
 import { LiveBanner } from './live-banner';
-import { UserIdSetupDialog } from './user-id-setup-dialog';
 import type { SocialPost } from '@shared/schema';
 import { 
   Search, Bell, Settings, MessageCircle, Repeat, Heart, 
@@ -1431,30 +1430,7 @@ export default function NeoFeedSocialFeed() {
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
   const [isAtTop, setIsAtTop] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showUserIdDialog, setShowUserIdDialog] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { currentUser, updateProfile, loading: userLoading, profileChecked } = useCurrentUser();
-  
-  // Check if user needs to set up their profile
-  // Only show dialog after profile has been checked from Firebase
-  useEffect(() => {
-    // User is logged in and profile has been checked
-    if (profileChecked && !userLoading && currentUser.userId && currentUser.email) {
-      // If username exists, close the dialog
-      if (currentUser.username) {
-        setShowUserIdDialog(false);
-      } 
-      // If no username, show the dialog
-      else {
-        setShowUserIdDialog(true);
-      }
-    }
-  }, [profileChecked, userLoading, currentUser.userId, currentUser.email, currentUser.username]);
-
-  const handleUserIdSetupSuccess = (username: string, displayName: string) => {
-    updateProfile(username, displayName);
-    setShowUserIdDialog(false);
-  };
   
   const { data: posts = [], isLoading, error, isFetching, refetch } = useQuery({
     queryKey: ['/api/social-posts'],
@@ -1783,12 +1759,6 @@ export default function NeoFeedSocialFeed() {
         </div>
       </div>
 
-      {/* User ID Setup Dialog */}
-      <UserIdSetupDialog 
-        isOpen={showUserIdDialog}
-        onClose={() => setShowUserIdDialog(false)}
-        onSuccess={handleUserIdSetupSuccess}
-      />
     </div>
   );
 }
