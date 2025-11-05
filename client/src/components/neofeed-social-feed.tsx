@@ -1476,6 +1476,11 @@ export default function NeoFeedSocialFeed() {
       }
 
       try {
+        console.log('🔍 Checking profile for Firebase user:', {
+          uid: user.uid,
+          email: user.email
+        });
+
         const idToken = await user.getIdToken();
         const response = await fetch('/api/user/profile', {
           headers: {
@@ -1485,9 +1490,13 @@ export default function NeoFeedSocialFeed() {
 
         if (response.ok) {
           const profileData = await response.json();
-          console.log('📋 Profile check on social feed:', {
+          console.log('📋 Profile check response:', {
+            userId: profileData.userId,
+            email: profileData.email,
             hasProfile: !!profileData.profile,
-            hasUsername: !!profileData.profile?.username
+            hasUsername: !!profileData.profile?.username,
+            hasDOB: !!profileData.profile?.dob,
+            profileData: profileData.profile
           });
 
           // Show dialog only if user doesn't have username or DOB
@@ -1497,6 +1506,8 @@ export default function NeoFeedSocialFeed() {
           } else {
             console.log('✅ Profile complete, user can use social feed');
           }
+        } else {
+          console.error('❌ Profile check failed with status:', response.status);
         }
       } catch (error) {
         console.error('Error checking profile:', error);
