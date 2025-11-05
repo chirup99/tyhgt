@@ -16,24 +16,26 @@ export function useCurrentUser() {
     displayName: null
   });
   const [loading, setLoading] = useState(true);
+  const [profileChecked, setProfileChecked] = useState(false);
 
   useEffect(() => {
-    // Load user data from localStorage and fetch profile
+    // Load user data from localStorage and fetch profile from Firebase
     const loadUserData = async () => {
       const savedUserId = localStorage.getItem('currentUserId');
       const savedUserEmail = localStorage.getItem('currentUserEmail');
       const savedUsername = localStorage.getItem('currentUsername');
       const savedDisplayName = localStorage.getItem('currentDisplayName');
       
-      if (savedUserId && savedUserEmail) {
-        setCurrentUser({
-          userId: savedUserId,
-          email: savedUserEmail,
-          username: savedUsername,
-          displayName: savedDisplayName
-        });
+      // Set initial user data from localStorage
+      setCurrentUser({
+        userId: savedUserId,
+        email: savedUserEmail,
+        username: savedUsername,
+        displayName: savedDisplayName
+      });
 
-        // Fetch fresh profile data from backend
+      // Always fetch fresh profile data from Firebase (via backend)
+      if (savedUserId && savedUserEmail) {
         try {
           const user = auth.currentUser;
           if (user) {
@@ -48,12 +50,16 @@ export function useCurrentUser() {
               const data = await response.json();
               if (data.success && data.profile) {
                 const profile = data.profile;
+                // Update with Firebase profile data
                 updateUser(
                   savedUserId,
                   savedUserEmail,
                   profile.username,
                   profile.displayName
                 );
+              } else {
+                // Profile doesn't exist in Firebase, clear username/displayName
+                updateUser(savedUserId, savedUserEmail, null, null);
               }
             }
           }
@@ -62,6 +68,7 @@ export function useCurrentUser() {
         }
       }
       
+      setProfileChecked(true);
       setLoading(false);
     };
 
@@ -71,11 +78,17 @@ export function useCurrentUser() {
   const updateUser = (userId: string, email: string, username?: string | null, displayName?: string | null) => {
     localStorage.setItem('currentUserId', userId);
     localStorage.setItem('currentUserEmail', email);
+    
     if (username) {
       localStorage.setItem('currentUsername', username);
+    } else {
+      localStorage.removeItem('currentUsername');
     }
+    
     if (displayName) {
       localStorage.setItem('currentDisplayName', displayName);
+    } else {
+      localStorage.removeItem('currentDisplayName');
     }
     
     setCurrentUser({ 
@@ -128,6 +141,7 @@ export function useCurrentUser() {
   return {
     currentUser,
     loading,
+    profileChecked,
     updateUser,
     updateProfile,
     clearUser,

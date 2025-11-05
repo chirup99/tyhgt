@@ -115,12 +115,12 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" data-testid="dialog-userid-setup" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md" data-testid="dialog-userid-setup">
         <DialogHeader>
           <DialogTitle data-testid="text-dialog-title">Complete Your Profile</DialogTitle>
           <DialogDescription data-testid="text-dialog-description">
-            Choose a unique username and display name to start using the social feed. This is required for first-time users.
+            Choose a unique username and display name to start using the social feed.
           </DialogDescription>
         </DialogHeader>
         

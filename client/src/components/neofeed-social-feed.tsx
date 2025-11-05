@@ -1433,14 +1433,18 @@ export default function NeoFeedSocialFeed() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserIdDialog, setShowUserIdDialog] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { hasUsername, updateProfile, isLoggedIn, loading: userLoading } = useCurrentUser();
+  const { hasUsername, updateProfile, isLoggedIn, loading: userLoading, profileChecked } = useCurrentUser();
   
   // Check if user needs to set up their profile
+  // Only show dialog after profile has been checked from Firebase
   useEffect(() => {
-    if (!userLoading && isLoggedIn() && !hasUsername()) {
+    if (profileChecked && !userLoading && isLoggedIn() && !hasUsername()) {
       setShowUserIdDialog(true);
+    } else if (profileChecked && hasUsername()) {
+      // Profile exists, ensure dialog is closed
+      setShowUserIdDialog(false);
     }
-  }, [userLoading, isLoggedIn, hasUsername]);
+  }, [profileChecked, userLoading, isLoggedIn, hasUsername]);
 
   const handleUserIdSetupSuccess = (username: string, displayName: string) => {
     updateProfile(username, displayName);

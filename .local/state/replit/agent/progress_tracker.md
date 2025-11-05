@@ -88,3 +88,10 @@
 [x] 88. Restarted workflow - server running successfully on port 5000
 [x] 89. Verified frontend displays correctly - PERALA login page fully functional
 [x] 90. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ FINAL MIGRATION COMPLETED - ALL IMPORT TASKS FINISHED!
+[x] 91. Fixed user ID setup dialog to properly check Firebase profile before showing
+[x] 92. Enabled close button on profile setup dialog - users can now dismiss it
+[x] 93. Auto-fetch user profile from Firebase when opening social feed
+[x] 94. Dialog only shows when profile doesn't exist in Firebase (not just localStorage)
+[x] 95. Updated useCurrentUser hook to always fetch from Firebase and track profileChecked state
+[x] 96. Restarted workflow successfully - all systems operational
+[x] 97. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ USER PROFILE DIALOG FIX COMPLETED!
