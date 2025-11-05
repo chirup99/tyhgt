@@ -3884,6 +3884,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post('/api/user/profile', async (req, res) => {
+    // Helper function to add timeout to promises
+    const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error(`${operation} timed out after ${timeoutMs}ms`)), timeoutMs)
+        )
+      ]);
+    };
+
     try {
       const { username, dob } = req.body;
       const authHeader = req.headers.authorization;
@@ -3891,15 +3901,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📝 Profile save request:', { username, dob, hasAuth: !!authHeader });
       
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('❌ No auth header');
         return res.status(401).json({ success: false, message: 'No authentication token provided' });
       }
 
       if (!username || !dob) {
+        console.log('❌ Missing username or dob');
         return res.status(400).json({ success: false, message: 'Username and date of birth are required' });
       }
 
       // Validate username format (alphanumeric and underscore only)
       if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        console.log('❌ Invalid username format');
         return res.status(400).json({ 
           success: false,
           message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
@@ -3910,7 +3923,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔐 Verifying Firebase token...');
       
       const admin = await import('firebase-admin');
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const decodedToken = await withTimeout(
+        admin.auth().verifyIdToken(idToken),
+        5000,
+        'Token verification'
+      );
       const userId = decodedToken.uid;
       
       console.log('✅ Token verified for user:', userId);
@@ -3919,18 +3936,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getFirestore } = await import('firebase-admin/firestore');
       const db = getFirestore();
       
-      console.log('🔍 Checking username availability (optimized)...');
+      console.log('🔍 Checking username availability...');
       
-      // OPTIMIZED: Skip the slow .where() query and just save directly
-      // The username check already happens in the check-username endpoint
-      // If user got here, the username was already checked as available
-      // We'll use the userId as the document ID to avoid duplicates
-      
-      console.log('✅ Saving profile (username pre-validated)...');
-
-      // Check for username uniqueness using a separate collection for fast lookups
-      // This collection maps username -> userId for quick validation
-      const usernameDoc = await db.collection('usernames').doc(username.toLowerCase()).get();
+      // Check for username uniqueness with timeout
+      const usernameDoc = await withTimeout(
+        db.collection('usernames').doc(username.toLowerCase()).get(),
+        8000,
+        'Username check'
+      );
       
       if (usernameDoc.exists && usernameDoc.data()?.userId !== userId) {
         console.log('❌ Username already taken by another user');
@@ -3940,8 +3953,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log('✅ Username available, proceeding to save...');
+
       // Save user profile - using userId as document ID ensures uniqueness
-      // Note: displayName is already saved during registration
       const userProfile = {
         username: username.toLowerCase(),
         dob: dob,
@@ -3950,17 +3964,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
-      // Save user profile without timeout wrapper - let it complete
+      // Save user profile with timeout protection
       console.log('💾 Saving user profile to Firestore...');
-      await db.collection('users').doc(userId).set(userProfile, { merge: true });
+      await withTimeout(
+        db.collection('users').doc(userId).set(userProfile, { merge: true }),
+        10000,
+        'User profile save'
+      );
       console.log('✅ User profile saved to Firestore');
       
-      // Also save username mapping for fast lookups
+      // Also save username mapping with timeout protection
       console.log('💾 Saving username mapping...');
-      await db.collection('usernames').doc(username.toLowerCase()).set({
-        userId: userId,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+      await withTimeout(
+        db.collection('usernames').doc(username.toLowerCase()).set({
+          userId: userId,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }),
+        8000,
+        'Username mapping save'
+      );
       console.log('✅ Username mapping saved');
       
       console.log('✅✅ Profile save completed successfully!');
@@ -3981,6 +4003,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: error?.code,
         stack: error?.stack
       });
+      
+      // If it's a timeout error, return a more specific message
+      if (error?.message?.includes('timed out')) {
+        return res.status(504).json({ 
+          success: false, 
+          message: 'Database operation timed out. Please check your internet connection and try again.' 
+        });
+      }
+      
       res.status(500).json({ success: false, message: `Failed to save profile: ${error?.message || 'Unknown error'}` });
     }
   });
