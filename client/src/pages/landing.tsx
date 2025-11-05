@@ -10,8 +10,6 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from "firebase/auth";
-import { UserIdSetupDialog } from "@/components/user-id-setup-dialog";
-
 export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -19,8 +17,6 @@ export default function Landing() {
   const [name, setName] = useState("");
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
@@ -41,59 +37,13 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        // Store user ID for later use
+        // Store user ID and email for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
-        setPendingUserId(user.uid);
         
-        // Check if user has a profile in Firebase
-        try {
-          const profileResponse = await fetch('/api/user/profile', {
-            headers: {
-              'Authorization': `Bearer ${idToken}`
-            }
-          });
-          
-          if (!profileResponse.ok) {
-            console.warn('⚠️ Failed to fetch profile, showing setup dialog');
-            setShowProfileDialog(true);
-            return;
-          }
-          
-          const profileData = await profileResponse.json();
-          console.log('🔍 Profile data from Firebase:', JSON.stringify(profileData, null, 2));
-          
-          // If profile exists with username, go to app
-          // Otherwise, show profile setup dialog (to collect username + DOB)
-          if (profileData.success && 
-              profileData.profile && 
-              profileData.profile.username) {
-            // Profile exists with username, save to localStorage and redirect
-            console.log('✅ Complete profile found:', {
-              username: profileData.profile.username,
-              displayName: profileData.profile.displayName
-            });
-            console.log('✅ Redirecting to app...');
-            localStorage.setItem('currentUsername', profileData.profile.username);
-            if (profileData.profile.displayName) {
-              localStorage.setItem('currentDisplayName', profileData.profile.displayName);
-            }
-            window.location.href = "/app";
-          } else {
-            // No profile or missing username, show dialog
-            console.log('❌ No complete profile found:', {
-              success: profileData.success,
-              hasProfile: !!profileData.profile,
-              username: profileData.profile?.username
-            });
-            console.log('❌ Showing profile setup dialog');
-            setShowProfileDialog(true);
-          }
-        } catch (profileError) {
-          console.error('❌ Error checking profile:', profileError);
-          // On error, show dialog to be safe
-          setShowProfileDialog(true);
-        }
+        // Let user explore the app - profile will be requested when they access social feed
+        console.log('✅ Google sign-in successful, redirecting to app...');
+        window.location.href = "/app";
       } else {
         toast({
           title: "Authentication Failed",
@@ -164,63 +114,17 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        // Store user ID for later use
+        // Store user ID and email for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
-        setPendingUserId(user.uid);
         
-        // Check if user has a profile in Firebase
-        try {
-          const profileResponse = await fetch('/api/user/profile', {
-            headers: {
-              'Authorization': `Bearer ${idToken}`
-            }
-          });
-          
-          if (!profileResponse.ok) {
-            console.warn('⚠️ Failed to fetch profile, showing setup dialog');
-            setShowProfileDialog(true);
-            return;
-          }
-          
-          const profileData = await profileResponse.json();
-          console.log('🔍 Profile data from Firebase (email auth):', JSON.stringify(profileData, null, 2));
-          
-          // If profile exists with username, go to app
-          // Otherwise, show profile setup dialog (to collect username + DOB)
-          if (profileData.success && 
-              profileData.profile && 
-              profileData.profile.username) {
-            // Profile exists with username, save to localStorage and redirect
-            console.log('✅ Complete profile found:', {
-              username: profileData.profile.username,
-              displayName: profileData.profile.displayName
-            });
-            console.log('✅ Redirecting to app...');
-            localStorage.setItem('currentUsername', profileData.profile.username);
-            if (profileData.profile.displayName) {
-              localStorage.setItem('currentDisplayName', profileData.profile.displayName);
-            }
-            toast({
-              title: "Success!",
-              description: isLogin ? "Welcome back!" : "Account created successfully!",
-            });
-            window.location.href = "/app";
-          } else {
-            // No profile or missing username, show dialog
-            console.log('❌ No complete profile found:', {
-              success: profileData.success,
-              hasProfile: !!profileData.profile,
-              username: profileData.profile?.username
-            });
-            console.log('❌ Showing profile setup dialog');
-            setShowProfileDialog(true);
-          }
-        } catch (profileError) {
-          console.error('❌ Error checking profile:', profileError);
-          // On error, show dialog to be safe
-          setShowProfileDialog(true);
-        }
+        // Let user explore the app - profile will be requested when they access social feed
+        toast({
+          title: "Success!",
+          description: isLogin ? "Welcome back!" : "Account created successfully!",
+        });
+        console.log('✅ Authentication successful, redirecting to app...');
+        window.location.href = "/app";
       } else {
         const data = await response.json();
         toast({
@@ -242,19 +146,6 @@ export default function Landing() {
     } finally {
       setIsEmailLoading(false);
     }
-  };
-
-  const handleProfileSetupSuccess = (username: string) => {
-    // Save username to localStorage
-    localStorage.setItem('currentUsername', username);
-    
-    toast({
-      title: "Profile Created!",
-      description: "Welcome to PERALA!",
-    });
-    
-    // Redirect to app
-    window.location.href = "/app";
   };
 
   return (
@@ -370,13 +261,6 @@ export default function Landing() {
           </div>
         </div>
       </div>
-      
-      {/* Profile Setup Dialog */}
-      <UserIdSetupDialog 
-        isOpen={showProfileDialog}
-        onClose={() => setShowProfileDialog(false)} // Allow closing the dialog
-        onSuccess={handleProfileSetupSuccess}
-      />
     </div>
   );
 }

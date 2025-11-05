@@ -28,6 +28,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { SwipeableCarousel } from './swipeable-carousel';
+import { UserIdSetupDialog } from './user-id-setup-dialog';
+import { auth } from '@/firebase';
 
 interface SocialPost {
   id: string;
@@ -475,9 +477,50 @@ function PostCard({ post }: { post: SocialPost }) {
 export function SocialFeed() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const feedEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check if user has profile (username) when component mounts
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('No user logged in');
+        return;
+      }
+
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch('/api/user/profile', {
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+
+        if (response.ok) {
+          const profileData = await response.json();
+          console.log('📋 Profile check on social feed:', {
+            hasProfile: !!profileData.profile,
+            hasUsername: !!profileData.profile?.username
+          });
+
+          // Show dialog only if user doesn't have a username
+          if (!profileData.profile || !profileData.profile.username) {
+            console.log('❌ No username found, showing profile dialog');
+            setShowProfileDialog(true);
+          } else {
+            console.log('✅ Profile complete, user can use social feed');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error);
+      }
+    };
+
+    checkUserProfile();
+  }, []);
 
   // Fast social posts with caching
   const { data: posts = [], isLoading, error } = useQuery({
@@ -686,6 +729,20 @@ export function SocialFeed() {
           </Button>
         </div>
       </div>
+
+      {/* Profile Setup Dialog - Only shows if user doesn't have username */}
+      <UserIdSetupDialog 
+        isOpen={showProfileDialog}
+        onClose={() => setShowProfileDialog(false)}
+        onSuccess={(username) => {
+          localStorage.setItem('currentUsername', username);
+          setShowProfileDialog(false);
+          toast({
+            title: "Profile Created!",
+            description: "You can now post and interact on the social feed.",
+          });
+        }}
+      />
     </div>
   );
 }
