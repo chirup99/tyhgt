@@ -88,48 +88,64 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
         displayName: displayName.trim()
       });
       
-      const response = await fetch('/api/user/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-          username: username.toLowerCase(),
-          displayName: displayName.trim()
-        })
-      });
-
-      console.log('📡 Response status:', response.status, response.statusText);
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      // Get response text first to check if it's HTML or JSON
-      const responseText = await response.text();
-      console.log('📄 Response text:', responseText.substring(0, 200));
-      
-      let data;
       try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('❌ Failed to parse response as JSON');
-        throw new Error('Server returned an invalid response. Please try again.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to save profile');
-      }
+        const response = await fetch('/api/user/profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            username: username.toLowerCase(),
+            displayName: displayName.trim()
+          }),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
 
-      console.log('✅ Profile saved successfully:', data);
-      
-      toast({
-        description: 'Profile created successfully!'
-      });
+        console.log('📡 Response status:', response.status, response.statusText);
+        
+        // Get response text first to check if it's HTML or JSON
+        const responseText = await response.text();
+        console.log('📄 Response text:', responseText.substring(0, 200));
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error('❌ Failed to parse response as JSON');
+          throw new Error('Server returned an invalid response. Please try again.');
+        }
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to save profile');
+        }
 
-      onSuccess(username.toLowerCase(), displayName.trim());
-      onClose();
+        console.log('✅ Profile saved successfully:', data);
+        
+        toast({
+          description: 'Profile created successfully!'
+        });
+
+        onSuccess(username.toLowerCase(), displayName.trim());
+        onClose();
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.error('❌ Request timed out after 10 seconds');
+          throw new Error('Request timed out. Please check your connection and try again.');
+        }
+        throw fetchError;
+      }
     } catch (error: any) {
       console.error('❌ Error saving profile:', error);
       toast({
-        description: error.message || 'Failed to save profile',
+        description: error.message || 'Failed to save profile. Please try again.',
         variant: 'destructive'
       });
     } finally {
