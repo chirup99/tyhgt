@@ -764,13 +764,84 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
 
 function ProfileHeader() {
   const currentUser = auth.currentUser;
-  const displayName = localStorage.getItem('displayName') || '';
-  const username = localStorage.getItem('username') || '';
-  const bio = localStorage.getItem('bio') || '';
   const [activeTab, setActiveTab] = useState('Posts');
+  const [profileData, setProfileData] = useState<any>(null);
+  const [postCount, setPostCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch real user profile data from Firebase
+  useEffect(() => {
+    const loadProfileData = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch('/api/user/profile', {
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.profile) {
+            setProfileData(data.profile);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, []);
+
+  // Fetch user's post count from all posts
+  const { data: allPosts = [] } = useQuery({
+    queryKey: ['/api/social-posts'],
+    queryFn: async (): Promise<SocialPost[]> => {
+      const response = await fetch(`/api/social-posts?refresh=${Date.now()}`);
+      if (!response.ok) throw new Error('Failed to fetch posts');
+      return await response.json();
+    }
+  });
+
+  // Count user's posts
+  useEffect(() => {
+    if (allPosts && profileData) {
+      const userPosts = allPosts.filter(post => 
+        post.authorUsername === profileData.username
+      );
+      setPostCount(userPosts.length);
+    }
+  }, [allPosts, profileData]);
+
+  const displayName = profileData?.displayName || currentUser?.displayName || '';
+  const username = profileData?.username || currentUser?.email?.split('@')[0] || '';
+  const bio = profileData?.bio || '';
+  const following = profileData?.following || 0;
+  const followers = profileData?.followers || 0;
 
   // Get user initials for avatar
   const initials = displayName ? displayName.charAt(0).toUpperCase() : username.charAt(0).toUpperCase();
+
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 mb-6 animate-pulse">
+        <div className="h-48 bg-gray-300 dark:bg-gray-700"></div>
+        <div className="pt-20 px-4 pb-4">
+          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-2"></div>
+          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 mb-6">
@@ -820,32 +891,32 @@ function ProfileHeader() {
           </div>
         </div>
 
-        {/* Follower Stats */}
+        {/* Follower Stats - Real data from Firebase */}
         <div className="flex gap-4 text-sm mb-4">
           <button className="hover:underline">
-            <span className="font-bold text-gray-900 dark:text-white">200</span>
+            <span className="font-bold text-gray-900 dark:text-white">{following}</span>
             <span className="text-gray-600 dark:text-gray-400 ml-1">Following</span>
           </button>
           <button className="hover:underline">
-            <span className="font-bold text-gray-900 dark:text-white">111</span>
+            <span className="font-bold text-gray-900 dark:text-white">{followers}</span>
             <span className="text-gray-600 dark:text-gray-400 ml-1">Followers</span>
           </button>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-8 border-b border-gray-200 dark:border-gray-700">
-          {['Posts', 'Media', 'Likes'].map((tab) => (
+          {[`Posts ${postCount > 0 ? `(${postCount})` : ''}`, 'Media', 'Likes'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(tab.split(' ')[0])}
               className={`pb-3 px-2 font-medium transition-colors relative ${
-                activeTab === tab
+                activeTab === tab.split(' ')[0]
                   ? 'text-gray-900 dark:text-white'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {tab}
-              {activeTab === tab && (
+              {activeTab === tab.split(' ')[0] && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full"></div>
               )}
             </button>
