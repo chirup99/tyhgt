@@ -1490,9 +1490,9 @@ export default function NeoFeedSocialFeed() {
             hasUsername: !!profileData.profile?.username
           });
 
-          // Show dialog only if user doesn't have a username
-          if (!profileData.profile || !profileData.profile.username) {
-            console.log('❌ No username found, showing profile dialog');
+          // Show dialog only if user doesn't have username or DOB
+          if (!profileData.profile || !profileData.profile.username || !profileData.profile.dob) {
+            console.log('❌ Profile incomplete (missing username or DOB), showing profile dialog');
             setShowProfileDialog(true);
           } else {
             console.log('✅ Profile complete, user can use social feed');
@@ -1805,7 +1805,7 @@ export default function NeoFeedSocialFeed() {
         </div>
       </div>
 
-      {/* Profile Setup Dialog - Only shows if user doesn't have username */}
+      {/* Profile Setup Dialog - Only shows if user doesn't have username or DOB */}
       <UserIdSetupDialog 
         isOpen={showProfileDialog}
         onClose={() => setShowProfileDialog(false)}
@@ -1816,6 +1816,8 @@ export default function NeoFeedSocialFeed() {
             title: "Profile Created!",
             description: "You can now post and interact on the social feed.",
           });
+          // Reload page to update profile dropdown with new username
+          setTimeout(() => window.location.reload(), 500);
         }}
       />
     </div>
