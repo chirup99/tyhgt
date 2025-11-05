@@ -918,7 +918,7 @@ function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: bo
   return (
     <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Fundamental Analysis Panel */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-xl backdrop-blur-sm ">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl backdrop-blur-sm ">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="h-5 w-5 text-gray-600 dark:text-gray-400 " />
           <h3 className="text-gray-900 dark:text-white font-semibold ">Fundamental Analysis</h3>
@@ -1168,7 +1168,7 @@ function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: bo
       </div>
 
       {/* Related News Panel */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-xl backdrop-blur-sm ">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl backdrop-blur-sm ">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400 " />
           <h3 className="text-gray-900 dark:text-white font-semibold ">Related News</h3>
@@ -1313,9 +1313,9 @@ function PostCard({ post }: { post: FeedPost }) {
   };
 
   return (
-    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md mb-6 transition-none">
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md mb-4 transition-none">
       
-      <CardContent className="p-6 transition-none">
+      <CardContent className="p-4 transition-none">
         {/* User Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -1791,8 +1791,8 @@ export default function NeoFeedSocialFeed() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground">
         <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} />
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="space-y-6">
+        <div className="max-w-3xl mx-auto px-3 py-3">
+          <div className="space-y-4">
             {[...Array(8)].map((_, i) => (
               <Card key={i} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 animate-pulse shadow-sm">
                 <CardContent className="p-6">
@@ -1826,9 +1826,9 @@ export default function NeoFeedSocialFeed() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground">
         <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} />
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-3xl mx-auto px-3 py-3">
           <Card className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 shadow-sm">
-            <CardContent className="p-6 text-center">
+            <CardContent className="p-4 text-center">
               <p className="text-red-600 dark:text-red-400">Failed to load posts. Please try again later.</p>
             </CardContent>
           </Card>
@@ -1920,7 +1920,7 @@ export default function NeoFeedSocialFeed() {
       </div>
       
       {/* Main Content Area with Post Creation Panel on Right */}
-      <div className="flex-1 flex gap-6 px-4 py-6 max-w-7xl mx-auto">
+      <div className="flex-1 flex gap-4 px-3 py-3 max-w-6xl mx-auto">
         {/* Social Feed Posts - Left Side */}
         <div className="flex-1 max-w-4xl">
           {/* Show Profile Header when Profile filter is selected */}
