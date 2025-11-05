@@ -301,3 +301,12 @@
 [x] 301. Restarted workflow - server running successfully on port 5000
 [x] 302. Verified frontend displays correctly - PERALA login page fully functional
 [x] 303. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ NOVEMBER 5, 2025 NEWEST MIGRATION COMPLETED - ALL IMPORT TASKS FINISHED SUCCESSFULLY!
+[x] 304. Fixed display name issue - Name from signup now saved to Firebase as displayName
+[x] 305. Updated /api/auth/register endpoint to save name as displayName during email signup
+[x] 306. Updated /api/auth/google endpoint to save Google display name to Firestore
+[x] 307. Both email and Google signups now properly save displayName to Firebase
+[x] 308. Profile dropdown now correctly displays displayName from Firebase
+[x] 309. New users will see their signup name in profile dropdown (not email prefix)
+[x] 310. Existing users can edit their displayName through profile settings
+[x] 311. Restarted workflow - server running successfully on port 5000
+[x] 312. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ DISPLAY NAME FIX COMPLETED - SIGNUP NAME NOW SHOWS IN PROFILE!

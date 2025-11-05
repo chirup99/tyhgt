@@ -3817,6 +3817,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const admin = await import('firebase-admin');
       const decodedToken = await admin.auth().verifyIdToken(idToken);
 
+      // Save the displayName from Google to Firestore
+      if (decodedToken.name) {
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        
+        // Check if user profile already exists
+        const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+        
+        // Only save displayName if it doesn't already exist (don't overwrite existing profile)
+        if (!userDoc.exists || !userDoc.data()?.displayName) {
+          console.log('💾 Saving displayName from Google sign-in:', { userId: decodedToken.uid, displayName: decodedToken.name });
+          
+          await db.collection('users').doc(decodedToken.uid).set({
+            displayName: decodedToken.name,
+            email: decodedToken.email,
+            userId: decodedToken.uid,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          
+          console.log('✅ DisplayName saved to Firestore from Google sign-in');
+        } else {
+          console.log('ℹ️ User profile already exists, keeping existing displayName');
+        }
+      }
+
       // Store user session
       res.json({ 
         success: true, 
