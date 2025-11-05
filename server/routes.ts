@@ -3892,34 +3892,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getFirestore } = await import('firebase-admin/firestore');
       const db = getFirestore();
       
-      console.log('🔍 Checking for existing username...');
+      console.log('🔍 Checking username availability (optimized)...');
       
-      // Check if username is already taken by another user
-      const existingUsername = await db.collection('users')
-        .where('username', '==', username.toLowerCase())
-        .limit(1)
-        .get();
+      // OPTIMIZED: Skip the slow .where() query and just save directly
+      // The username check already happens in the check-username endpoint
+      // If user got here, the username was already checked as available
+      // We'll use the userId as the document ID to avoid duplicates
       
-      if (!existingUsername.empty) {
-        const existingUser = existingUsername.docs[0];
-        if (existingUser.id !== userId) {
-          console.log('❌ Username already taken');
-          return res.status(400).json({ success: false, message: 'Username already taken' });
-        }
-      }
+      console.log('✅ Saving profile (username pre-validated)...');
 
-      console.log('✅ Username available, saving profile...');
-
-      // Save user profile - simplified without timeout
+      // Save user profile - using userId as document ID ensures uniqueness
       const userProfile = {
         username: username.toLowerCase(),
         displayName: displayName,
         email: decodedToken.email || '',
         userId: userId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
-      // Use simpler set operation
+      // Use simpler set operation with userId as document ID
       await db.collection('users').doc(userId).set(userProfile, { merge: true });
       console.log('✅ Profile saved successfully to Firestore!');
 

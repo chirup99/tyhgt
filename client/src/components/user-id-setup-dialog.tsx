@@ -90,7 +90,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
       
       // Create abort controller for timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
       try {
         const response = await fetch('/api/user/profile', {
@@ -137,7 +137,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
         if (fetchError.name === 'AbortError') {
-          console.error('❌ Request timed out after 10 seconds');
+          console.error('❌ Request timed out after 30 seconds');
           throw new Error('Request timed out. Please check your connection and try again.');
         }
         throw fetchError;
