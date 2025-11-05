@@ -63,28 +63,28 @@ export default function Landing() {
           const profileData = await profileResponse.json();
           console.log('🔍 Profile data from Firebase:', JSON.stringify(profileData, null, 2));
           
-          // If profile exists with both username and displayName, go to app
-          // Otherwise, show profile setup dialog
+          // If profile exists with username, go to app
+          // Otherwise, show profile setup dialog (to collect username + DOB)
           if (profileData.success && 
               profileData.profile && 
-              profileData.profile.username && 
-              profileData.profile.displayName) {
-            // Profile exists with complete data, save to localStorage and redirect
+              profileData.profile.username) {
+            // Profile exists with username, save to localStorage and redirect
             console.log('✅ Complete profile found:', {
               username: profileData.profile.username,
               displayName: profileData.profile.displayName
             });
             console.log('✅ Redirecting to app...');
             localStorage.setItem('currentUsername', profileData.profile.username);
-            localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+            if (profileData.profile.displayName) {
+              localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+            }
             window.location.href = "/app";
           } else {
-            // No profile or incomplete profile, show dialog
+            // No profile or missing username, show dialog
             console.log('❌ No complete profile found:', {
               success: profileData.success,
               hasProfile: !!profileData.profile,
-              username: profileData.profile?.username,
-              displayName: profileData.profile?.displayName
+              username: profileData.profile?.username
             });
             console.log('❌ Showing profile setup dialog');
             setShowProfileDialog(true);
@@ -186,32 +186,32 @@ export default function Landing() {
           const profileData = await profileResponse.json();
           console.log('🔍 Profile data from Firebase (email auth):', JSON.stringify(profileData, null, 2));
           
-          // If profile exists with both username and displayName, go to app
-          // Otherwise, show profile setup dialog
+          // If profile exists with username, go to app
+          // Otherwise, show profile setup dialog (to collect username + DOB)
           if (profileData.success && 
               profileData.profile && 
-              profileData.profile.username && 
-              profileData.profile.displayName) {
-            // Profile exists with complete data, save to localStorage and redirect
+              profileData.profile.username) {
+            // Profile exists with username, save to localStorage and redirect
             console.log('✅ Complete profile found:', {
               username: profileData.profile.username,
               displayName: profileData.profile.displayName
             });
             console.log('✅ Redirecting to app...');
             localStorage.setItem('currentUsername', profileData.profile.username);
-            localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+            if (profileData.profile.displayName) {
+              localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+            }
             toast({
               title: "Success!",
               description: isLogin ? "Welcome back!" : "Account created successfully!",
             });
             window.location.href = "/app";
           } else {
-            // No profile or incomplete profile, show dialog
+            // No profile or missing username, show dialog
             console.log('❌ No complete profile found:', {
               success: profileData.success,
               hasProfile: !!profileData.profile,
-              username: profileData.profile?.username,
-              displayName: profileData.profile?.displayName
+              username: profileData.profile?.username
             });
             console.log('❌ Showing profile setup dialog');
             setShowProfileDialog(true);
@@ -244,10 +244,9 @@ export default function Landing() {
     }
   };
 
-  const handleProfileSetupSuccess = (username: string, displayName: string) => {
-    // Save profile to localStorage
+  const handleProfileSetupSuccess = (username: string) => {
+    // Save username to localStorage
     localStorage.setItem('currentUsername', username);
-    localStorage.setItem('currentDisplayName', displayName);
     
     toast({
       title: "Profile Created!",

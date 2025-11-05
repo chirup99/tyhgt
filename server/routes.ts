@@ -3773,7 +3773,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Email mismatch' });
       }
 
-      // Store user data - you can enhance this with actual user storage
+      // Save the displayName to Firestore during registration
+      if (name) {
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        
+        console.log('💾 Saving displayName during registration:', { userId: decodedToken.uid, displayName: name });
+        
+        await db.collection('users').doc(decodedToken.uid).set({
+          displayName: name,
+          email: decodedToken.email,
+          userId: decodedToken.uid,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        console.log('✅ DisplayName saved to Firestore during registration');
+      }
+
       res.json({ 
         success: true, 
         message: 'Registration successful',
@@ -3869,17 +3885,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/user/profile', async (req, res) => {
     try {
-      const { username, displayName } = req.body;
+      const { username, dob } = req.body;
       const authHeader = req.headers.authorization;
       
-      console.log('📝 Profile save request:', { username, displayName, hasAuth: !!authHeader });
+      console.log('📝 Profile save request:', { username, dob, hasAuth: !!authHeader });
       
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ success: false, message: 'No authentication token provided' });
       }
 
-      if (!username || !displayName) {
-        return res.status(400).json({ success: false, message: 'Username and display name are required' });
+      if (!username || !dob) {
+        return res.status(400).json({ success: false, message: 'Username and date of birth are required' });
       }
 
       // Validate username format (alphanumeric and underscore only)
@@ -3925,12 +3941,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Save user profile - using userId as document ID ensures uniqueness
+      // Note: displayName is already saved during registration
       const userProfile = {
         username: username.toLowerCase(),
-        displayName: displayName,
+        dob: dob,
         email: decodedToken.email || '',
         userId: userId,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
@@ -3954,7 +3970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Profile saved successfully',
         profile: {
           username: username.toLowerCase(),
-          displayName: displayName,
+          dob: dob,
           email: decodedToken.email
         }
       });

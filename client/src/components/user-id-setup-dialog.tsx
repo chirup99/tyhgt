@@ -17,12 +17,12 @@ import { auth } from '../firebase';
 interface UserIdSetupDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (username: string, displayName: string) => void;
+  onSuccess: (username: string) => void;
 }
 
 export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDialogProps) {
   const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [dob, setDob] = useState('');
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameMessage, setUsernameMessage] = useState('');
@@ -64,9 +64,17 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
   }, [username]);
 
   const handleSave = async () => {
-    if (!usernameAvailable || !displayName.trim()) {
+    if (!usernameAvailable) {
       toast({
-        description: 'Please provide a valid username and display name',
+        description: 'Please provide a valid username',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!dob) {
+      toast({
+        description: 'Please provide your date of birth',
         variant: 'destructive'
       });
       return;
@@ -85,7 +93,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
       
       console.log('📤 Sending profile save request:', {
         username: username.toLowerCase(),
-        displayName: displayName.trim()
+        dob: dob
       });
       
       // Create abort controller for timeout
@@ -101,7 +109,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
           },
           body: JSON.stringify({
             username: username.toLowerCase(),
-            displayName: displayName.trim()
+            dob: dob
           }),
           signal: controller.signal
         });
@@ -132,7 +140,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
           description: 'Profile created successfully!'
         });
 
-        onSuccess(username.toLowerCase(), displayName.trim());
+        onSuccess(username.toLowerCase());
         onClose();
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
@@ -163,7 +171,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
         <DialogHeader>
           <DialogTitle data-testid="text-dialog-title">Complete Your Profile</DialogTitle>
           <DialogDescription data-testid="text-dialog-description">
-            Choose a unique username and display name to start using the social feed.
+            Choose a unique username and provide your date of birth to complete your profile.
           </DialogDescription>
         </DialogHeader>
         
@@ -204,15 +212,15 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="displayName" data-testid="label-displayname">
-              Display Name
+            <Label htmlFor="dob" data-testid="label-dob">
+              Date of Birth
             </Label>
             <Input
-              id="displayName"
-              data-testid="input-displayname"
-              placeholder="e.g., John Doe"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              id="dob"
+              type="date"
+              data-testid="input-dob"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
             />
           </div>
         </div>
@@ -220,7 +228,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
         <div className="flex justify-end">
           <Button
             onClick={handleSave}
-            disabled={!usernameAvailable || !displayName.trim() || saving}
+            disabled={!usernameAvailable || !dob || saving}
             data-testid="button-save"
             className="w-full"
           >
