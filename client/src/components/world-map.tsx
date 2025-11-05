@@ -11,11 +11,8 @@ interface MarketRegion {
 
 const marketRegions: MarketRegion[] = [
   { name: "USA", x: 18, y: 40, pulseDelay: 0 },
-  // { name: "CANADA", x: 16, y: 26, pulseDelay: 0.3 },
-  { name: "INDIA", x: 55, y: 45, pulseDelay: 1.2 },
-  { name: "TOKYO", x: 70, y: 40, pulseDelay: 1 },
-  { name: "HONG KONG", x: 65, y: 45, pulseDelay: 1.4 },
-  //{ name: "ASIA", x: 55, y: 35, pulseDelay: 1.5 },
+  { name: "CANADA", x: 16, y: 26, pulseDelay: 0.3 },
+  { name: "ASIA", x: 60, y: 42, pulseDelay: 1.5 },
 ];
 
 // World map dot coordinates extracted from the SVG
@@ -31,27 +28,15 @@ const worldMapDots =
 const getRegionColor = (x: number, y: number, marketData: any): string => {
   let regionName = "";
 
-  // North America - Canada (approximate x: 100-400, y: 28-90)
+  // North America - Canada (approximate x: 100-265, y: 70-180)
   if (x >= 100 && x <= 265 && y >= 70 && y <= 180) {
     regionName = "CANADA";
   }
-  // North America - USA (approximate x: 100-350, y: 90-260)
+  // North America - USA (approximate x: 100-350, y: 180-260)
   else if (x >= 100 && x <= 350 && y >= 180 && y <= 260) {
     regionName = "USA";
   }
-  // Japan/Tokyo (approximate x: 660-750, y: 90-170)
-  else if (x >= 680 && x <= 740 && y >= 180 && y <= 220) {
-    regionName = "TOKYO";
-  }
-  // Hong Kong (approximate x: 600-640, y: 220-270)
-  else if (x >= 650 && x <= 680 && y >= 180 && y <= 250) {
-    regionName = "HONG KONG";
-  }
-  // India (approximate x: 540-590, y: 200-280)
-  else if (x >= 540 && x <= 590 && y >= 200 && y <= 280) {
-    regionName = "INDIA";
-  }
-  // Rest of Asia (approximate x: 480-650, y: 90-340)
+  // All of Asia combined (approximate x: 520-740, y: 90-280)
   else if (x >= 520 && x <= 740 && y >= 90 && y <= 280) {
     regionName = "ASIA";
   }

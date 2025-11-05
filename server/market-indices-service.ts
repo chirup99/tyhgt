@@ -14,6 +14,7 @@ export interface MarketIndex {
 // Market index symbols for different regions
 const MARKET_SYMBOLS = {
   'USA': '^GSPC',          // S&P 500
+  'CANADA': '^GSPTSE',     // S&P/TSX Composite Index
   'INDIA': '^NSEI',        // Nifty 50
   'TOKYO': '^N225',        // Nikkei 225
   'HONG KONG': '^HSI',     // Hang Seng Index
@@ -81,6 +82,30 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
       return getFallbackData();
     }
 
+    // Calculate ASIA aggregate (average of India, Tokyo, Hong Kong)
+    const asianMarkets = ['INDIA', 'TOKYO', 'HONG KONG'];
+    const asianData = asianMarkets
+      .map(region => results[region])
+      .filter(data => data !== undefined);
+    
+    if (asianData.length > 0) {
+      const avgChange = asianData.reduce((sum, data) => sum + data.changePercent, 0) / asianData.length;
+      const avgPrice = asianData.reduce((sum, data) => sum + data.price, 0) / asianData.length;
+      
+      results['ASIA'] = {
+        symbol: 'ASIA_AGGREGATE',
+        regionName: 'ASIA',
+        price: avgPrice,
+        change: avgChange,
+        changePercent: avgChange,
+        isUp: avgChange >= 0,
+        marketTime: new Date().toISOString(),
+        isMarketOpen: asianData.some(data => data.isMarketOpen),
+      };
+      
+      console.log(`✅ ASIA (aggregate): ${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%`);
+    }
+
     return results;
   } catch (error) {
     console.error('❌ Error fetching market indices:', error);
@@ -96,6 +121,16 @@ function getFallbackData(): Record<string, MarketIndex> {
     'USA': {
       symbol: '^GSPC',
       regionName: 'USA',
+      price: 0,
+      change: 0,
+      changePercent: 0,
+      isUp: false,
+      marketTime: new Date().toISOString(),
+      isMarketOpen: false,
+    },
+    'CANADA': {
+      symbol: '^GSPTSE',
+      regionName: 'CANADA',
       price: 0,
       change: 0,
       changePercent: 0,
@@ -126,6 +161,16 @@ function getFallbackData(): Record<string, MarketIndex> {
     'HONG KONG': {
       symbol: '^HSI',
       regionName: 'HONG KONG',
+      price: 0,
+      change: 0,
+      changePercent: 0,
+      isUp: false,
+      marketTime: new Date().toISOString(),
+      isMarketOpen: false,
+    },
+    'ASIA': {
+      symbol: 'ASIA_AGGREGATE',
+      regionName: 'ASIA',
       price: 0,
       change: 0,
       changePercent: 0,
