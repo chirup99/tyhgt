@@ -3889,6 +3889,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const firestore = admin.firestore();
       
+      // Configure Firestore settings to prevent hanging
+      firestore.settings({
+        ignoreUndefinedProperties: true,
+      });
+      
       // Check if username is already taken by another user
       const existingUsername = await firestore.collection('users')
         .where('username', '==', username.toLowerCase())
@@ -3912,8 +3917,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log('💾 Saving profile to Firestore...');
-      await firestore.collection('users').doc(userId).set(userProfile, { merge: true });
-      console.log('✅ Profile saved successfully!');
+      
+      // Add timeout to prevent hanging
+      const savePromise = firestore.collection('users').doc(userId).set(userProfile, { merge: true });
+      const timeoutPromise = new Promise<void>((_, reject) => 
+        setTimeout(() => reject(new Error('Firestore save timeout - check Firebase credentials')), 15000)
+      );
+      
+      try {
+        await Promise.race([savePromise, timeoutPromise]);
+        console.log('✅ Profile saved successfully!');
+      } catch (saveError: any) {
+        console.error('❌ Firestore save failed:', saveError);
+        throw new Error(`Failed to save to Firestore: ${saveError?.message || 'Unknown error'}`);
+      }
 
       res.json({ 
         success: true,
