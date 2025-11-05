@@ -4796,19 +4796,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Social Posts API endpoints
   app.get('/api/social-posts', async (req, res) => {
     try {
-      // Use database as primary source for fast loading - no fallbacks to avoid delays
-      console.log('📱 Fetching social posts from database (optimized fast path)');
+      console.log('📱 Fetching social posts from Firebase (user posts) and PostgreSQL (finance news)');
       
+      const allPosts = [];
+      
+      // 1. Fetch user posts from Firebase Firestore
+      try {
+        const admin = await import('firebase-admin');
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        
+        const userPostsSnapshot = await db.collection('user_posts')
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get();
+        
+        const userPosts = userPostsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : new Date(doc.data().createdAt),
+          updatedAt: doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : new Date(doc.data().updatedAt),
+          source: 'firebase'
+        }));
+        
+        allPosts.push(...userPosts);
+        console.log(`🔥 Retrieved ${userPosts.length} user posts from Firebase`);
+      } catch (error: any) {
+        console.log('⚠️ Error fetching user posts from Firebase:', error.message);
+      }
+      
+      // 2. Fetch finance news from PostgreSQL database
       if (storage.db?.select) {
         try {
-          const posts = await storage.db
+          const newsPosts = await storage.db
             .select()
             .from(socialPosts)
             .orderBy(desc(socialPosts.createdAt))
-            .limit(100);
+            .limit(50);
           
-          console.log(`✅ Retrieved ${posts.length} social posts from database`);
-          return res.json(posts);
+          const formattedNewsPosts = newsPosts.map(post => ({
+            ...post,
+            source: 'postgresql'
+          }));
+          
+          allPosts.push(...formattedNewsPosts);
+          console.log(`💾 Retrieved ${newsPosts.length} finance news posts from PostgreSQL`);
         } catch (error: any) {
           if (error.code === '42703' && error.message.includes('has_images')) {
             // Database still has old schema, use raw SQL for backward compatibility
@@ -4857,51 +4889,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Skip slow Firestore calls - just return empty array for immediate response
-      console.log('⚡ Database not available, returning empty array for speed');
-      return res.json([]);
+      // 3. Merge and sort all posts by createdAt (newest first)
+      const sortedPosts = allPosts.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
       
-      // Final fallback with Daily News Profile posts
-      const fallbackPosts = [
-        {
-          id: 1,
-          authorUsername: 'Daily_News_Profile',
-          content: '📰 Reliance Industries Q1 Results: Profit up 12% at ₹18,951 crore, revenue rises 8%\n\nMukesh Ambani-led Reliance Industries reported strong Q1 FY25 earnings driven by retail and digital business growth. Jio subscriber base crossed 490 million with improved ARPU.\n\n🔗 Source: Economic Times',
-          createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          ticker: '$RELIANCE'
-        },
-        {
-          id: 2,
-          authorUsername: 'Daily_News_Profile',
-          content: '📰 TCS Q1 Results: Revenue grows 5.2%, net profit rises to ₹12,040 crore\n\nTata Consultancy Services posted strong Q1 performance with margin expansion and robust deal wins. Digital transformation deals continue to drive growth momentum.\n\n🔗 Source: Moneycontrol',
-          createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-          ticker: '$TCS'
-        },
-        {
-          id: 3,
-          authorUsername: 'Daily_News_Profile',
-          content: '📰 HDFC Bank Q1 Results: Net profit up 23% at ₹16,175 crore, asset quality improves\n\nHDFC Bank reported strong quarterly results with improved asset quality and robust deposit growth. Bank maintained healthy provisioning levels.\n\n🔗 Source: Business Standard',
-          createdAt: new Date(Date.now() - 1000 * 60 * 90), // 1.5 hours ago
-          ticker: '$HDFCBANK'
-        },
-        {
-          id: 4,
-          authorUsername: 'Daily_News_Profile',
-          content: '📰 Infosys shares hit fresh 52-week high on strong deal pipeline\n\nInfosys touches new peak after announcing major client wins in North America and Europe. Strong digital transformation deals provide revenue visibility.\n\n🔗 Source: LiveMint',
-          createdAt: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
-          ticker: '$INFY'
-        },
-        {
-          id: 5,
-          authorUsername: 'trader_pro',
-          content: '📈 Just spotted a great breakout pattern in $RELIANCE! Technical analysis showing strong momentum above 1385 levels.',
-          createdAt: new Date(Date.now() - 1000 * 60 * 150), // 2.5 hours ago
-          ticker: '$RELIANCE'
-        }
-      ];
+      console.log(`✅ Total posts fetched: ${sortedPosts.length} (Firebase: ${sortedPosts.filter(p => p.source === 'firebase').length}, PostgreSQL: ${sortedPosts.filter(p => p.source === 'postgresql').length})`);
       
-      console.log(`⚡ Using fast fallback data (${fallbackPosts.length} posts)`);
-      res.json(fallbackPosts);
+      res.json(sortedPosts);
     } catch (error) {
       console.error('Error fetching social posts:', error);
       res.status(500).json({ error: 'Failed to fetch posts' });
@@ -4923,88 +4920,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const userId = decodedToken.uid;
       
-      // Get user profile from Firestore with timeout protection
-      const firestore = admin.firestore();
+      // Get user profile from Firestore
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
       
       let userData: any = null;
       try {
-        const userDocPromise = firestore.collection('users').doc(userId).get();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Firestore timeout')), 5000)
-        );
+        const userDoc = await db.collection('users').doc(userId).get();
         
-        const userDoc = await Promise.race([userDocPromise, timeoutPromise]) as any;
-        
-        if (userDoc && userDoc.exists) {
+        if (userDoc.exists) {
           userData = userDoc.data();
         }
       } catch (error: any) {
-        console.log('⚠️ Firestore fetch failed or timed out:', error.message);
+        console.log('⚠️ Error fetching user profile from Firestore:', error.message);
       }
       
-      // If Firestore failed or user not found, try to use token info as fallback
+      // Validate that user has profile set up
       if (!userData || !userData.username || !userData.displayName) {
-        console.log('⚠️ User profile not found in Firestore, using token email as fallback');
-        // Use email as username if profile not set up
-        const emailUsername = decodedToken.email?.split('@')[0] || `user_${userId.slice(0, 8)}`;
-        userData = {
-          username: emailUsername,
-          displayName: decodedToken.name || decodedToken.email || emailUsername,
-          email: decodedToken.email
-        };
-        console.log('📝 Using fallback user data:', userData);
+        return res.status(400).json({ 
+          error: 'Profile not set up', 
+          message: 'Please complete your profile before creating posts' 
+        });
       }
       
-      // Parse post data from request body (without author info)
+      // Parse post data from request body
       const { content, stockMentions, sentiment, tags, hasImage, imageUrl } = req.body;
+      
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ error: 'Post content is required' });
+      }
       
       // Create post data with authenticated user's profile information
       const postData = {
-        content,
+        content: content.trim(),
         authorUsername: userData.username,
         authorDisplayName: userData.displayName,
+        userId: userId,
         stockMentions: stockMentions || [],
         sentiment: sentiment || 'neutral',
         tags: tags || [],
         hasImage: hasImage || false,
-        imageUrl: imageUrl || undefined
+        imageUrl: imageUrl || null,
+        likes: 0,
+        comments: 0,
+        reposts: 0,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
       
-      console.log('📝 Creating social post for user:', userData.username, { content: postData.content.substring(0, 50) + '...' });
+      console.log('📝 Creating social post for user:', userData.username, '|', userData.displayName);
+      console.log('📄 Post content:', content.substring(0, 50) + '...');
       
-      // Use database as primary storage for speed and reliability
-      if (storage.db?.insert) {
-        console.log('💾 Saving to database (primary storage)');
-        const dbResult = await storage.db.insert(socialPosts).values({
-          ...postData,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }).returning();
-        
-        console.log('✅ Post saved to database with ID:', dbResult[0].id);
-        
-        // Try to store in Google Cloud Firestore in background (non-blocking)
-        googleCloudService.storeSocialPost(postData).catch(error => {
-          console.log('⚠️ Background Firestore sync failed:', error.message);
-        });
-        
-        return res.json(dbResult[0]);
-      }
+      // Save user posts to Firebase Firestore (user-specific collection)
+      console.log('🔥 Saving user post to Firebase Firestore (user-specific collection)');
+      const postRef = await db.collection('user_posts').add(postData);
       
-      // Fallback to Google Cloud if database is not available
-      console.log('☁️ Database not available, trying Google Cloud Firestore');
-      const cloudResult = await googleCloudService.storeSocialPost(postData);
+      console.log('✅ User post saved to Firebase with ID:', postRef.id);
       
-      if (cloudResult.success) {
-        console.log('✅ Stored social post in Google Cloud Firestore');
-        const newPost = { id: cloudResult.id, ...postData, createdAt: new Date() };
-        return res.json(newPost);
-      }
+      // Return the created post
+      const createdPost = {
+        id: postRef.id,
+        ...postData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
       
-      // Final fallback - create mock post
-      console.log('⚡ Using final fallback for post creation');
-      const newPost = { id: Date.now(), ...postData, createdAt: new Date() };
-      res.json(newPost);
+      res.json(createdPost);
     } catch (error) {
       console.error('❌ Error creating social post:', error);
       if (error.code === 'auth/id-token-expired') {
@@ -5012,7 +4993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (error.code === 'auth/argument-error') {
         res.status(401).json({ error: 'Invalid authentication token' });
       } else {
-        res.status(500).json({ error: 'Failed to create post' });
+        res.status(500).json({ error: 'Failed to create post. Please try again.' });
       }
     }
   });
