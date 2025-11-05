@@ -60,10 +60,11 @@ export function UserProfileDropdown() {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('📋 Profile data received:', data.profile);
           if (data.profile) {
             setProfile({
               username: data.profile.username || currentUser.email?.split('@')[0] || 'user',
-              displayName: data.profile.displayName || 'User',
+              displayName: data.profile.displayName || currentUser.email?.split('@')[0] || 'User',
               email: data.profile.email || currentUser.email || '',
               bio: data.profile.bio || '',
               followers: data.profile.followers || 0,
@@ -71,7 +72,7 @@ export function UserProfileDropdown() {
               dob: data.profile.dob
             });
             setEditedBio(data.profile.bio || '');
-            setEditedDisplayName(data.profile.displayName || 'User');
+            setEditedDisplayName(data.profile.displayName || currentUser.email?.split('@')[0] || 'User');
           }
         }
       } catch (error) {
@@ -195,9 +196,6 @@ export function UserProfileDropdown() {
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   @{username}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                  {currentUser.email}
                 </p>
               </div>
             </div>

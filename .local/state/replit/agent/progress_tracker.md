@@ -291,3 +291,8 @@
 [x] 291. Dialog correctly appears when profile is missing
 [x] 292. System working as designed - profiles are account-specific (stored by Firebase UID)
 [x] 293. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ PROFILE SYSTEM VERIFIED WORKING CORRECTLY!
+[x] 294. Removing email address from profile dropdown menu
+[x] 295. Dropdown now shows: Display Name + Username only (no email)
+[x] 296. Added logging to track displayName from Firebase
+[x] 297. Restarting workflow to apply dropdown display changes
+[x] 298. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ EMAIL REMOVED FROM DROPDOWN!
