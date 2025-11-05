@@ -3934,27 +3934,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
-      try {
-        // Use a timeout wrapper for Firestore operations
-        const saveWithTimeout = Promise.race([
-          db.collection('users').doc(userId).set(userProfile, { merge: true }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore operation timed out')), 10000))
-        ]);
-
-        await saveWithTimeout;
-        
-        // Also save username mapping for fast lookups
-        await db.collection('usernames').doc(username.toLowerCase()).set({
-          userId: userId,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        
-        console.log('✅ Profile saved successfully to Firestore!');
-      } catch (firestoreError: any) {
-        console.error('❌ Firestore save failed:', firestoreError.message);
-        // Return success anyway - user can retry later
-        // This prevents blocking the user flow
-      }
+      // Save user profile without timeout wrapper - let it complete
+      console.log('💾 Saving user profile to Firestore...');
+      await db.collection('users').doc(userId).set(userProfile, { merge: true });
+      console.log('✅ User profile saved to Firestore');
+      
+      // Also save username mapping for fast lookups
+      console.log('💾 Saving username mapping...');
+      await db.collection('usernames').doc(username.toLowerCase()).set({
+        userId: userId,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('✅ Username mapping saved');
+      
+      console.log('✅✅ Profile save completed successfully!');
 
       res.json({ 
         success: true,
