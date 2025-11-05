@@ -28,6 +28,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { SwipeableCarousel } from './swipeable-carousel';
 import { AIChatWindow } from './ai-chat-window';
 import { UserIdSetupDialog } from './user-id-setup-dialog';
+import { UserProfileDropdown } from './user-profile-dropdown';
 import { auth } from '@/firebase';
 
 interface FeedPost {
@@ -680,6 +681,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Settings className="h-5 w-5" />
               </Button>
+              <UserProfileDropdown />
             </div>
           </div>
 

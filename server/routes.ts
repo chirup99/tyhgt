@@ -4031,6 +4031,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile (PATCH) - for bio and displayName
+  app.patch('/api/user/profile', async (req, res) => {
+    try {
+      const { displayName, bio } = req.body;
+      const authHeader = req.headers.authorization;
+      
+      console.log('🔄 Profile update request:', { displayName, bio: bio?.substring(0, 50), hasAuth: !!authHeader });
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ success: false, message: 'No authentication token provided' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      console.log('✅ Token verified for user:', userId);
+
+      // Get Firestore instance
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get existing profile
+      const userDoc = await db.collection('users').doc(userId).get();
+      
+      if (!userDoc.exists) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Profile not found' 
+        });
+      }
+
+      // Update profile with new data
+      const updateData: any = {
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      if (displayName !== undefined) {
+        updateData.displayName = displayName.trim();
+      }
+
+      if (bio !== undefined) {
+        updateData.bio = bio.trim();
+      }
+
+      console.log('💾 Updating profile with:', updateData);
+      
+      await db.collection('users').doc(userId).update(updateData);
+      
+      console.log('✅ Profile updated successfully');
+
+      res.json({ 
+        success: true,
+        message: 'Profile updated successfully',
+        profile: {
+          ...userDoc.data(),
+          ...updateData
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ Profile update error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Failed to update profile' 
+      });
+    }
+  });
+
   app.get('/api/user/check-username/:username', async (req, res) => {
     try {
       const { username } = req.params;
