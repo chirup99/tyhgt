@@ -7,26 +7,46 @@ export interface MarketDataResponse {
   };
 }
 
-export function useMarketData(refreshInterval: number = 60000) {
+export function useMarketData(refreshInterval: number = 900000) { // Default 15 minutes (900000ms)
   const [marketData, setMarketData] = useState<MarketDataResponse>({
-    USA: { isUp: true, change: 1.2 },
-    INDIA: { isUp: true, change: 0.8 },
-    TOKYO: { isUp: false, change: -0.5 },
-    "HONG KONG": { isUp: true, change: 0.3 },
-    ASIA: { isUp: true, change: 0.6 },
+    USA: { isUp: true, change: 0 },
+    INDIA: { isUp: true, change: 0 },
+    TOKYO: { isUp: false, change: 0 },
+    "HONG KONG": { isUp: true, change: 0 },
   });
   const [loading, setLoading] = useState(false);
 
+  // Function to fetch real market data
+  const fetchMarketData = async () => {
+    try {
+      setLoading(true);
+      console.log('📊 Fetching real-time market data...');
+      
+      const response = await fetch('/api/market-indices');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch market data: ${response.statusText}`);
+      }
+      
+      const data: MarketDataResponse = await response.json();
+      
+      console.log('✅ Market data received:', data);
+      setMarketData(data);
+    } catch (error) {
+      console.error('❌ Error fetching market data:', error);
+      // Keep previous data on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Simulate market data updates
+    // Fetch immediately on mount
+    fetchMarketData();
+    
+    // Set up interval to fetch every refreshInterval milliseconds
     const interval = setInterval(() => {
-      setMarketData({
-        USA: { isUp: Math.random() > 0.5, change: Math.random() * 2 - 1 },
-        INDIA: { isUp: Math.random() > 0.5, change: Math.random() * 2 - 1 },
-        TOKYO: { isUp: Math.random() > 0.5, change: Math.random() * 2 - 1 },
-        "HONG KONG": { isUp: Math.random() > 0.5, change: Math.random() * 2 - 1 },
-        ASIA: { isUp: Math.random() > 0.5, change: Math.random() * 2 - 1 },
-      });
+      fetchMarketData();
     }, refreshInterval);
 
     return () => clearInterval(interval);

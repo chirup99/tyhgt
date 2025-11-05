@@ -3933,6 +3933,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Market Indices Route - Real-time stock market data
+  app.get('/api/market-indices', async (req, res) => {
+    try {
+      const { getCachedMarketIndices } = await import('./market-indices-service');
+      const marketData = await getCachedMarketIndices();
+      
+      // Transform to match frontend format
+      const response: Record<string, { isUp: boolean; change: number }> = {};
+      
+      Object.entries(marketData).forEach(([regionName, data]) => {
+        response[regionName] = {
+          isUp: data.isUp,
+          change: data.changePercent
+        };
+      });
+      
+      res.json(response);
+    } catch (error) {
+      console.error('❌ Error fetching market indices:', error);
+      res.status(500).json({ message: 'Failed to fetch market data' });
+    }
+  });
+
   app.post('/api/user/profile', async (req, res) => {
     // Helper function to add timeout to promises
     const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> => {

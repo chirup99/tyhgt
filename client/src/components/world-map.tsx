@@ -67,7 +67,7 @@ const getRegionColor = (x: number, y: number, marketData: any): string => {
 
 export function WorldMap() {
   const [pulseStates, setPulseStates] = useState<Set<number>>(new Set());
-  const { marketData, loading } = useMarketData(60000); // Refresh every 60 seconds
+  const { marketData, loading } = useMarketData(900000); // Refresh every 15 minutes (900000ms)
 
   useEffect(() => {
     // Randomly activate some dots for pulsing effect
