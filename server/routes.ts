@@ -4738,17 +4738,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const userId = decodedToken.uid;
       
-      // Get user profile from Firestore
+      // Get user profile from Firestore with timeout protection
       const firestore = admin.firestore();
-      const userDoc = await firestore.collection('users').doc(userId).get();
       
-      if (!userDoc.exists) {
-        return res.status(400).json({ error: 'User profile not found. Please complete your profile setup first.' });
+      let userData: any = null;
+      try {
+        const userDocPromise = firestore.collection('users').doc(userId).get();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Firestore timeout')), 5000)
+        );
+        
+        const userDoc = await Promise.race([userDocPromise, timeoutPromise]) as any;
+        
+        if (userDoc && userDoc.exists) {
+          userData = userDoc.data();
+        }
+      } catch (error: any) {
+        console.log('⚠️ Firestore fetch failed or timed out:', error.message);
       }
       
-      const userData = userDoc.data();
-      if (!userData?.username || !userData?.displayName) {
-        return res.status(400).json({ error: 'User profile incomplete. Please complete your profile setup first.' });
+      // If Firestore failed or user not found, try to use token info as fallback
+      if (!userData || !userData.username || !userData.displayName) {
+        console.log('⚠️ User profile not found in Firestore, using token email as fallback');
+        // Use email as username if profile not set up
+        const emailUsername = decodedToken.email?.split('@')[0] || `user_${userId.slice(0, 8)}`;
+        userData = {
+          username: emailUsername,
+          displayName: decodedToken.name || decodedToken.email || emailUsername,
+          email: decodedToken.email
+        };
+        console.log('📝 Using fallback user data:', userData);
       }
       
       // Parse post data from request body (without author info)
