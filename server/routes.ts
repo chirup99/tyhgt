@@ -3829,9 +3829,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const userId = decodedToken.uid;
 
-      // Get user profile from Firestore
-      const firestore = admin.firestore();
-      const userDoc = await firestore.collection('users').doc(userId).get();
+      // Get user profile from Firestore using getFirestore
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const userDoc = await db.collection('users').doc(userId).get();
       
       if (!userDoc.exists) {
         return res.json({ 
@@ -3887,45 +3888,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('✅ Token verified for user:', userId);
 
-      const firestore = admin.firestore();
+      // Use getFirestore from firebase-admin for proper initialization
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      console.log('🔍 Checking for existing username...');
       
       // Check if username is already taken by another user
-      const existingUsername = await firestore.collection('users')
+      const existingUsername = await db.collection('users')
         .where('username', '==', username.toLowerCase())
+        .limit(1)
         .get();
       
       if (!existingUsername.empty) {
         const existingUser = existingUsername.docs[0];
         if (existingUser.id !== userId) {
+          console.log('❌ Username already taken');
           return res.status(400).json({ success: false, message: 'Username already taken' });
         }
       }
 
-      // Save user profile
+      console.log('✅ Username available, saving profile...');
+
+      // Save user profile - simplified without timeout
       const userProfile = {
         username: username.toLowerCase(),
         displayName: displayName,
-        email: decodedToken.email,
+        email: decodedToken.email || '',
         userId: userId,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
-      console.log('💾 Saving profile to Firestore...');
-      
-      // Add timeout to prevent hanging
-      const savePromise = firestore.collection('users').doc(userId).set(userProfile, { merge: true });
-      const timeoutPromise = new Promise<void>((_, reject) => 
-        setTimeout(() => reject(new Error('Firestore save timeout - check Firebase credentials')), 15000)
-      );
-      
-      try {
-        await Promise.race([savePromise, timeoutPromise]);
-        console.log('✅ Profile saved successfully!');
-      } catch (saveError: any) {
-        console.error('❌ Firestore save failed:', saveError);
-        throw new Error(`Failed to save to Firestore: ${saveError?.message || 'Unknown error'}`);
-      }
+      // Use simpler set operation
+      await db.collection('users').doc(userId).set(userProfile, { merge: true });
+      console.log('✅ Profile saved successfully to Firestore!');
 
       res.json({ 
         success: true,
