@@ -49,20 +49,27 @@ export default function Landing() {
         });
         
         const profileData = await profileResponse.json();
+        console.log('🔍 Profile data from Firebase:', profileData);
         
         // Store user ID for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
         setPendingUserId(user.uid);
         
-        // If profile exists, go to app. Otherwise, show profile setup dialog
-        if (profileData.success && profileData.profile && profileData.profile.username) {
-          // Profile exists, save to localStorage and redirect
+        // If profile exists with both username and displayName, go to app
+        // Otherwise, show profile setup dialog
+        if (profileData.success && 
+            profileData.profile && 
+            profileData.profile.username && 
+            profileData.profile.displayName) {
+          // Profile exists with complete data, save to localStorage and redirect
+          console.log('✅ Profile found - redirecting to app');
           localStorage.setItem('currentUsername', profileData.profile.username);
           localStorage.setItem('currentDisplayName', profileData.profile.displayName);
           window.location.href = "/app";
         } else {
-          // No profile, show dialog
+          // No profile or incomplete profile, show dialog
+          console.log('❌ No profile found - showing profile setup dialog');
           setShowProfileDialog(true);
         }
       } else {
@@ -143,15 +150,21 @@ export default function Landing() {
         });
         
         const profileData = await profileResponse.json();
+        console.log('🔍 Profile data from Firebase (email auth):', profileData);
         
         // Store user ID for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
         setPendingUserId(user.uid);
         
-        // If profile exists, go to app. Otherwise, show profile setup dialog
-        if (profileData.success && profileData.profile && profileData.profile.username) {
-          // Profile exists, save to localStorage and redirect
+        // If profile exists with both username and displayName, go to app
+        // Otherwise, show profile setup dialog
+        if (profileData.success && 
+            profileData.profile && 
+            profileData.profile.username && 
+            profileData.profile.displayName) {
+          // Profile exists with complete data, save to localStorage and redirect
+          console.log('✅ Profile found - redirecting to app');
           localStorage.setItem('currentUsername', profileData.profile.username);
           localStorage.setItem('currentDisplayName', profileData.profile.displayName);
           toast({
@@ -160,7 +173,8 @@ export default function Landing() {
           });
           window.location.href = "/app";
         } else {
-          // No profile, show dialog
+          // No profile or incomplete profile, show dialog
+          console.log('❌ No profile found - showing profile setup dialog');
           setShowProfileDialog(true);
         }
       } else {

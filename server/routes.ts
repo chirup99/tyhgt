@@ -3834,7 +3834,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const db = getFirestore();
       const userDoc = await db.collection('users').doc(userId).get();
       
+      console.log('🔍 Checking profile for user:', userId);
+      console.log('📄 User document exists:', userDoc.exists);
+      
       if (!userDoc.exists) {
+        console.log('❌ No profile found in Firebase for user:', userId);
         return res.json({ 
           success: true,
           profile: null,
@@ -3844,6 +3848,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userData = userDoc.data();
+      console.log('✅ Profile found in Firebase:', {
+        username: userData?.username,
+        displayName: userData?.displayName,
+        hasUsername: !!userData?.username,
+        hasDisplayName: !!userData?.displayName
+      });
+      
       res.json({ 
         success: true,
         profile: userData,
