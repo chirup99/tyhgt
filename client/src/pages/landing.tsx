@@ -41,35 +41,57 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        // Check if user has a profile in Firebase
-        const profileResponse = await fetch('/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${idToken}`
-          }
-        });
-        
-        const profileData = await profileResponse.json();
-        console.log('🔍 Profile data from Firebase:', profileData);
-        
         // Store user ID for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
         setPendingUserId(user.uid);
         
-        // If profile exists with both username and displayName, go to app
-        // Otherwise, show profile setup dialog
-        if (profileData.success && 
-            profileData.profile && 
-            profileData.profile.username && 
-            profileData.profile.displayName) {
-          // Profile exists with complete data, save to localStorage and redirect
-          console.log('✅ Profile found - redirecting to app');
-          localStorage.setItem('currentUsername', profileData.profile.username);
-          localStorage.setItem('currentDisplayName', profileData.profile.displayName);
-          window.location.href = "/app";
-        } else {
-          // No profile or incomplete profile, show dialog
-          console.log('❌ No profile found - showing profile setup dialog');
+        // Check if user has a profile in Firebase
+        try {
+          const profileResponse = await fetch('/api/user/profile', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`
+            }
+          });
+          
+          if (!profileResponse.ok) {
+            console.warn('⚠️ Failed to fetch profile, showing setup dialog');
+            setShowProfileDialog(true);
+            return;
+          }
+          
+          const profileData = await profileResponse.json();
+          console.log('🔍 Profile data from Firebase:', JSON.stringify(profileData, null, 2));
+          
+          // If profile exists with both username and displayName, go to app
+          // Otherwise, show profile setup dialog
+          if (profileData.success && 
+              profileData.profile && 
+              profileData.profile.username && 
+              profileData.profile.displayName) {
+            // Profile exists with complete data, save to localStorage and redirect
+            console.log('✅ Complete profile found:', {
+              username: profileData.profile.username,
+              displayName: profileData.profile.displayName
+            });
+            console.log('✅ Redirecting to app...');
+            localStorage.setItem('currentUsername', profileData.profile.username);
+            localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+            window.location.href = "/app";
+          } else {
+            // No profile or incomplete profile, show dialog
+            console.log('❌ No complete profile found:', {
+              success: profileData.success,
+              hasProfile: !!profileData.profile,
+              username: profileData.profile?.username,
+              displayName: profileData.profile?.displayName
+            });
+            console.log('❌ Showing profile setup dialog');
+            setShowProfileDialog(true);
+          }
+        } catch (profileError) {
+          console.error('❌ Error checking profile:', profileError);
+          // On error, show dialog to be safe
           setShowProfileDialog(true);
         }
       } else {
@@ -142,39 +164,61 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        // Check if user has a profile in Firebase
-        const profileResponse = await fetch('/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${idToken}`
-          }
-        });
-        
-        const profileData = await profileResponse.json();
-        console.log('🔍 Profile data from Firebase (email auth):', profileData);
-        
         // Store user ID for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
         setPendingUserId(user.uid);
         
-        // If profile exists with both username and displayName, go to app
-        // Otherwise, show profile setup dialog
-        if (profileData.success && 
-            profileData.profile && 
-            profileData.profile.username && 
-            profileData.profile.displayName) {
-          // Profile exists with complete data, save to localStorage and redirect
-          console.log('✅ Profile found - redirecting to app');
-          localStorage.setItem('currentUsername', profileData.profile.username);
-          localStorage.setItem('currentDisplayName', profileData.profile.displayName);
-          toast({
-            title: "Success!",
-            description: isLogin ? "Welcome back!" : "Account created successfully!",
+        // Check if user has a profile in Firebase
+        try {
+          const profileResponse = await fetch('/api/user/profile', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`
+            }
           });
-          window.location.href = "/app";
-        } else {
-          // No profile or incomplete profile, show dialog
-          console.log('❌ No profile found - showing profile setup dialog');
+          
+          if (!profileResponse.ok) {
+            console.warn('⚠️ Failed to fetch profile, showing setup dialog');
+            setShowProfileDialog(true);
+            return;
+          }
+          
+          const profileData = await profileResponse.json();
+          console.log('🔍 Profile data from Firebase (email auth):', JSON.stringify(profileData, null, 2));
+          
+          // If profile exists with both username and displayName, go to app
+          // Otherwise, show profile setup dialog
+          if (profileData.success && 
+              profileData.profile && 
+              profileData.profile.username && 
+              profileData.profile.displayName) {
+            // Profile exists with complete data, save to localStorage and redirect
+            console.log('✅ Complete profile found:', {
+              username: profileData.profile.username,
+              displayName: profileData.profile.displayName
+            });
+            console.log('✅ Redirecting to app...');
+            localStorage.setItem('currentUsername', profileData.profile.username);
+            localStorage.setItem('currentDisplayName', profileData.profile.displayName);
+            toast({
+              title: "Success!",
+              description: isLogin ? "Welcome back!" : "Account created successfully!",
+            });
+            window.location.href = "/app";
+          } else {
+            // No profile or incomplete profile, show dialog
+            console.log('❌ No complete profile found:', {
+              success: profileData.success,
+              hasProfile: !!profileData.profile,
+              username: profileData.profile?.username,
+              displayName: profileData.profile?.displayName
+            });
+            console.log('❌ Showing profile setup dialog');
+            setShowProfileDialog(true);
+          }
+        } catch (profileError) {
+          console.error('❌ Error checking profile:', profileError);
+          // On error, show dialog to be safe
           setShowProfileDialog(true);
         }
       } else {
@@ -331,7 +375,7 @@ export default function Landing() {
       {/* Profile Setup Dialog */}
       <UserIdSetupDialog 
         isOpen={showProfileDialog}
-        onClose={() => {}} // Don't allow closing without completing profile
+        onClose={() => setShowProfileDialog(false)} // Allow closing the dialog
         onSuccess={handleProfileSetupSuccess}
       />
     </div>
