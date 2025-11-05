@@ -1762,11 +1762,28 @@ export default function NeoFeedSocialFeed() {
   function formatTimestamp(dateStr: string | Date): string {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = diffInMs / (1000 * 60);
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
     
-    if (diffInHours < 1) return 'now';
+    // Less than 1 minute
+    if (diffInMinutes < 1) return 'now';
+    
+    // Less than 1 hour - show minutes
+    if (diffInHours < 1) return `${Math.floor(diffInMinutes)}m`;
+    
+    // Less than 24 hours - show hours
     if (diffInHours < 24) return `${Math.floor(diffInHours)}h`;
-    return `${Math.floor(diffInHours / 24)}d`;
+    
+    // Less than 7 days - show days
+    if (diffInDays < 7) return `${Math.floor(diffInDays)}d`;
+    
+    // 7+ days - show full date in DD-MM-YYYY format
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   }
 
   // Show skeleton loading only on initial load, not during background fetches
