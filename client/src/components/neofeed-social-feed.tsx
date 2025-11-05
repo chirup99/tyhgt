@@ -1252,11 +1252,16 @@ function PostCard({ post }: { post: FeedPost }) {
               </div>
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm font-medium ">
                 <span>@{post.user?.handle || post.authorUsername || 'user'}</span>
-                <span>•</span>
-                <span>
-                  {post.timestamp || 
-                   (post.createdAt ? new Date(post.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now')}
-                </span>
+                {/* Hide timestamp for finance news posts (auto-generated content) */}
+                {post.authorUsername !== 'finance_news' && (
+                  <>
+                    <span>•</span>
+                    <span>
+                      {post.timestamp || 
+                       (post.createdAt ? new Date(post.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now')}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
