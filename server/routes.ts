@@ -3741,7 +3741,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Email mismatch' });
       }
 
-      // Store user session - you can enhance this with actual user storage
+      // Sync displayName from Firebase Auth to Firestore during login
+      if (decodedToken.name) {
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        
+        // Check if user profile already exists
+        const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+        
+        // Only save displayName if it doesn't already exist (don't overwrite existing profile)
+        if (!userDoc.exists || !userDoc.data()?.displayName) {
+          console.log('💾 Syncing displayName from Firebase Auth during login:', { userId: decodedToken.uid, displayName: decodedToken.name });
+          
+          await db.collection('users').doc(decodedToken.uid).set({
+            displayName: decodedToken.name,
+            email: decodedToken.email,
+            userId: decodedToken.uid,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          
+          console.log('✅ DisplayName synced to Firestore from Firebase Auth during login');
+        } else {
+          console.log('ℹ️ User profile already has displayName, keeping existing value');
+        }
+      }
+
+      // Store user session
       res.json({ 
         success: true, 
         message: 'Login successful',

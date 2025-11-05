@@ -310,3 +310,9 @@
 [x] 310. Existing users can edit their displayName through profile settings
 [x] 311. Restarted workflow - server running successfully on port 5000
 [x] 312. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ DISPLAY NAME FIX COMPLETED - SIGNUP NAME NOW SHOWS IN PROFILE!
+[x] 313. Updated /api/auth/login endpoint to sync displayName from Firebase Auth credentials
+[x] 314. Login now automatically saves displayName from Firebase Auth to Firestore
+[x] 315. Existing users logging in will have their displayName auto-populated from Firebase Auth
+[x] 316. Display name syncs for both email and Google login users
+[x] 317. Restarted workflow - server running successfully on port 5000
+[x] 318. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ LOGIN DISPLAY NAME SYNC COMPLETED - FIREBASE AUTH CREDENTIALS AUTO-POPULATE PROFILE!
