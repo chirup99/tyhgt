@@ -79,7 +79,15 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
         throw new Error('Not authenticated');
       }
 
+      console.log('🔐 Getting Firebase ID token...');
       const idToken = await user.getIdToken();
+      console.log('✅ ID token obtained');
+      
+      console.log('📤 Sending profile save request:', {
+        username: username.toLowerCase(),
+        displayName: displayName.trim()
+      });
+      
       const response = await fetch('/api/user/profile', {
         method: 'POST',
         headers: {
@@ -92,12 +100,26 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
         })
       });
 
-      const data = await response.json();
+      console.log('📡 Response status:', response.status, response.statusText);
+      
+      // Get response text first to check if it's HTML or JSON
+      const responseText = await response.text();
+      console.log('📄 Response text:', responseText.substring(0, 200));
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('❌ Failed to parse response as JSON');
+        throw new Error('Server returned an invalid response. Please try again.');
+      }
       
       if (!response.ok) {
         throw new Error(data.message || 'Failed to save profile');
       }
 
+      console.log('✅ Profile saved successfully:', data);
+      
       toast({
         description: 'Profile created successfully!'
       });
@@ -105,7 +127,7 @@ export function UserIdSetupDialog({ isOpen, onClose, onSuccess }: UserIdSetupDia
       onSuccess(username.toLowerCase(), displayName.trim());
       onClose();
     } catch (error: any) {
-      console.error('Error saving profile:', error);
+      console.error('❌ Error saving profile:', error);
       toast({
         description: error.message || 'Failed to save profile',
         variant: 'destructive'
