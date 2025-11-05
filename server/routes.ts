@@ -3889,11 +3889,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const firestore = admin.firestore();
       
-      // Configure Firestore settings to prevent hanging
-      firestore.settings({
-        ignoreUndefinedProperties: true,
-      });
-      
       // Check if username is already taken by another user
       const existingUsername = await firestore.collection('users')
         .where('username', '==', username.toLowerCase())
