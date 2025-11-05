@@ -3955,8 +3955,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('✅ Username available, proceeding to save...');
 
-      // Save user profile - using userId as document ID ensures uniqueness
+      // First, fetch existing profile to preserve displayName and other fields
+      console.log('📖 Fetching existing profile...');
+      const existingProfile = await withTimeout(
+        db.collection('users').doc(userId).get(),
+        5000,
+        'Fetch existing profile'
+      );
+      
+      const existingData = existingProfile.exists ? existingProfile.data() : {};
+      console.log('📄 Existing profile data:', {
+        hasDisplayName: !!existingData?.displayName,
+        displayName: existingData?.displayName
+      });
+
+      // Save user profile - merge with existing data to preserve displayName
       const userProfile = {
+        ...existingData, // Preserve all existing fields
         username: username.toLowerCase(),
         dob: dob,
         email: decodedToken.email || '',
@@ -3965,13 +3980,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Save user profile with timeout protection
-      console.log('💾 Saving user profile to Firestore...');
+      console.log('💾 Saving user profile to Firestore (preserving displayName)...');
       await withTimeout(
         db.collection('users').doc(userId).set(userProfile, { merge: true }),
         10000,
         'User profile save'
       );
-      console.log('✅ User profile saved to Firestore');
+      console.log('✅ User profile saved to Firestore with displayName:', userProfile.displayName);
       
       // Also save username mapping with timeout protection
       console.log('💾 Saving username mapping...');
