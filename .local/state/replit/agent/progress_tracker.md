@@ -148,3 +148,11 @@
 [x] 148. Restarted workflow - server running successfully on port 5000
 [x] 149. Verified frontend displays correctly - PERALA login page fully functional
 [x] 150. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ NOVEMBER 5, 2025 FINAL MIGRATION COMPLETED - ALL IMPORT TASKS FINISHED SUCCESSFULLY!
+[x] 151. Fixed profile dialog from reopening after profile creation
+[x] 152. Changed useEffect dependencies to use stable values instead of function references
+[x] 153. Dialog now checks currentUser.username directly instead of hasUsername()
+[x] 154. Fixed post creation to use actual username and displayName from profile
+[x] 155. Posts now correctly use authorUsername (username) and authorDisplayName (displayName)
+[x] 156. Removed incorrect use of getUserDisplayName() for both fields
+[x] 157. Restarting workflow to apply profile dialog and post creation fixes
+[x] 158. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ PROFILE DIALOG & POST CREATION FIX COMPLETED!

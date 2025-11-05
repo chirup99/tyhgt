@@ -40,7 +40,7 @@ export function PostCreationPanel() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { getUserDisplayName } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
 
   const createPostMutation = useMutation({
     mutationFn: async (postData: InsertSocialPost) => {
@@ -157,11 +157,14 @@ export function PostCreationPanel() {
       return;
     }
 
-    const userDisplayName = getUserDisplayName();
+    // Use the saved username and displayName from the user's profile
+    const username = currentUser.username || currentUser.email?.split('@')[0] || 'anonymous';
+    const displayName = currentUser.displayName || currentUser.username || currentUser.email?.split('@')[0] || 'Anonymous User';
+    
     const postData: InsertSocialPost = {
       content: content.trim(),
-      authorUsername: userDisplayName,
-      authorDisplayName: userDisplayName,
+      authorUsername: username,
+      authorDisplayName: displayName,
       stockMentions,
       sentiment: sentiment as 'bullish' | 'bearish' | 'neutral',
       tags: [],
