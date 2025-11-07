@@ -400,16 +400,17 @@
 [x] 400. CORRECTED: World map now visible on mobile at 25% height (h-[25vh])
 [x] 401. CORRECTED: Blue section fixed at 75% height (h-[75vh]) - separate from white container
 [x] 402. CORRECTED: White container is now independent with flex-shrink-0 (doesn't expand with blue layer)
-[x] 403. Welcome text positioned in blue area (pt-4, pb-3) above white container
-[x] 404. Search bar positioned in blue area (pb-4) above white container
-[x] 405. White container uses rounded-t-3xl (rounded top only on mobile)
-[x] 406. White container has overflow-auto with pb-20 for bottom spacing
-[x] 407. Three cards (Social Feed, Trading Master, Journal) with proper spacing
-[x] 408. Card heights set to h-20 for better mobile fit
-[x] 409. Card colors: Blue (Social Feed), Purple (Trading Master), Green (Journal)
-[x] 410. Icon sizes h-5/w-5 for better visibility
-[x] 411. Swipeable cards with fixed h-64 height (not flex-1)
-[x] 412. Layout now matches exact design: 25% world map + 75% blue section with white container inside
-[x] 413. Blue background and white container are completely separate elements
-[x] 414. Restarted workflow - server running successfully on port 5000
-[x] 415. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ MOBILE UI FIXED - 25% WORLD MAP + 75% BLUE SECTION WITH INDEPENDENT WHITE CONTAINER!
+[x] 403. Welcome text positioned in blue area (pt-4, pb-6) above white container
+[x] 404. UPDATED: Search bar now overlapping - half in blue area, half in white container (-top-6 positioning)
+[x] 405. UPDATED: White container uses rounded-3xl (all corners rounded on mobile)
+[x] 406. White container moved up closer to welcome text with pt-8 top padding
+[x] 407. White container has overflow-auto with pb-20 for bottom spacing
+[x] 408. Three cards (Social Feed, Trading Master, Journal) with proper spacing
+[x] 409. Card heights set to h-20 for better mobile fit
+[x] 410. Card colors: Blue (Social Feed), Purple (Trading Master), Green (Journal)
+[x] 411. Icon sizes h-5/w-5 for better visibility
+[x] 412. UPDATED: Swipeable cards centered with flex items-center justify-center and max-w-sm
+[x] 413. Search bar has shadow-lg for overlapping effect
+[x] 414. Layout now matches exact design: overlapping search, rounded container, centered cards
+[x] 415. Restarted workflow - server running successfully on port 5000
+[x] 416. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ MOBILE UI PERFECTED - OVERLAPPING SEARCH BAR, ROUNDED CONTAINER, CENTERED CARDS!

@@ -5489,49 +5489,48 @@ ${
                     </div>
 
                     {/* Mobile Welcome Text - Fixed position in blue area */}
-                    <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-3 px-4">
+                    <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4">
                       <Sparkles className="h-4 w-4 text-blue-400" />
                       <h1 className="text-base font-normal text-gray-100">
                         Welcome to Trading Platform
                       </h1>
                     </div>
 
-                    {/* Mobile Search Bar - Fixed position in blue area */}
-                    <div className="md:hidden px-4 pb-4">
-                      <div className="relative">
-                        <Input
-                          placeholder="Search stocks, technical analysis, social feed..."
-                          value={searchQuery}
-                          onFocus={() => setIsSearchActive(true)}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setSearchQuery(value);
-                            setIsSearchActive(value.length > 0);
-                          }}
-                          onKeyPress={async (e) => {
-                            if (e.key === "Enter" && searchQuery.trim()) {
-                              await handleSearch();
-                            }
-                          }}
-                          className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <Button
-                          size="sm"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300"
-                          onClick={() => handleSearch()}
-                          disabled={!searchQuery.trim() || isSearchLoading}
-                        >
-                          {isSearchLoading ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Bot className="h-4 w-4" />
-                          )}
-                        </Button>
+                    {/* Trading Tools Section - White container moved up with all rounded corners */}
+                    <div className="bg-white md:pt-1 pt-8 pb-20 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 overflow-auto md:flex-1 mt-0">
+                      {/* Mobile Search Bar - Overlapping (half inside white, half outside in blue) */}
+                      <div className="md:hidden absolute -top-6 left-4 right-4 z-30">
+                        <div className="relative">
+                          <Input
+                            placeholder="Search stocks, technical analysis, social feed..."
+                            value={searchQuery}
+                            onFocus={() => setIsSearchActive(true)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setSearchQuery(value);
+                              setIsSearchActive(value.length > 0);
+                            }}
+                            onKeyPress={async (e) => {
+                              if (e.key === "Enter" && searchQuery.trim()) {
+                                await handleSearch();
+                              }
+                            }}
+                            className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                          />
+                          <Button
+                            size="sm"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300"
+                            onClick={() => handleSearch()}
+                            disabled={!searchQuery.trim() || isSearchLoading}
+                          >
+                            {isSearchLoading ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Bot className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Trading Tools Section - White container with fixed height (separate from blue background) */}
-                    <div className="bg-white md:pt-1 pt-4 pb-20 md:pb-4 md:rounded-3xl rounded-t-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 overflow-auto md:flex-1">
                       {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
                       <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
                         {/* Social Feed Card */}
@@ -5649,9 +5648,9 @@ ${
                           </div>
                         </div>
 
-                        {/* Swipeable News Cards Below - Fixed height */}
-                        <div className="px-4 pb-4">
-                          <div className="h-64">
+                        {/* Swipeable News Cards Below - Centered */}
+                        <div className="px-4 pb-4 flex items-center justify-center">
+                          <div className="w-full max-w-sm">
                             <SwipeableCardStack
                               onSectorChange={handleSectorChange}
                               selectedSector={selectedSector}
