@@ -269,7 +269,7 @@ export function PostCreationPanel() {
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-6 p-6">
+      <CardContent className="space-y-4 xl:space-y-6 p-4 xl:p-6">
         {viewMode === 'post' ? (
           <form onSubmit={handleSubmit} className="space-y-4">
           {/* Content Input */}
