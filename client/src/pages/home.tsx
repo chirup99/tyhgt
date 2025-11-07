@@ -5497,9 +5497,9 @@ ${
                     </div>
 
                     {/* Trading Tools Section - White container moved up with all rounded corners */}
-                    <div className="bg-white md:pt-1 pt-8 pb-20 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 overflow-auto md:flex-1 mt-0">
-                      {/* Mobile Search Bar - Overlapping (half inside white, half outside in blue) */}
-                      <div className="md:hidden absolute -top-6 left-4 right-4 z-50">
+                    <div className="bg-white md:pt-1 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 md:flex-1 mt-0">
+                      {/* Mobile Search Bar - Fully visible at top */}
+                      <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
                         <div className="relative">
                           <Input
                             placeholder="Search stocks, technical analysis, social feed..."
@@ -5530,6 +5530,71 @@ ${
                             )}
                           </Button>
                         </div>
+                        
+                        {/* Mobile Quick Suggestion Buttons - Show when search is active */}
+                        {isSearchActive && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Button
+                              variant="secondary"
+                              className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              onClick={() =>
+                                handleSuggestionClick(
+                                  "Show me live stock prices for ICICI Bank and TCS"
+                                )
+                              }
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <TrendingUp className="h-3 w-3" />
+                                <span>Stock Prices</span>
+                              </div>
+                            </Button>
+
+                            <Button
+                              variant="secondary"
+                              className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              onClick={() =>
+                                handleSuggestionClick(
+                                  "Social feed community discussions and trending topics"
+                                )
+                              }
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <User className="h-3 w-3" />
+                                <span>Social Feed</span>
+                              </div>
+                            </Button>
+
+                            <Button
+                              variant="secondary"
+                              className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              onClick={() =>
+                                handleSuggestionClick(
+                                  "What are today's top financial news and market updates?"
+                                )
+                              }
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <Newspaper className="h-3 w-3" />
+                                <span>Market News</span>
+                              </div>
+                            </Button>
+
+                            <Button
+                              variant="secondary"
+                              className="bg-orange-600 hover:bg-orange-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              onClick={() =>
+                                handleSuggestionClick(
+                                  "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics"
+                                )
+                              }
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <BarChart3 className="h-3 w-3" />
+                                <span>Fundamentals</span>
+                              </div>
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
                       <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
