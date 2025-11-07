@@ -5225,20 +5225,10 @@ ${
             )}
 
             {activeTab === "trading-home" && (
-              <div className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-300 ease-in-out ${isNavOpen ? 'md:mr-80 mr-64' : 'mr-0'}`}>
-                {/* Two-line Hamburger Icon - Top Right */}
-                <button
-                  onClick={() => setIsNavOpen(!isNavOpen)}
-                  className="fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300"
-                  data-testid="button-nav-toggle"
-                >
-                  <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'rotate-45 translate-y-1' : ''}`}></div>
-                  <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? '-rotate-45 -translate-y-1' : ''}`}></div>
-                </button>
-
-                {/* Sliding Navigation Menu */}
-                <div className={`fixed top-0 right-0 h-full md:w-80 w-64 bg-gradient-to-b from-blue-800 to-blue-900 shadow-2xl transition-transform duration-300 ease-in-out z-40 ${isNavOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                  <div className="pt-20 px-6 space-y-4">
+              <div className="relative min-h-screen overflow-hidden">
+                {/* Navigation Menu - Behind the home screen */}
+                <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10">
+                  <div className="pt-20 px-6 space-y-4 ml-auto md:w-80 w-64">
                     {/* User Profile Section */}
                     <div className="flex items-center gap-3 mb-8">
                       <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -5271,13 +5261,26 @@ ${
                   </div>
                 </div>
 
-                {/* Backdrop overlay when nav is open */}
-                {isNavOpen && (
-                  <div 
-                    className="fixed inset-0 bg-black/50 z-30 transition-opacity duration-300"
-                    onClick={() => setIsNavOpen(false)}
-                  />
-                )}
+                {/* Home Screen - Stacks on top with card effect */}
+                <div 
+                  className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 ${
+                    isNavOpen 
+                      ? 'md:scale-90 scale-[0.85] -translate-x-8 md:-translate-x-16 rounded-2xl shadow-2xl' 
+                      : 'scale-100 translate-x-0'
+                  }`}
+                  style={{
+                    transformOrigin: 'right center',
+                  }}
+                >
+                  {/* Two-line Hamburger Icon - Top Right */}
+                  <button
+                    onClick={() => setIsNavOpen(!isNavOpen)}
+                    className="fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300"
+                    data-testid="button-nav-toggle"
+                  >
+                    <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'rotate-45 translate-y-1' : ''}`}></div>
+                    <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? '-rotate-45 -translate-y-1' : ''}`}></div>
+                  </button>
 
                 {/* World Map Section: Takes 25% of the total height */}
                 <div className="px-8 pt-1 pb-1 flex items-center justify-center md:h-1/4 h-[25vh]">
@@ -6078,6 +6081,7 @@ ${
                   }
                 `}</style>
                 </div>
+              </div>
               </div>
             )}
 
