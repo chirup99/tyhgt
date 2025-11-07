@@ -5440,7 +5440,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="main" className="p-6 space-y-6">
+          <TabsContent value="main" className="p-3 md:p-6 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold">Trading Overview</h1>
@@ -5448,7 +5448,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </div>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {/* Views Card */}
         <Card className="bg-slate-100 dark:bg-slate-800 border-0 shadow-sm">
           <CardContent className="p-4">
@@ -5515,9 +5515,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       </div>
 
       {/* Middle Section - Chart, Feed Stocks and Traffic */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
         {/* Main Chart Area */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <Card className="h-80 bg-slate-900 dark:bg-slate-900 border-slate-700">
             <CardContent className="p-6">
               <div className="space-y-4">
@@ -5906,9 +5906,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       </div>
 
       {/* Bottom Section - OHLC Chart + Orders + Notes AI */}
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Trading by Timeframe - OHLC Data (50%) */}
-        <div className="lg:col-span-5">
+        <div>
           <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
@@ -6231,8 +6231,8 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
         </div>
         
-        {/* Orders Section (30%) */}
-        <div className="lg:col-span-3">
+        {/* Orders Section (Visual Chart) */}
+        <div>
           <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700 h-full">
             <CardContent className="p-4 h-full flex flex-col">
               <div className="flex items-center justify-between mb-3">
@@ -6716,8 +6716,8 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </Card>
         </div>
 
-        {/* Notes AI Section (20%) */}
-        <div className="lg:col-span-2">
+        {/* Notes AI Section */}
+        <div>
           <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700 h-full">
             <CardContent className="p-4 h-full flex flex-col">
               <div className="flex items-center justify-between mb-3">
