@@ -40,6 +40,7 @@ import { StrategyBuilder } from "@/components/strategy-builder";
 import { TradingMaster } from "@/components/trading-master";
 import { WorldMap } from "@/components/world-map";
 import { useTheme } from "@/components/theme-provider";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 // Global window type declaration for audio control
 declare global {
@@ -1798,6 +1799,9 @@ export default function Home() {
   const [chartTimeframe, setChartTimeframe] = useState<string>("1");
   // Navigation menu state
   const [isNavOpen, setIsNavOpen] = useState(false);
+  
+  // Get current user data from Firebase
+  const { currentUser } = useCurrentUser();
 
   // AI Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -5229,14 +5233,20 @@ ${
                 {/* Navigation Menu - Behind the home screen */}
                 <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10">
                   <div className="pt-20 px-6 space-y-4 ml-auto md:w-80 w-64">
-                    {/* User Profile Section */}
+                    {/* User Profile Section with Firebase data */}
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                        <span className="text-white font-semibold text-lg">C</span>
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                        <span className="text-white font-semibold text-xl">
+                          {(currentUser.displayName || currentUser.username || 'U').charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                      <div>
-                        <p className="text-white font-medium">churanjiveerperala</p>
-                        <p className="text-blue-200 text-sm">singa</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold text-base truncate">
+                          {currentUser.displayName || 'User'}
+                        </p>
+                        <p className="text-blue-200 text-sm truncate">
+                          @{currentUser.username || 'username'}
+                        </p>
                       </div>
                     </div>
 
@@ -5248,11 +5258,14 @@ ${
                       <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-saved">
                         saved
                       </button>
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" data-testid="nav-dashboard">
+                        <span>dashboard</span>
+                      </button>
                       <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-settings">
                         setting & privacy
                       </button>
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-flutter">
-                        flutter ads
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-darkmode">
+                        dark mode
                       </button>
                       <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-logout">
                         logout
@@ -5263,23 +5276,27 @@ ${
 
                 {/* Home Screen - Stacks on top with card effect */}
                 <div 
+                  onClick={() => isNavOpen && setIsNavOpen(false)}
                   className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 ${
                     isNavOpen 
-                      ? 'md:scale-90 scale-[0.85] -translate-x-8 md:-translate-x-16 rounded-2xl shadow-2xl' 
+                      ? 'scale-90 -translate-x-[70%] rounded-2xl shadow-2xl' 
                       : 'scale-100 translate-x-0'
                   }`}
                   style={{
                     transformOrigin: 'right center',
                   }}
                 >
-                  {/* Two-line Hamburger Icon - Top Right */}
+                  {/* Two-line Hamburger Icon - Mobile only */}
                   <button
-                    onClick={() => setIsNavOpen(!isNavOpen)}
-                    className="fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsNavOpen(!isNavOpen);
+                    }}
+                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-end justify-center gap-1.5 bg-transparent hover:bg-white/10 rounded-lg transition-all duration-300"
                     data-testid="button-nav-toggle"
                   >
-                    <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'rotate-45 translate-y-1' : ''}`}></div>
-                    <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? '-rotate-45 -translate-y-1' : ''}`}></div>
+                    <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'rotate-45 translate-y-1 translate-x-0' : ''}`}></div>
+                    <div className={`w-4 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? '-rotate-45 -translate-y-1 translate-x-0.5' : ''}`}></div>
                   </button>
 
                 {/* World Map Section: Takes 25% of the total height */}
