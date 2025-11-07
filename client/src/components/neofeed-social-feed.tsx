@@ -1639,7 +1639,30 @@ export default function NeoFeedSocialFeed() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentUserUsername, setCurrentUserUsername] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showTopFilters, setShowTopFilters] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const { toast } = useToast();
+  
+  // Handle scroll to hide/show top filter bar
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down and past 100px
+        setShowTopFilters(false);
+      } else {
+        // Scrolling up
+        setShowTopFilters(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+      setIsAtTop(currentScrollY < 50);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
   
   const { data: posts = [], isLoading, error, isFetching, refetch } = useQuery({
     queryKey: ['/api/social-posts'],
@@ -2062,76 +2085,109 @@ export default function NeoFeedSocialFeed() {
         }}
       />
 
-      {/* Bottom Floating Navigation Bar - Mobile Only */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-2xl pb-safe">
-        <div className="flex items-center justify-around px-2 py-3">
+      {/* Top Floating Filter Bar - Mobile Only (Hides on scroll down) */}
+      <div className={`md:hidden fixed top-4 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ${
+        showTopFilters ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0'
+      }`}>
+        <div className="bg-white dark:bg-gray-900 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-2 py-1.5 flex items-center gap-1">
           {/* All Button */}
           <button
             onClick={() => handleFilterChange('All')}
-            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               selectedFilter === 'All'
-                ? 'bg-blue-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 dark:text-gray-400'
             }`}
             data-testid="button-filter-all-mobile"
           >
-            <Home className="w-5 h-5" />
-            <span className="text-xs font-medium">All</span>
+            All
           </button>
 
           {/* Bullish Button */}
           <button
             onClick={() => handleFilterChange('Bullish')}
-            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               selectedFilter === 'Bullish'
-                ? 'bg-green-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-600 dark:text-gray-400'
             }`}
-            data-testid="button-filter-bullish-mobile"
+            data-testid="button-filter-bullish-mobile-top"
           >
-            <TrendingUp className="w-5 h-5" />
-            <span className="text-xs font-medium">Bullish</span>
+            Bullish
           </button>
 
           {/* Bearish Button */}
           <button
             onClick={() => handleFilterChange('Bearish')}
-            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               selectedFilter === 'Bearish'
-                ? 'bg-red-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-red-600 text-white'
+                : 'text-gray-600 dark:text-gray-400'
             }`}
-            data-testid="button-filter-bearish-mobile"
+            data-testid="button-filter-bearish-mobile-top"
           >
-            <TrendingDown className="w-5 h-5" />
-            <span className="text-xs font-medium">Bearish</span>
+            Bearish
           </button>
 
-          {/* Profile Posts Button */}
+          {/* Profile Button */}
           <button
             onClick={() => handleFilterChange('Profile')}
-            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               selectedFilter === 'Profile'
-                ? 'bg-purple-500 text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-600 dark:text-gray-400'
             }`}
-            data-testid="button-filter-profile-mobile"
+            data-testid="button-filter-profile-mobile-top"
           >
-            <User className="w-5 h-5" />
-            <span className="text-xs font-medium">Profile</span>
+            Profile
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Navigation Bar - Mobile Only (Always visible) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-gray-800 shadow-2xl pb-safe">
+        <div className="flex items-center justify-around px-4 py-3">
+          {/* Home Button */}
+          <button
+            onClick={() => handleFilterChange('All')}
+            className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition-colors"
+            data-testid="button-home-mobile"
+          >
+            <Home className="w-6 h-6" />
           </button>
 
-          {/* Posts/Create Button */}
+          {/* Bullish Button */}
+          <button
+            onClick={() => handleFilterChange('Bullish')}
+            className="flex flex-col items-center gap-1 text-white hover:text-green-400 transition-colors"
+            data-testid="button-bullish-mobile"
+          >
+            <TrendingUp className="w-6 h-6" />
+          </button>
+
+          {/* Create Post Button (Center with larger size) */}
           <button
             onClick={() => {
-              // Scroll to post creation panel
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+            className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition-colors"
             data-testid="button-create-post-mobile"
           >
-            <PenTool className="w-5 h-5" />
-            <span className="text-xs font-medium">Posts</span>
+            <div className="w-12 h-12 -mt-2 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+          </button>
+
+          {/* Messages/Comments Button */}
+          <button
+            onClick={() => {
+              // Could link to a messages/notifications page
+              toast({ description: "Messages feature coming soon!" });
+            }}
+            className="flex flex-col items-center gap-1 text-white hover:text-purple-400 transition-colors"
+            data-testid="button-messages-mobile"
+          >
+            <MessageCircle className="w-6 h-6" />
           </button>
         </div>
       </div>
