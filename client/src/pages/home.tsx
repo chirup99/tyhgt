@@ -663,6 +663,105 @@ function SwipeableCardStack({
               document.addEventListener("mousemove", handleMouseMove);
               document.addEventListener("mouseup", handleMouseUp);
             }}
+            onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => {
+              if (!isTop) return;
+
+              const startX = e.touches[0].clientX;
+              const startY = e.touches[0].clientY;
+              const cardElement = e.currentTarget as HTMLElement;
+              let isDragging = false;
+
+              const handleTouchMove = (e: TouchEvent) => {
+                const deltaX = e.touches[0].clientX - startX;
+                const deltaY = e.touches[0].clientY - startY;
+
+                if (
+                  !isDragging &&
+                  (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)
+                ) {
+                  isDragging = true;
+                }
+
+                if (isDragging) {
+                  e.preventDefault();
+                  const rotation = deltaX * 0.1;
+                  cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+                  cardElement.style.opacity = String(
+                    Math.max(0.3, 1 - Math.abs(deltaX) / 300)
+                  );
+                }
+              };
+
+              const handleTouchEnd = (e: TouchEvent) => {
+                if (isDragging) {
+                  const deltaX = e.changedTouches[0].clientX - startX;
+                  if (Math.abs(deltaX) > 100) {
+                    // Determine swipe direction
+                    const swipeDirection = deltaX > 0 ? "right" : "left";
+
+                    if (swipeDirection === "right") {
+                      // Right swipe: Card moves away animation
+                      const direction = "150%";
+                      const rotation = "30deg";
+                      cardElement.style.transform = `translate(${direction}, ${
+                        deltaX * 0.5
+                      }px) rotate(${rotation})`;
+                      cardElement.style.opacity = "0";
+
+                      setTimeout(() => {
+                        cardElement.style.transform = "";
+                        cardElement.style.opacity = "";
+                        swipeCard(swipeDirection);
+                      }, 300);
+                    } else {
+                      // Left swipe: Previous card slides in from left (reverse animation)
+                      cardElement.style.transform = "";
+                      cardElement.style.opacity = "";
+
+                      // Change the card order first
+                      swipeCard(swipeDirection);
+
+                      // Then animate the new top card sliding in from the right (coming back)
+                      setTimeout(() => {
+                        const newTopCard =
+                          cardElement.parentElement?.querySelector(
+                            '[data-card-index="0"]'
+                          ) as HTMLElement;
+                        if (newTopCard) {
+                          // Start from right side with rotation (like it's coming back)
+                          newTopCard.style.transform =
+                            "translate(150%, 0) rotate(30deg)";
+                          newTopCard.style.opacity = "0";
+
+                          // Animate to center
+                          setTimeout(() => {
+                            newTopCard.style.transform = "";
+                            newTopCard.style.opacity = "";
+                            newTopCard.style.transition =
+                              "transform 300ms ease-out, opacity 300ms ease-out";
+
+                            // Clear transition after animation
+                            setTimeout(() => {
+                              newTopCard.style.transition = "";
+                            }, 300);
+                          }, 10);
+                        }
+                      }, 10);
+                    }
+                  } else {
+                    // Snap back to center
+                    cardElement.style.transform = "";
+                    cardElement.style.opacity = "";
+                  }
+                }
+
+                document.removeEventListener("touchmove", handleTouchMove);
+                document.removeEventListener("touchend", handleTouchEnd);
+              };
+
+              document.addEventListener("touchmove", handleTouchMove, { passive: false });
+              document.addEventListener("touchend", handleTouchEnd);
+            }}
             onClick={() => {
               if (isTop) {
                 console.log(`Clicked on ${card.title}`);
@@ -1697,6 +1796,8 @@ export default function Home() {
   const [statisticsTab, setStatisticsTab] = useState("overview");
   // Shared timeframe state for chart and crossings display
   const [chartTimeframe, setChartTimeframe] = useState<string>("1");
+  // Navigation menu state
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   // AI Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -5124,7 +5225,60 @@ ${
             )}
 
             {activeTab === "trading-home" && (
-              <div className="min-h-screen bg-gray-900 flex flex-col">
+              <div className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-300 ease-in-out ${isNavOpen ? 'md:mr-80 mr-64' : 'mr-0'}`}>
+                {/* Two-line Hamburger Icon - Top Right */}
+                <button
+                  onClick={() => setIsNavOpen(!isNavOpen)}
+                  className="fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300"
+                  data-testid="button-nav-toggle"
+                >
+                  <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'rotate-45 translate-y-1' : ''}`}></div>
+                  <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? '-rotate-45 -translate-y-1' : ''}`}></div>
+                </button>
+
+                {/* Sliding Navigation Menu */}
+                <div className={`fixed top-0 right-0 h-full md:w-80 w-64 bg-gradient-to-b from-blue-800 to-blue-900 shadow-2xl transition-transform duration-300 ease-in-out z-40 ${isNavOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                  <div className="pt-20 px-6 space-y-4">
+                    {/* User Profile Section */}
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                        <span className="text-white font-semibold text-lg">C</span>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">churanjiveerperala</p>
+                        <p className="text-blue-200 text-sm">singa</p>
+                      </div>
+                    </div>
+
+                    {/* Navigation Menu Items */}
+                    <div className="space-y-2">
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-profile">
+                        profile
+                      </button>
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-saved">
+                        saved
+                      </button>
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-settings">
+                        setting & privacy
+                      </button>
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-flutter">
+                        flutter ads
+                      </button>
+                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-logout">
+                        logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Backdrop overlay when nav is open */}
+                {isNavOpen && (
+                  <div 
+                    className="fixed inset-0 bg-black/50 z-30 transition-opacity duration-300"
+                    onClick={() => setIsNavOpen(false)}
+                  />
+                )}
+
                 {/* World Map Section: Takes 25% of the total height */}
                 <div className="px-8 pt-1 pb-1 flex items-center justify-center md:h-1/4 h-[25vh]">
                   {/* World Map */}
