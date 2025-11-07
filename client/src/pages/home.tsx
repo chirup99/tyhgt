@@ -5531,12 +5531,12 @@ ${
                           </Button>
                         </div>
                         
-                        {/* Mobile Quick Suggestion Buttons - Show when search is active */}
+                        {/* Mobile Quick Suggestion Buttons - Horizontal scroll when search is active */}
                         {isSearchActive && (
-                          <div className="mt-3 flex flex-wrap gap-2">
+                          <div className="mt-2 flex gap-2 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             <Button
                               variant="secondary"
-                              className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
                               onClick={() =>
                                 handleSuggestionClick(
                                   "Show me live stock prices for ICICI Bank and TCS"
@@ -5551,7 +5551,7 @@ ${
 
                             <Button
                               variant="secondary"
-                              className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
                               onClick={() =>
                                 handleSuggestionClick(
                                   "Social feed community discussions and trending topics"
@@ -5566,7 +5566,7 @@ ${
 
                             <Button
                               variant="secondary"
-                              className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
                               onClick={() =>
                                 handleSuggestionClick(
                                   "What are today's top financial news and market updates?"
@@ -5581,7 +5581,7 @@ ${
 
                             <Button
                               variant="secondary"
-                              className="bg-orange-600 hover:bg-orange-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                              className="bg-orange-600 hover:bg-orange-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
                               onClick={() =>
                                 handleSuggestionClick(
                                   "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics"
@@ -5660,9 +5660,9 @@ ${
                         </div>
                       </div>
                       {/* Mobile Layout: 3 horizontal cards + swipeable below */}
-                      <div className="md:hidden">
+                      <div className="md:hidden mt-6">
                         {/* Three cards in a row */}
-                        <div className="grid grid-cols-3 gap-3 px-4 mb-4">
+                        <div className="grid grid-cols-3 gap-3 px-4 mb-3">
                           {/* Social Feed Card */}
                           <div
                             className="bg-blue-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
@@ -5716,7 +5716,7 @@ ${
                         </div>
 
                         {/* Swipeable News Cards Below - Properly Centered */}
-                        <div className="flex items-center justify-center px-4 pb-4">
+                        <div className="flex items-center justify-center px-4 pb-2">
                           <SwipeableCardStack
                             onSectorChange={handleSectorChange}
                             selectedSector={selectedSector}
