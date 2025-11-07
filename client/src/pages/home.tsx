@@ -5124,15 +5124,15 @@ ${
             )}
 
             {activeTab === "trading-home" && (
-              <div className="min-h-screen bg-gray-900 ">
-                {/* World Map Section: Takes 25% of the total height */}
-                <div className="px-8 pt-1 pb-1 flex items-center justify-center h-1/4">
+              <div className="min-h-screen bg-gray-900 md:block flex flex-col">
+                {/* World Map Section: Takes 25% of the total height - Hidden on mobile */}
+                <div className="px-8 pt-1 pb-1 md:flex hidden items-center justify-center h-1/4">
                   {/* World Map */}
                   <WorldMap />
                 </div>
-                {/* Main Content Section: Takes 75% of the total height */}
-                <div className="h-full w-full bg-blue-900 flex items-start justify-center  py-2 md:px-4">
-                  <div className="max-w-4xl w-full space-y-4 pt-2">
+                {/* Main Content Section: Takes 75% of the total height on desktop, full height on mobile */}
+                <div className="md:h-full h-screen w-full bg-blue-900 flex flex-col items-center justify-start py-2 md:px-4 px-0">
+                  <div className="max-w-4xl w-full md:space-y-4 space-y-0 pt-2 flex-1 flex flex-col">
                     {/* Greeting - Hidden on mobile */}
                     <div className="text-center spacey-4 md:block hidden">
                       <div className="flex items-center justify-center gap-3">
@@ -5488,17 +5488,17 @@ ${
                       </Button>
                     </div>
 
-                    {/* Trading Tools Section - Fixed to bottom */}
-                    <div className="bg-white md:pt-1 pt-2 pb-2 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] min-h-[300px] ">
-                      {/* Mobile Welcome Text - At top of white container */}
-                      <div className="md:hidden absolute -top-12 left-0 right-0 flex items-center justify-center gap-2 z-10">
-                        <Sparkles className="h-4 w-4 text-blue-400" />
-                        <h1 className="text-lg font-normal text-gray-100">
-                          Welcome to Trading Platform
-                        </h1>
-                      </div>
-                      {/* Mobile Search Bar - Overlapping container */}
-                      <div className="md:hidden absolute -top-6 left-4 right-4 z-30">
+                    {/* Mobile Welcome Text - Above white container */}
+                    <div className="md:hidden flex items-center justify-center gap-2 mb-3 mt-4 px-4">
+                      <Sparkles className="h-4 w-4 text-blue-400" />
+                      <h1 className="text-base font-normal text-gray-100">
+                        Welcome to Trading Platform
+                      </h1>
+                    </div>
+
+                    {/* Mobile Search Bar - Above white container */}
+                    <div className="md:hidden px-4 mb-4">
+                      <div className="relative">
                         <Input
                           placeholder="Search stocks, technical analysis, social feed..."
                           value={searchQuery}
@@ -5528,65 +5528,10 @@ ${
                           )}
                         </Button>
                       </div>
-                      {/* Mobile Quick Action Buttons - Show when search is active */}
-                      {isSearchActive && (
-                        <div className="md:hidden absolute -top-28 left-4 right-4 z-20 bg-gray-900/95 backdrop-blur-sm rounded-2xl p-3 shadow-xl border border-gray-700">
-                          <div className="flex flex-wrap gap-2 justify-center">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-8 px-3 rounded-full text-xs font-medium"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "Get live stock prices and fundamentals for NIFTY, SENSEX, and top Indian stocks"
-                                )
-                              }
-                            >
-                              <DollarSign className="h-3 w-3 mr-1" />
-                              Stock Prices
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="bg-cyan-600 hover:bg-cyan-700 text-white border-0 h-8 px-3 rounded-full text-xs font-medium"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "RSI technical analysis for RELIANCE"
-                                )
-                              }
-                            >
-                              <BarChart3 className="h-3 w-3 mr-1" />
-                              Technical
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-8 px-3 rounded-full text-xs font-medium"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "Social feed community discussions and trending topics"
-                                )
-                              }
-                            >
-                              <User className="h-3 w-3 mr-1" />
-                              Social
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white border-0 h-8 px-3 rounded-full text-xs font-medium"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "What are today's top financial news and market updates?"
-                                )
-                              }
-                            >
-                              <Newspaper className="h-3 w-3 mr-1" />
-                              News
-                            </Button>
-                          </div>
-                        </div>
-                      )}
+                    </div>
+
+                    {/* Trading Tools Section - White container */}
+                    <div className="bg-white md:pt-1 pt-4 pb-4 md:rounded-3xl rounded-t-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-1 flex flex-col overflow-hidden">
                       {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
                       <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
                         {/* Social Feed Card */}
@@ -5649,67 +5594,69 @@ ${
                         </div>
                       </div>
                       {/* Mobile Layout: 3 horizontal cards + swipeable below - Full width */}
-                      <div className="md:hidden">
-                        {/* Three cards in a row */}
-                        <div className="grid grid-cols-3 gap-3 px-4 mb-4">
+                      <div className="md:hidden flex flex-col flex-1">
+                        {/* Three cards in a row - with top spacing */}
+                        <div className="grid grid-cols-3 gap-3 px-4 pt-2 mb-4">
                           {/* Social Feed Card */}
                           <div
-                            className="bg-blue-500 rounded-xl overflow-hidden h-24 relative cursor-pointer active:scale-95 transition-transform"
+                            className="bg-blue-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
                             onClick={() => setActiveTab("voice")}
                           >
-                            <div className="absolute top-1.5 left-1.5">
-                              <span className="bg-white bg-opacity-90 text-blue-600 px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-2 left-2">
+                              <span className="bg-white bg-opacity-90 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
                                 Social Feed
                               </span>
                             </div>
-                            <div className="absolute bottom-1.5 right-1.5">
-                              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <MessageCircle className="h-4 w-4 text-white" />
+                            <div className="absolute bottom-2 right-2">
+                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <MessageCircle className="h-5 w-5 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Master Card */}
                           <div
-                            className="bg-indigo-500 rounded-xl overflow-hidden h-24 relative cursor-pointer active:scale-95 transition-transform"
+                            className="bg-purple-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
                             onClick={() => setActiveTab("trading-master")}
                           >
-                            <div className="absolute top-1.5 left-1.5">
-                              <span className="bg-white bg-opacity-90 text-indigo-600 px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-2 left-2">
+                              <span className="bg-white bg-opacity-90 text-purple-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
                                 Trading Master
                               </span>
                             </div>
-                            <div className="absolute bottom-1.5 right-1.5">
-                              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <Activity className="h-4 w-4 text-white" />
+                            <div className="absolute bottom-2 right-2">
+                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <Activity className="h-5 w-5 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Journal Card */}
                           <div
-                            className="bg-emerald-500 rounded-xl overflow-hidden h-24 relative cursor-pointer active:scale-95 transition-transform"
+                            className="bg-green-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
                             onClick={() => setActiveTab("journal")}
                           >
-                            <div className="absolute top-1.5 left-1.5">
-                              <span className="bg-white bg-opacity-90 text-emerald-600 px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-2 left-2">
+                              <span className="bg-white bg-opacity-90 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
                                 Journal
                               </span>
                             </div>
-                            <div className="absolute bottom-1.5 right-1.5">
-                              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <BarChart3 className="h-4 w-4 text-white" />
+                            <div className="absolute bottom-2 right-2">
+                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <BarChart3 className="h-5 w-5 text-white" />
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* Swipeable News Cards Below - Compact with spacing */}
-                        <div className="relative h-48 flex items-center justify-center px-4 pb-6">
-                          <SwipeableCardStack
-                            onSectorChange={handleSectorChange}
-                            selectedSector={selectedSector}
-                          />
+                        {/* Swipeable News Cards Below - Takes remaining space */}
+                        <div className="flex-1 flex items-start justify-center px-4 pb-4 pt-0">
+                          <div className="w-full h-full max-h-64">
+                            <SwipeableCardStack
+                              onSectorChange={handleSectorChange}
+                              selectedSector={selectedSector}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
