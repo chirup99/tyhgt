@@ -8,7 +8,7 @@ import {
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
   Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, ArrowLeft
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -680,7 +680,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
                 <Bell className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-                <Settings className="h-5 w-5" />
+                <MessageCircle className="h-5 w-5" />
               </Button>
               <UserProfileDropdown />
             </div>
@@ -730,7 +730,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
 
         {/* Filter Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['All', 'Bullish', 'Bearish', 'Symbol', 'Technical Analysis', 'News', 'Options', 'Profile'].map((filter, index) => (
+          {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
             <Button
               key={filter}
               onClick={filter === 'All' ? onAllClick : () => onFilterChange(filter)}
@@ -2178,16 +2178,15 @@ export default function NeoFeedSocialFeed() {
             </div>
           </button>
 
-          {/* Messages/Comments Button */}
+          {/* Back to Home Button */}
           <button
             onClick={() => {
-              // Could link to a messages/notifications page
-              toast({ description: "Messages feature coming soon!" });
+              window.location.href = '/';
             }}
-            className="flex flex-col items-center gap-1 text-white hover:text-purple-400 transition-colors"
-            data-testid="button-messages-mobile"
+            className="flex flex-col items-center gap-1 text-white hover:text-gray-400 transition-colors"
+            data-testid="button-back-mobile"
           >
-            <MessageCircle className="w-6 h-6" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
         </div>
       </div>
