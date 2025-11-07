@@ -7,7 +7,8 @@ import {
   Search, Bell, Settings, MessageCircle, Repeat, Heart, 
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
-  Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar
+  Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -1284,8 +1285,12 @@ function PostCard({ post }: { post: FeedPost }) {
   const [reposted, setReposted] = useState(false);
   const [showCommentSection, setShowCommentSection] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Text truncation settings
+  const MAX_TEXT_LENGTH = 150;
 
   // Like mutation
   const likeMutation = useMutation({
@@ -1437,7 +1442,34 @@ function PostCard({ post }: { post: FeedPost }) {
 
         {/* Post Content */}
         <div className="mb-2 xl:mb-4">
-          <p className="text-gray-900 dark:text-white leading-relaxed mb-2 xl:mb-3 text-base font-medium ">{post.content}</p>
+          <div className="relative">
+            <p className="text-gray-900 dark:text-white leading-relaxed mb-2 xl:mb-3 text-base font-medium ">
+              {isExpanded || post.content.length <= MAX_TEXT_LENGTH
+                ? post.content
+                : `${post.content.substring(0, MAX_TEXT_LENGTH)}...`}
+            </p>
+            
+            {/* Expand/Collapse button for long text */}
+            {post.content.length > MAX_TEXT_LENGTH && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-1 transition-colors"
+                data-testid={`button-expand-${post.id}`}
+              >
+                {isExpanded ? (
+                  <>
+                    <span>Show less</span>
+                    <ChevronUp className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    <span>Show more</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
           
           {/* Ticker and Sentiment - Only show if valid ticker exists */}
           {post.ticker && (
@@ -2029,6 +2061,83 @@ export default function NeoFeedSocialFeed() {
           setTimeout(() => window.location.reload(), 500);
         }}
       />
+
+      {/* Bottom Floating Navigation Bar - Mobile Only */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-2xl pb-safe">
+        <div className="flex items-center justify-around px-2 py-3">
+          {/* All Button */}
+          <button
+            onClick={() => handleFilterChange('All')}
+            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              selectedFilter === 'All'
+                ? 'bg-blue-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            data-testid="button-filter-all-mobile"
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-xs font-medium">All</span>
+          </button>
+
+          {/* Bullish Button */}
+          <button
+            onClick={() => handleFilterChange('Bullish')}
+            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              selectedFilter === 'Bullish'
+                ? 'bg-green-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            data-testid="button-filter-bullish-mobile"
+          >
+            <TrendingUp className="w-5 h-5" />
+            <span className="text-xs font-medium">Bullish</span>
+          </button>
+
+          {/* Bearish Button */}
+          <button
+            onClick={() => handleFilterChange('Bearish')}
+            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              selectedFilter === 'Bearish'
+                ? 'bg-red-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            data-testid="button-filter-bearish-mobile"
+          >
+            <TrendingDown className="w-5 h-5" />
+            <span className="text-xs font-medium">Bearish</span>
+          </button>
+
+          {/* Profile Posts Button */}
+          <button
+            onClick={() => handleFilterChange('Profile')}
+            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              selectedFilter === 'Profile'
+                ? 'bg-purple-500 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            data-testid="button-filter-profile-mobile"
+          >
+            <User className="w-5 h-5" />
+            <span className="text-xs font-medium">Profile</span>
+          </button>
+
+          {/* Posts/Create Button */}
+          <button
+            onClick={() => {
+              // Scroll to post creation panel
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+            data-testid="button-create-post-mobile"
+          >
+            <PenTool className="w-5 h-5" />
+            <span className="text-xs font-medium">Posts</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Add padding to bottom of content to prevent overlap with bottom nav on mobile */}
+      <div className="md:hidden h-20"></div>
     </div>
   );
 }
