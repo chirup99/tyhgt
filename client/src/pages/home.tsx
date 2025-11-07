@@ -5124,15 +5124,15 @@ ${
             )}
 
             {activeTab === "trading-home" && (
-              <div className="min-h-screen bg-gray-900 md:block flex flex-col">
-                {/* World Map Section: Takes 25% of the total height - Hidden on mobile */}
-                <div className="px-8 pt-1 pb-1 md:flex hidden items-center justify-center h-1/4">
+              <div className="min-h-screen bg-gray-900 flex flex-col">
+                {/* World Map Section: Takes 25% of the total height */}
+                <div className="px-8 pt-1 pb-1 flex items-center justify-center md:h-1/4 h-[25vh]">
                   {/* World Map */}
                   <WorldMap />
                 </div>
-                {/* Main Content Section: Takes 75% of the total height on desktop, full height on mobile */}
-                <div className="md:h-full h-screen w-full bg-blue-900 flex flex-col items-center justify-start py-2 md:px-4 px-0">
-                  <div className="max-w-4xl w-full md:space-y-4 space-y-0 pt-2 flex-1 flex flex-col">
+                {/* Blue Section: Takes 75% of the total height - Fixed height, not expanding */}
+                <div className="md:h-3/4 h-[75vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-4 py-0 md:px-4 px-0 relative">
+                  <div className="max-w-4xl w-full md:space-y-4 space-y-0 md:pt-2 pt-0 flex flex-col h-full">
                     {/* Greeting - Hidden on mobile */}
                     <div className="text-center spacey-4 md:block hidden">
                       <div className="flex items-center justify-center gap-3">
@@ -5488,16 +5488,16 @@ ${
                       </Button>
                     </div>
 
-                    {/* Mobile Welcome Text - Above white container */}
-                    <div className="md:hidden flex items-center justify-center gap-2 mb-3 mt-4 px-4">
+                    {/* Mobile Welcome Text - Fixed position in blue area */}
+                    <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-3 px-4">
                       <Sparkles className="h-4 w-4 text-blue-400" />
                       <h1 className="text-base font-normal text-gray-100">
                         Welcome to Trading Platform
                       </h1>
                     </div>
 
-                    {/* Mobile Search Bar - Above white container */}
-                    <div className="md:hidden px-4 mb-4">
+                    {/* Mobile Search Bar - Fixed position in blue area */}
+                    <div className="md:hidden px-4 pb-4">
                       <div className="relative">
                         <Input
                           placeholder="Search stocks, technical analysis, social feed..."
@@ -5530,8 +5530,8 @@ ${
                       </div>
                     </div>
 
-                    {/* Trading Tools Section - White container */}
-                    <div className="bg-white md:pt-1 pt-4 pb-4 md:rounded-3xl rounded-t-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-1 flex flex-col overflow-hidden">
+                    {/* Trading Tools Section - White container with fixed height (separate from blue background) */}
+                    <div className="bg-white md:pt-1 pt-4 pb-20 md:pb-4 md:rounded-3xl rounded-t-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 overflow-auto md:flex-1">
                       {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
                       <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
                         {/* Social Feed Card */}
@@ -5593,10 +5593,10 @@ ${
                           />
                         </div>
                       </div>
-                      {/* Mobile Layout: 3 horizontal cards + swipeable below - Full width */}
-                      <div className="md:hidden flex flex-col flex-1">
-                        {/* Three cards in a row - with top spacing */}
-                        <div className="grid grid-cols-3 gap-3 px-4 pt-2 mb-4">
+                      {/* Mobile Layout: 3 horizontal cards + swipeable below */}
+                      <div className="md:hidden">
+                        {/* Three cards in a row */}
+                        <div className="grid grid-cols-3 gap-3 px-4 mb-4">
                           {/* Social Feed Card */}
                           <div
                             className="bg-blue-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
@@ -5649,9 +5649,9 @@ ${
                           </div>
                         </div>
 
-                        {/* Swipeable News Cards Below - Takes remaining space */}
-                        <div className="flex-1 flex items-start justify-center px-4 pb-4 pt-0">
-                          <div className="w-full h-full max-h-64">
+                        {/* Swipeable News Cards Below - Fixed height */}
+                        <div className="px-4 pb-4">
+                          <div className="h-64">
                             <SwipeableCardStack
                               onSectorChange={handleSectorChange}
                               selectedSector={selectedSector}
