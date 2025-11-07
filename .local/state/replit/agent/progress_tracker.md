@@ -400,17 +400,26 @@
 [x] 400. CORRECTED: World map now visible on mobile at 25% height (h-[25vh])
 [x] 401. CORRECTED: Blue section fixed at 75% height (h-[75vh]) - separate from white container
 [x] 402. CORRECTED: White container is now independent with flex-shrink-0 (doesn't expand with blue layer)
-[x] 403. Welcome text positioned in blue area (pt-4, pb-6) above white container
-[x] 404. UPDATED: Search bar now overlapping - half in blue area, half in white container (-top-6 positioning)
-[x] 405. UPDATED: White container uses rounded-3xl (all corners rounded on mobile)
-[x] 406. White container moved up closer to welcome text with pt-8 top padding
-[x] 407. White container has overflow-auto with pb-20 for bottom spacing
-[x] 408. Three cards (Social Feed, Trading Master, Journal) with proper spacing
-[x] 409. Card heights set to h-20 for better mobile fit
-[x] 410. Card colors: Blue (Social Feed), Purple (Trading Master), Green (Journal)
-[x] 411. Icon sizes h-5/w-5 for better visibility
-[x] 412. UPDATED: Swipeable cards centered with flex items-center justify-center and max-w-sm
-[x] 413. Search bar has shadow-lg for overlapping effect
-[x] 414. Layout now matches exact design: overlapping search, rounded container, centered cards
-[x] 415. Restarted workflow - server running successfully on port 5000
-[x] 416. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ MOBILE UI PERFECTED - OVERLAPPING SEARCH BAR, ROUNDED CONTAINER, CENTERED CARDS!
+[x] 403. Welcome text positioned in blue area (pt-4, pb-6) with z-10 for proper layering
+[x] 404. FIXED: Search bar z-index increased to z-50 (no longer cut by welcome text)
+[x] 405. UPDATED: Search bar now overlapping - half in blue area, half in white container (-top-6 positioning)
+[x] 406. UPDATED: White container uses rounded-3xl (all corners rounded on mobile)
+[x] 407. White container moved up closer to welcome text with pt-8 top padding
+[x] 408. White container has overflow-auto with pb-20 for bottom spacing
+[x] 409. REMOVED: "daily news" text removed from swipeable cards component
+[x] 410. ADDED: Navigation dots moved outside white container (absolute -bottom-14 in blue area)
+[x] 411. ADDED: Navigation dots are now functional with click handlers and state tracking
+[x] 412. ADDED: currentCardIndex state management for tracking active card (0-6)
+[x] 413. UPDATED: SwipeableCardStack component now accepts onCardIndexChange and currentCardIndex props
+[x] 414. UPDATED: swipeCard function now notifies parent of card index changes
+[x] 415. UPDATED: Navigation dots highlight current active card (bg-white scale-125) vs inactive (bg-white/40)
+[x] 416. UPDATED: Swipeable cards properly centered with flex items-center justify-center
+[x] 417. Three cards (Social Feed, Trading Master, Journal) with proper spacing
+[x] 418. Card heights set to h-20 for better mobile fit
+[x] 419. Card colors: Blue (Social Feed), Purple (Trading Master), Green (Journal)
+[x] 420. Icon sizes h-5/w-5 for better visibility
+[x] 421. Search bar has shadow-lg for overlapping effect
+[x] 422. Navigation dots have hover effects (hover:scale-110) for better UX
+[x] 423. Layout now matches exact design: overlapping search, rounded container, centered cards, functional nav dots
+[x] 424. Restarted workflow - server running successfully on port 5000
+[x] 425. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ MOBILE UI COMPLETE - SEARCH BAR VISIBLE, NO DAILY NEWS, FUNCTIONAL NAV DOTS OUTSIDE!

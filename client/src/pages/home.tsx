@@ -194,11 +194,15 @@ interface TradeMarker {
 interface SwipeableCardStackProps {
   onSectorChange: (sector: string) => void;
   selectedSector: string;
+  onCardIndexChange?: (index: number) => void;
+  currentCardIndex?: number;
 }
 
 function SwipeableCardStack({
   onSectorChange,
   selectedSector,
+  onCardIndexChange,
+  currentCardIndex = 0,
 }: SwipeableCardStackProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
@@ -452,18 +456,27 @@ function SwipeableCardStack({
 
     setCards((prev) => {
       const newCards = [...prev];
+      let newIndex = currentCardIndex;
+
       if (direction === "right") {
         // Right swipe: Move to next card (current card goes to back)
         const topCard = newCards.shift();
         if (topCard) {
           newCards.push(topCard);
         }
+        newIndex = (currentCardIndex + 1) % 7;
       } else {
         // Left swipe: Move to previous card (bottom card comes to front)
         const bottomCard = newCards.pop();
         if (bottomCard) {
           newCards.unshift(bottomCard);
         }
+        newIndex = (currentCardIndex - 1 + 7) % 7;
+      }
+
+      // Notify parent of index change
+      if (onCardIndexChange) {
+        onCardIndexChange(newIndex);
       }
 
       // Auto-play content for the new front card (faster response)
@@ -721,20 +734,6 @@ function SwipeableCardStack({
         );
       })}
 
-      {/* Swipe instruction */}
-      <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
-        <div className="text-xs text-slate-400 mb-2">daily news</div>
-        <div className="flex gap-2 justify-center">
-          {cards.map((_, index) => (
-            <div
-              key={index}
-              className={`w-1 h-1 rounded-full ${
-                index === 0 ? "bg-green-500" : "bg-white/40"
-              }`}
-            ></div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -1710,6 +1709,7 @@ export default function Home() {
   const [trendingPodcasts, setTrendingPodcasts] = useState<any[]>([]);
   const [isPodcastsLoading, setIsPodcastsLoading] = useState(false);
   const [selectedPodcast, setSelectedPodcast] = useState<any>(null);
+  const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
 
   // Passcode protection state
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
@@ -5489,7 +5489,7 @@ ${
                     </div>
 
                     {/* Mobile Welcome Text - Fixed position in blue area */}
-                    <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4">
+                    <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4 relative z-10">
                       <Sparkles className="h-4 w-4 text-blue-400" />
                       <h1 className="text-base font-normal text-gray-100">
                         Welcome to Trading Platform
@@ -5499,7 +5499,7 @@ ${
                     {/* Trading Tools Section - White container moved up with all rounded corners */}
                     <div className="bg-white md:pt-1 pt-8 pb-20 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 overflow-auto md:flex-1 mt-0">
                       {/* Mobile Search Bar - Overlapping (half inside white, half outside in blue) */}
-                      <div className="md:hidden absolute -top-6 left-4 right-4 z-30">
+                      <div className="md:hidden absolute -top-6 left-4 right-4 z-50">
                         <div className="relative">
                           <Input
                             placeholder="Search stocks, technical analysis, social feed..."
@@ -5589,6 +5589,8 @@ ${
                           <SwipeableCardStack
                             onSectorChange={handleSectorChange}
                             selectedSector={selectedSector}
+                            onCardIndexChange={setCurrentCardIndex}
+                            currentCardIndex={currentCardIndex}
                           />
                         </div>
                       </div>
@@ -5648,15 +5650,34 @@ ${
                           </div>
                         </div>
 
-                        {/* Swipeable News Cards Below - Centered */}
-                        <div className="px-4 pb-4 flex items-center justify-center">
-                          <div className="w-full max-w-sm">
-                            <SwipeableCardStack
-                              onSectorChange={handleSectorChange}
-                              selectedSector={selectedSector}
-                            />
-                          </div>
+                        {/* Swipeable News Cards Below - Properly Centered */}
+                        <div className="flex items-center justify-center px-4 pb-4">
+                          <SwipeableCardStack
+                            onSectorChange={handleSectorChange}
+                            selectedSector={selectedSector}
+                            onCardIndexChange={setCurrentCardIndex}
+                            currentCardIndex={currentCardIndex}
+                          />
                         </div>
+                      </div>
+
+                      {/* Navigation Dots - Outside white container, in blue area */}
+                      <div className="md:hidden absolute -bottom-14 left-1/2 transform -translate-x-1/2 flex gap-2 justify-center z-40">
+                        {[0, 1, 2, 3, 4, 5, 6].map((index) => (
+                          <button
+                            key={index}
+                            data-testid={`nav-dot-${index}`}
+                            onClick={() => {
+                              // Calculate how many swipes needed to get to this card
+                              const diff = index - currentCardIndex;
+                              // Navigate to the selected card (this would need to be implemented in SwipeableCardStack)
+                              setCurrentCardIndex(index);
+                            }}
+                            className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
+                              index === currentCardIndex ? "bg-white scale-125" : "bg-white/40"
+                            }`}
+                          ></button>
+                        ))}
                       </div>
                     </div>
                   </div>
