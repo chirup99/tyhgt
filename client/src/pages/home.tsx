@@ -41,6 +41,9 @@ import { TradingMaster } from "@/components/trading-master";
 import { WorldMap } from "@/components/world-map";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { auth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { LogOut } from "lucide-react";
 
 // Global window type declaration for audio control
 declare global {
@@ -5258,17 +5261,43 @@ ${
                       <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-saved">
                         saved
                       </button>
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" data-testid="nav-dashboard">
+                      <button 
+                        onClick={() => {
+                          setActiveTab("dashboard");
+                          setIsNavOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" 
+                        data-testid="nav-dashboard"
+                      >
+                        <BarChart3 className="h-4 w-4" />
                         <span>dashboard</span>
                       </button>
                       <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-settings">
                         setting & privacy
                       </button>
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-darkmode">
-                        dark mode
+                      <button 
+                        onClick={toggleTheme}
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" 
+                        data-testid="nav-darkmode"
+                      >
+                        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        <span>dark mode</span>
                       </button>
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-logout">
-                        logout
+                      <button 
+                        onClick={async () => {
+                          try {
+                            await signOut(auth);
+                            localStorage.clear();
+                            window.location.href = "/";
+                          } catch (error) {
+                            console.error("Logout error:", error);
+                          }
+                        }}
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" 
+                        data-testid="nav-logout"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>logout</span>
                       </button>
                     </div>
                   </div>
@@ -5292,11 +5321,11 @@ ${
                       e.stopPropagation();
                       setIsNavOpen(!isNavOpen);
                     }}
-                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-end justify-center gap-1.5 bg-transparent hover:bg-white/10 rounded-lg transition-all duration-300"
+                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-white/10 rounded-lg transition-all duration-300"
                     data-testid="button-nav-toggle"
                   >
-                    <div className={`w-5 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'rotate-45 translate-y-1 translate-x-0' : ''}`}></div>
-                    <div className={`w-4 h-0.5 bg-white transition-all duration-300 ${isNavOpen ? '-rotate-45 -translate-y-1 translate-x-0.5' : ''}`}></div>
+                    <div className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'w-5 rotate-45 translate-y-1' : 'w-5'}`}></div>
+                    <div className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'w-5 -rotate-45 -translate-y-1' : 'w-4 ml-1'}`}></div>
                   </button>
 
                 {/* World Map Section: Takes 25% of the total height */}
