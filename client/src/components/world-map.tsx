@@ -12,7 +12,9 @@ interface MarketRegion {
 const marketRegions: MarketRegion[] = [
   { name: "USA", x: 18, y: 40, pulseDelay: 0 },
   { name: "CANADA", x: 16, y: 26, pulseDelay: 0.3 },
-  { name: "ASIA", x: 60, y: 42, pulseDelay: 1.5 },
+  { name: "INDIA", x: 58, y: 48, pulseDelay: 1.0 },
+  { name: "HONG KONG", x: 68, y: 46, pulseDelay: 1.3 },
+  { name: "TOKYO", x: 75, y: 38, pulseDelay: 1.6 },
 ];
 
 // World map dot coordinates extracted from the SVG
@@ -36,9 +38,17 @@ const getRegionColor = (x: number, y: number, marketData: any): string => {
   else if (x >= 100 && x <= 350 && y >= 180 && y <= 260) {
     regionName = "USA";
   }
-  // All of Asia combined (approximate x: 520-740, y: 90-280)
-  else if (x >= 520 && x <= 740 && y >= 90 && y <= 280) {
-    regionName = "ASIA";
+  // India (approximate x: 520-600, y: 200-280)
+  else if (x >= 520 && x <= 600 && y >= 200 && y <= 280) {
+    regionName = "INDIA";
+  }
+  // Hong Kong / Southern China (approximate x: 600-680, y: 180-240)
+  else if (x >= 600 && x <= 680 && y >= 180 && y <= 240) {
+    regionName = "HONG KONG";
+  }
+  // Japan / Tokyo (approximate x: 680-740, y: 140-200)
+  else if (x >= 680 && x <= 740 && y >= 140 && y <= 200) {
+    regionName = "TOKYO";
   }
 
   // Return color based on market status

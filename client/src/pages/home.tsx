@@ -275,16 +275,6 @@ function SwipeableCardStack({
       icon: "🚗",
       sector: "AUTOMOBILE",
     },
-    {
-      id: 7,
-      title: "RESILIENCE PODCAST",
-      subtitle: "Mental strength\n& recovery",
-      buttonText: "Listen",
-      gradient: "from-teal-500 to-teal-600",
-      buttonColor: "text-teal-600",
-      icon: "💪",
-      sector: "RESILIENCE",
-    },
   ]);
 
   // News cache for faster loading - ultra-short cache for speed
@@ -5931,7 +5921,7 @@ ${
 
                       {/* Navigation Dots - Outside white container, in blue area */}
                       <div className="md:hidden absolute -bottom-14 left-1/2 transform -translate-x-1/2 flex gap-2 justify-center z-40">
-                        {[0, 1, 2, 3, 4, 5, 6].map((index) => (
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
                           <button
                             key={index}
                             data-testid={`nav-dot-${index}`}

@@ -311,42 +311,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         })}
       </div>
 
-      {/* Mobile: Bottom Navigation (hidden on desktop) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-gray-950 border-t border-gray-800 flex items-center justify-around px-2 z-50">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Button
-              key={item.name}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "flex flex-col items-center gap-1 h-14 px-2 rounded-xl transition-all duration-200",
-                item.current
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                  : "text-gray-400 hover:text-white hover:bg-gray-800"
-              )}
-              onClick={() => {
-                if (item.isThemeToggle) {
-                  toggleTheme();
-                } else if (item.isSignIn) {
-                  handleNavigation('/');
-                } else if (item.href === '/dashboard' && !isDashboardAuthenticated) {
-                  setShowPasscodeModal(true);
-                } else {
-                  handleNavigation(item.href);
-                }
-              }}
-            >
-              <Icon className="h-5 w-5" />
-              <span className="text-xs">{item.name}</span>
-            </Button>
-          );
-        })}
-      </div>
-
       {/* Main Content - responsive margin/padding */}
-      <div className="md:ml-20 min-h-screen pb-16 md:pb-0">
+      <div className="md:ml-20 min-h-screen">
         {children}
       </div>
 

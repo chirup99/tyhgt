@@ -11,7 +11,9 @@ export function useMarketData(refreshInterval: number = 900000) { // Default 15 
   const [marketData, setMarketData] = useState<MarketDataResponse>({
     USA: { isUp: true, change: 0 },
     CANADA: { isUp: true, change: 0 },
-    ASIA: { isUp: true, change: 0 },
+    INDIA: { isUp: true, change: 0 },
+    "HONG KONG": { isUp: true, change: 0 },
+    TOKYO: { isUp: true, change: 0 },
   });
   const [loading, setLoading] = useState(false);
 
