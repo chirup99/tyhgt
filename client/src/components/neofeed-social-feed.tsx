@@ -630,7 +630,7 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
   );
 }
 
-function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, searchQuery, setSearchQuery, onSearch }: { onAllClick: () => void; isRefreshing: boolean; selectedFilter: string; onFilterChange: (filter: string) => void; searchQuery: string; setSearchQuery: (query: string) => void; onSearch: () => void }) {
+function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, searchQuery, setSearchQuery, onSearch, showAppBar }: { onAllClick: () => void; isRefreshing: boolean; selectedFilter: string; onFilterChange: (filter: string) => void; searchQuery: string; setSearchQuery: (query: string) => void; onSearch: () => void; showAppBar: boolean }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
 
@@ -664,8 +664,10 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
       <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
         
         <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* App Header */}
-          <div className="flex items-center justify-between mb-4">
+          {/* App Header - Hides on mobile scroll */}
+          <div className={`flex items-center justify-between mb-4 transition-all duration-300 ${
+            showAppBar ? 'md:flex' : 'md:flex hidden'
+          }`}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600">
                 <div className="text-gray-700 dark:text-gray-300 font-bold text-sm">⚡</div>
@@ -1641,27 +1643,45 @@ export default function NeoFeedSocialFeed() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showTopFilters, setShowTopFilters] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [showAppBar, setShowAppBar] = useState(true);
+  const [showBottomNav, setShowBottomNav] = useState(true);
   const { toast } = useToast();
   
-  // Handle scroll to hide/show top filter bar
+  // Handle scroll to hide/show app bar and bottom navigation
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down and past 100px
-        setShowTopFilters(false);
+        // Scrolling down and past 100px - hide app bar and bottom nav
+        setShowAppBar(false);
+        setShowBottomNav(false);
       } else {
-        // Scrolling up
-        setShowTopFilters(true);
+        // Scrolling up - show app bar and bottom nav
+        setShowAppBar(true);
+        setShowBottomNav(true);
       }
+      
+      // Clear existing timeout
+      clearTimeout(scrollTimeout);
+      
+      // Show navigation after scrolling stops for 150ms
+      scrollTimeout = setTimeout(() => {
+        setShowAppBar(true);
+        setShowBottomNav(true);
+      }, 150);
       
       setLastScrollY(currentScrollY);
       setIsAtTop(currentScrollY < 50);
     };
     
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, [lastScrollY]);
   
   const { data: posts = [], isLoading, error, isFetching, refetch } = useQuery({
@@ -1918,7 +1938,7 @@ export default function NeoFeedSocialFeed() {
   if (isLoading && posts.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground">
-        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} />
+        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} showAppBar={showAppBar} />
         <div className="max-w-3xl mx-auto px-3 py-3">
           <div className="space-y-4">
             {[...Array(8)].map((_, i) => (
@@ -1953,7 +1973,7 @@ export default function NeoFeedSocialFeed() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground">
-        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} />
+        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} showAppBar={showAppBar} />
         <div className="max-w-3xl mx-auto px-3 py-3">
           <Card className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 shadow-sm">
             <CardContent className="p-4 text-center">
@@ -2040,6 +2060,7 @@ export default function NeoFeedSocialFeed() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
+        showAppBar={showAppBar}
       />
       
       {/* Live Banner - Spans full width */}
@@ -2085,8 +2106,10 @@ export default function NeoFeedSocialFeed() {
         }}
       />
 
-      {/* Bottom Navigation Bar - Mobile Only (Always visible) */}
-      <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+      {/* Bottom Navigation Bar - Mobile Only (Hides on scroll) */}
+      <div className={`md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
+        showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'
+      }`}>
         <div className="bg-white dark:bg-gray-900 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-2 py-1.5 flex items-center gap-1">
           {/* All Button */}
           <button
