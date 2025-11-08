@@ -3,13 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PostCreationPanel } from './post-creation-panel';
 import { LiveBanner } from './live-banner';
 import type { SocialPost } from '@shared/schema';
-import { AudioModeProvider } from '@/contexts/AudioModeContext';
+import { AudioModeProvider, useAudioMode } from '@/contexts/AudioModeContext';
 import { 
   Search, Bell, Settings, MessageCircle, Repeat, Heart, 
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
   Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
-  ChevronDown, ChevronUp, ArrowLeft
+  ChevronDown, ChevronUp, ArrowLeft, Check
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -1294,8 +1294,25 @@ function PostCard({ post }: { post: FeedPost }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Audio mode selection
+  const { isAudioMode, selectedPosts, togglePostSelection } = useAudioMode();
+  const isSelected = selectedPosts.includes(Number(post.id));
+  const canSelect = selectedPosts.length < 5 || isSelected;
+  
   // Text truncation settings
   const MAX_TEXT_LENGTH = 150;
+  
+  const handleSelectPost = () => {
+    if (!canSelect && !isSelected) {
+      toast({ description: "Maximum 5 posts can be selected", variant: "destructive" });
+      return;
+    }
+    togglePostSelection(Number(post.id));
+    toast({ 
+      description: isSelected ? "Post removed from audio minicast" : "Post added to audio minicast!",
+      variant: isSelected ? "default" : "default"
+    });
+  };
 
   // Like mutation
   const likeMutation = useMutation({
@@ -1440,9 +1457,34 @@ function PostCard({ post }: { post: FeedPost }) {
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            <MoreHorizontal className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Audio mode selection checkbox */}
+            {isAudioMode && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSelectPost}
+                disabled={!canSelect && !isSelected}
+                className={`p-2 rounded-lg transition-all ${
+                  isSelected 
+                    ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/60' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                }`}
+                data-testid={`button-select-${post.id}`}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                  isSelected 
+                    ? 'border-purple-600 dark:border-purple-400 bg-purple-600 dark:bg-purple-500' 
+                    : 'border-gray-400 dark:border-gray-500 bg-transparent'
+                }`}>
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
+                </div>
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <MoreHorizontal className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Post Content */}

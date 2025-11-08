@@ -61,7 +61,7 @@ export function PostCreationPanel() {
   const { currentUser } = useCurrentUser();
 
   // Fetch all posts to get details of selected posts
-  const { data: allPosts = [] } = useQuery({
+  const { data: allPosts = [] } = useQuery<any[]>({
     queryKey: ['/api/social-posts'],
     enabled: selectedPosts.length > 0
   });
