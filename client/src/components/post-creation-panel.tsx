@@ -352,13 +352,13 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Selected Posts Display with Mini Cards */}
+            {/* Selected Posts Display with Cards */}
             {selectedPosts.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
                   Selected Posts ({selectedPosts.length}/5)
                 </Label>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <div className="space-y-3">
                   {selectedPosts.map((postId, index) => {
                     const post = allPosts.find((p: any) => p.id === postId);
                     if (!post) return null;

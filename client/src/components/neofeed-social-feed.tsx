@@ -1296,18 +1296,29 @@ function PostCard({ post }: { post: FeedPost }) {
   
   // Audio mode selection
   const { isAudioMode, selectedPosts, togglePostSelection } = useAudioMode();
-  const isSelected = selectedPosts.includes(Number(post.id));
+  
+  // Convert post.id to number consistently - handle both string and number IDs
+  const postIdNumber = typeof post.id === 'string' ? parseInt(post.id, 10) : Number(post.id);
+  const isSelected = selectedPosts.includes(postIdNumber);
   const canSelect = selectedPosts.length < 5 || isSelected;
   
   // Text truncation settings
   const MAX_TEXT_LENGTH = 150;
   
   const handleSelectPost = () => {
+    console.log('🎯 Selection Debug:', {
+      postId: post.id,
+      postIdNumber,
+      isSelected,
+      selectedPosts,
+      allPosts: 'check'
+    });
+    
     if (!canSelect && !isSelected) {
       toast({ description: "Maximum 5 posts can be selected", variant: "destructive" });
       return;
     }
-    togglePostSelection(Number(post.id));
+    togglePostSelection(postIdNumber);
     toast({ 
       description: isSelected ? "Post removed from audio minicast" : "Post added to audio minicast!",
       variant: isSelected ? "default" : "default"
