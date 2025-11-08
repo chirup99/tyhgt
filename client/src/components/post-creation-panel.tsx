@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
+import { SelectedPostMiniCard } from './selected-post-mini-card';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -58,6 +59,12 @@ export function PostCreationPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
+
+  // Fetch all posts to get details of selected posts
+  const { data: allPosts = [] } = useQuery({
+    queryKey: ['/api/social-posts'],
+    enabled: selectedPosts.length > 0
+  });
 
   const createPostMutation = useMutation({
     mutationFn: async (postData: InsertSocialPost) => {
@@ -345,43 +352,31 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Selected Posts Display with Animation */}
+            {/* Selected Posts Display with Mini Cards */}
             {selectedPosts.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
                   Selected Posts ({selectedPosts.length}/5)
                 </Label>
-                <div className="grid grid-cols-5 gap-2">
-                  {selectedPosts.map((postId, index) => (
-                    <div 
-                      key={postId}
-                      className={`relative group ${
-                        animatingPostId === postId 
-                          ? 'animate-[slideIn_0.5s_ease-out]' 
-                          : ''
-                      }`}
-                      style={{
-                        animation: animatingPostId === postId 
-                          ? 'slideIn 0.5s ease-out' 
-                          : undefined
-                      }}
-                      data-testid={`selected-post-${postId}`}
-                    >
-                      <div className="aspect-video bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg flex items-center justify-center border-2 border-purple-300 dark:border-purple-600 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-purple-500/10 dark:bg-purple-400/10"></div>
-                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300 relative z-10">
-                          {index + 1}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleTogglePostSelection(postId)}
-                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                  {selectedPosts.map((postId, index) => {
+                    const post = allPosts.find((p: any) => p.id === postId);
+                    if (!post) return null;
+                    
+                    return (
+                      <SelectedPostMiniCard
+                        key={postId}
+                        post={{
+                          id: post.id,
+                          authorUsername: post.authorUsername,
+                          authorDisplayName: post.authorDisplayName,
+                          content: post.content
+                        }}
+                        onRemove={() => handleTogglePostSelection(postId)}
+                        index={index}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}
