@@ -88,6 +88,8 @@ export const socialPosts = pgTable("social_posts", {
   sentiment: text("sentiment"), // 'bullish', 'bearish', 'neutral'
   hasImage: boolean("has_image").notNull().default(false),
   imageUrl: text("image_url"),
+  isAudioPost: boolean("is_audio_post").notNull().default(false),
+  selectedPostIds: jsonb("selected_post_ids").$type<number[]>().default([]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink } from 'lucide-react';
+import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,13 @@ const SENTIMENTS = [
   { value: 'neutral', label: 'Neutral', icon: Minus, color: 'text-gray-600' }
 ];
 
+// Export post selection context for use in feed
+export const PostSelectionContext = {
+  selectedPosts: [] as number[],
+  togglePostSelection: (_postId: number) => {},
+  isAudioMode: false
+};
+
 export function PostCreationPanel() {
   const [content, setContent] = useState('');
   const [selectedStock, setSelectedStock] = useState('');
@@ -35,8 +42,12 @@ export function PostCreationPanel() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // New state for view switching
-  const [viewMode, setViewMode] = useState<'post' | 'message'>('post');
+  const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>('post');
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
+  
+  // Audio minicast state
+  const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
+  const [animatingPostId, setAnimatingPostId] = useState<number | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -114,6 +125,22 @@ export function PostCreationPanel() {
     setStockMentions([]);
     setSentiment('neutral');
     setUploadedImages([]);
+    setSelectedPosts([]);
+  };
+  
+  const togglePostSelection = (postId: number) => {
+    if (selectedPosts.includes(postId)) {
+      setSelectedPosts(selectedPosts.filter(id => id !== postId));
+    } else if (selectedPosts.length < 5) {
+      setAnimatingPostId(postId);
+      setTimeout(() => setAnimatingPostId(null), 500);
+      setSelectedPosts([...selectedPosts, postId]);
+    } else {
+      toast({
+        description: "You can select up to 5 posts for audio minicast",
+        variant: "destructive"
+      });
+    }
   };
 
   const detectStockMentions = useCallback((text: string) => {
@@ -165,13 +192,15 @@ export function PostCreationPanel() {
       content: content.trim(),
       authorUsername: username,
       authorDisplayName: displayName,
-      stockMentions,
-      sentiment: sentiment as 'bullish' | 'bearish' | 'neutral',
+      stockMentions: viewMode === 'audio' ? [] : stockMentions,
+      sentiment: viewMode === 'audio' ? undefined : (sentiment as 'bullish' | 'bearish' | 'neutral'),
       tags: [],
       hasImage: uploadedImages.length > 0,
       imageUrl: uploadedImages.length > 1 ? 
         JSON.stringify(uploadedImages.map(img => img.url)) : 
-        (uploadedImages.length === 1 ? uploadedImages[0].url : undefined)
+        (uploadedImages.length === 1 ? uploadedImages[0].url : undefined),
+      isAudioPost: viewMode === 'audio',
+      selectedPostIds: viewMode === 'audio' ? selectedPosts : undefined
     };
 
     createPostMutation.mutate(postData);
@@ -217,24 +246,46 @@ export function PostCreationPanel() {
             <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 transition-none">
               {viewMode === 'post' ? (
                 <Sparkles className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+              ) : viewMode === 'audio' ? (
+                <Radio className="h-4 w-4 text-purple-500 dark:text-purple-400" />
               ) : (
                 <MessageCircle className="h-4 w-4 text-gray-700 dark:text-gray-300" />
               )}
             </div>
             <span className="text-lg font-bold">
-              {viewMode === 'post' ? 'Create Post' : 'Messages'}
+              {viewMode === 'post' ? 'Create Post' : viewMode === 'audio' ? 'Audio MiniCast' : 'Messages'}
             </span>
           </div>
-          {/* Message Icon */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode(viewMode === 'post' ? 'message' : 'post')}
-            className="p-2 h-8 w-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
-            data-testid="button-toggle-message"
-          >
-            <MessageCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Audio Icon */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode(viewMode === 'audio' ? 'post' : 'audio')}
+              className={`p-2 h-8 w-8 rounded-full ${
+                viewMode === 'audio' 
+                  ? 'bg-purple-100 dark:bg-purple-900/30' 
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+              data-testid="button-toggle-audio"
+            >
+              <Radio className={`h-4 w-4 ${
+                viewMode === 'audio'
+                  ? 'text-purple-600 dark:text-purple-400'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`} />
+            </Button>
+            {/* Message Icon */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode(viewMode === 'message' ? 'post' : 'message')}
+              className="p-2 h-8 w-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
+              data-testid="button-toggle-message"
+            >
+              <MessageCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            </Button>
+          </div>
         </CardTitle>
         
         {/* Switch tabs for message view */}
@@ -270,7 +321,113 @@ export function PostCreationPanel() {
         )}
       </CardHeader>
       <CardContent className="space-y-4 xl:space-y-6 p-4 xl:p-6">
-        {viewMode === 'post' ? (
+        {viewMode === 'audio' ? (
+          /* Audio MiniCast Form */
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Content Input - Simple version for audio */}
+            <div className="space-y-2">
+              <Label htmlFor="audio-content" className="text-gray-800 dark:text-gray-200 font-medium text-base">What's on your mind?</Label>
+              <Textarea
+                id="audio-content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Your thoughts will be converted to audio..."
+                maxLength={500}
+                className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500"
+                data-testid="textarea-audio-content"
+              />
+              <div className="text-xs text-gray-600 dark:text-gray-400 text-right">
+                {content.length}/500 characters
+              </div>
+            </div>
+
+            {/* Selected Posts Display with Animation */}
+            {selectedPosts.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
+                  Selected Posts ({selectedPosts.length}/5)
+                </Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {selectedPosts.map((postId, index) => (
+                    <div 
+                      key={postId}
+                      className={`relative group ${
+                        animatingPostId === postId 
+                          ? 'animate-[slideIn_0.5s_ease-out]' 
+                          : ''
+                      }`}
+                      style={{
+                        animation: animatingPostId === postId 
+                          ? 'slideIn 0.5s ease-out' 
+                          : undefined
+                      }}
+                      data-testid={`selected-post-${postId}`}
+                    >
+                      <div className="aspect-video bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg flex items-center justify-center border-2 border-purple-300 dark:border-purple-600 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-purple-500/10 dark:bg-purple-400/10"></div>
+                        <span className="text-lg font-bold text-purple-700 dark:text-purple-300 relative z-10">
+                          {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => togglePostSelection(postId)}
+                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Post Selection Instructions */}
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
+                  Select Posts for Audio MiniCast
+                </h3>
+              </div>
+              <p className="text-sm text-purple-700 dark:text-purple-300">
+                Tap on any post below to add it to your audio minicast (up to 5 posts). 
+                Your selected posts will be combined with your thoughts into an audio experience.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={resetForm}
+                className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600"
+                data-testid="button-clear-audio"
+              >
+                Clear
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={!content.trim() || createPostMutation.isPending}
+                className="min-w-[100px] bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                data-testid="button-publish-audio"
+              >
+                {createPostMutation.isPending ? (
+                  <>
+                    <Activity className="h-4 w-4 mr-2 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Radio className="h-4 w-4 mr-2" />
+                    Publish Audio
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        ) : viewMode === 'post' ? (
           <form onSubmit={handleSubmit} className="space-y-4">
           {/* Content Input */}
           <div className="space-y-2">
