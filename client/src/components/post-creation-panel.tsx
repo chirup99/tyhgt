@@ -352,48 +352,37 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Selected Posts Display with Cards */}
+            {/* Selected Posts Display with Horizontal Swiping Cards */}
             {selectedPosts.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
                   Selected Posts ({selectedPosts.length}/5)
                 </Label>
-                <div className="space-y-3">
-                  {selectedPosts.map((postId, index) => {
-                    const post = allPosts.find((p: any) => p.id === postId);
-                    if (!post) return null;
-                    
-                    return (
-                      <SelectedPostMiniCard
-                        key={postId}
-                        post={{
-                          id: post.id,
-                          authorUsername: post.authorUsername,
-                          authorDisplayName: post.authorDisplayName,
-                          content: post.content
-                        }}
-                        onRemove={() => handleTogglePostSelection(postId)}
-                        index={index}
-                      />
-                    );
-                  })}
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pb-2 min-w-max">
+                    {selectedPosts.map((postId, index) => {
+                      const post = allPosts.find((p: any) => p.id === postId);
+                      if (!post) return null;
+                      
+                      return (
+                        <div key={postId} className="flex-shrink-0 w-[280px]">
+                          <SelectedPostMiniCard
+                            post={{
+                              id: post.id,
+                              authorUsername: post.authorUsername,
+                              authorDisplayName: post.authorDisplayName,
+                              content: post.content
+                            }}
+                            onRemove={() => handleTogglePostSelection(postId)}
+                            index={index}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
-
-            {/* Post Selection Instructions */}
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
-                  Select Posts for Audio MiniCast
-                </h3>
-              </div>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Tap on any post below to add it to your audio minicast (up to 5 posts). 
-                Your selected posts will be combined with your thoughts into an audio experience.
-              </p>
-            </div>
 
             {/* Action Buttons */}
             <div className="flex justify-between pt-4">

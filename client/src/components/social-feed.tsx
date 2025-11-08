@@ -243,12 +243,14 @@ function PostCard({ post }: { post: SocialPost }) {
 
   const handleCardClick = () => {
     if (isAudioMode && !post.isAudioPost) {
-      togglePostSelection(parseInt(post.id));
+      const postIdNumber = typeof post.id === 'string' ? parseInt(post.id) : post.id;
+      const wasSelected = selectedPosts.includes(postIdNumber);
+      togglePostSelection(postIdNumber);
       toast({
-        title: isSelected ? "Post removed" : "Post selected",
-        description: isSelected 
+        title: wasSelected ? "Post removed" : "Post selected",
+        description: wasSelected 
           ? "Post removed from audio minicast" 
-          : `Post added to audio minicast (${selectedPosts.length + 1}/5)`,
+          : `Post added to audio minicast (${wasSelected ? selectedPosts.length : selectedPosts.length + 1}/5)`,
       });
     }
   };
