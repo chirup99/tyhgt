@@ -151,6 +151,29 @@ The trading journal includes a toggle switch that allows users to switch between
   - `GET /api/user-journal/:userId/:date` - Load user-specific trading data
   - `DELETE /api/user-journal/:userId/:date` - Delete user-specific trading data
 
+## Audio MiniCast Feature
+
+The platform includes an innovative **Audio MiniCast** feature for creating audio-based content from feed posts:
+
+### How It Works:
+1. **Toggle Audio Mode**: Click the Radio icon (🔘) in the post creation panel header
+2. **Select Posts**: Tap any post in the feed to add it to your minicast (up to 5 posts maximum)
+3. **Card Animation**: Selected posts animate with a purple highlight and card swipe effect
+4. **Create Minicast**: Write your thoughts and click "Publish Audio" to create your audio post
+5. **Feed Display**: Audio minicasts appear in the feed as swipeable cards with play controls
+
+### Components:
+- `AudioModeContext`: Global state management for audio mode across components
+- `AudioMinicastCard`: Swipeable card component for displaying audio posts in the feed
+- `PostCreationPanel`: Integrated audio mode with simplified UI
+- Database fields: `isAudioPost`, `selectedPostIds`, `audioUrl`
+
+### User Experience:
+- **Visual Feedback**: Purple accents and bouncing Radio icon indicate selection
+- **Swiping Interface**: Navigate through cards with next/previous buttons
+- **Progress Dots**: Visual indicator showing current card position
+- **Engagement**: Like, comment, and share functionality preserved
+
 ## API Structure
 
 **Base Route**: `/api`  
@@ -164,6 +187,7 @@ The trading journal includes a toggle switch that allows users to switch between
 - `/market-data/*` - Real-time quotes and historical data
 - `/trades/*` - Trade execution and history
 - `/feed/*` - Social trading feed operations
+- `/social-posts` - Create, read, update social posts (including audio minicasts)
 
 **Response Pattern**: Consistent JSON structure with metadata, data payload, and error handling
 

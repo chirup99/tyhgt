@@ -22,7 +22,8 @@ import {
   Globe,
   Home,
   Plus,
-  Newspaper
+  Newspaper,
+  Radio
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -30,6 +31,8 @@ import { useToast } from '@/hooks/use-toast';
 import { SwipeableCarousel } from './swipeable-carousel';
 import { UserIdSetupDialog } from './user-id-setup-dialog';
 import { auth } from '@/firebase';
+import { useAudioMode } from '@/contexts/AudioModeContext';
+import { AudioMinicastCard } from './audio-minicast-card';
 
 interface SocialPost {
   id: string;
@@ -52,6 +55,8 @@ interface SocialPost {
   imageUrl?: string;
   liked?: boolean;
   reposted?: boolean;
+  isAudioPost?: boolean;
+  selectedPostIds?: number[];
 }
 
 interface SearchBarProps {
@@ -119,6 +124,8 @@ function PostCard({ post }: { post: SocialPost }) {
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const { toast } = useToast();
+  const { isAudioMode, selectedPosts, togglePostSelection } = useAudioMode();
+  const isSelected = selectedPosts.includes(parseInt(post.id));
 
   const handleLike = async () => {
     try {
@@ -234,8 +241,53 @@ function PostCard({ post }: { post: SocialPost }) {
     }
   };
 
+  const handleCardClick = () => {
+    if (isAudioMode && !post.isAudioPost) {
+      togglePostSelection(parseInt(post.id));
+      toast({
+        title: isSelected ? "Post removed" : "Post selected",
+        description: isSelected 
+          ? "Post removed from audio minicast" 
+          : `Post added to audio minicast (${selectedPosts.length + 1}/5)`,
+      });
+    }
+  };
+
+  // If this is an audio minicast post, render the special card
+  if (post.isAudioPost) {
+    return (
+      <AudioMinicastCard
+        content={post.content}
+        author={{
+          displayName: post.author.displayName,
+          username: post.author.username
+        }}
+        selectedPostIds={post.selectedPostIds}
+        timestamp={post.timestamp}
+        likes={likeCount}
+        comments={commentCount}
+        isLiked={isLiked}
+      />
+    );
+  }
+
   return (
-    <Card className="border-0 border-b border-gray-200 dark:border-gray-700 rounded-none hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+    <Card 
+      className={`border-0 border-b border-gray-200 dark:border-gray-700 rounded-none transition-all relative ${
+        isAudioMode 
+          ? isSelected
+            ? 'bg-purple-100 dark:bg-purple-900/30 border-l-4 border-l-purple-500 cursor-pointer' 
+            : 'hover:bg-purple-50 dark:hover:bg-purple-900/10 cursor-pointer hover:border-l-4 hover:border-l-purple-300' 
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer'
+      }`}
+      onClick={handleCardClick}
+      data-testid={`post-card-${post.id}`}
+    >
+      {isSelected && isAudioMode && (
+        <div className="absolute top-2 right-2 bg-purple-600 text-white rounded-full p-2 z-10 animate-bounce">
+          <Radio className="h-4 w-4" />
+        </div>
+      )}
       <CardContent className="p-4">
         <div className="flex gap-3">
           {/* Avatar */}
@@ -562,20 +614,24 @@ export function SocialFeed() {
     id: post.id.toString(),
     author: {
       username: post.authorUsername || 'unknown',
-      displayName: post.authorUsername || 'Unknown User',
+      displayName: post.authorDisplayName || post.authorUsername || 'Unknown User',
       verified: Math.random() > 0.7, // Random verification for demo
       followers: 0
     },
     content: post.content || '',
     timestamp: new Date(post.createdAt || Date.now()),
-    likes: Math.floor(Math.random() * 200) + 10,
-    comments: Math.floor(Math.random() * 50) + 1,
-    reposts: Math.floor(Math.random() * 100) + 5,
+    likes: post.likes || Math.floor(Math.random() * 200) + 10,
+    comments: post.comments || Math.floor(Math.random() * 50) + 1,
+    reposts: post.reposts || Math.floor(Math.random() * 100) + 5,
     tags: post.content ? post.content.split(' ').filter((word: string) => word.startsWith('#')).map((tag: string) => tag.slice(1)) : [],
-    stockMentions: post.ticker ? [post.ticker.replace('$', '')] : [],
-    sentiment: post.ticker ? (Math.random() > 0.6 ? 'bullish' : Math.random() > 0.3 ? 'bearish' : 'neutral') : 'neutral',
+    stockMentions: post.stockMentions || (post.ticker ? [post.ticker.replace('$', '')] : []),
+    sentiment: post.sentiment || (post.ticker ? (Math.random() > 0.6 ? 'bullish' : Math.random() > 0.3 ? 'bearish' : 'neutral') : 'neutral'),
+    hasImage: post.hasImage || false,
+    imageUrl: post.imageUrl || undefined,
     liked: false,
-    reposted: false
+    reposted: false,
+    isAudioPost: post.isAudioPost || false,
+    selectedPostIds: post.selectedPostIds || []
   }));
 
   // Enhanced duplicate removal with Set-based filtering (same as neofeed)

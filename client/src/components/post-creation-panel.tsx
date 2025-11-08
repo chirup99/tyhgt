@@ -13,6 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { InsertSocialPost } from '@shared/schema';
+import { useAudioMode } from '@/contexts/AudioModeContext';
 
 const POPULAR_STOCKS = [
   'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR',
@@ -45,9 +46,14 @@ export function PostCreationPanel() {
   const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>('post');
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
   
-  // Audio minicast state
-  const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
+  // Audio minicast state from context
+  const { isAudioMode, setIsAudioMode, selectedPosts, togglePostSelection, clearSelection } = useAudioMode();
   const [animatingPostId, setAnimatingPostId] = useState<number | null>(null);
+  
+  // Sync viewMode with context audio mode
+  useEffect(() => {
+    setIsAudioMode(viewMode === 'audio');
+  }, [viewMode, setIsAudioMode]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -125,22 +131,20 @@ export function PostCreationPanel() {
     setStockMentions([]);
     setSentiment('neutral');
     setUploadedImages([]);
-    setSelectedPosts([]);
+    clearSelection();
   };
   
-  const togglePostSelection = (postId: number) => {
-    if (selectedPosts.includes(postId)) {
-      setSelectedPosts(selectedPosts.filter(id => id !== postId));
-    } else if (selectedPosts.length < 5) {
-      setAnimatingPostId(postId);
-      setTimeout(() => setAnimatingPostId(null), 500);
-      setSelectedPosts([...selectedPosts, postId]);
-    } else {
+  const handleTogglePostSelection = (postId: number) => {
+    if (selectedPosts.length >= 5 && !selectedPosts.includes(postId)) {
       toast({
         description: "You can select up to 5 posts for audio minicast",
         variant: "destructive"
       });
+      return;
     }
+    setAnimatingPostId(postId);
+    setTimeout(() => setAnimatingPostId(null), 500);
+    togglePostSelection(postId);
   };
 
   const detectStockMentions = useCallback((text: string) => {
@@ -370,7 +374,7 @@ export function PostCreationPanel() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => togglePostSelection(postId)}
+                          onClick={() => handleTogglePostSelection(postId)}
                           className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20"
                         >
                           <X className="h-3 w-3" />

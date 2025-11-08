@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PostCreationPanel } from './post-creation-panel';
 import { LiveBanner } from './live-banner';
 import type { SocialPost } from '@shared/schema';
+import { AudioModeProvider } from '@/contexts/AudioModeContext';
 import { 
   Search, Bell, Settings, MessageCircle, Repeat, Heart, 
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
@@ -50,6 +51,8 @@ interface FeedPost {
   imageUrl?: string;
   hasImages?: boolean;  // Support for future multi-image feature
   imageUrls?: string[];  // Support for future multi-image feature
+  isAudioPost?: boolean; // Audio minicast post flag
+  selectedPostIds?: number[]; // Selected posts for audio minicast
   createdAt?: string | Date;
   updatedAt?: string | Date;
   ticker?: string;
@@ -1634,7 +1637,7 @@ function PostCard({ post }: { post: FeedPost }) {
   );
 }
 
-export default function NeoFeedSocialFeed() {
+function NeoFeedSocialFeedComponent() {
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
   const [isAtTop, setIsAtTop] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -2168,5 +2171,14 @@ export default function NeoFeedSocialFeed() {
       {/* Add padding to bottom of content to prevent overlap with bottom nav on mobile */}
       <div className="md:hidden h-20"></div>
     </div>
+  );
+}
+
+// Wrap with AudioModeProvider for audio minicast functionality
+export default function NeoFeedSocialFeed() {
+  return (
+    <AudioModeProvider>
+      <NeoFeedSocialFeedComponent />
+    </AudioModeProvider>
   );
 }
