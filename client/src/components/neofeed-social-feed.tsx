@@ -9,7 +9,7 @@ import {
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
   Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
-  ChevronDown, ChevronUp, ArrowLeft, Check
+  ChevronDown, ChevronUp, ArrowLeft, Check, Radio
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -1294,35 +1294,43 @@ function PostCard({ post }: { post: FeedPost }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Audio mode selection
-  const { isAudioMode, selectedPosts, togglePostSelection } = useAudioMode();
-  
-  // Convert post.id to number consistently - handle both string and number IDs
-  const postIdNumber = typeof post.id === 'string' ? parseInt(post.id, 10) : Number(post.id);
-  const isSelected = selectedPosts.includes(postIdNumber);
-  const canSelect = selectedPosts.length < 5 || isSelected;
+  // Audio mode text selection
+  const { isAudioMode, selectedTextSnippets, addTextSnippet } = useAudioMode();
   
   // Text truncation settings
   const MAX_TEXT_LENGTH = 150;
   
-  const handleSelectPost = () => {
-    console.log('🎯 Selection Debug:', {
-      postId: post.id,
-      postIdNumber,
-      isSelected,
-      selectedPosts,
-      allPosts: 'check'
-    });
+  // Text selection handler
+  const handleTextSelection = () => {
+    if (!isAudioMode) return;
     
-    if (!canSelect && !isSelected) {
-      toast({ description: "Maximum 5 posts can be selected", variant: "destructive" });
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
+    
+    if (!selectedText || selectedText.length === 0) return;
+    
+    if (selectedTextSnippets.length >= 5) {
+      toast({ description: "Maximum 5 text selections allowed", variant: "destructive" });
       return;
     }
-    togglePostSelection(postIdNumber);
-    toast({ 
-      description: isSelected ? "Post removed from audio minicast" : "Post added to audio minicast!",
-      variant: isSelected ? "default" : "default"
+    
+    // Convert post.id to number
+    const postIdNumber = typeof post.id === 'string' ? parseInt(post.id, 10) : Number(post.id);
+    
+    addTextSnippet({
+      postId: postIdNumber,
+      text: selectedText,
+      authorUsername: post.user?.handle || post.authorUsername || 'Unknown',
+      authorDisplayName: post.user?.username || post.authorDisplayName || 'Unknown User'
     });
+    
+    toast({ 
+      description: "Text added to audio minicast!",
+      variant: "default"
+    });
+    
+    // Clear selection
+    selection?.removeAllRanges();
   };
 
   // Like mutation
@@ -1469,28 +1477,12 @@ function PostCard({ post }: { post: FeedPost }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Audio mode selection checkbox */}
+            {/* Audio mode indicator */}
             {isAudioMode && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleSelectPost}
-                disabled={!canSelect && !isSelected}
-                className={`p-2 rounded-lg transition-all ${
-                  isSelected 
-                    ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/60' 
-                    : 'text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20'
-                }`}
-                data-testid={`button-select-${post.id}`}
-              >
-                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                  isSelected 
-                    ? 'border-purple-600 dark:border-purple-400 bg-purple-600 dark:bg-purple-500' 
-                    : 'border-gray-400 dark:border-gray-500 bg-transparent'
-                }`}>
-                  {isSelected && <Check className="w-3 h-3 text-white" />}
-                </div>
-              </Button>
+              <div className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
+                <Radio className="w-3 h-3" />
+                <span>Select text</span>
+              </div>
             )}
             <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <MoreHorizontal className="h-5 w-5" />
@@ -1501,7 +1493,13 @@ function PostCard({ post }: { post: FeedPost }) {
         {/* Post Content */}
         <div className="mb-2 xl:mb-4">
           <div className="relative">
-            <p className="text-gray-900 dark:text-white leading-relaxed mb-2 xl:mb-3 text-base font-medium ">
+            <p 
+              className={`text-gray-900 dark:text-white leading-relaxed mb-2 xl:mb-3 text-base font-medium ${
+                isAudioMode ? 'cursor-text select-text' : ''
+              }`}
+              onMouseUp={handleTextSelection}
+              style={isAudioMode ? { userSelect: 'text' } : {}}
+            >
               {isExpanded || post.content.length <= MAX_TEXT_LENGTH
                 ? post.content
                 : `${post.content.substring(0, MAX_TEXT_LENGTH)}...`}

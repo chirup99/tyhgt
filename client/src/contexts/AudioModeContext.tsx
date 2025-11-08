@@ -1,10 +1,20 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
+export interface SelectedTextSnippet {
+  id: string;
+  postId: number;
+  text: string;
+  authorUsername: string;
+  authorDisplayName: string;
+  timestamp: number;
+}
+
 interface AudioModeContextType {
   isAudioMode: boolean;
   setIsAudioMode: (mode: boolean) => void;
-  selectedPosts: number[];
-  togglePostSelection: (postId: number) => void;
+  selectedTextSnippets: SelectedTextSnippet[];
+  addTextSnippet: (snippet: Omit<SelectedTextSnippet, 'id' | 'timestamp'>) => void;
+  removeTextSnippet: (id: string) => void;
   clearSelection: () => void;
 }
 
@@ -12,21 +22,28 @@ const AudioModeContext = createContext<AudioModeContextType | undefined>(undefin
 
 export function AudioModeProvider({ children }: { children: ReactNode }) {
   const [isAudioMode, setIsAudioMode] = useState(false);
-  const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
+  const [selectedTextSnippets, setSelectedTextSnippets] = useState<SelectedTextSnippet[]>([]);
 
-  const togglePostSelection = (postId: number) => {
-    setSelectedPosts(prev => {
-      if (prev.includes(postId)) {
-        return prev.filter(id => id !== postId);
-      } else if (prev.length < 5) {
-        return [...prev, postId];
-      }
-      return prev;
-    });
+  const addTextSnippet = (snippet: Omit<SelectedTextSnippet, 'id' | 'timestamp'>) => {
+    if (selectedTextSnippets.length >= 5) {
+      return;
+    }
+    
+    const newSnippet: SelectedTextSnippet = {
+      ...snippet,
+      id: `${snippet.postId}-${Date.now()}-${Math.random()}`,
+      timestamp: Date.now()
+    };
+    
+    setSelectedTextSnippets(prev => [...prev, newSnippet]);
+  };
+
+  const removeTextSnippet = (id: string) => {
+    setSelectedTextSnippets(prev => prev.filter(snippet => snippet.id !== id));
   };
 
   const clearSelection = () => {
-    setSelectedPosts([]);
+    setSelectedTextSnippets([]);
   };
 
   return (
@@ -34,8 +51,9 @@ export function AudioModeProvider({ children }: { children: ReactNode }) {
       value={{
         isAudioMode,
         setIsAudioMode,
-        selectedPosts,
-        togglePostSelection,
+        selectedTextSnippets,
+        addTextSnippet,
+        removeTextSnippet,
         clearSelection
       }}
     >

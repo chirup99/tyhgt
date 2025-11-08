@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
-import { SelectedPostMiniCard } from './selected-post-mini-card';
+import { SelectedTextSnippetCard } from './selected-text-snippet-card';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -48,8 +48,7 @@ export function PostCreationPanel() {
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
   
   // Audio minicast state from context
-  const { isAudioMode, setIsAudioMode, selectedPosts, togglePostSelection, clearSelection } = useAudioMode();
-  const [animatingPostId, setAnimatingPostId] = useState<number | null>(null);
+  const { isAudioMode, setIsAudioMode, selectedTextSnippets, removeTextSnippet, clearSelection } = useAudioMode();
   
   // Sync viewMode with context audio mode
   useEffect(() => {
@@ -60,11 +59,6 @@ export function PostCreationPanel() {
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
 
-  // Fetch all posts to get details of selected posts
-  const { data: allPosts = [] } = useQuery<any[]>({
-    queryKey: ['/api/social-posts'],
-    enabled: selectedPosts.length > 0
-  });
 
   const createPostMutation = useMutation({
     mutationFn: async (postData: InsertSocialPost) => {
@@ -140,19 +134,6 @@ export function PostCreationPanel() {
     setUploadedImages([]);
     clearSelection();
   };
-  
-  const handleTogglePostSelection = (postId: number) => {
-    if (selectedPosts.length >= 5 && !selectedPosts.includes(postId)) {
-      toast({
-        description: "You can select up to 5 posts for audio minicast",
-        variant: "destructive"
-      });
-      return;
-    }
-    setAnimatingPostId(postId);
-    setTimeout(() => setAnimatingPostId(null), 500);
-    togglePostSelection(postId);
-  };
 
   const detectStockMentions = useCallback((text: string) => {
     const words = text.toUpperCase().split(/\s+/);
@@ -211,7 +192,7 @@ export function PostCreationPanel() {
         JSON.stringify(uploadedImages.map(img => img.url)) : 
         (uploadedImages.length === 1 ? uploadedImages[0].url : undefined),
       isAudioPost: viewMode === 'audio',
-      selectedPostIds: viewMode === 'audio' ? selectedPosts : undefined
+      selectedPostIds: viewMode === 'audio' ? selectedTextSnippets.map(s => s.postId) : undefined
     };
 
     createPostMutation.mutate(postData);
@@ -352,48 +333,38 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Selected Posts Display with Cards */}
-            {selectedPosts.length > 0 && (
+            {/* Selected Text Snippets Display with Cards */}
+            {selectedTextSnippets.length > 0 ? (
               <div className="space-y-3">
                 <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
-                  Selected Posts ({selectedPosts.length}/5)
+                  Selected Text ({selectedTextSnippets.length}/5)
                 </Label>
                 <div className="space-y-3">
-                  {selectedPosts.map((postId, index) => {
-                    const post = allPosts.find((p: any) => p.id === postId);
-                    if (!post) return null;
-                    
-                    return (
-                      <SelectedPostMiniCard
-                        key={postId}
-                        post={{
-                          id: post.id,
-                          authorUsername: post.authorUsername,
-                          authorDisplayName: post.authorDisplayName,
-                          content: post.content
-                        }}
-                        onRemove={() => handleTogglePostSelection(postId)}
-                        index={index}
-                      />
-                    );
-                  })}
+                  {selectedTextSnippets.map((snippet, index) => (
+                    <SelectedTextSnippetCard
+                      key={snippet.id}
+                      snippet={snippet}
+                      onRemove={() => removeTextSnippet(snippet.id)}
+                      index={index}
+                    />
+                  ))}
                 </div>
               </div>
-            )}
-
-            {/* Post Selection Instructions */}
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
-                  Select Posts for Audio MiniCast
-                </h3>
+            ) : (
+              /* Text Selection Instructions - Only show when no snippets selected */
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
+                    Select Posts for Audio MiniCast
+                  </h3>
+                </div>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Tap on any post below to add it to your audio minicast (up to 5 posts). 
+                  Your selected posts will be combined with your thoughts into an audio experience.
+                </p>
               </div>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Tap on any post below to add it to your audio minicast (up to 5 posts). 
-                Your selected posts will be combined with your thoughts into an audio experience.
-              </p>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex justify-between pt-4">
