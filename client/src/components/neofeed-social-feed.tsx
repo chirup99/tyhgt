@@ -1710,6 +1710,7 @@ function NeoFeedSocialFeedComponent() {
   const [showAppBar, setShowAppBar] = useState(true);
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [showMobileCreatePost, setShowMobileCreatePost] = useState(false);
+  const [showMobileAudioMinicast, setShowMobileAudioMinicast] = useState(false);
   const { toast } = useToast();
   
   // Handle scroll to hide/show app bar and bottom navigation
@@ -2180,7 +2181,16 @@ function NeoFeedSocialFeedComponent() {
       <Dialog open={showMobileCreatePost} onOpenChange={setShowMobileCreatePost}>
         <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0">
           <div className="p-4">
-            <PostCreationPanel />
+            <PostCreationPanel hideAudioMode={true} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile Audio Minicast Dialog - Only shows on mobile when Radio button is tapped */}
+      <Dialog open={showMobileAudioMinicast} onOpenChange={setShowMobileAudioMinicast}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-4">
+            <PostCreationPanel initialViewMode="audio" />
           </div>
         </DialogContent>
       </Dialog>
@@ -2210,10 +2220,7 @@ function NeoFeedSocialFeedComponent() {
 
           {/* Audio Repost Icon */}
           <button
-            onClick={() => {
-              // Toggle audio mode or open audio post creation
-              handleFilterChange('All');
-            }}
+            onClick={() => setShowMobileAudioMinicast(true)}
             className="p-2 rounded-full transition-all hover-elevate active-elevate-2"
             data-testid="button-audio-repost-mobile"
           >

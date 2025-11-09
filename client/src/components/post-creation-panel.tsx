@@ -35,7 +35,12 @@ export const PostSelectionContext = {
   isAudioMode: false
 };
 
-export function PostCreationPanel() {
+interface PostCreationPanelProps {
+  hideAudioMode?: boolean;
+  initialViewMode?: 'post' | 'message' | 'audio';
+}
+
+export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'post' }: PostCreationPanelProps = {}) {
   const [content, setContent] = useState('');
   const [selectedStock, setSelectedStock] = useState('');
   const [stockMentions, setStockMentions] = useState<string[]>([]);
@@ -44,7 +49,7 @@ export function PostCreationPanel() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // New state for view switching
-  const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>('post');
+  const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>(initialViewMode);
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
   
   // Audio minicast state from context
@@ -280,23 +285,25 @@ export function PostCreationPanel() {
           </div>
           <div className="flex items-center gap-2">
             {/* Audio Icon */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'audio' ? 'post' : 'audio')}
-              className={`p-2 h-8 w-8 rounded-full ${
-                viewMode === 'audio' 
-                  ? 'bg-purple-100 dark:bg-purple-900/30' 
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-              data-testid="button-toggle-audio"
-            >
-              <Radio className={`h-4 w-4 ${
-                viewMode === 'audio'
-                  ? 'text-purple-600 dark:text-purple-400'
-                  : 'text-gray-600 dark:text-gray-400'
-              }`} />
-            </Button>
+            {!hideAudioMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode(viewMode === 'audio' ? 'post' : 'audio')}
+                className={`p-2 h-8 w-8 rounded-full ${
+                  viewMode === 'audio' 
+                    ? 'bg-purple-100 dark:bg-purple-900/30' 
+                    : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+                data-testid="button-toggle-audio"
+              >
+                <Radio className={`h-4 w-4 ${
+                  viewMode === 'audio'
+                    ? 'text-purple-600 dark:text-purple-400'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`} />
+              </Button>
+            )}
             {/* Message Icon */}
             <Button
               variant="ghost"
