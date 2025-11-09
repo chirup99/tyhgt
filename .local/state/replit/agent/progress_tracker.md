@@ -325,6 +325,12 @@
 [x] 325. Cards now super compact and fit perfectly in selected posts window
 [x] 326. Restarted workflow - server running successfully on port 5000
 [x] 327. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ HALF-SIZE COMPACT CARDS COMPLETED!
+[x] 328. Fixed swipe functionality - reduced swipe threshold from 100px to 40px
+[x] 329. Cards now swipe easily left/right with much shorter drag distance
+[x] 330. Verified posts are already sorted newest-first (bDate - aDate sorting)
+[x] 331. New posts automatically appear at top of feed
+[x] 332. Restarted workflow - server running successfully on port 5000
+[x] 333. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ SWIPE FIX & POST ORDERING COMPLETED!
 [x] 307. Re-installed cross-env package for November 8, 2025 environment migration
 [x] 308. Configured workflow with webview output type on port 5000
 [x] 309. Restarted workflow - server running successfully on port 5000

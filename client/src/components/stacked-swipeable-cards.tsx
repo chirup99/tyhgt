@@ -102,7 +102,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
               const handleMouseUp = (e: MouseEvent) => {
                 if (isDragging) {
                   const deltaX = e.clientX - startX;
-                  if (Math.abs(deltaX) > 100) {
+                  if (Math.abs(deltaX) > 40) {
                     const swipeDirection = deltaX > 0 ? "right" : "left";
 
                     if (swipeDirection === "right") {
@@ -191,7 +191,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
               const handleTouchEnd = (e: TouchEvent) => {
                 if (isDragging) {
                   const deltaX = e.changedTouches[0].clientX - startX;
-                  if (Math.abs(deltaX) > 100) {
+                  if (Math.abs(deltaX) > 40) {
                     const swipeDirection = deltaX > 0 ? "right" : "left";
 
                     if (swipeDirection === "right") {
