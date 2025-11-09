@@ -38,9 +38,10 @@ export const PostSelectionContext = {
 interface PostCreationPanelProps {
   hideAudioMode?: boolean;
   initialViewMode?: 'post' | 'message' | 'audio';
+  onMinimize?: () => void;
 }
 
-export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'post' }: PostCreationPanelProps = {}) {
+export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'post', onMinimize }: PostCreationPanelProps = {}) {
   const [content, setContent] = useState('');
   const [selectedStock, setSelectedStock] = useState('');
   const [stockMentions, setStockMentions] = useState<string[]>([]);
@@ -406,11 +407,25 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
             ) : (
               /* Post Selection Instructions - Only show when no posts selected */
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                  <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
-                    Select Posts for Audio MiniCast
-                  </h3>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
+                      Select Posts for Audio MiniCast
+                    </h3>
+                  </div>
+                  {onMinimize && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={onMinimize}
+                      className="h-6 w-6 p-0 hover:bg-purple-200 dark:hover:bg-purple-800"
+                      data-testid="button-minimize-audio"
+                    >
+                      <Minus className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </Button>
+                  )}
                 </div>
                 <p className="text-sm text-purple-700 dark:text-purple-300">
                   Click on any post below to add it to your audio minicast (up to 5 posts). 

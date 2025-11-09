@@ -2194,17 +2194,19 @@ function NeoFeedSocialFeedComponent() {
       <Dialog open={showMobileAudioMinicast} onOpenChange={setShowMobileAudioMinicast}>
         <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0">
           <div className="p-4">
-            <PostCreationPanel initialViewMode="audio" />
+            <PostCreationPanel 
+              initialViewMode="audio" 
+              onMinimize={() => setShowMobileAudioMinicast(false)}
+            />
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Selected Posts Preview - Shows tiny stacked cards beside bottom nav when posts are selected */}
+      {/* Mobile Selected Posts Preview - Always visible when posts are selected, independent of bottom nav */}
       <div className="md:hidden">
         <AudioSelectedPostsPreview
           snippets={selectedTextSnippets}
           onTap={() => setShowMobileAudioMinicast(true)}
-          isVisible={showBottomNav}
         />
       </div>
 
