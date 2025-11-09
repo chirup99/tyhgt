@@ -120,7 +120,7 @@ export function AudioMinicastCard({
         </div>
 
         {/* Swipeable Cards Container */}
-        <div className="bg-gray-50 dark:bg-gray-800/30 py-8 flex items-center justify-center">
+        <div className="bg-gray-50 dark:bg-gray-800/30 pb-6 flex items-center justify-center">
           <div className="relative w-28 h-40" style={{ perspective: '1000px' }}>
             {cards.map((card, index) => {
               const isTop = index === 0;
