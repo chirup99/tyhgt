@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Play } from 'lucide-react';
 import type { SelectedTextSnippet } from '@/contexts/AudioModeContext';
 
@@ -7,13 +7,36 @@ interface StackedSwipeableCardsProps {
   onRemove: (id: string) => void;
 }
 
-export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCardsProps) {
-  const [cards, setCards] = useState(snippets);
+interface CardWithColor extends SelectedTextSnippet {
+  colorIndex: number;
+}
 
-  // Update cards when snippets change
-  if (JSON.stringify(cards.map(c => c.id)) !== JSON.stringify(snippets.map(s => s.id))) {
-    setCards(snippets);
-  }
+export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCardsProps) {
+  const [cards, setCards] = useState<CardWithColor[]>([]);
+  const [nextColorIndex, setNextColorIndex] = useState(0);
+
+  // Update cards when snippets change - new cards added to TOP with different colors
+  useEffect(() => {
+    const currentIds = cards.map(c => c.id);
+    const newSnippetIds = snippets.map(s => s.id);
+    
+    // Find newly added snippets
+    const addedSnippets = snippets.filter(s => !currentIds.includes(s.id));
+    
+    if (addedSnippets.length > 0) {
+      // Add new cards to the TOP of the stack with rotating colors
+      const newCards: CardWithColor[] = addedSnippets.map((snippet, idx) => ({
+        ...snippet,
+        colorIndex: (nextColorIndex + idx) % 5
+      }));
+      
+      setCards(prev => [...newCards, ...prev.filter(c => newSnippetIds.includes(c.id))]);
+      setNextColorIndex((nextColorIndex + addedSnippets.length) % 5);
+    } else if (currentIds.length !== newSnippetIds.length) {
+      // Cards were removed
+      setCards(prev => prev.filter(c => newSnippetIds.includes(c.id)));
+    }
+  }, [snippets]);
 
   const swipeCard = (direction: 'left' | 'right') => {
     setCards((prevCards) => {
@@ -30,6 +53,8 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
       return newCards;
     });
   };
+
+  const [swipeOffset, setSwipeOffset] = useState(0);
 
   const truncateText = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
@@ -55,21 +80,29 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
         const isTop = index === 0;
         const isSecond = index === 1;
         const isThird = index === 2;
-        const gradient = getGradient(index);
+        const gradient = getGradient(card.colorIndex);
         const authorName = card.authorDisplayName || card.authorUsername || 'Trading';
+        
+        // Calculate preview offset for cards behind based on swipe direction
+        const previewScale = swipeOffset !== 0 && index === 1 ? 0.97 : (isSecond ? 0.95 : (isThird ? 0.90 : 0.85));
+        const previewY = swipeOffset !== 0 && index === 1 ? 1 : (isSecond ? 2 : (isThird ? 4 : 6));
 
         return (
           <div
             key={card.id}
             data-card-index={index}
-            className={`absolute inset-0 transition-all duration-300 ease-out cursor-grab active:cursor-grabbing ${
+            style={{
+              transform: !isTop ? `scale(${previewScale}) rotate(${index}deg) translateY(${previewY * 2}px)` : undefined,
+              transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+            }}
+            className={`absolute inset-0 cursor-grab active:cursor-grabbing ${
               isTop
-                ? "z-40 scale-100 rotate-0"
+                ? "z-40"
                 : isSecond
-                ? "z-30 scale-95 rotate-1 translate-y-2"
+                ? "z-30"
                 : isThird
-                ? "z-20 scale-90 rotate-2 translate-y-4"
-                : "z-10 scale-85 rotate-3 translate-y-6 opacity-50"
+                ? "z-20"
+                : "z-10 opacity-50"
             }`}
             onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
               if (!isTop) return;
@@ -96,12 +129,17 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
                   cardElement.style.opacity = String(
                     Math.max(0.3, 1 - Math.abs(deltaX) / 300)
                   );
+                  
+                  // Show preview of next card by updating swipe offset
+                  setSwipeOffset(deltaX);
                 }
               };
 
               const handleMouseUp = (e: MouseEvent) => {
                 if (isDragging) {
                   const deltaX = e.clientX - startX;
+                  setSwipeOffset(0); // Reset preview
+                  
                   if (Math.abs(deltaX) > 40) {
                     const swipeDirection = deltaX > 0 ? "right" : "left";
 
@@ -185,12 +223,17 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
                   cardElement.style.opacity = String(
                     Math.max(0.3, 1 - Math.abs(deltaX) / 300)
                   );
+                  
+                  // Show preview of next card
+                  setSwipeOffset(deltaX);
                 }
               };
 
               const handleTouchEnd = (e: TouchEvent) => {
                 if (isDragging) {
                   const deltaX = e.changedTouches[0].clientX - startX;
+                  setSwipeOffset(0); // Reset preview
+                  
                   if (Math.abs(deltaX) > 40) {
                     const swipeDirection = deltaX > 0 ? "right" : "left";
 
