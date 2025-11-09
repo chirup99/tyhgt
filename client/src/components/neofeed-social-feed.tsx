@@ -736,27 +736,42 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
           </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
+        <div className="flex items-center justify-between gap-2 pb-2">
+          <div className="flex gap-2 overflow-x-auto flex-1">
+            {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
+              <Button
+                key={filter}
+                onClick={filter === 'All' ? onAllClick : () => onFilterChange(filter)}
+                variant={selectedFilter === filter ? "default" : "ghost"}
+                disabled={filter === 'All' && isRefreshing}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  selectedFilter === filter
+                    ? `bg-blue-600 hover:bg-blue-700 text-white ${filter === 'All' && isRefreshing ? 'opacity-80' : ''}` 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {index === 0 && isRefreshing && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                  {filter}
+                </div>
+              </Button>
+            ))}
+          </div>
+          
+          {/* Back Button - Mobile Only, Show when not on "All" filter */}
+          {selectedFilter !== 'All' && (
             <Button
-              key={filter}
-              onClick={filter === 'All' ? onAllClick : () => onFilterChange(filter)}
-              variant={selectedFilter === filter ? "default" : "ghost"}
-              disabled={filter === 'All' && isRefreshing}
-              className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                selectedFilter === filter
-                  ? `bg-blue-600 hover:bg-blue-700 text-white ${filter === 'All' && isRefreshing ? 'opacity-80' : ''}` 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
+              onClick={() => onFilterChange('All')}
+              variant="ghost"
+              size="sm"
+              className="md:hidden flex-shrink-0 h-9 w-9 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              data-testid="button-back-to-all"
             >
-              <div className="flex items-center gap-2">
-                {index === 0 && isRefreshing && (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                )}
-                {filter}
-              </div>
+              <ArrowLeft className="h-5 w-5" />
             </Button>
-          ))}
+          )}
         </div>
       </div>
       </div>
