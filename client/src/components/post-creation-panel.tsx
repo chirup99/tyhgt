@@ -397,7 +397,7 @@ export function PostCreationPanel() {
             )}
 
             {/* Selected Posts Display with Centered Stacked Swipeable Cards */}
-            {selectedTextSnippets.length > 0 ? (
+            {selectedTextSnippets.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
                   Selected Posts ({selectedTextSnippets.length}/5)
@@ -408,8 +408,10 @@ export function PostCreationPanel() {
                   onRemove={(id) => removeTextSnippet(id)}
                 />
               </div>
-            ) : (
-              /* Post Selection Instructions - Only show when no posts selected */
+            )}
+
+            {/* Post Selection Instructions - Only show when no posts selected AND no text cards */}
+            {selectedTextSnippets.length === 0 && postTextSnippets.length === 0 && (
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
