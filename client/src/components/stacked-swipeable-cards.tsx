@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, Play, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { X, Play } from 'lucide-react';
 import type { SelectedTextSnippet } from '@/contexts/AudioModeContext';
 
 interface StackedSwipeableCardsProps {
@@ -8,93 +8,28 @@ interface StackedSwipeableCardsProps {
 }
 
 export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCardsProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const startX = useRef<number>(0);
-  const currentX = useRef<number>(0);
-  const isDragging = useRef<boolean>(false);
+  const [cards, setCards] = useState(snippets);
 
-  const nextCard = () => {
-    if (isTransitioning || snippets.length === 0) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev + 1) % snippets.length);
-    setTimeout(() => setIsTransitioning(false), 300);
-  };
+  // Update cards when snippets change
+  if (JSON.stringify(cards.map(c => c.id)) !== JSON.stringify(snippets.map(s => s.id))) {
+    setCards(snippets);
+  }
 
-  const prevCard = () => {
-    if (isTransitioning || snippets.length === 0) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev - 1 + snippets.length) % snippets.length);
-    setTimeout(() => setIsTransitioning(false), 300);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX;
-    isDragging.current = true;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    currentX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    
-    const diff = startX.current - currentX.current;
-    const threshold = 50;
-
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
-        nextCard();
+  const swipeCard = (direction: 'left' | 'right') => {
+    setCards((prevCards) => {
+      const newCards = [...prevCards];
+      if (direction === 'right') {
+        // Move first card to end (swipe right = next card)
+        const firstCard = newCards.shift();
+        if (firstCard) newCards.push(firstCard);
       } else {
-        prevCard();
+        // Move last card to front (swipe left = previous card)
+        const lastCard = newCards.pop();
+        if (lastCard) newCards.unshift(lastCard);
       }
-    }
+      return newCards;
+    });
   };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startX.current = e.clientX;
-    isDragging.current = true;
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current) return;
-    currentX.current = e.clientX;
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    
-    const diff = startX.current - currentX.current;
-    const threshold = 50;
-
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
-        nextCard();
-      } else {
-        prevCard();
-      }
-    }
-  };
-
-  useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      if (isDragging.current) {
-        handleMouseUp();
-      }
-    };
-
-    document.addEventListener('mouseup', handleGlobalMouseUp);
-
-    return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-    };
-  }, []);
 
   const truncateText = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
@@ -112,131 +47,269 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
     return gradients[idx % gradients.length];
   };
 
-  if (snippets.length === 0) return null;
-
-  const currentSnippet = snippets[currentIndex];
-  const gradient = getGradient(currentIndex);
-  const authorName = currentSnippet.authorDisplayName || currentSnippet.authorUsername || 'Trading';
+  if (cards.length === 0) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center w-full">
-      {/* Stacked Cards Container - Centered */}
-      <div className="relative w-44 h-56 mb-4 group">
-        {/* Swipe area */}
-        <div
-          className="absolute inset-0 z-20 cursor-grab active:cursor-grabbing"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-        />
-        
-        {/* Bottom stacked layers (visible cards behind) */}
-        {snippets.length > 2 && (
-          <div className="absolute top-4 left-2 right-2 bottom-0 bg-gray-400 dark:bg-gray-600 rounded-xl opacity-20 transform rotate-1" />
-        )}
-        {snippets.length > 1 && (
-          <div className="absolute top-2 left-1 right-1 bottom-1 bg-gray-300 dark:bg-gray-700 rounded-xl opacity-40 transform -rotate-1" />
-        )}
-        
-        {/* Main card (top layer) */}
-        <div 
-          className={`absolute inset-0 w-full h-full rounded-xl bg-gradient-to-br ${gradient.from} ${gradient.to} p-4 text-white shadow-2xl flex flex-col justify-between transition-all duration-300 ${
-            isTransitioning ? 'scale-95 opacity-50' : 'scale-100 opacity-100'
-          }`}
-        >
-          {/* Remove button */}
-          <button
-            onClick={() => onRemove(currentSnippet.id)}
-            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all hover:scale-110 z-30"
-            data-testid={`button-remove-snippet-${currentSnippet.id}`}
-          >
-            <X className="w-3 h-3" />
-          </button>
-          
-          {/* Content */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">{gradient.icon}</span>
-              <p className="text-[10px] font-bold uppercase tracking-wider opacity-90">
-                {gradient.label}
-              </p>
-            </div>
-            
-            <h3 className="text-base font-bold leading-tight">
-              Latest in {authorName.toLowerCase()}
-            </h3>
-            
-            <p className="text-[11px] leading-relaxed opacity-90 line-clamp-5">
-              {truncateText(currentSnippet.text, 100)}
-            </p>
-          </div>
-          
-          {/* Action Button */}
-          <button 
-            className="inline-flex items-center justify-center gap-2 bg-white text-gray-800 px-3 py-2 rounded-lg font-semibold text-xs hover:bg-gray-100 transition-colors w-full shadow-md"
-            onClick={(e) => {
-              e.stopPropagation();
+    <div className="relative w-80 h-64 mx-auto">
+      {cards.map((card, index) => {
+        const isTop = index === 0;
+        const isSecond = index === 1;
+        const isThird = index === 2;
+        const gradient = getGradient(index);
+        const authorName = card.authorDisplayName || card.authorUsername || 'Trading';
+
+        return (
+          <div
+            key={card.id}
+            data-card-index={index}
+            className={`absolute inset-0 transition-all duration-300 ease-out cursor-grab active:cursor-grabbing ${
+              isTop
+                ? "z-40 scale-100 rotate-0"
+                : isSecond
+                ? "z-30 scale-95 rotate-1 translate-y-2"
+                : isThird
+                ? "z-20 scale-90 rotate-2 translate-y-4"
+                : "z-10 scale-85 rotate-3 translate-y-6 opacity-50"
+            }`}
+            onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
+              if (!isTop) return;
+
+              const startX = e.clientX;
+              const startY = e.clientY;
+              const cardElement = e.currentTarget as HTMLElement;
+              let isDragging = false;
+
+              const handleMouseMove = (e: MouseEvent) => {
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+
+                if (
+                  !isDragging &&
+                  (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)
+                ) {
+                  isDragging = true;
+                }
+
+                if (isDragging) {
+                  const rotation = deltaX * 0.1;
+                  cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+                  cardElement.style.opacity = String(
+                    Math.max(0.3, 1 - Math.abs(deltaX) / 300)
+                  );
+                }
+              };
+
+              const handleMouseUp = (e: MouseEvent) => {
+                if (isDragging) {
+                  const deltaX = e.clientX - startX;
+                  if (Math.abs(deltaX) > 100) {
+                    const swipeDirection = deltaX > 0 ? "right" : "left";
+
+                    if (swipeDirection === "right") {
+                      const direction = "150%";
+                      const rotation = "30deg";
+                      cardElement.style.transform = `translate(${direction}, ${
+                        deltaX * 0.5
+                      }px) rotate(${rotation})`;
+                      cardElement.style.opacity = "0";
+
+                      setTimeout(() => {
+                        cardElement.style.transform = "";
+                        cardElement.style.opacity = "";
+                        swipeCard(swipeDirection);
+                      }, 300);
+                    } else {
+                      cardElement.style.transform = "";
+                      cardElement.style.opacity = "";
+                      swipeCard(swipeDirection);
+
+                      setTimeout(() => {
+                        const newTopCard =
+                          cardElement.parentElement?.querySelector(
+                            '[data-card-index="0"]'
+                          ) as HTMLElement;
+                        if (newTopCard) {
+                          newTopCard.style.transform =
+                            "translate(150%, 0) rotate(30deg)";
+                          newTopCard.style.opacity = "0";
+
+                          setTimeout(() => {
+                            newTopCard.style.transform = "";
+                            newTopCard.style.opacity = "";
+                            newTopCard.style.transition =
+                              "transform 300ms ease-out, opacity 300ms ease-out";
+
+                            setTimeout(() => {
+                              newTopCard.style.transition = "";
+                            }, 300);
+                          }, 10);
+                        }
+                      }, 10);
+                    }
+                  } else {
+                    cardElement.style.transform = "";
+                    cardElement.style.opacity = "";
+                  }
+                }
+
+                document.removeEventListener("mousemove", handleMouseMove);
+                document.removeEventListener("mouseup", handleMouseUp);
+              };
+
+              document.addEventListener("mousemove", handleMouseMove);
+              document.addEventListener("mouseup", handleMouseUp);
+            }}
+            onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => {
+              if (!isTop) return;
+
+              const startX = e.touches[0].clientX;
+              const startY = e.touches[0].clientY;
+              const cardElement = e.currentTarget as HTMLElement;
+              let isDragging = false;
+
+              const handleTouchMove = (e: TouchEvent) => {
+                const deltaX = e.touches[0].clientX - startX;
+                const deltaY = e.touches[0].clientY - startY;
+
+                if (
+                  !isDragging &&
+                  (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)
+                ) {
+                  isDragging = true;
+                }
+
+                if (isDragging) {
+                  e.preventDefault();
+                  const rotation = deltaX * 0.1;
+                  cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+                  cardElement.style.opacity = String(
+                    Math.max(0.3, 1 - Math.abs(deltaX) / 300)
+                  );
+                }
+              };
+
+              const handleTouchEnd = (e: TouchEvent) => {
+                if (isDragging) {
+                  const deltaX = e.changedTouches[0].clientX - startX;
+                  if (Math.abs(deltaX) > 100) {
+                    const swipeDirection = deltaX > 0 ? "right" : "left";
+
+                    if (swipeDirection === "right") {
+                      const direction = "150%";
+                      const rotation = "30deg";
+                      cardElement.style.transform = `translate(${direction}, ${
+                        deltaX * 0.5
+                      }px) rotate(${rotation})`;
+                      cardElement.style.opacity = "0";
+
+                      setTimeout(() => {
+                        cardElement.style.transform = "";
+                        cardElement.style.opacity = "";
+                        swipeCard(swipeDirection);
+                      }, 300);
+                    } else {
+                      cardElement.style.transform = "";
+                      cardElement.style.opacity = "";
+                      swipeCard(swipeDirection);
+
+                      setTimeout(() => {
+                        const newTopCard =
+                          cardElement.parentElement?.querySelector(
+                            '[data-card-index="0"]'
+                          ) as HTMLElement;
+                        if (newTopCard) {
+                          newTopCard.style.transform =
+                            "translate(150%, 0) rotate(30deg)";
+                          newTopCard.style.opacity = "0";
+
+                          setTimeout(() => {
+                            newTopCard.style.transform = "";
+                            newTopCard.style.opacity = "";
+                            newTopCard.style.transition =
+                              "transform 300ms ease-out, opacity 300ms ease-out";
+
+                            setTimeout(() => {
+                              newTopCard.style.transition = "";
+                            }, 300);
+                          }, 10);
+                        }
+                      }, 10);
+                    }
+                  } else {
+                    cardElement.style.transform = "";
+                    cardElement.style.opacity = "";
+                  }
+                }
+
+                document.removeEventListener("touchmove", handleTouchMove);
+                document.removeEventListener("touchend", handleTouchEnd);
+              };
+
+              document.addEventListener("touchmove", handleTouchMove, { passive: false });
+              document.addEventListener("touchend", handleTouchEnd);
             }}
           >
-            <Play className="w-3 h-3 fill-current" />
-            Read Now
-          </button>
-        </div>
-
-        {/* Navigation Arrows - Show on hover */}
-        {snippets.length > 1 && (
-          <>
-            <button
-              onClick={prevCard}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-10 bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30"
-              aria-label="Previous card"
+            <div
+              className={`bg-gradient-to-br ${gradient.from} ${gradient.to} rounded-2xl p-6 h-full relative overflow-hidden shadow-xl border-2 border-white/10`}
             >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={nextCard}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-10 bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30"
-              aria-label="Next card"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </>
-        )}
-      </div>
+              {/* Background decoration */}
+              <div className="absolute bottom-0 right-0 w-32 h-32 opacity-30">
+                <div className="w-full h-full bg-gradient-to-br from-white/20 to-white/10 rounded-full"></div>
+              </div>
 
-      {/* Card Counter & Dot Indicators */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {currentIndex + 1} / {snippets.length}
-        </div>
-        
-        {/* Dot Indicators */}
-        {snippets.length > 1 && (
-          <div className="flex justify-center space-x-1.5">
-            {snippets.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  if (!isTransitioning) {
-                    setIsTransitioning(true);
-                    setCurrentIndex(index);
-                    setTimeout(() => setIsTransitioning(false), 300);
-                  }
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === currentIndex 
-                    ? 'bg-purple-600 dark:bg-purple-400 scale-110' 
-                    : 'bg-gray-400 dark:bg-gray-600 hover:bg-gray-600 dark:hover:bg-gray-400'
-                }`}
-                aria-label={`Go to card ${index + 1}`}
-              />
-            ))}
+              {/* Card content */}
+              <div className="relative z-10">
+                <div className="text-xs text-white/80 mb-2 uppercase tracking-wide font-medium">
+                  {gradient.label}
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
+                  Latest in
+                  <br />
+                  {authorName.toLowerCase()}
+                </h3>
+                <button
+                  className="bg-white text-gray-800 hover:bg-gray-100 px-6 py-2 rounded-full text-sm font-medium shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isTop) {
+                      console.log('Read Now clicked for:', card.text);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Play className="w-4 h-4" />
+                    <span>Read Now</span>
+                  </div>
+                </button>
+              </div>
+
+              {/* Icon */}
+              <div className="absolute top-4 right-4 text-2xl filter drop-shadow-lg">
+                {gradient.icon}
+              </div>
+
+              {/* Remove button - only show on top card */}
+              {isTop && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(card.id);
+                  }}
+                  className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all hover:scale-110 z-30"
+                  data-testid={`button-remove-snippet-${card.id}`}
+                >
+                  <X className="w-3 h-3 text-white" />
+                </button>
+              )}
+
+              {/* Stack indicator for non-top cards */}
+              {!isTop && (
+                <div className="absolute inset-0 bg-black/10 rounded-2xl"></div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        );
+      })}
     </div>
   );
 }

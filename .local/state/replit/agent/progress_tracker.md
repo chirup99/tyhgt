@@ -642,3 +642,24 @@
 [x] 626. Better UX for publish button placement with centered card display
 [x] 627. Restarted workflow - application running successfully on port 5000
 [x] 628. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ STACKED SWIPEABLE MINICAST CARDS COMPLETED - CENTERED LAYER-BY-LAYER DESIGN WITH SWIPE FUNCTIONALITY!
+[x] 629. Replicated exact stacked cards logic from home page minicast
+[x] 630. Cards positioned absolutely with z-index layering (z-40, z-30, z-20, z-10)
+[x] 631. Applied scale transforms: 100%, 95%, 90%, 85% for depth effect
+[x] 632. Applied rotation: 0deg, 1deg, 2deg, 3deg for realistic stack
+[x] 633. Applied vertical translation: 0, 2px, 4px, 6px for layer separation
+[x] 634. Implemented mouse drag swipe functionality (left/right with 100px threshold)
+[x] 635. Implemented touch swipe functionality for mobile devices
+[x] 636. Added smooth animations when swiping (300ms ease-out transitions)
+[x] 637. Swipe right moves to next card, swipe left shows previous card
+[x] 638. Cards animate in from right with rotation when swiping left
+[x] 639. "Read Now" button fully functional on top card only
+[x] 640. Remove button (X) visible only on top card
+[x] 641. Stack indicator overlay (black/10) on non-top cards
+[x] 642. Background decoration circle matching home page design
+[x] 643. Gradient backgrounds with proper colors and labels
+[x] 644. Icon positioned in top-right corner with drop shadow
+[x] 645. Fixed dimensions: 320px wide × 256px tall (w-80 h-64)
+[x] 646. Centered in panel with mx-auto
+[x] 647. Cursor changes: grab on hover, grabbing when dragging
+[x] 648. Restarted workflow - application running successfully on port 5000
+[x] 649. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ EXACT HOME PAGE MINICAST CARDS COMPLETED - SWIPEABLE STACK WITH READ NOW BUTTON WORKING!
