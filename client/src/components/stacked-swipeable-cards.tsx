@@ -339,6 +339,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
                   {authorName.toLowerCase()}
                 </h3>
                 <button
+                  type="button"
                   className="bg-white text-gray-800 hover:bg-gray-100 px-2 py-1 rounded-full text-[10px] font-medium shadow-lg"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -362,6 +363,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
               {/* Remove button - only show on top card */}
               {isTop && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemove(card.id);

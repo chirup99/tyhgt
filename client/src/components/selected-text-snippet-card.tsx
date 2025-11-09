@@ -42,6 +42,7 @@ export function SelectedTextSnippetCard({ snippet, onRemove, index }: SelectedTe
       >
         {/* Remove button */}
         <button
+          type="button"
           onClick={onRemove}
           className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all hover:scale-110 z-10"
           data-testid={`button-remove-snippet-${snippet.id}`}
@@ -71,6 +72,7 @@ export function SelectedTextSnippetCard({ snippet, onRemove, index }: SelectedTe
         
         {/* Action Button */}
         <button 
+          type="button"
           className="inline-flex items-center justify-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors w-full shadow-md"
           onClick={(e) => {
             e.stopPropagation();

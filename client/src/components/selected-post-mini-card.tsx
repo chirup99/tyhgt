@@ -38,6 +38,7 @@ export function SelectedPostMiniCard({ post, onRemove, index }: SelectedPostMini
       data-testid={`mini-card-${post.id}`}
     >
       <button
+        type="button"
         onClick={onRemove}
         className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all hover:scale-110"
         data-testid={`button-remove-card-${post.id}`}
@@ -68,6 +69,7 @@ export function SelectedPostMiniCard({ post, onRemove, index }: SelectedPostMini
         
         {/* Action Button */}
         <button 
+          type="button"
           className="inline-flex items-center justify-center gap-2 bg-white text-gray-800 px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors w-fit shadow-md"
           onClick={(e) => {
             e.stopPropagation();
