@@ -1881,6 +1881,11 @@ function NeoFeedSocialFeedComponent() {
     imageUrl: post.imageUrl || undefined,
     imageUrls: post.imageUrl ? [post.imageUrl] : [],
     stockMentions: post.stockMentions || [],
+    isAudioPost: post.isAudioPost || false,
+    selectedPostIds: post.selectedPostIds || [],
+    authorUsername: post.authorUsername,
+    authorDisplayName: post.authorDisplayName,
+    createdAt: post.createdAt,
   }));
 
   // Enhanced content normalization function to handle source variations
