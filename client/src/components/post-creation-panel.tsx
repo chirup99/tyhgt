@@ -47,19 +47,8 @@ export function PostCreationPanel() {
   const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>('post');
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
   
-  // Post mode text snippets state (similar to audio mode)
-  const [postTextSnippets, setPostTextSnippets] = useState<Array<{
-    id: string; 
-    content: string; 
-    text: string;
-    postId: number;
-    authorUsername: string;
-    authorDisplayName: string;
-    timestamp: number;
-  }>>([]);
-  
   // Audio minicast state from context
-  const { isAudioMode, setIsAudioMode, selectedTextSnippets, removeTextSnippet, clearSelection } = useAudioMode();
+  const { isAudioMode, setIsAudioMode, selectedTextSnippets, addTextSnippet, removeTextSnippet, clearSelection } = useAudioMode();
   
   // Sync viewMode with context audio mode
   useEffect(() => {
@@ -143,32 +132,24 @@ export function PostCreationPanel() {
     setStockMentions([]);
     setSentiment('neutral');
     setUploadedImages([]);
-    setPostTextSnippets([]);
     clearSelection();
   };
 
-  const addPostTextSnippet = () => {
-    if (content.trim() && postTextSnippets.length < 5) {
+  const addTextCardSnippet = () => {
+    if (content.trim() && selectedTextSnippets.length < 5) {
       const username = currentUser.username || currentUser.email?.split('@')[0] || 'anonymous';
       const displayName = currentUser.displayName || username;
       
-      const newSnippet = {
-        id: `post-snippet-${Date.now()}`,
-        content: content.trim(),
-        text: content.trim(),
+      addTextSnippet({
         postId: Date.now(),
+        text: content.trim(),
         authorUsername: username,
-        authorDisplayName: displayName,
-        timestamp: Date.now()
-      };
-      setPostTextSnippets([...postTextSnippets, newSnippet]);
+        authorDisplayName: displayName
+      });
+      
       setContent('');
-      toast({ description: `Card ${postTextSnippets.length + 1}/5 added!` });
+      toast({ description: `Card ${selectedTextSnippets.length + 1}/5 added!` });
     }
-  };
-
-  const removePostTextSnippet = (id: string) => {
-    setPostTextSnippets(postTextSnippets.filter(s => s.id !== id));
   };
 
   const detectStockMentions = useCallback((text: string) => {
@@ -366,11 +347,11 @@ export function PostCreationPanel() {
                   data-testid="textarea-audio-content"
                 />
                 {/* + Button in bottom right corner */}
-                {content.trim() && postTextSnippets.length < 5 && (
+                {content.trim() && selectedTextSnippets.length < 5 && (
                   <Button
                     type="button"
                     size="icon"
-                    onClick={addPostTextSnippet}
+                    onClick={addTextCardSnippet}
                     className="absolute bottom-2 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-md"
                     data-testid="button-add-text-card"
                   >
@@ -383,35 +364,19 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Text Cards Display */}
-            {postTextSnippets.length > 0 && (
-              <div className="space-y-3">
-                <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
-                  Text Cards ({postTextSnippets.length}/5)
-                </Label>
-                <StackedSwipeableCards 
-                  snippets={postTextSnippets}
-                  onRemove={(id) => removePostTextSnippet(id)}
-                />
-              </div>
-            )}
-
-            {/* Selected Posts Display with Centered Stacked Swipeable Cards */}
-            {selectedTextSnippets.length > 0 && (
+            {/* Selected Posts Display - Shows both text cards AND selected posts from feed */}
+            {selectedTextSnippets.length > 0 ? (
               <div className="space-y-3">
                 <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
                   Selected Posts ({selectedTextSnippets.length}/5)
                 </Label>
-                {/* Centered Stacked Cards with Swipe Functionality */}
                 <StackedSwipeableCards 
                   snippets={selectedTextSnippets}
                   onRemove={(id) => removeTextSnippet(id)}
                 />
               </div>
-            )}
-
-            {/* Post Selection Instructions - Only show when no posts selected AND no text cards */}
-            {selectedTextSnippets.length === 0 && postTextSnippets.length === 0 && (
+            ) : (
+              /* Post Selection Instructions - Only show when no posts selected */
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
