@@ -185,12 +185,24 @@ export function PostCreationPanel() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!content.trim()) {
-      toast({ 
-        description: "Please enter some content for your post.", 
-        variant: "destructive" 
-      });
-      return;
+    // For audio posts, allow submission if either content OR selected posts exist
+    if (viewMode === 'audio') {
+      if (!content.trim() && selectedTextSnippets.length === 0) {
+        toast({ 
+          description: "Please add text or select posts for your audio minicast.", 
+          variant: "destructive" 
+        });
+        return;
+      }
+    } else {
+      // For regular posts, require content
+      if (!content.trim()) {
+        toast({ 
+          description: "Please enter some content for your post.", 
+          variant: "destructive" 
+        });
+        return;
+      }
     }
 
     // Use the saved username and displayName from the user's profile
@@ -198,7 +210,8 @@ export function PostCreationPanel() {
     const displayName = currentUser.displayName || currentUser.username || currentUser.email?.split('@')[0] || 'Anonymous User';
     
     const postData: InsertSocialPost = {
-      content: content.trim(),
+      content: content.trim() || (viewMode === 'audio' && selectedTextSnippets.length > 0 ? 
+        `Audio MiniCast with ${selectedTextSnippets.length} selected post${selectedTextSnippets.length > 1 ? 's' : ''}` : ''),
       authorUsername: username,
       authorDisplayName: displayName,
       stockMentions: viewMode === 'audio' ? [] : stockMentions,
@@ -404,7 +417,7 @@ export function PostCreationPanel() {
               </Button>
               <Button 
                 type="submit" 
-                disabled={!content.trim() || createPostMutation.isPending}
+                disabled={(!content.trim() && selectedTextSnippets.length === 0) || createPostMutation.isPending}
                 className="min-w-[100px] bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                 data-testid="button-publish-audio"
               >
