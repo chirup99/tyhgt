@@ -2179,57 +2179,35 @@ function NeoFeedSocialFeedComponent() {
       <div className={`md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
         showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'
       }`}>
-        <div className="bg-white dark:bg-gray-900 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-2 py-1.5 flex items-center gap-1">
-          {/* All Button */}
+        <div className="bg-white dark:bg-gray-900 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-6">
+          {/* Home Icon */}
           <button
             onClick={() => handleFilterChange('All')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              selectedFilter === 'All'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-            data-testid="button-filter-all-mobile"
+            className="p-2 rounded-full transition-all hover-elevate active-elevate-2"
+            data-testid="button-home-mobile"
           >
-            All
+            <Home className="w-6 h-6 text-gray-700 dark:text-gray-300" />
           </button>
 
-          {/* Bullish Button */}
+          {/* Plus Icon (Create Post) */}
           <button
-            onClick={() => handleFilterChange('Bullish')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              selectedFilter === 'Bullish'
-                ? 'bg-green-600 text-white'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-            data-testid="button-filter-bullish-mobile"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="p-2 rounded-full bg-blue-600 text-white transition-all hover-elevate active-elevate-2"
+            data-testid="button-create-mobile"
           >
-            Bullish
+            <Plus className="w-6 h-6" />
           </button>
 
-          {/* Bearish Button */}
+          {/* Audio Repost Icon */}
           <button
-            onClick={() => handleFilterChange('Bearish')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              selectedFilter === 'Bearish'
-                ? 'bg-red-600 text-white'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-            data-testid="button-filter-bearish-mobile"
+            onClick={() => {
+              // Toggle audio mode or open audio post creation
+              handleFilterChange('All');
+            }}
+            className="p-2 rounded-full transition-all hover-elevate active-elevate-2"
+            data-testid="button-audio-repost-mobile"
           >
-            Bearish
-          </button>
-
-          {/* Profile Button */}
-          <button
-            onClick={() => handleFilterChange('Profile')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              selectedFilter === 'Profile'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-            data-testid="button-filter-profile-mobile"
-          >
-            Profile
+            <Radio className="w-6 h-6 text-gray-700 dark:text-gray-300" />
           </button>
         </div>
       </div>
