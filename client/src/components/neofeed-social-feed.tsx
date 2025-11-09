@@ -31,6 +31,7 @@ import { SwipeableCarousel } from './swipeable-carousel';
 import { AIChatWindow } from './ai-chat-window';
 import { UserIdSetupDialog } from './user-id-setup-dialog';
 import { UserProfileDropdown } from './user-profile-dropdown';
+import { AudioMinicastCard } from './audio-minicast-card';
 import { auth } from '@/firebase';
 
 interface FeedPost {
@@ -1420,6 +1421,24 @@ function PostCard({ post }: { post: FeedPost }) {
       default: return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
     }
   };
+
+  // If this is an audio minicast post, render the special card
+  if (post.isAudioPost) {
+    return (
+      <AudioMinicastCard
+        content={post.content}
+        author={{
+          displayName: post.user?.username || post.authorDisplayName || 'Unknown User',
+          username: post.user?.handle || post.authorUsername || 'user'
+        }}
+        selectedPostIds={post.selectedPostIds}
+        timestamp={post.createdAt ? new Date(post.createdAt) : new Date()}
+        likes={post.likes || post.metrics?.likes || 0}
+        comments={post.comments || post.metrics?.comments || 0}
+        isLiked={liked}
+      />
+    );
+  }
 
   return (
     <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md mb-4 transition-none">
