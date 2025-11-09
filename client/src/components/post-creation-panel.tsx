@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
-import { SelectedTextSnippetCard } from './selected-text-snippet-card';
+import { StackedSwipeableCards } from './stacked-swipeable-cards';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -333,25 +333,17 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Selected Posts Display with Swipeable Stacked Cards */}
+            {/* Selected Posts Display with Centered Stacked Swipeable Cards */}
             {selectedTextSnippets.length > 0 ? (
               <div className="space-y-3">
-                <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
+                <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
                   Selected Posts ({selectedTextSnippets.length}/5)
                 </Label>
-                {/* Horizontal Scrolling Container with Stacked Cards */}
-                <div className="relative overflow-x-auto pb-2 -mx-4 px-4">
-                  <div className="flex gap-4 w-max">
-                    {selectedTextSnippets.map((snippet, index) => (
-                      <SelectedTextSnippetCard
-                        key={snippet.id}
-                        snippet={snippet}
-                        onRemove={() => removeTextSnippet(snippet.id)}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                </div>
+                {/* Centered Stacked Cards with Swipe Functionality */}
+                <StackedSwipeableCards 
+                  snippets={selectedTextSnippets}
+                  onRemove={(id) => removeTextSnippet(id)}
+                />
               </div>
             ) : (
               /* Post Selection Instructions - Only show when no posts selected */

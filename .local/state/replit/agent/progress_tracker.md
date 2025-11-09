@@ -626,3 +626,19 @@
 [x] 610. Changed label from "Selected Text" to "Selected Posts" in panel
 [x] 611. Restarted workflow - application running successfully on port 5000
 [x] 612. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ AUDIO MINICAST CARD REDESIGN COMPLETED - CLICK-TO-SELECT POSTS + SWIPEABLE STACKED CARDS!
+[x] 613. Created StackedSwipeableCards component with layer-by-layer stacking effect
+[x] 614. Implemented swipe left/right functionality (touch and mouse drag support)
+[x] 615. Cards are centered in the panel (not side-by-side)
+[x] 616. Made cards smaller and tinier (176px wide × 224px tall)
+[x] 617. Added 3D depth effect with multiple visible bottom layers
+[x] 618. Cards stack on top of each other like physical cards
+[x] 619. Swipe gestures navigate through selected posts
+[x] 620. Added navigation arrows that appear on hover
+[x] 621. Added card counter and dot indicators for navigation
+[x] 622. Centered label "Selected Posts (X/5)" above cards
+[x] 623. Smooth transitions between cards with fade effect
+[x] 624. Cards match minicast design from home page
+[x] 625. Removed horizontal scrolling - now vertical stacked layout
+[x] 626. Better UX for publish button placement with centered card display
+[x] 627. Restarted workflow - application running successfully on port 5000
+[x] 628. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ STACKED SWIPEABLE MINICAST CARDS COMPLETED - CENTERED LAYER-BY-LAYER DESIGN WITH SWIPE FUNCTIONALITY!
