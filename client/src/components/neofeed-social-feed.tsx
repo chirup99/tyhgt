@@ -32,6 +32,7 @@ import { AIChatWindow } from './ai-chat-window';
 import { UserIdSetupDialog } from './user-id-setup-dialog';
 import { UserProfileDropdown } from './user-profile-dropdown';
 import { AudioMinicastCard } from './audio-minicast-card';
+import { AudioSelectedPostsPreview } from './audio-selected-posts-preview';
 import { auth } from '@/firebase';
 
 interface FeedPost {
@@ -2194,6 +2195,14 @@ function NeoFeedSocialFeedComponent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Selected Posts Preview - Shows tiny stacked cards in bottom right when posts are selected */}
+      <div className="md:hidden">
+        <AudioSelectedPostsPreview
+          snippets={selectedTextSnippets}
+          onTap={() => setShowMobileAudioMinicast(true)}
+        />
+      </div>
 
       {/* Bottom Navigation Bar - Mobile Only (Hides on scroll) */}
       <div className={`md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
