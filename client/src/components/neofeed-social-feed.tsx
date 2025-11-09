@@ -1709,6 +1709,7 @@ function NeoFeedSocialFeedComponent() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showAppBar, setShowAppBar] = useState(true);
   const [showBottomNav, setShowBottomNav] = useState(true);
+  const [showMobileCreatePost, setShowMobileCreatePost] = useState(false);
   const { toast } = useToast();
   
   // Handle scroll to hide/show app bar and bottom navigation
@@ -2151,8 +2152,8 @@ function NeoFeedSocialFeedComponent() {
           </div>
         </div>
 
-        {/* Post Creation Panel - Right Side */}
-        <div className="w-80 xl:w-96 flex-shrink-0">
+        {/* Post Creation Panel - Right Side (Desktop Only) */}
+        <div className="hidden md:block w-80 xl:w-96 flex-shrink-0">
           <div className="sticky top-[140px] xl:top-[200px] z-30">
             <PostCreationPanel />
           </div>
@@ -2175,6 +2176,15 @@ function NeoFeedSocialFeedComponent() {
         }}
       />
 
+      {/* Mobile Create Post Dialog - Only shows on mobile when + button is tapped */}
+      <Dialog open={showMobileCreatePost} onOpenChange={setShowMobileCreatePost}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-4">
+            <PostCreationPanel />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Bottom Navigation Bar - Mobile Only (Hides on scroll) */}
       <div className={`md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
         showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'
@@ -2191,7 +2201,7 @@ function NeoFeedSocialFeedComponent() {
 
           {/* Plus Icon (Create Post) */}
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => setShowMobileCreatePost(true)}
             className="p-2 rounded-full bg-blue-600 text-white transition-all hover-elevate active-elevate-2"
             data-testid="button-create-mobile"
           >
