@@ -50,7 +50,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
   if (cards.length === 0) return null;
 
   return (
-    <div className="relative w-80 h-64 mx-auto">
+    <div className="relative w-56 h-80 mx-auto">
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
