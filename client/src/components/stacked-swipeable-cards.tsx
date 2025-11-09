@@ -83,11 +83,12 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
 
   return (
     <div className="relative w-28 h-40 mx-auto" style={{ perspective: '1000px' }}>
-      {cards.map((card, index) => {
+      {cards.slice(0, 5).map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
         const isThird = index === 2;
         const isFourth = index === 3;
+        const isFifth = index === 4;
         const gradient = getGradient(card.colorIndex);
         const authorName = card.authorDisplayName || card.authorUsername || 'Trading';
         
@@ -104,8 +105,8 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
           const xOffset = index * -2; // Slight horizontal shift for depth
           
           stackTransform = `translateY(${yOffset}px) translateX(${xOffset}px) rotate(${rotationDeg}deg) scale(${scale})`;
-          stackOpacity = isSecond ? 0.95 : (isThird ? 0.85 : (isFourth ? 0.75 : 0.6));
-          stackZ = isSecond ? 30 : (isThird ? 20 : (isFourth ? 15 : 10));
+          stackOpacity = isSecond ? 0.95 : (isThird ? 0.85 : (isFourth ? 0.75 : (isFifth ? 0.65 : 0.5)));
+          stackZ = isSecond ? 30 : (isThird ? 20 : (isFourth ? 15 : (isFifth ? 10 : 5)));
         }
         
         // Initial animation for new cards

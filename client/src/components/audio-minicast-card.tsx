@@ -90,7 +90,31 @@ export function AudioMinicastCard({
   };
 
   const togglePlay = () => {
-    setIsPlaying(!isPlaying);
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+    } else {
+      const textToSpeak = [
+        content,
+        ...selectedPostIds.map((_, idx) => `Post ${idx + 1}`)
+      ].join('. ');
+      
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+      setIsPlaying(true);
+    }
   };
 
   const handleLike = () => {
@@ -122,11 +146,12 @@ export function AudioMinicastCard({
         {/* Swipeable Cards Container */}
         <div className="bg-gray-50 dark:bg-gray-800/30 pb-6 flex items-center justify-center">
           <div className="relative w-28 h-40" style={{ perspective: '1000px' }}>
-            {cards.map((card, index) => {
+            {cards.slice(0, 5).map((card, index) => {
               const isTop = index === 0;
               const isSecond = index === 1;
               const isThird = index === 2;
               const isFourth = index === 3;
+              const isFifth = index === 4;
               const gradient = getGradient(card.colorIndex);
               
               let stackTransform = '';
@@ -140,8 +165,8 @@ export function AudioMinicastCard({
                 const xOffset = index * -2;
                 
                 stackTransform = `translateY(${yOffset}px) translateX(${xOffset}px) rotate(${rotationDeg}deg) scale(${scale})`;
-                stackOpacity = isSecond ? 0.95 : (isThird ? 0.85 : (isFourth ? 0.75 : 0.6));
-                stackZ = isSecond ? 30 : (isThird ? 20 : (isFourth ? 15 : 10));
+                stackOpacity = isSecond ? 0.95 : (isThird ? 0.85 : (isFourth ? 0.75 : (isFifth ? 0.65 : 0.5)));
+                stackZ = isSecond ? 30 : (isThird ? 20 : (isFourth ? 15 : (isFifth ? 10 : 5)));
               }
 
               return (

@@ -354,7 +354,15 @@ export function PostCreationPanel() {
                   id="audio-content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Your thoughts will be converted to audio..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (content.trim() && selectedTextSnippets.length < 5) {
+                        addTextCardSnippet();
+                      }
+                    }
+                  }}
+                  placeholder="Your thoughts will be converted to audio... (Press Enter to add card, Shift+Enter for new line)"
                   maxLength={500}
                   className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 pr-12"
                   data-testid="textarea-audio-content"
