@@ -230,7 +230,7 @@ export function PostCreationPanel() {
   ];
 
   return (
-    <Card className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm transition-none">
+    <Card className="w-full max-w-md mx-auto bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm transition-none">
       
       <CardHeader className="border-b border-gray-200 dark:border-gray-700 transition-none">
         <CardTitle className="flex items-center justify-between text-gray-900 dark:text-white">
