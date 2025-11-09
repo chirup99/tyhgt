@@ -181,11 +181,11 @@ function InlineCommentSection({ post, isVisible, onClose }: { post: FeedPost; is
   const commentsToShow = [...baseComments, ...localComments];
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 pt-6">
+    <div className="border-t border-gray-200 dark:border-gray-700 pt-6 overflow-x-hidden">
       {/* Existing Comments - Scrollable */}
       {commentsToShow.length > 0 && (
         <div className="mb-6">
-          <div className="max-h-60 overflow-y-auto space-y-4">
+          <div className="max-h-60 overflow-y-auto overflow-x-hidden space-y-4">
             {commentsToShow.map((existingComment: any) => {
               const isUserComment = existingComment.author === getUserDisplayName();
               
