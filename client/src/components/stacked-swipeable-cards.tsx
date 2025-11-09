@@ -50,7 +50,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
   if (cards.length === 0) return null;
 
   return (
-    <div className="relative w-56 h-80 mx-auto">
+    <div className="relative w-28 h-40 mx-auto">
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
@@ -250,25 +250,25 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
             }}
           >
             <div
-              className={`bg-gradient-to-br ${gradient.from} ${gradient.to} rounded-2xl p-6 h-full relative overflow-hidden shadow-xl border-2 border-white/10`}
+              className={`bg-gradient-to-br ${gradient.from} ${gradient.to} rounded-xl p-3 h-full relative overflow-hidden shadow-xl border-2 border-white/10`}
             >
               {/* Background decoration */}
-              <div className="absolute bottom-0 right-0 w-32 h-32 opacity-30">
+              <div className="absolute bottom-0 right-0 w-16 h-16 opacity-30">
                 <div className="w-full h-full bg-gradient-to-br from-white/20 to-white/10 rounded-full"></div>
               </div>
 
               {/* Card content */}
               <div className="relative z-10">
-                <div className="text-xs text-white/80 mb-2 uppercase tracking-wide font-medium">
+                <div className="text-[8px] text-white/80 mb-1 uppercase tracking-wide font-medium">
                   {gradient.label}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
+                <h3 className="text-xs font-bold text-white mb-2 leading-tight">
                   Latest in
                   <br />
                   {authorName.toLowerCase()}
                 </h3>
                 <button
-                  className="bg-white text-gray-800 hover:bg-gray-100 px-6 py-2 rounded-full text-sm font-medium shadow-lg"
+                  className="bg-white text-gray-800 hover:bg-gray-100 px-2 py-1 rounded-full text-[10px] font-medium shadow-lg"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (isTop) {
@@ -276,15 +276,15 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
                     }
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <Play className="w-4 h-4" />
+                  <div className="flex items-center gap-1">
+                    <Play className="w-2 h-2" />
                     <span>Read Now</span>
                   </div>
                 </button>
               </div>
 
               {/* Icon */}
-              <div className="absolute top-4 right-4 text-2xl filter drop-shadow-lg">
+              <div className="absolute top-2 right-2 text-sm filter drop-shadow-lg">
                 {gradient.icon}
               </div>
 
@@ -295,10 +295,10 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
                     e.stopPropagation();
                     onRemove(card.id);
                   }}
-                  className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all hover:scale-110 z-30"
+                  className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all hover:scale-110 z-30"
                   data-testid={`button-remove-snippet-${card.id}`}
                 >
-                  <X className="w-3 h-3 text-white" />
+                  <X className="w-2 h-2 text-white" />
                 </button>
               )}
 
