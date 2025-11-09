@@ -1300,37 +1300,34 @@ function PostCard({ post }: { post: FeedPost }) {
   // Text truncation settings
   const MAX_TEXT_LENGTH = 150;
   
-  // Text selection handler
+  // Text selection handler - Click to select entire post
   const handleTextSelection = () => {
     if (!isAudioMode) return;
     
-    const selection = window.getSelection();
-    const selectedText = selection?.toString().trim();
-    
-    if (!selectedText || selectedText.length === 0) return;
-    
     if (selectedTextSnippets.length >= 5) {
-      toast({ description: "Maximum 5 text selections allowed", variant: "destructive" });
+      toast({ description: "Maximum 5 posts allowed", variant: "destructive" });
       return;
     }
+    
+    // Select the entire post content instead of just highlighted text
+    const fullText = post.content;
+    
+    if (!fullText || fullText.trim().length === 0) return;
     
     // Convert post.id to number
     const postIdNumber = typeof post.id === 'string' ? parseInt(post.id, 10) : Number(post.id);
     
     addTextSnippet({
       postId: postIdNumber,
-      text: selectedText,
+      text: fullText,
       authorUsername: post.user?.handle || post.authorUsername || 'Unknown',
       authorDisplayName: post.user?.username || post.authorDisplayName || 'Unknown User'
     });
     
     toast({ 
-      description: "Text added to audio minicast!",
+      description: `Post added to audio minicast (${selectedTextSnippets.length + 1}/5)`,
       variant: "default"
     });
-    
-    // Clear selection
-    selection?.removeAllRanges();
   };
 
   // Like mutation
@@ -1495,10 +1492,9 @@ function PostCard({ post }: { post: FeedPost }) {
           <div className="relative">
             <p 
               className={`text-gray-900 dark:text-white leading-relaxed mb-2 xl:mb-3 text-base font-medium ${
-                isAudioMode ? 'cursor-text select-text' : ''
+                isAudioMode ? 'cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors rounded-lg p-2 -m-2' : ''
               }`}
-              onMouseUp={handleTextSelection}
-              style={isAudioMode ? { userSelect: 'text' } : {}}
+              onClick={handleTextSelection}
             >
               {isExpanded || post.content.length <= MAX_TEXT_LENGTH
                 ? post.content

@@ -333,25 +333,28 @@ export function PostCreationPanel() {
               </div>
             </div>
 
-            {/* Selected Text Snippets Display with Cards */}
+            {/* Selected Posts Display with Swipeable Stacked Cards */}
             {selectedTextSnippets.length > 0 ? (
               <div className="space-y-3">
                 <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">
-                  Selected Text ({selectedTextSnippets.length}/5)
+                  Selected Posts ({selectedTextSnippets.length}/5)
                 </Label>
-                <div className="space-y-3">
-                  {selectedTextSnippets.map((snippet, index) => (
-                    <SelectedTextSnippetCard
-                      key={snippet.id}
-                      snippet={snippet}
-                      onRemove={() => removeTextSnippet(snippet.id)}
-                      index={index}
-                    />
-                  ))}
+                {/* Horizontal Scrolling Container with Stacked Cards */}
+                <div className="relative overflow-x-auto pb-2 -mx-4 px-4">
+                  <div className="flex gap-4 w-max">
+                    {selectedTextSnippets.map((snippet, index) => (
+                      <SelectedTextSnippetCard
+                        key={snippet.id}
+                        snippet={snippet}
+                        onRemove={() => removeTextSnippet(snippet.id)}
+                        index={index}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
-              /* Text Selection Instructions - Only show when no snippets selected */
+              /* Post Selection Instructions - Only show when no posts selected */
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -360,7 +363,7 @@ export function PostCreationPanel() {
                   </h3>
                 </div>
                 <p className="text-sm text-purple-700 dark:text-purple-300">
-                  Tap on any post below to add it to your audio minicast (up to 5 posts). 
+                  Click on any post below to add it to your audio minicast (up to 5 posts). 
                   Your selected posts will be combined with your thoughts into an audio experience.
                 </p>
               </div>
