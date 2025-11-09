@@ -352,22 +352,49 @@ export function PostCreationPanel() {
         {viewMode === 'audio' ? (
           /* Audio MiniCast Form */
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Content Input - Simple version for audio */}
+            {/* Content Input with + Button */}
             <div className="space-y-2">
               <Label htmlFor="audio-content" className="text-gray-800 dark:text-gray-200 font-medium text-base">What's on your mind?</Label>
-              <Textarea
-                id="audio-content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Your thoughts will be converted to audio..."
-                maxLength={500}
-                className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500"
-                data-testid="textarea-audio-content"
-              />
+              <div className="relative">
+                <Textarea
+                  id="audio-content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Your thoughts will be converted to audio..."
+                  maxLength={500}
+                  className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 pr-12"
+                  data-testid="textarea-audio-content"
+                />
+                {/* + Button in bottom right corner */}
+                {content.trim() && postTextSnippets.length < 5 && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    onClick={addPostTextSnippet}
+                    className="absolute bottom-2 right-2 h-8 w-8 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-md"
+                    data-testid="button-add-text-card"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               <div className="text-xs text-gray-600 dark:text-gray-400 text-right">
                 {content.length}/500 characters
               </div>
             </div>
+
+            {/* Text Cards Display */}
+            {postTextSnippets.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
+                  Text Cards ({postTextSnippets.length}/5)
+                </Label>
+                <StackedSwipeableCards 
+                  snippets={postTextSnippets}
+                  onRemove={(id) => removePostTextSnippet(id)}
+                />
+              </div>
+            )}
 
             {/* Selected Posts Display with Centered Stacked Swipeable Cards */}
             {selectedTextSnippets.length > 0 ? (
@@ -430,50 +457,23 @@ export function PostCreationPanel() {
           </form>
         ) : viewMode === 'post' ? (
           <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Content Input with + Button */}
+          {/* Content Input */}
           <div className="space-y-2">
             <Label htmlFor="content" className="text-gray-800 dark:text-gray-200 font-medium text-base">What's on your mind?</Label>
-            <div className="relative">
-              <Textarea
-                id="content"
-                ref={textareaRef}
-                value={content}
-                onChange={handleContentChange}
-                placeholder="Share your trading insights..."
-                maxLength={500}
-                className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 pr-12"
-                data-testid="textarea-post-content"
-              />
-              {/* + Button in bottom right corner */}
-              {content.trim() && postTextSnippets.length < 5 && (
-                <Button
-                  type="button"
-                  size="icon"
-                  onClick={addPostTextSnippet}
-                  className="absolute bottom-2 right-2 h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md"
-                  data-testid="button-add-text-card"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            <Textarea
+              id="content"
+              ref={textareaRef}
+              value={content}
+              onChange={handleContentChange}
+              placeholder="Share your trading insights..."
+              maxLength={500}
+              className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+              data-testid="textarea-post-content"
+            />
             <div className="text-xs text-gray-600 dark:text-gray-400 text-right">
               {content.length}/500 characters
             </div>
           </div>
-
-          {/* Selected Text Cards Display */}
-          {postTextSnippets.length > 0 && (
-            <div className="space-y-3">
-              <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
-                Text Cards ({postTextSnippets.length}/5)
-              </Label>
-              <StackedSwipeableCards 
-                snippets={postTextSnippets}
-                onRemove={(id) => removePostTextSnippet(id)}
-              />
-            </div>
-          )}
 
           {/* Stock Selection */}
           <div className="space-y-2">
