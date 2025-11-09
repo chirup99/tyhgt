@@ -4947,7 +4947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Parse post data from request body
-      const { content, stockMentions, sentiment, tags, hasImage, imageUrl } = req.body;
+      const { content, stockMentions, sentiment, tags, hasImage, imageUrl, isAudioPost, selectedPostIds } = req.body;
       
       if (!content || content.trim().length === 0) {
         return res.status(400).json({ error: 'Post content is required' });
@@ -4964,6 +4964,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tags: tags || [],
         hasImage: hasImage || false,
         imageUrl: imageUrl || null,
+        isAudioPost: isAudioPost || false,
+        selectedPostIds: selectedPostIds || [],
         likes: 0,
         comments: 0,
         reposts: 0,
