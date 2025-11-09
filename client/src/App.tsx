@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import Dashboard from "@/pages/home";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
+import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -380,6 +381,7 @@ function Router() {
           <Dashboard />
         </MainLayout>
       </Route>
+      <Route path="/voice" component={NeoFeedSocialFeed} />
       <Route path="/home" component={NewHome} />
       <Route component={NotFound} />
     </Switch>
