@@ -14,6 +14,7 @@ interface CardWithColor extends SelectedTextSnippet {
 export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCardsProps) {
   const [cards, setCards] = useState<CardWithColor[]>([]);
   const [nextColorIndex, setNextColorIndex] = useState(0);
+  const [isAnimatingIn, setIsAnimatingIn] = useState(false);
 
   // Update cards when snippets change - new cards added to TOP with different colors
   useEffect(() => {
@@ -24,6 +25,9 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
     const addedSnippets = snippets.filter(s => !currentIds.includes(s.id));
     
     if (addedSnippets.length > 0) {
+      // Trigger animation when new card is added
+      setIsAnimatingIn(true);
+      
       // Add new cards to the TOP of the stack with rotating colors
       const newCards: CardWithColor[] = addedSnippets.map((snippet, idx) => ({
         ...snippet,
@@ -32,6 +36,9 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
       
       setCards(prev => [...newCards, ...prev.filter(c => newSnippetIds.includes(c.id))]);
       setNextColorIndex((nextColorIndex + addedSnippets.length) % 5);
+      
+      // Reset animation after it completes
+      setTimeout(() => setIsAnimatingIn(false), 600);
     } else if (currentIds.length !== newSnippetIds.length) {
       // Cards were removed
       setCards(prev => prev.filter(c => newSnippetIds.includes(c.id)));
@@ -75,35 +82,50 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
   if (cards.length === 0) return null;
 
   return (
-    <div className="relative w-28 h-40 mx-auto">
+    <div className="relative w-28 h-40 mx-auto" style={{ perspective: '1000px' }}>
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
         const isThird = index === 2;
+        const isFourth = index === 3;
         const gradient = getGradient(card.colorIndex);
         const authorName = card.authorDisplayName || card.authorUsername || 'Trading';
         
-        // Calculate preview offset for cards behind based on swipe direction
-        const previewScale = swipeOffset !== 0 && index === 1 ? 0.97 : (isSecond ? 0.95 : (isThird ? 0.90 : 0.85));
-        const previewY = swipeOffset !== 0 && index === 1 ? 1 : (isSecond ? 2 : (isThird ? 4 : 6));
+        // Enhanced stacking effect - more visible depth like the image
+        let stackTransform = '';
+        let stackOpacity = 1;
+        let stackZ = 40;
+        
+        if (!isTop) {
+          // Calculate rotation and offset for stacked cards
+          const rotationDeg = index * 3; // Slight rotation for each card
+          const yOffset = index * 8; // Vertical offset
+          const scale = 1 - (index * 0.03); // Slight scale reduction
+          const xOffset = index * -2; // Slight horizontal shift for depth
+          
+          stackTransform = `translateY(${yOffset}px) translateX(${xOffset}px) rotate(${rotationDeg}deg) scale(${scale})`;
+          stackOpacity = isSecond ? 0.95 : (isThird ? 0.85 : (isFourth ? 0.75 : 0.6));
+          stackZ = isSecond ? 30 : (isThird ? 20 : (isFourth ? 15 : 10));
+        }
+        
+        // Initial animation for new cards
+        const initialTransform = isAnimatingIn && isTop 
+          ? 'translateY(-100px) scale(0.8) rotate(-10deg)'
+          : stackTransform;
 
         return (
           <div
             key={card.id}
             data-card-index={index}
             style={{
-              transform: !isTop ? `scale(${previewScale}) rotate(${index}deg) translateY(${previewY * 2}px)` : undefined,
-              transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+              transform: initialTransform,
+              transition: isAnimatingIn && isTop 
+                ? 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease-out'
+                : 'transform 0.3s ease-out, opacity 0.3s ease-out',
+              opacity: isAnimatingIn && isTop ? 0.3 : stackOpacity,
+              zIndex: stackZ,
             }}
-            className={`absolute inset-0 cursor-grab active:cursor-grabbing ${
-              isTop
-                ? "z-40"
-                : isSecond
-                ? "z-30"
-                : isThird
-                ? "z-20"
-                : "z-10 opacity-50"
-            }`}
+            className={`absolute inset-0 ${isTop ? 'cursor-grab active:cursor-grabbing' : ''}`}
             onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
               if (!isTop) return;
 
@@ -293,7 +315,12 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
             }}
           >
             <div
-              className={`bg-gradient-to-br ${gradient.from} ${gradient.to} rounded-xl p-3 h-full relative overflow-hidden shadow-xl border-2 border-white/10`}
+              className={`bg-gradient-to-br ${gradient.from} ${gradient.to} rounded-xl p-3 h-full relative overflow-hidden border-2 border-white/10`}
+              style={{
+                boxShadow: isTop 
+                  ? '0 20px 40px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.3)' 
+                  : `0 ${8 + index * 4}px ${16 + index * 8}px rgba(0,0,0,${0.3 + index * 0.1})`
+              }}
             >
               {/* Background decoration */}
               <div className="absolute bottom-0 right-0 w-16 h-16 opacity-30">
