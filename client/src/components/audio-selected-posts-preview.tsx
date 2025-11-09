@@ -4,13 +4,14 @@ import type { SelectedTextSnippet } from '@/contexts/AudioModeContext';
 interface AudioSelectedPostsPreviewProps {
   snippets: SelectedTextSnippet[];
   onTap: () => void;
+  isVisible?: boolean;
 }
 
 interface CardWithColor extends SelectedTextSnippet {
   colorIndex: number;
 }
 
-export function AudioSelectedPostsPreview({ snippets, onTap }: AudioSelectedPostsPreviewProps) {
+export function AudioSelectedPostsPreview({ snippets, onTap, isVisible = true }: AudioSelectedPostsPreviewProps) {
   const [cards, setCards] = useState<CardWithColor[]>([]);
   const [nextColorIndex, setNextColorIndex] = useState(0);
   const [isAnimatingIn, setIsAnimatingIn] = useState(false);
@@ -53,7 +54,9 @@ export function AudioSelectedPostsPreview({ snippets, onTap }: AudioSelectedPost
 
   return (
     <div 
-      className="fixed bottom-20 right-4 z-40 cursor-pointer"
+      className={`fixed bottom-4 right-4 z-40 cursor-pointer transition-all duration-300 ${
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'
+      }`}
       onClick={onTap}
       data-testid="audio-selected-preview"
     >

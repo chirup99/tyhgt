@@ -1714,6 +1714,9 @@ function NeoFeedSocialFeedComponent() {
   const [showMobileAudioMinicast, setShowMobileAudioMinicast] = useState(false);
   const { toast } = useToast();
   
+  // Audio mode for text selection
+  const { selectedTextSnippets } = useAudioMode();
+  
   // Handle scroll to hide/show app bar and bottom navigation
   useEffect(() => {
     let scrollTimeout: NodeJS.Timeout;
@@ -2196,11 +2199,12 @@ function NeoFeedSocialFeedComponent() {
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Selected Posts Preview - Shows tiny stacked cards in bottom right when posts are selected */}
+      {/* Mobile Selected Posts Preview - Shows tiny stacked cards beside bottom nav when posts are selected */}
       <div className="md:hidden">
         <AudioSelectedPostsPreview
           snippets={selectedTextSnippets}
           onTap={() => setShowMobileAudioMinicast(true)}
+          isVisible={showBottomNav}
         />
       </div>
 
