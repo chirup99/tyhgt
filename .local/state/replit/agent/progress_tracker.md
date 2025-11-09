@@ -314,6 +314,13 @@
 [x] 314. Implemented smooth animation transition when new cards are added
 [x] 315. Enhanced shadow effects for better visual depth
 [x] 316. Cards stack with rotation, scale, and offset for realistic deck effect
+[x] 317. Removed disturbing toast notification "Post added to audio minicast"
+[x] 318. Clarified audio mode behavior - only triggers when audio mode is active
+[x] 319. Removed toast from neofeed-social-feed.tsx when selecting posts in audio mode
+[x] 320. Removed toast from social-feed.tsx handleCardClick function
+[x] 321. Users can now create posts normally without seeing annoying notifications
+[x] 322. Restarted workflow - server running successfully on port 5000
+[x] 323. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ TOAST NOTIFICATION REMOVED & CARD STACKING ENHANCED!
 [x] 315. Verified content submission uses full textarea content (not just selected text)
 [x] 316. Restarted workflow - server running successfully on port 5000
 [x] 317. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ COMPACT CARD LAYOUT IMPROVEMENT COMPLETED!

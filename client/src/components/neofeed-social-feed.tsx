@@ -1323,11 +1323,6 @@ function PostCard({ post }: { post: FeedPost }) {
       authorUsername: post.user?.handle || post.authorUsername || 'Unknown',
       authorDisplayName: post.user?.username || post.authorDisplayName || 'Unknown User'
     });
-    
-    toast({ 
-      description: `Post added to audio minicast (${selectedTextSnippets.length + 1}/5)`,
-      variant: "default"
-    });
   };
 
   // Like mutation

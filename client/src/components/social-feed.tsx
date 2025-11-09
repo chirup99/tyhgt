@@ -244,12 +244,6 @@ function PostCard({ post }: { post: SocialPost }) {
   const handleCardClick = () => {
     if (isAudioMode && !post.isAudioPost) {
       togglePostSelection(parseInt(post.id));
-      toast({
-        title: isSelected ? "Post removed" : "Post selected",
-        description: isSelected 
-          ? "Post removed from audio minicast" 
-          : `Post added to audio minicast (${selectedPosts.length + 1}/5)`,
-      });
     }
   };
 
