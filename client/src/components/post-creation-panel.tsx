@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check } from 'lucide-react';
+import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check, Plus } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
 import { StackedSwipeableCards } from './stacked-swipeable-cards';
 import { apiRequest } from '@/lib/queryClient';
@@ -46,6 +46,17 @@ export function PostCreationPanel() {
   // New state for view switching
   const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>('post');
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
+  
+  // Post mode text snippets state (similar to audio mode)
+  const [postTextSnippets, setPostTextSnippets] = useState<Array<{
+    id: string; 
+    content: string; 
+    text: string;
+    postId: number;
+    authorUsername: string;
+    authorDisplayName: string;
+    timestamp: number;
+  }>>([]);
   
   // Audio minicast state from context
   const { isAudioMode, setIsAudioMode, selectedTextSnippets, removeTextSnippet, clearSelection } = useAudioMode();
@@ -132,7 +143,32 @@ export function PostCreationPanel() {
     setStockMentions([]);
     setSentiment('neutral');
     setUploadedImages([]);
+    setPostTextSnippets([]);
     clearSelection();
+  };
+
+  const addPostTextSnippet = () => {
+    if (content.trim() && postTextSnippets.length < 5) {
+      const username = currentUser.username || currentUser.email?.split('@')[0] || 'anonymous';
+      const displayName = currentUser.displayName || username;
+      
+      const newSnippet = {
+        id: `post-snippet-${Date.now()}`,
+        content: content.trim(),
+        text: content.trim(),
+        postId: Date.now(),
+        authorUsername: username,
+        authorDisplayName: displayName,
+        timestamp: Date.now()
+      };
+      setPostTextSnippets([...postTextSnippets, newSnippet]);
+      setContent('');
+      toast({ description: `Card ${postTextSnippets.length + 1}/5 added!` });
+    }
+  };
+
+  const removePostTextSnippet = (id: string) => {
+    setPostTextSnippets(postTextSnippets.filter(s => s.id !== id));
   };
 
   const detectStockMentions = useCallback((text: string) => {
@@ -394,23 +430,50 @@ export function PostCreationPanel() {
           </form>
         ) : viewMode === 'post' ? (
           <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Content Input */}
+          {/* Content Input with + Button */}
           <div className="space-y-2">
             <Label htmlFor="content" className="text-gray-800 dark:text-gray-200 font-medium text-base">What's on your mind?</Label>
-            <Textarea
-              id="content"
-              ref={textareaRef}
-              value={content}
-              onChange={handleContentChange}
-              placeholder="Share your trading insights..."
-              maxLength={500}
-              className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-              data-testid="textarea-post-content"
-            />
+            <div className="relative">
+              <Textarea
+                id="content"
+                ref={textareaRef}
+                value={content}
+                onChange={handleContentChange}
+                placeholder="Share your trading insights..."
+                maxLength={500}
+                className="min-h-[120px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 pr-12"
+                data-testid="textarea-post-content"
+              />
+              {/* + Button in bottom right corner */}
+              {content.trim() && postTextSnippets.length < 5 && (
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={addPostTextSnippet}
+                  className="absolute bottom-2 right-2 h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md"
+                  data-testid="button-add-text-card"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
             <div className="text-xs text-gray-600 dark:text-gray-400 text-right">
               {content.length}/500 characters
             </div>
           </div>
+
+          {/* Selected Text Cards Display */}
+          {postTextSnippets.length > 0 && (
+            <div className="space-y-3">
+              <Label className="text-center text-gray-800 dark:text-gray-200 font-medium text-base">
+                Text Cards ({postTextSnippets.length}/5)
+              </Label>
+              <StackedSwipeableCards 
+                snippets={postTextSnippets}
+                onRemove={(id) => removePostTextSnippet(id)}
+              />
+            </div>
+          )}
 
           {/* Stock Selection */}
           <div className="space-y-2">
