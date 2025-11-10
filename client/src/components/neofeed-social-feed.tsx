@@ -636,7 +636,7 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
   );
 }
 
-function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, searchQuery, setSearchQuery, onSearch, showAppBar }: { onAllClick: () => void; isRefreshing: boolean; selectedFilter: string; onFilterChange: (filter: string) => void; searchQuery: string; setSearchQuery: (query: string) => void; onSearch: () => void; showAppBar: boolean }) {
+function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, searchQuery, setSearchQuery, onSearch, showAppBar, onBackClick }: { onAllClick: () => void; isRefreshing: boolean; selectedFilter: string; onFilterChange: (filter: string) => void; searchQuery: string; setSearchQuery: (query: string) => void; onSearch: () => void; showAppBar: boolean; onBackClick?: () => void }) {
   const [, setLocation] = useLocation();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
@@ -762,11 +762,15 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
             ))}
           </div>
           
-          {/* Back Button - Always visible, navigates to home page with world map */}
+          {/* Back Button - Always visible, returns to previous tab or home page */}
           <Button
             onClick={() => {
-              console.log('🏠 Back button clicked - navigating to /app');
-              setLocation('/app');
+              console.log('🏠 Back button clicked - returning to previous tab');
+              if (onBackClick) {
+                onBackClick();
+              } else {
+                setLocation('/app');
+              }
             }}
             variant="ghost"
             size="default"
@@ -1717,7 +1721,7 @@ function PostCard({ post }: { post: FeedPost }) {
   );
 }
 
-function NeoFeedSocialFeedComponent() {
+function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void }) {
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
   const [isAtTop, setIsAtTop] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -2031,7 +2035,7 @@ function NeoFeedSocialFeedComponent() {
   if (isLoading && posts.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground">
-        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} showAppBar={showAppBar} />
+        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} showAppBar={showAppBar} onBackClick={onBackClick} />
         <div className="max-w-3xl mx-auto px-3 py-3">
           <div className="space-y-4">
             {[...Array(8)].map((_, i) => (
@@ -2066,7 +2070,7 @@ function NeoFeedSocialFeedComponent() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground">
-        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} showAppBar={showAppBar} />
+        <FeedHeader onAllClick={handleAllClick} isRefreshing={isFetching} selectedFilter={selectedFilter} onFilterChange={handleFilterChange} searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} showAppBar={showAppBar} onBackClick={onBackClick} />
         <div className="max-w-3xl mx-auto px-3 py-3">
           <Card className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 shadow-sm">
             <CardContent className="p-4 text-center">
@@ -2269,10 +2273,10 @@ function NeoFeedSocialFeedComponent() {
 }
 
 // Wrap with AudioModeProvider for audio minicast functionality
-export default function NeoFeedSocialFeed() {
+export default function NeoFeedSocialFeed({ onBackClick }: { onBackClick?: () => void }) {
   return (
     <AudioModeProvider>
-      <NeoFeedSocialFeedComponent />
+      <NeoFeedSocialFeedComponent onBackClick={onBackClick} />
     </AudioModeProvider>
   );
 }
