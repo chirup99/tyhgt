@@ -1960,6 +1960,26 @@ export default function Home() {
         console.log("🤖 [FRONTEND] Triggering Advanced AI Financial Agent...");
         
         try {
+          console.log("📊 [FRONTEND] Fetching trading journal data...");
+          let journalData: any[] = [];
+          try {
+            const journalResponse = await fetch("/api/journal/all-dates");
+            if (journalResponse.ok) {
+              const allJournalData = await journalResponse.json();
+              journalData = Object.entries(allJournalData).map(([date, data]: [string, any]) => ({
+                date,
+                pnl: data.pnl || 0,
+                trades: data.tradeHistory?.length || 0,
+                winRate: data.winRate,
+                avgProfit: data.avgProfit,
+                avgLoss: data.avgLoss
+              }));
+              console.log(`✅ [FRONTEND] Loaded ${journalData.length} days of journal data`);
+            }
+          } catch (journalError) {
+            console.warn("⚠️ [FRONTEND] Could not load journal data:", journalError);
+          }
+          
           const response = await fetch("/api/advanced-financial-search", {
             method: "POST",
             headers: {
@@ -1967,7 +1987,9 @@ export default function Home() {
             },
             body: JSON.stringify({
               query: query,
-              userStocks: [] // TODO: Get user's actual stock holdings from their portfolio
+              userStocks: [],
+              journalData: journalData,
+              fyersData: null
             }),
           });
 

@@ -14886,7 +14886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==========================================
   app.post('/api/advanced-financial-search', async (req, res) => {
     try {
-      const { query, userStocks = [] } = req.body;
+      const { query, userStocks = [], journalData = [], fyersData = null } = req.body;
       
       if (!query || typeof query !== 'string') {
         return res.status(400).json({ 
@@ -14897,12 +14897,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🤖 [ADVANCED-FINANCIAL-AI] Processing query: ${query}`);
       console.log(`📊 [ADVANCED-FINANCIAL-AI] User stocks: ${userStocks.join(', ') || 'None'}`);
+      console.log(`📈 [ADVANCED-FINANCIAL-AI] Journal data: ${journalData.length} days`);
+      console.log(`💰 [ADVANCED-FINANCIAL-AI] Fyers data: ${fyersData ? 'Provided' : 'Not provided'}`);
 
       const { processAdvancedFinancialQuery } = await import('./advanced-financial-agent');
       
       const result = await processAdvancedFinancialQuery({
         query,
-        userStocks
+        userStocks,
+        journalData,
+        fyersData
       });
 
       console.log(`✅ [ADVANCED-FINANCIAL-AI] Analysis complete!`);

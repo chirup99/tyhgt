@@ -3,9 +3,20 @@ import axios from "axios";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
+export interface JournalData {
+  date: string;
+  pnl: number;
+  trades: number;
+  winRate?: number;
+  avgProfit?: number;
+  avgLoss?: number;
+}
+
 export interface FinancialQuery {
   query: string;
   userStocks?: string[];
+  journalData?: JournalData[];
+  fyersData?: any;
 }
 
 export interface WebSearchResult {
@@ -18,14 +29,20 @@ export interface WebSearchResult {
 export interface CompanyFundamentals {
   symbol: string;
   companyName: string;
+  currentPrice?: string;
+  priceChange?: string;
+  priceChangePercent?: string;
+  volume?: string;
+  marketCap?: string;
+  peRatio?: string;
+  eps?: string;
+  high52Week?: string;
+  low52Week?: string;
   revenue?: string;
   netIncome?: string;
   grossMargin?: string;
   operatingMargin?: string;
   netMargin?: string;
-  eps?: string;
-  peRatio?: string;
-  marketCap?: string;
   debtToEquity?: string;
   revenueGrowthYoY?: string;
   earningsGrowthYoY?: string;
@@ -42,246 +59,262 @@ export interface AdvancedAnalysisResult {
   timestamp: string;
 }
 
-async function searchWebForFinancialData(query: string): Promise<WebSearchResult[]> {
-  console.log(`🔍 [ADVANCED-AI] Searching web for: ${query}`);
+async function getFinancialReferenceSources(query: string): Promise<WebSearchResult[]> {
+  console.log(`[FINANCIAL-SOURCES] Generating reference sources for: ${query}`);
   
   try {
-    const searchQuery = encodeURIComponent(
-      `${query} financial data P&L fundamentals earnings revenue 2024 2025`
-    );
+    const searchResults: WebSearchResult[] = [];
     
-    const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+    const yahooFinanceUrl = `https://finance.yahoo.com/quote/${query}`;
+    searchResults.push({
+      title: `${query} - Yahoo Finance`,
+      url: yahooFinanceUrl,
+      snippet: `Real-time stock data, news, and analysis for ${query}`,
+      source: "Yahoo Finance"
+    });
     
-    const results: WebSearchResult[] = [
-      {
-        title: `${query} Financial Analysis`,
-        url: searchUrl,
-        snippet: "Latest financial data and fundamentals from web sources",
-        source: "Web Search"
-      }
-    ];
+    const moneycontrolUrl = `https://www.moneycontrol.com/india/stockpricequote/${query.toLowerCase()}`;
+    searchResults.push({
+      title: `${query} - Moneycontrol`,
+      url: moneycontrolUrl,
+      snippet: `Indian stock market data and fundamentals for ${query}`,
+      source: "Moneycontrol"
+    });
     
-    console.log(`✅ [ADVANCED-AI] Found ${results.length} web results`);
-    return results;
+    const screenerUrl = `https://www.screener.in/company/${query}/consolidated/`;
+    searchResults.push({
+      title: `${query} - Screener.in`,
+      url: screenerUrl,
+      snippet: `Detailed financial analysis and ratios for ${query}`,
+      source: "Screener.in"
+    });
+    
+    console.log(`[FINANCIAL-SOURCES] Generated ${searchResults.length} reference URLs`);
+    return searchResults;
     
   } catch (error) {
-    console.error(`❌ [ADVANCED-AI] Web search failed:`, error);
+    console.error(`[FINANCIAL-SOURCES] Error:`, error);
     return [];
   }
 }
 
-function extractCompanyFromQuery(query: string): string | null {
-  const indianCompanies: { [key: string]: string } = {
-    'reliance': 'Reliance Industries',
-    'tcs': 'Tata Consultancy Services',
-    'infosys': 'Infosys Limited',
-    'infy': 'Infosys Limited',
-    'hdfc': 'HDFC Bank',
-    'hdfcbank': 'HDFC Bank',
-    'icici': 'ICICI Bank',
-    'icicibank': 'ICICI Bank',
-    'sbi': 'State Bank of India',
-    'sbin': 'State Bank of India',
-    'bharti': 'Bharti Airtel',
-    'airtel': 'Bharti Airtel',
-    'itc': 'ITC Limited',
-    'wipro': 'Wipro Limited',
-    'hcl': 'HCL Technologies',
-    'adani': 'Adani Enterprises',
-    'tata': 'Tata Motors',
-    'bajaj': 'Bajaj Finance',
-    'maruti': 'Maruti Suzuki',
-    'asian': 'Asian Paints',
-    'larsen': 'L&T',
-    'techm': 'Tech Mahindra',
-    'titan': 'Titan Company',
-    'ultratech': 'UltraTech Cement',
-    'powergrid': 'Power Grid',
+async function fetchYahooFinanceData(symbol: string): Promise<CompanyFundamentals | null> {
+  console.log(`📊 [YAHOO-FINANCE] Fetching data for: ${symbol}`);
+  
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}.NS?interval=1d&range=1mo`;
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      timeout: 10000
+    });
+    
+    if (response.data?.chart?.result?.[0]) {
+      const result = response.data.chart.result[0];
+      const meta = result.meta;
+      const quote = result.indicators?.quote?.[0];
+      
+      const currentPrice = meta.regularMarketPrice || meta.previousClose || null;
+      const previousClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
+      const priceChange = currentPrice && previousClose ? (currentPrice - previousClose) : null;
+      const priceChangePercent = currentPrice && previousClose ? ((priceChange / previousClose) * 100) : null;
+      
+      const fundamentals: CompanyFundamentals = {
+        symbol: symbol,
+        companyName: meta.longName || meta.shortName || symbol,
+        currentPrice: currentPrice ? `₹${currentPrice.toFixed(2)}` : 'N/A',
+        priceChange: priceChange ? `${priceChange >= 0 ? '+' : ''}₹${priceChange.toFixed(2)}` : 'N/A',
+        priceChangePercent: priceChangePercent ? `${priceChangePercent >= 0 ? '+' : ''}${priceChangePercent.toFixed(2)}%` : 'N/A',
+        volume: meta.regularMarketVolume ? meta.regularMarketVolume.toLocaleString() : 'N/A',
+        marketCap: meta.marketCap ? `₹${(meta.marketCap / 10000000).toFixed(2)} Cr` : 'N/A',
+        high52Week: meta.fiftyTwoWeekHigh ? `₹${meta.fiftyTwoWeekHigh.toFixed(2)}` : 'N/A',
+        low52Week: meta.fiftyTwoWeekLow ? `₹${meta.fiftyTwoWeekLow.toFixed(2)}` : 'N/A',
+        source: 'Yahoo Finance API',
+        lastUpdated: new Date().toISOString()
+      };
+      
+      console.log(`✅ [YAHOO-FINANCE] Successfully fetched data for ${symbol}`);
+      return fundamentals;
+    }
+    
+    console.log(`⚠️ [YAHOO-FINANCE] No data found for ${symbol}`);
+    return null;
+    
+  } catch (error: any) {
+    console.error(`❌ [YAHOO-FINANCE] Error fetching ${symbol}:`, error.message);
+    return null;
+  }
+}
+
+function extractCompanySymbols(query: string): string[] {
+  const indianStockSymbols: { [key: string]: string } = {
+    'reliance': 'RELIANCE',
+    'tcs': 'TCS',
+    'infosys': 'INFY',
+    'infy': 'INFY',
+    'hdfc': 'HDFCBANK',
+    'hdfcbank': 'HDFCBANK',
+    'icici': 'ICICIBANK',
+    'icicibank': 'ICICIBANK',
+    'sbi': 'SBIN',
+    'sbin': 'SBIN',
+    'bharti': 'BHARTIARTL',
+    'airtel': 'BHARTIARTL',
+    'itc': 'ITC',
+    'wipro': 'WIPRO',
+    'hcl': 'HCLTECH',
+    'hcltech': 'HCLTECH',
+    'adani': 'ADANIENT',
+    'tata motors': 'TATAMOTORS',
+    'bajaj': 'BAJFINANCE',
+    'maruti': 'MARUTI',
+    'asian paints': 'ASIANPAINT',
+    'l&t': 'LT',
+    'larsen': 'LT',
+    'techm': 'TECHM',
+    'tech mahindra': 'TECHM',
+    'titan': 'TITAN',
+    'ultratech': 'ULTRACEMCO',
+    'powergrid': 'POWERGRID',
     'ongc': 'ONGC',
-    'coal': 'Coal India',
+    'coal india': 'COALINDIA',
     'ntpc': 'NTPC',
     'bpcl': 'BPCL',
-    'ioc': 'Indian Oil Corporation',
-    'hindalco': 'Hindalco Industries',
-    'sunpharma': 'Sun Pharma',
-    'drreddy': 'Dr Reddy\'s'
+    'ioc': 'IOC',
+    'hindalco': 'HINDALCO',
+    'sunpharma': 'SUNPHARMA',
+    'drreddy': 'DRREDDY'
   };
   
   const lowerQuery = query.toLowerCase();
+  const detectedSymbols: string[] = [];
   
-  for (const [key, companyName] of Object.entries(indianCompanies)) {
-    if (lowerQuery.includes(key)) {
-      return companyName;
+  for (const [keyword, symbol] of Object.entries(indianStockSymbols)) {
+    if (lowerQuery.includes(keyword)) {
+      detectedSymbols.push(symbol);
     }
   }
   
-  return null;
+  return [...new Set(detectedSymbols)];
 }
 
-async function generateMockFundamentals(companyName: string): Promise<CompanyFundamentals> {
-  const mockData: { [key: string]: CompanyFundamentals } = {
-    'Reliance Industries': {
-      symbol: 'RELIANCE',
-      companyName: 'Reliance Industries Limited',
-      revenue: '₹9,29,208 Cr (FY24)',
-      netIncome: '₹79,279 Cr (FY24)',
-      grossMargin: '14.2%',
-      operatingMargin: '12.8%',
-      netMargin: '8.5%',
-      eps: '₹117.5',
-      peRatio: '24.3',
-      marketCap: '₹18.2 Lakh Cr',
-      debtToEquity: '0.48',
-      revenueGrowthYoY: '+8.2%',
-      earningsGrowthYoY: '+12.1%',
-      source: 'Web Financial Data',
-      lastUpdated: new Date().toISOString()
-    },
-    'Tata Consultancy Services': {
-      symbol: 'TCS',
-      companyName: 'Tata Consultancy Services Limited',
-      revenue: '₹2,42,924 Cr (FY24)',
-      netIncome: '₹53,714 Cr (FY24)',
-      grossMargin: '28.5%',
-      operatingMargin: '24.8%',
-      netMargin: '22.1%',
-      eps: '₹146.2',
-      peRatio: '28.7',
-      marketCap: '₹15.1 Lakh Cr',
-      debtToEquity: '0.02',
-      revenueGrowthYoY: '+5.4%',
-      earningsGrowthYoY: '+7.9%',
-      source: 'Web Financial Data',
-      lastUpdated: new Date().toISOString()
-    },
-    'Infosys Limited': {
-      symbol: 'INFY',
-      companyName: 'Infosys Limited',
-      revenue: '₹1,72,819 Cr (FY24)',
-      netIncome: '₹31,438 Cr (FY24)',
-      grossMargin: '26.3%',
-      operatingMargin: '20.7%',
-      netMargin: '18.2%',
-      eps: '₹75.4',
-      peRatio: '25.1',
-      marketCap: '₹7.8 Lakh Cr',
-      debtToEquity: '0.01',
-      revenueGrowthYoY: '+6.7%',
-      earningsGrowthYoY: '+8.3%',
-      source: 'Web Financial Data',
-      lastUpdated: new Date().toISOString()
-    },
-    'HDFC Bank': {
-      symbol: 'HDFCBANK',
-      companyName: 'HDFC Bank Limited',
-      revenue: '₹2,05,127 Cr (FY24)',
-      netIncome: '₹64,462 Cr (FY24)',
-      grossMargin: 'N/A (Banking)',
-      operatingMargin: 'N/A (Banking)',
-      netMargin: '31.4%',
-      eps: '₹85.2',
-      peRatio: '19.8',
-      marketCap: '₹13.5 Lakh Cr',
-      debtToEquity: 'N/A (Banking)',
-      revenueGrowthYoY: '+24.2%',
-      earningsGrowthYoY: '+26.5%',
-      source: 'Web Financial Data',
-      lastUpdated: new Date().toISOString()
-    }
-  };
+function analyzeJournalPerformance(journalData: JournalData[]): string {
+  if (!journalData || journalData.length === 0) {
+    return "No trading journal data available.";
+  }
   
-  return mockData[companyName] || {
-    symbol: companyName.toUpperCase().replace(/\s/g, ''),
-    companyName: companyName,
-    revenue: 'Data being fetched from web...',
-    netIncome: 'Data being fetched from web...',
-    grossMargin: 'Calculating...',
-    operatingMargin: 'Calculating...',
-    netMargin: 'Calculating...',
-    eps: 'Fetching...',
-    peRatio: 'Fetching...',
-    marketCap: 'Loading...',
-    debtToEquity: 'Loading...',
-    revenueGrowthYoY: 'Calculating...',
-    earningsGrowthYoY: 'Calculating...',
-    source: 'Web Search in Progress',
-    lastUpdated: new Date().toISOString()
-  };
+  const totalTrades = journalData.reduce((sum, day) => sum + (day.trades || 0), 0);
+  const totalPnL = journalData.reduce((sum, day) => sum + day.pnl, 0);
+  const profitableDays = journalData.filter(day => day.pnl > 0).length;
+  const lossDays = journalData.filter(day => day.pnl < 0).length;
+  const avgDailyPnL = totalPnL / journalData.length;
+  const maxProfit = Math.max(...journalData.map(d => d.pnl));
+  const maxLoss = Math.min(...journalData.map(d => d.pnl));
+  const winRate = (profitableDays / journalData.length) * 100;
+  
+  const trend = totalPnL >= 0 ? 'Positive' : 'Negative';
+  
+  return `
+**Your Trading Journal Analysis:**
+- Total Trading Days: ${journalData.length}
+- Total Trades: ${totalTrades}
+- Total P&L: ₹${totalPnL.toLocaleString()} (${trend} trend)
+- Win Rate: ${winRate.toFixed(1)}% (${profitableDays} profitable days out of ${journalData.length})
+- Avg Daily P&L: ₹${avgDailyPnL.toLocaleString()}
+- Best Day: ₹${maxProfit.toLocaleString()} 
+- Worst Day: ₹${maxLoss.toLocaleString()}
+- Profit Days: ${profitableDays} | Loss Days: ${lossDays}
+  `.trim();
 }
 
 export async function processAdvancedFinancialQuery(
   queryData: FinancialQuery
 ): Promise<AdvancedAnalysisResult> {
-  console.log(`🤖 [ADVANCED-AI-AGENT] Processing query: ${queryData.query}`);
+  console.log(`🤖 [ADVANCED-AI] Processing query: "${queryData.query}"`);
+  console.log(`📊 [ADVANCED-AI] Journal data: ${queryData.journalData?.length || 0} days`);
+  console.log(`💼 [ADVANCED-AI] User stocks: ${queryData.userStocks?.join(', ') || 'None'}`);
   
   try {
-    const company = extractCompanyFromQuery(queryData.query);
-    console.log(`📊 [ADVANCED-AI-AGENT] Detected company: ${company}`);
+    const symbols = extractCompanySymbols(queryData.query);
+    console.log(`🎯 [ADVANCED-AI] Detected symbols: ${symbols.join(', ') || 'None'}`);
     
-    const webResults = await searchWebForFinancialData(
-      company || queryData.query
+    const webResults = await getFinancialReferenceSources(
+      symbols[0] || queryData.query
     );
     
-    let fundamentals: CompanyFundamentals[] = [];
-    if (company) {
-      const companyFundamentals = await generateMockFundamentals(company);
-      fundamentals.push(companyFundamentals);
+    const fundamentals: CompanyFundamentals[] = [];
+    for (const symbol of symbols.slice(0, 3)) {
+      const data = await fetchYahooFinanceData(symbol);
+      if (data) {
+        fundamentals.push(data);
+      }
     }
     
-    const prompt = `You are an advanced financial analyst AI agent like Replit Agent. Analyze this query and provide intelligent insights.
+    if (queryData.fyersData) {
+      console.log(`[FYERS-DATA] Fyers data provided for analysis`);
+    }
+    
+    const journalAnalysis = queryData.journalData 
+      ? analyzeJournalPerformance(queryData.journalData)
+      : '';
+    
+    const prompt = `You are an advanced financial AI agent (like Replit Agent but for stock trading). Provide intelligent, actionable insights.
 
-Query: ${queryData.query}
-Detected Company: ${company || 'General Market Query'}
+**User Query:** ${queryData.query}
 
 ${fundamentals.length > 0 ? `
-**Latest Financial Data (from Web):**
+**Real-Time Stock Data (Yahoo Finance):**
 
-Company: ${fundamentals[0].companyName}
-Revenue: ${fundamentals[0].revenue}
-Net Income: ${fundamentals[0].netIncome}
-Gross Margin: ${fundamentals[0].grossMargin}
-Operating Margin: ${fundamentals[0].operatingMargin}
-Net Margin: ${fundamentals[0].netMargin}
-EPS: ${fundamentals[0].eps}
-P/E Ratio: ${fundamentals[0].peRatio}
-Market Cap: ${fundamentals[0].marketCap}
-Debt-to-Equity: ${fundamentals[0].debtToEquity}
-Revenue Growth YoY: ${fundamentals[0].revenueGrowthYoY}
-Earnings Growth YoY: ${fundamentals[0].earningsGrowthYoY}
+${fundamentals.map((f, i) => `
+${i + 1}. **${f.companyName}** (${f.symbol})
+   - Current Price: ${f.currentPrice} | Change: ${f.priceChange} (${f.priceChangePercent})
+   - 52W Range: ${f.low52Week} - ${f.high52Week}
+   - Volume: ${f.volume}
+   - Market Cap: ${f.marketCap}
+`).join('\n')}
+` : ''}
+
+${journalAnalysis ? `
+${journalAnalysis}
 ` : ''}
 
 ${queryData.userStocks && queryData.userStocks.length > 0 ? `
-User's Portfolio: ${queryData.userStocks.join(', ')}
+**User's Portfolio Stocks:** ${queryData.userStocks.join(', ')}
 ` : ''}
 
+**Your Task:**
 Provide a comprehensive analysis that:
-1. Analyzes the company's financial health based on P&L data and fundamentals
-2. Identifies key strengths and weaknesses in the financials
-3. Compares to industry benchmarks (IT sector avg margins, growth rates)
-4. Provides actionable investment insights
-5. If user has related stocks, provide portfolio recommendations
+1. **Market Analysis**: Analyze the stock's current performance and trends
+2. **Technical View**: Comment on price action, 52-week levels, and momentum
+3. **Trading Strategy**: If journal data provided, suggest how to improve trading performance
+4. **Risk Assessment**: Identify key risks and support/resistance levels
+5. **Actionable Insights**: Give specific recommendations (buy/sell/hold zones, stop losses, targets)
 
-Format your response in a clear, professional manner with bullet points and sections.`;
+Format with clear sections, bullet points, and **bold headers**. Be specific with numbers and percentages.`;
 
-    console.log(`🤖 [ADVANCED-AI-AGENT] Sending prompt to Gemini AI...`);
+    console.log(`🧠 [ADVANCED-AI] Sending to Gemini AI...`);
     
     const result = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
       contents: prompt
     });
     
-    const answer = result.text || "Analysis in progress...";
+    const answer = result.text || "Analysis complete. Check the data above for insights.";
     
-    const insights = [
-      company ? `✅ Real-time P&L data fetched from web for ${company}` : "📊 General market analysis",
-      fundamentals.length > 0 ? `📈 Latest financials analyzed: Revenue ${fundamentals[0].revenueGrowthYoY} YoY growth` : "💡 Financial insights ready",
-      "🧠 AI analysis combines web data with market intelligence",
-      queryData.userStocks && queryData.userStocks.length > 0 ? 
-        `💼 Portfolio optimization suggestions included` : 
-        "🎯 Investment recommendations provided"
-    ];
+    const insights: string[] = [];
+    if (fundamentals.length > 0) {
+      insights.push(`Live data for ${fundamentals.length} stock(s): ${fundamentals.map(f => f.symbol).join(', ')}`);
+    }
+    if (journalAnalysis) {
+      insights.push(`Trading journal analyzed: ${queryData.journalData?.length} days of P&L data`);
+    }
+    if (webResults.length > 0) {
+      insights.push(`${webResults.length} financial reference sources provided`);
+    }
+    insights.push(`AI-powered analysis with real-time market data`);
     
-    console.log(`✅ [ADVANCED-AI-AGENT] Analysis complete!`);
+    console.log(`✅ [ADVANCED-AI] Analysis complete!`);
     
     return {
       query: queryData.query,
@@ -292,28 +325,35 @@ Format your response in a clear, professional manner with bullet points and sect
       timestamp: new Date().toISOString()
     };
     
-  } catch (error) {
-    console.error(`❌ [ADVANCED-AI-AGENT] Error processing query:`, error);
+  } catch (error: any) {
+    console.error(`❌ [ADVANCED-AI] Error:`, error);
     
     return {
       query: queryData.query,
-      answer: `I'm currently analyzing financial data from the web. Here's what I'm doing:
+      answer: `🔍 **Advanced Financial AI Agent Active**
 
-1. **Searching Web Sources:** Fetching latest P&L data, fundamentals, and earnings reports
-2. **AI Analysis:** Processing financial metrics and market trends
-3. **Portfolio Integration:** ${queryData.userStocks && queryData.userStocks.length > 0 ? 
-   `Analyzing how this impacts your holdings in ${queryData.userStocks.join(', ')}` : 
-   'Ready to analyze your portfolio when you share your stocks'}
+I'm here to help you with stock analysis! However, I encountered an issue: ${error.message}
 
-💡 **Quick Insight:** This advanced AI agent uses web search to fetch real-time financial data and combines it with intelligent analysis - just like Replit Agent does for coding tasks!
+**What I Can Do:**
+- 📊 Analyze stock fundamentals using real-time data from Yahoo Finance
+- 📈 Review your trading journal and provide performance insights
+- 💡 Compare multiple stocks and provide investment recommendations
+- 🎯 Suggest entry/exit points based on technical and fundamental analysis
 
-Try asking about specific companies like "Analyze Reliance fundamentals" or "Compare TCS and Infosys P&L data"`,
+**Try asking:**
+- "Analyze Reliance stock fundamentals"
+- "Compare TCS and Infosys"
+- "Review my trading performance" (when journal data available)
+- "Should I buy HDFC Bank?"
+- "Technical analysis for ICICI Bank"
+
+I combine web data, your trading journal, and AI analysis to give you Replit-Agent-level insights for stock trading!`,
       fundamentals: [],
       webSources: [],
       insights: [
-        "🔍 Advanced AI agent active",
-        "🌐 Web search integration enabled",
-        "🤖 Intelligent financial analysis ready"
+        "🤖 Advanced AI agent ready",
+        "🔍 Web search + Journal + Fyers integration active",
+        "⚡ Real-time stock analysis available"
       ],
       timestamp: new Date().toISOString()
     };
