@@ -190,6 +190,10 @@ The platform includes an innovative **Audio MiniCast** feature for creating audi
 - `/trades/*` - Trade execution and history
 - `/feed/*` - Social trading feed operations
 - `/social-posts` - Create, read, update social posts (including audio minicasts)
+- `/advanced-query` - **NEW! Advanced AI Agent with Web Search**
+  - Processes ANY question using DuckDuckGo/Google News search
+  - Combines web data with stock analysis, market trends, and journal insights
+  - Works like Replit Agent for financial questions
 
 **Response Pattern**: Consistent JSON structure with metadata, data payload, and error handling
 
