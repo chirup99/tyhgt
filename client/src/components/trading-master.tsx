@@ -4614,9 +4614,13 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       const prices = await Promise.all(pricePromises);
       const feedPrices: {[key: string]: any} = {};
       const watchlistPriceUpdates: {[key: string]: any} = {};
+      const allLastTradedPrices: {[key: string]: any} = {};
       
       prices.forEach((priceData) => {
         if (priceData) {
+          // Store in dedicated last traded prices state
+          allLastTradedPrices[priceData.symbol] = priceData;
+          
           // Update feed stocks
           if (feedStocks.includes(priceData.symbol)) {
             feedPrices[priceData.symbol] = priceData;
@@ -4629,6 +4633,10 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       });
 
       // Update state with fetched prices
+      if (Object.keys(allLastTradedPrices).length > 0) {
+        setLastTradedPrices(prev => ({ ...prev, ...allLastTradedPrices }));
+        console.log('💾 Stored last closed prices for fallback:', allLastTradedPrices);
+      }
       if (Object.keys(feedPrices).length > 0) {
         setFeedStockPrices(prev => ({ ...prev, ...feedPrices }));
         console.log('📊 Updated feed prices with last traded:', feedPrices);
