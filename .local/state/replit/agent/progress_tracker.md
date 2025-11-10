@@ -798,3 +798,8 @@
 [x] 686. Back button now always visible in header for easy navigation to home
 [x] 687. Restarted workflow to apply navigation fixes
 [x] 688. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ NEOFEED BACK BUTTON NAVIGATION FIX COMPLETED!
+[x] 689. Issue identified: Back button was navigating to '/' (Landing/Login page) instead of '/app' (Home with world map)
+[x] 690. Fixed back button navigation to '/app' route which shows Dashboard with world map
+[x] 691. Updated comment to clarify button navigates to "home page with world map"
+[x] 692. Restarted workflow to apply the correct navigation fix
+[x] 693. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ NEOFEED BACK BUTTON NOW NAVIGATES TO WORLD MAP HOME PAGE (/app) - FIX COMPLETE!

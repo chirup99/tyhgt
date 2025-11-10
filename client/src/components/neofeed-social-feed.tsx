@@ -762,9 +762,9 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
             ))}
           </div>
           
-          {/* Back Button - Always visible, navigates to home page */}
+          {/* Back Button - Always visible, navigates to home page with world map */}
           <Button
-            onClick={() => setLocation('/')}
+            onClick={() => setLocation('/app')}
             variant="ghost"
             size="sm"
             className="flex-shrink-0 h-9 w-9 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
