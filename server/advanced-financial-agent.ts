@@ -265,9 +265,9 @@ Format your response in a clear, professional manner with bullet points and sect
 
     console.log(`🤖 [ADVANCED-AI-AGENT] Sending prompt to Gemini AI...`);
     
-    const result = await ai.generateText({
+    const result = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
-      prompt: prompt
+      contents: prompt
     });
     
     const answer = result.text || "Analysis in progress...";
