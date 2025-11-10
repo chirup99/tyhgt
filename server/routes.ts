@@ -15072,6 +15072,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // ==========================================
+  // ADVANCED QUERY PROCESSOR - LIKE REPLIT AGENT
+  // Uses web search + intelligent analysis to answer ANY question
+  // ==========================================
+  app.post('/api/advanced-query', async (req, res) => {
+    try {
+      const { query, journalTrades = [] } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Query is required' 
+        });
+      }
+
+      console.log(`[ADVANCED-QUERY] Processing: "${query}"`);
+
+      const { advancedQueryProcessor } = await import('./advanced-query-processor');
+      
+      const result = await advancedQueryProcessor.processQuery(query, {
+        journalTrades
+      });
+
+      res.json({
+        success: true,
+        query,
+        answer: result.answer,
+        sources: result.sources,
+        timestamp: result.timestamp
+      });
+
+    } catch (error) {
+      console.error('[ADVANCED-QUERY] Error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Query processing failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
   
   return httpServer;
 }

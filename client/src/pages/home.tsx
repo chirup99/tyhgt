@@ -1930,136 +1930,67 @@ export default function Home() {
         message.includes(stock)
       );
 
-      // ADVANCED AI FINANCIAL AGENT - Detects P&L, fundamentals, company analysis queries
-      const isAdvancedFinancialQuery = 
-        message.includes("p&l") ||
-        message.includes("p/l") ||
-        message.includes("profit") ||
-        message.includes("loss") ||
-        message.includes("revenue") ||
-        message.includes("earnings") ||
-        message.includes("financial") ||
-        message.includes("fundamentals") ||
-        message.includes("balance sheet") ||
-        message.includes("income statement") ||
-        message.includes("analyze") ||
-        message.includes("analysis") ||
-        message.includes("compare") ||
-        message.includes("margin") ||
-        message.includes("growth") ||
-        message.includes("debt") ||
-        message.includes("equity") ||
-        message.includes("valuation") ||
-        (mentionedStock && (
-          message.includes("company") ||
-          message.includes("stock") ||
-          message.includes("invest")
-        ));
-
-      if (isAdvancedFinancialQuery) {
-        console.log("🤖 [FRONTEND] Triggering Advanced AI Financial Agent...");
-        
+      // USE ADVANCED QUERY PROCESSOR FOR ALL QUERIES - Like Replit Agent
+      // This handles ANY question with web search + intelligent analysis
+      console.log("🤖 [FRONTEND] Triggering Advanced AI Query Processor (Web Search Enabled)...");
+      
+      try {
+        console.log("📊 [FRONTEND] Fetching trading journal data...");
+        let journalTrades: any[] = [];
         try {
-          console.log("📊 [FRONTEND] Fetching trading journal data...");
-          let journalData: any[] = [];
-          try {
-            const journalResponse = await fetch("/api/journal/all-dates");
-            if (journalResponse.ok) {
-              const allJournalData = await journalResponse.json();
-              journalData = Object.entries(allJournalData).map(([date, data]: [string, any]) => ({
-                date,
-                pnl: data.pnl || 0,
-                trades: data.tradeHistory?.length || 0,
-                winRate: data.winRate,
-                avgProfit: data.avgProfit,
-                avgLoss: data.avgLoss
-              }));
-              console.log(`✅ [FRONTEND] Loaded ${journalData.length} days of journal data`);
-            }
-          } catch (journalError) {
-            console.warn("⚠️ [FRONTEND] Could not load journal data:", journalError);
+          const journalResponse = await fetch("/api/journal/all-dates");
+          if (journalResponse.ok) {
+            const allJournalData = await journalResponse.json();
+            // Flatten all trades from all dates
+            Object.entries(allJournalData).forEach(([date, data]: [string, any]) => {
+              if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
+                journalTrades.push(...data.tradeHistory.map((trade: any) => ({
+                  ...trade,
+                  date
+                })));
+              }
+            });
+            console.log(`✅ [FRONTEND] Loaded ${journalTrades.length} trades from journal`);
           }
-          
-          const fyersSymbols: string[] = [];
-          const lowerQuery = message.toLowerCase();
-          const indianStocks: Record<string, string> = {
-            'reliance': 'NSE:RELIANCE-EQ',
-            'tcs': 'NSE:TCS-EQ',
-            'infosys': 'NSE:INFY-EQ',
-            'hdfc': 'NSE:HDFCBANK-EQ',
-            'icici': 'NSE:ICICIBANK-EQ',
-            'sbi': 'NSE:SBIN-EQ',
-            'airtel': 'NSE:BHARTIARTL-EQ',
-            'itc': 'NSE:ITC-EQ',
-            'wipro': 'NSE:WIPRO-EQ',
-            'nifty': 'NSE:NIFTY50-INDEX',
-            'sensex': 'BSE:SENSEX-INDEX'
-          };
-          
-          for (const [keyword, symbol] of Object.entries(indianStocks)) {
-            if (lowerQuery.includes(keyword)) {
-              fyersSymbols.push(symbol);
-            }
-          }
-          
-          console.log(`📈 [FRONTEND] Detected Fyers symbols: ${fyersSymbols.join(', ') || 'None'}`);
-          
-          const response = await fetch("/api/advanced-financial-search", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              query: query,
-              userStocks: [],
-              journalData: journalData,
-              fyersSymbols: fyersSymbols
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            
-            let advancedResult = `# 🤖 Advanced AI Financial Analysis\n\n`;
-            advancedResult += `${data.answer}\n\n`;
-            
-            if (data.fundamentals && data.fundamentals.length > 0) {
-              const fund = data.fundamentals[0];
-              advancedResult += `---\n\n## 📊 Latest Financial Data\n\n`;
-              advancedResult += `**Company:** ${fund.companyName}\n\n`;
-              advancedResult += `**Financial Metrics (from Web):**\n`;
-              advancedResult += `• Revenue: ${fund.revenue}\n`;
-              advancedResult += `• Net Income: ${fund.netIncome}\n`;
-              advancedResult += `• Gross Margin: ${fund.grossMargin}\n`;
-              advancedResult += `• Operating Margin: ${fund.operatingMargin}\n`;
-              advancedResult += `• Net Margin: ${fund.netMargin}\n`;
-              advancedResult += `• EPS: ${fund.eps}\n`;
-              advancedResult += `• P/E Ratio: ${fund.peRatio}\n`;
-              advancedResult += `• Market Cap: ${fund.marketCap}\n`;
-              advancedResult += `• Revenue Growth YoY: ${fund.revenueGrowthYoY}\n`;
-              advancedResult += `• Earnings Growth YoY: ${fund.earningsGrowthYoY}\n\n`;
-            }
-            
-            if (data.insights && data.insights.length > 0) {
-              advancedResult += `---\n\n## 💡 Key Insights\n\n`;
-              data.insights.forEach((insight: string) => {
-                advancedResult += `${insight}\n`;
-              });
-            }
-            
-            advancedResult += `\n---\n\n*Powered by Advanced AI Agent with Web Search*\n`;
-            advancedResult += `*Data fetched: ${new Date(data.timestamp).toLocaleString()}*`;
-            
-            setSearchResults(advancedResult);
-            console.log("✅ [FRONTEND] Advanced AI analysis complete!");
-            setIsSearchLoading(false);
-            return;
-          } else {
-            console.error("❌ [FRONTEND] Advanced AI search failed:", response.statusText);
-          }
-        } catch (error) {
-          console.error("❌ [FRONTEND] Advanced AI search error:", error);
+        } catch (journalError) {
+          console.warn("⚠️ [FRONTEND] Could not load journal data:", journalError);
         }
+        
+        const response = await fetch("/api/advanced-query", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: query,
+            journalTrades: journalTrades
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          let result = data.answer;
+          
+          // Add web sources if available
+          if (data.sources && data.sources.length > 0) {
+            result += `\n\n## 🔗 Web Sources\n\n`;
+            data.sources.forEach((source: any, index: number) => {
+              result += `${index + 1}. [${source.title}](${source.url})\n`;
+            });
+          }
+          
+          setSearchResults(result);
+          console.log("✅ [FRONTEND] Advanced query processing complete!");
+          setIsSearchLoading(false);
+          return;
+        } else {
+          console.error("❌ [FRONTEND] Advanced query failed:", response.statusText);
+          // Fall through to other handlers
+        }
+      } catch (error) {
+        console.error("❌ [FRONTEND] Advanced query error:", error);
+        // Fall through to other handlers
       }
 
       // Technical Indicator Search (RSI, EMA, MACD, etc.)
