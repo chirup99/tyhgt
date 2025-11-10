@@ -43,7 +43,7 @@ import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { LogOut } from "lucide-react";
+import { LogOut, ArrowLeft } from "lucide-react";
 
 // Global window type declaration for audio control
 declare global {
@@ -6122,13 +6122,33 @@ ${
             )}
 
             {activeTab === "trading-master" && (
-              <div className="h-full">
+              <div className="h-full relative">
+                {/* Back Button */}
+                <Button
+                  onClick={() => setActiveTab("trading-home")}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                  data-testid="button-back-to-home-trading-master"
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </Button>
                 <TradingMaster />
               </div>
             )}
 
             {activeTab === "journal" && (
-              <div className="space-y-6 p-6">
+              <div className="space-y-6 p-6 relative">
+                {/* Back Button */}
+                <Button
+                  onClick={() => setActiveTab("trading-home")}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                  data-testid="button-back-to-home-journal"
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </Button>
                 <h2 className="text-2xl font-bold text-foreground">
                   Trading Journal
                 </h2>

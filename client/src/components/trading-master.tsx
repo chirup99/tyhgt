@@ -600,6 +600,7 @@ interface TradingMasterProps {
     fromDate: string;
     toDate: string;
   }) => void;
+  onBackClick?: () => void;
 }
 
 // Indicator parameter types - flexible interface that can accommodate all indicator types
@@ -914,7 +915,7 @@ function AtmOhlcDisplay({ optionChainData, selectedStrike, onStrikeChange, selec
   );
 }
 
-export function TradingMaster({ onConfigChange }: TradingMasterProps = {}) {
+export function TradingMaster({ onConfigChange, onBackClick }: TradingMasterProps = {}) {
   const [selectedTimeframe, setSelectedTimeframe] = useState('1d');
   const [selectedStrike, setSelectedStrike] = useState<number>(24750);
   
