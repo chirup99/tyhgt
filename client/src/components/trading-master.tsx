@@ -4735,18 +4735,18 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               })
               .map(([fullSymbol]) => fullSymbol.replace('NSE:', '').replace('-EQ', ''));
             
+            // Always update non-zero real-time prices first
+            if (Object.keys(feedPrices).length > 0) {
+              setFeedStockPrices(prev => ({ ...prev, ...feedPrices }));
+            }
+            if (Object.keys(watchlistPriceUpdates).length > 0) {
+              setWatchlistPrices(prev => ({ ...prev, ...watchlistPriceUpdates }));
+            }
+            
+            // Then fetch last traded prices for symbols with zero values
             if (zeroSymbols.length > 0) {
               console.log('🔄 Detected zero prices, fetching last traded prices for:', zeroSymbols);
-              // Fetch last traded prices for symbols with zero values
               fetchLastTradedPrices(zeroSymbols);
-            } else {
-              // Update state with real-time prices only if they're not zero
-              if (Object.keys(feedPrices).length > 0) {
-                setFeedStockPrices(prev => ({ ...prev, ...feedPrices }));
-              }
-              if (Object.keys(watchlistPriceUpdates).length > 0) {
-                setWatchlistPrices(prev => ({ ...prev, ...watchlistPriceUpdates }));
-              }
             }
             
             console.log(`📈 Real-time SSE update: ${Object.keys(data.prices).length} symbols via WebSocket`);
