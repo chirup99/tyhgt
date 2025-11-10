@@ -14881,66 +14881,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/pattern-detection', detectPatterns);
 
   // ==========================================
-  // ADVANCED AI FINANCIAL AGENT API
-  // Like Replit Agent - fetches P&L data from web + intelligent AI analysis
+  // INTELLIGENT FINANCIAL AGENT API
+  // NO EXTERNAL AI APIs - Uses web scraping + pattern analysis
+  // Integrates: Yahoo Finance, Google News, Fyers API, User Journal
   // ==========================================
-  app.post('/api/advanced-financial-search', async (req, res) => {
+  
+  // Stock Analysis Endpoint
+  app.post('/api/intelligent/stock-analysis', async (req, res) => {
     try {
-      const { query, userStocks = [], journalData = [], fyersSymbols = [] } = req.body;
+      const { symbol, journalTrades = [] } = req.body;
       
-      if (!query || typeof query !== 'string') {
+      if (!symbol || typeof symbol !== 'string') {
         return res.status(400).json({ 
           success: false,
-          error: 'Query is required' 
+          error: 'Stock symbol is required' 
         });
       }
 
-      console.log(`[ADVANCED-FINANCIAL-AI] Processing query: ${query}`);
-      console.log(`[ADVANCED-FINANCIAL-AI] User stocks: ${userStocks.join(', ') || 'None'}`);
-      console.log(`[ADVANCED-FINANCIAL-AI] Journal data: ${journalData.length} days`);
-      console.log(`[ADVANCED-FINANCIAL-AI] Fyers symbols: ${fyersSymbols.join(', ') || 'None'}`);
+      console.log(`[INTELLIGENT-AGENT] Analyzing stock: ${symbol}`);
 
-      let fyersData = null;
-      if (fyersSymbols.length > 0) {
-        try {
-          console.log(`[ADVANCED-FINANCIAL-AI] Fetching live data from Fyers API for: ${fyersSymbols.join(', ')}`);
-          const fyersQuotes = await fyersApi.getQuotes(fyersSymbols);
-          fyersData = fyersQuotes;
-          console.log(`[ADVANCED-FINANCIAL-AI] Successfully fetched ${fyersQuotes.length} quotes from Fyers`);
-        } catch (fyersError: any) {
-          console.log(`[ADVANCED-FINANCIAL-AI] Could not fetch Fyers data: ${fyersError.message}`);
-          fyersData = null;
-        }
-      }
-
-      const { processAdvancedFinancialQuery } = await import('./advanced-financial-agent');
+      const { intelligentAgent } = await import('./intelligent-financial-agent');
       
-      const result = await processAdvancedFinancialQuery({
-        query,
-        userStocks,
-        journalData,
-        fyersData: fyersData
-      });
-
-      console.log(`[ADVANCED-FINANCIAL-AI] Analysis complete`);
+      // Fetch Fyers data if available
+      let fyersData = null;
+      try {
+        if (fyersApi.isAuthenticated()) {
+          const fyersSymbol = `NSE:${symbol.toUpperCase()}-EQ`;
+          const fyersQuotes = await fyersApi.getQuotes([fyersSymbol]);
+          if (fyersQuotes.length > 0) {
+            fyersData = fyersQuotes[0];
+            console.log(`[INTELLIGENT-AGENT] Fetched Fyers data for ${symbol}`);
+          }
+        }
+      } catch (error) {
+        console.log(`[INTELLIGENT-AGENT] Could not fetch Fyers data: ${error}`);
+      }
+      
+      const analysis = await intelligentAgent.generateStockAnalysis(
+        symbol,
+        fyersData,
+        journalTrades
+      );
 
       res.json({
         success: true,
-        query: result.query,
-        answer: result.answer,
-        fundamentals: result.fundamentals || [],
-        webSources: result.webSources || [],
-        insights: result.insights || [],
-        timestamp: result.timestamp
+        symbol,
+        analysis,
+        timestamp: new Date().toISOString()
       });
 
     } catch (error) {
-      console.error('[ADVANCED-FINANCIAL-AI] Error:', error);
+      console.error('[INTELLIGENT-AGENT] Stock analysis error:', error);
       res.status(500).json({
         success: false,
-        error: 'Advanced financial AI search failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Stock analysis failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Market Report Endpoint
+  app.post('/api/intelligent/market-report', async (req, res) => {
+    try {
+      console.log(`[INTELLIGENT-AGENT] Generating market report`);
+
+      const { intelligentAgent } = await import('./intelligent-financial-agent');
+      
+      const report = await intelligentAgent.generateMarketReport();
+
+      res.json({
+        success: true,
+        report,
         timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[INTELLIGENT-AGENT] Market report error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Market report generation failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Journal Analysis Endpoint
+  app.post('/api/intelligent/journal-analysis', async (req, res) => {
+    try {
+      const { trades = [] } = req.body;
+      
+      console.log(`[INTELLIGENT-AGENT] Analyzing ${trades.length} trades`);
+
+      const { intelligentAgent } = await import('./intelligent-financial-agent');
+      
+      const report = intelligentAgent.generateJournalReport(trades);
+
+      res.json({
+        success: true,
+        report,
+        tradeCount: trades.length,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[INTELLIGENT-AGENT] Journal analysis error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Journal analysis failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Financial News Endpoint
+  app.get('/api/intelligent/news', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      console.log(`[INTELLIGENT-AGENT] Fetching ${limit} news items`);
+
+      const { intelligentAgent } = await import('./intelligent-financial-agent');
+      
+      const news = await intelligentAgent.getFinancialNews(limit);
+
+      res.json({
+        success: true,
+        news,
+        count: news.length,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[INTELLIGENT-AGENT] News fetch error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch news',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // IPO Updates Endpoint
+  app.get('/api/intelligent/ipo', async (req, res) => {
+    try {
+      console.log(`[INTELLIGENT-AGENT] Fetching IPO updates`);
+
+      const { intelligentAgent } = await import('./intelligent-financial-agent');
+      
+      const ipos = await intelligentAgent.getIPOUpdates();
+
+      res.json({
+        success: true,
+        ipos,
+        count: ipos.length,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[INTELLIGENT-AGENT] IPO fetch error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch IPO data',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Market Trends Endpoint
+  app.get('/api/intelligent/market-trends', async (req, res) => {
+    try {
+      console.log(`[INTELLIGENT-AGENT] Fetching market trends`);
+
+      const { intelligentAgent } = await import('./intelligent-financial-agent');
+      
+      const trends = await intelligentAgent.getMarketTrends();
+
+      res.json({
+        success: true,
+        trends,
+        count: trends.length,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('[INTELLIGENT-AGENT] Market trends error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch market trends',
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
