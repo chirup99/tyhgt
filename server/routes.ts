@@ -14879,6 +14879,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==========================================
   
   app.post('/api/pattern-detection', detectPatterns);
+
+  // ==========================================
+  // ADVANCED AI SEARCH AGENT API
+  // Like Replit Agent - fetches data from web + AI responses
+  // ==========================================
+  app.post('/api/advanced-search', async (req, res) => {
+    try {
+      const { query, includeWebSearch = true } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Query is required' });
+      }
+
+      console.log(`🤖 Advanced AI Search: ${query}`);
+
+      const { advancedAIAgent } = await import('./advanced-ai-agent');
+      
+      const context: any = {};
+      
+      const stockSymbolMatch = query.match(/\b([A-Z]{2,})\b/);
+      const stockSymbol = stockSymbolMatch ? stockSymbolMatch[1] : '';
+      
+      if (stockSymbol) {
+        try {
+          const stockData = await fetchRealStockData(stockSymbol);
+          if (stockData) {
+            context.stockData = stockData;
+          }
+        } catch (error) {
+          console.log(`Could not fetch stock data for ${stockSymbol}`);
+        }
+      }
+
+      const result = await advancedAIAgent.search({
+        query,
+        includeWebSearch,
+        context
+      });
+
+      res.json({
+        success: true,
+        answer: result.answer,
+        sources: result.sources,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('❌ Advanced AI Search error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'AI search failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
   
   return httpServer;
 }
