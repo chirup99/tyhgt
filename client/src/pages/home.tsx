@@ -2714,11 +2714,42 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
         }
       }
 
-      // Default comprehensive response
+      // Advanced AI Search - Uses Gemini AI + Web Search (like Replit Agent)
       else {
-        const defaultResponse = `🤖 **AI Trading Assistant Ready!**\n\nI can help you with comprehensive trading and investment analysis:\n\n📈 **Live Stock Prices & Analysis:**\n• Real-time market data and technical indicators\n• Sector performance and trend analysis\n• Support/resistance levels and price targets\n\n📰 **Market News & Updates:**\n• Latest financial news and market movements\n• Economic indicators and policy impacts\n• Corporate earnings and sector trends\n\n🚀 **IPO Analysis & Information:**\n• Upcoming IPO calendar and subscription details\n• Post-listing performance tracking\n• Investment recommendations and risk assessment\n\n📊 **Fundamental Analysis:**\n• Company financials and valuation metrics\n• Sector comparisons and growth prospects\n• Risk analysis and investment recommendations\n\n💡 **Try asking:** "Get NIFTY price", "Latest market news", "IPO updates", or "Analyze fundamentals"`;
+        console.log(`🤖 Using Advanced AI Agent for query: ${query}`);
+        
+        try {
+          const response = await fetch('/api/advanced-search', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              includeWebSearch: true
+            })
+          });
 
-        setSearchResults(defaultResponse);
+          const data = await response.json();
+
+          if (data.success && data.answer) {
+            let result = `## 🤖 AI Assistant\n\n${data.answer}`;
+            
+            if (data.sources && data.sources.length > 0) {
+              result += `\n\n**📚 Sources:**\n${data.sources.map((source: string) => `• ${source}`).join('\n')}`;
+            }
+            
+            setSearchResults(result);
+          } else {
+            throw new Error('AI search failed');
+          }
+        } catch (error) {
+          console.error('Advanced AI search error:', error);
+          
+          const fallbackResponse = `🤖 **AI Trading Assistant Ready!**\n\nI can help you with comprehensive trading and investment analysis:\n\n📈 **Live Stock Prices & Analysis:**\n• Real-time market data and technical indicators\n• Sector performance and trend analysis\n• Support/resistance levels and price targets\n\n📰 **Market News & Updates:**\n• Latest financial news and market movements\n• Economic indicators and policy impacts\n• Corporate earnings and sector trends\n\n🚀 **IPO Analysis & Information:**\n• Upcoming IPO calendar and subscription details\n• Post-listing performance tracking\n• Investment recommendations and risk assessment\n\n📊 **Fundamental Analysis:**\n• Company financials and valuation metrics\n• Sector comparisons and growth prospects\n• Risk analysis and investment recommendations\n\n💡 **Try asking:** "Get NIFTY price", "Latest market news", "IPO updates", or "Analyze fundamentals"`;
+
+          setSearchResults(fallbackResponse);
+        }
       }
     } catch (error) {
       console.error("AI Search error:", error);
