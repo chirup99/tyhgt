@@ -4,6 +4,8 @@ This is a full-stack trading platform built with React, Express, and PostgreSQL.
 
 The system analyzes intraday market data using recursive pattern detection across multiple timeframes (5min, 10min, 20min, 40min, 80min), identifying Point A/B extremes, calculating slopes, and validating breakout patterns with timing rules.
 
+**NEW**: Advanced AI Agent with Web Search (like Replit Agent) - Uses DuckDuckGo and Google News to fetch real-time data and answer ANY financial question with intelligent analysis.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
