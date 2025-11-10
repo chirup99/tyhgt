@@ -14881,56 +14881,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/pattern-detection', detectPatterns);
 
   // ==========================================
-  // ADVANCED AI SEARCH AGENT API
-  // Like Replit Agent - fetches data from web + AI responses
+  // ADVANCED AI FINANCIAL AGENT API
+  // Like Replit Agent - fetches P&L data from web + intelligent AI analysis
   // ==========================================
-  app.post('/api/advanced-search', async (req, res) => {
+  app.post('/api/advanced-financial-search', async (req, res) => {
     try {
-      const { query, includeWebSearch = true } = req.body;
+      const { query, userStocks = [] } = req.body;
       
       if (!query || typeof query !== 'string') {
-        return res.status(400).json({ error: 'Query is required' });
+        return res.status(400).json({ 
+          success: false,
+          error: 'Query is required' 
+        });
       }
 
-      console.log(`🤖 Advanced AI Search: ${query}`);
+      console.log(`🤖 [ADVANCED-FINANCIAL-AI] Processing query: ${query}`);
+      console.log(`📊 [ADVANCED-FINANCIAL-AI] User stocks: ${userStocks.join(', ') || 'None'}`);
 
-      const { advancedAIAgent } = await import('./advanced-ai-agent');
+      const { processAdvancedFinancialQuery } = await import('./advanced-financial-agent');
       
-      const context: any = {};
-      
-      const stockSymbolMatch = query.match(/\b([A-Z]{2,})\b/);
-      const stockSymbol = stockSymbolMatch ? stockSymbolMatch[1] : '';
-      
-      if (stockSymbol) {
-        try {
-          const stockData = await fetchRealStockData(stockSymbol);
-          if (stockData) {
-            context.stockData = stockData;
-          }
-        } catch (error) {
-          console.log(`Could not fetch stock data for ${stockSymbol}`);
-        }
-      }
-
-      const result = await advancedAIAgent.search({
+      const result = await processAdvancedFinancialQuery({
         query,
-        includeWebSearch,
-        context
+        userStocks
       });
+
+      console.log(`✅ [ADVANCED-FINANCIAL-AI] Analysis complete!`);
 
       res.json({
         success: true,
+        query: result.query,
         answer: result.answer,
-        sources: result.sources,
-        timestamp: new Date().toISOString()
+        fundamentals: result.fundamentals || [],
+        webSources: result.webSources || [],
+        insights: result.insights || [],
+        timestamp: result.timestamp
       });
 
     } catch (error) {
-      console.error('❌ Advanced AI Search error:', error);
+      console.error('❌ [ADVANCED-FINANCIAL-AI] Error:', error);
       res.status(500).json({
         success: false,
-        error: 'AI search failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        error: 'Advanced financial AI search failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       });
     }
   });

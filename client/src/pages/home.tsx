@@ -1930,6 +1930,92 @@ export default function Home() {
         message.includes(stock)
       );
 
+      // ADVANCED AI FINANCIAL AGENT - Detects P&L, fundamentals, company analysis queries
+      const isAdvancedFinancialQuery = 
+        message.includes("p&l") ||
+        message.includes("p/l") ||
+        message.includes("profit") ||
+        message.includes("loss") ||
+        message.includes("revenue") ||
+        message.includes("earnings") ||
+        message.includes("financial") ||
+        message.includes("fundamentals") ||
+        message.includes("balance sheet") ||
+        message.includes("income statement") ||
+        message.includes("analyze") ||
+        message.includes("analysis") ||
+        message.includes("compare") ||
+        message.includes("margin") ||
+        message.includes("growth") ||
+        message.includes("debt") ||
+        message.includes("equity") ||
+        message.includes("valuation") ||
+        (mentionedStock && (
+          message.includes("company") ||
+          message.includes("stock") ||
+          message.includes("invest")
+        ));
+
+      if (isAdvancedFinancialQuery) {
+        console.log("🤖 [FRONTEND] Triggering Advanced AI Financial Agent...");
+        
+        try {
+          const response = await fetch("/api/advanced-financial-search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              query: query,
+              userStocks: [] // TODO: Get user's actual stock holdings from their portfolio
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            
+            let advancedResult = `# 🤖 Advanced AI Financial Analysis\n\n`;
+            advancedResult += `${data.answer}\n\n`;
+            
+            if (data.fundamentals && data.fundamentals.length > 0) {
+              const fund = data.fundamentals[0];
+              advancedResult += `---\n\n## 📊 Latest Financial Data\n\n`;
+              advancedResult += `**Company:** ${fund.companyName}\n\n`;
+              advancedResult += `**Financial Metrics (from Web):**\n`;
+              advancedResult += `• Revenue: ${fund.revenue}\n`;
+              advancedResult += `• Net Income: ${fund.netIncome}\n`;
+              advancedResult += `• Gross Margin: ${fund.grossMargin}\n`;
+              advancedResult += `• Operating Margin: ${fund.operatingMargin}\n`;
+              advancedResult += `• Net Margin: ${fund.netMargin}\n`;
+              advancedResult += `• EPS: ${fund.eps}\n`;
+              advancedResult += `• P/E Ratio: ${fund.peRatio}\n`;
+              advancedResult += `• Market Cap: ${fund.marketCap}\n`;
+              advancedResult += `• Revenue Growth YoY: ${fund.revenueGrowthYoY}\n`;
+              advancedResult += `• Earnings Growth YoY: ${fund.earningsGrowthYoY}\n\n`;
+            }
+            
+            if (data.insights && data.insights.length > 0) {
+              advancedResult += `---\n\n## 💡 Key Insights\n\n`;
+              data.insights.forEach((insight: string) => {
+                advancedResult += `${insight}\n`;
+              });
+            }
+            
+            advancedResult += `\n---\n\n*Powered by Advanced AI Agent with Web Search*\n`;
+            advancedResult += `*Data fetched: ${new Date(data.timestamp).toLocaleString()}*`;
+            
+            setSearchResults(advancedResult);
+            console.log("✅ [FRONTEND] Advanced AI analysis complete!");
+            setIsSearchLoading(false);
+            return;
+          } else {
+            console.error("❌ [FRONTEND] Advanced AI search failed:", response.statusText);
+          }
+        } catch (error) {
+          console.error("❌ [FRONTEND] Advanced AI search error:", error);
+        }
+      }
+
       // Technical Indicator Search (RSI, EMA, MACD, etc.)
       if (
         message.includes("rsi") ||
