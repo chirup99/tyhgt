@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { PostCreationPanel } from './post-creation-panel';
 import { LiveBanner } from './live-banner';
 import type { SocialPost } from '@shared/schema';
@@ -636,6 +637,7 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
 }
 
 function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, searchQuery, setSearchQuery, onSearch, showAppBar }: { onAllClick: () => void; isRefreshing: boolean; selectedFilter: string; onFilterChange: (filter: string) => void; searchQuery: string; setSearchQuery: (query: string) => void; onSearch: () => void; showAppBar: boolean }) {
+  const [, setLocation] = useLocation();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
 
@@ -760,18 +762,16 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
             ))}
           </div>
           
-          {/* Back Button - Mobile Only, Show when not on "All" filter */}
-          {selectedFilter !== 'All' && (
-            <Button
-              onClick={() => onFilterChange('All')}
-              variant="ghost"
-              size="sm"
-              className="md:hidden flex-shrink-0 h-9 w-9 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-              data-testid="button-back-to-all"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          )}
+          {/* Back Button - Always visible, navigates to home page */}
+          <Button
+            onClick={() => setLocation('/')}
+            variant="ghost"
+            size="sm"
+            className="flex-shrink-0 h-9 w-9 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+            data-testid="button-back-to-home"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </div>
       </div>
       </div>
