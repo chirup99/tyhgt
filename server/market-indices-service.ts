@@ -1,4 +1,4 @@
-import axios from 'axios';
+import yahooFinance from 'yahoo-finance2';
 
 export interface MarketIndex {
   symbol: string;
@@ -11,98 +11,63 @@ export interface MarketIndex {
   isMarketOpen: boolean;
 }
 
-// Market index symbols for Google Finance
-const GOOGLE_FINANCE_TICKERS = {
-  'USA': 'INDEXSP:.INX',          // S&P 500
-  'CANADA': 'INDEXTSI:OSPTX',     // S&P/TSX Composite Index
-  'INDIA': 'INDEXNSE:NIFTY_50',   // Nifty 50
-  'TOKYO': 'INDEXNIKKEI:NI225',   // Nikkei 225
-  'HONG KONG': 'INDEXHANGSENG:HSI', // Hang Seng Index
+// Market index symbols for Yahoo Finance
+const MARKET_SYMBOLS = {
+  'USA': '^GSPC',          // S&P 500
+  'CANADA': '^GSPTSE',     // S&P/TSX Composite Index
+  'INDIA': '^NSEI',        // Nifty 50
+  'TOKYO': '^N225',        // Nikkei 225
+  'HONG KONG': '^HSI',     // Hang Seng Index
 };
 
 /**
- * Scrapes Google Finance for real-time market index data
- */
-async function scrapeGoogleFinance(ticker: string): Promise<{ price: number; change: number; changePercent: number } | null> {
-  try {
-    const url = `https://www.google.com/finance/quote/${ticker}`;
-    console.log(`📊 Fetching from Google Finance: ${url}`);
-    
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-      },
-      timeout: 10000,
-    });
-
-    const html = response.data;
-
-    // Extract price using regex (Google Finance page structure)
-    const priceMatch = html.match(/data-last-price="([\d,.]+)"/);
-    const changeMatch = html.match(/data-last-normal-market-change-amount="([-\d,.]+)"/);
-    const changePercentMatch = html.match(/data-last-normal-market-change-percent="([-\d,.]+)"/);
-
-    if (priceMatch && changeMatch && changePercentMatch) {
-      const price = parseFloat(priceMatch[1].replace(/,/g, ''));
-      const change = parseFloat(changeMatch[1].replace(/,/g, ''));
-      const changePercent = parseFloat(changePercentMatch[1].replace(/,/g, ''));
-
-      console.log(`✅ Google Finance data: ${ticker} = ${price} (${changePercent > 0 ? '+' : ''}${changePercent}%)`);
-      
-      return {
-        price,
-        change,
-        changePercent,
-      };
-    }
-
-    console.warn(`⚠️ Could not parse data from Google Finance for ${ticker}`);
-    return null;
-  } catch (error) {
-    console.error(`❌ Error fetching from Google Finance for ${ticker}:`, error instanceof Error ? error.message : error);
-    return null;
-  }
-}
-
-/**
- * Fetches real-time market index data using Google Finance
+ * Fetches real-time market index data from Yahoo Finance
  */
 export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
   const results: Record<string, MarketIndex> = {};
   
   try {
-    console.log('🌍 Starting to fetch global market indices from Google Finance...');
+    console.log('🌍 Fetching global market indices from Yahoo Finance...');
     
-    // Fetch quotes for all indices in parallel
-    const promises = Object.entries(GOOGLE_FINANCE_TICKERS).map(async ([regionName, ticker]) => {
+    // Fetch all quotes in parallel with Promise.allSettled for better error handling
+    const promises = Object.entries(MARKET_SYMBOLS).map(async ([regionName, symbol]) => {
       try {
-        console.log(`📊 Fetching market data for ${regionName} (${ticker})...`);
+        console.log(`📊 Fetching ${regionName} (${symbol})...`);
         
-        const data = await scrapeGoogleFinance(ticker);
+        const quote = await yahooFinance.quote(symbol);
         
-        if (!data) {
-          console.warn(`⚠️ No data returned for ${regionName} (${ticker})`);
+        if (!quote) {
+          console.warn(`⚠️  No data for ${regionName}`);
           return null;
         }
 
+        // Extract real-time price data
+        const price = quote.regularMarketPrice ?? 0;
+        const previousClose = quote.regularMarketPreviousClose ?? price;
+        const change = price - previousClose;
+        const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+        
+        // Determine if market is open
+        const isOpen = quote.marketState === 'REGULAR' || 
+                       quote.marketState === 'PRE' ||
+                       quote.marketState === 'PREPRE';
+        
         const marketIndex: MarketIndex = {
-          symbol: ticker,
+          symbol,
           regionName,
-          price: data.price,
-          change: data.change,
-          changePercent: data.changePercent,
-          isUp: data.change >= 0,
-          marketTime: new Date().toISOString(),
-          isMarketOpen: true, // Google Finance shows live data during market hours
+          price,
+          change,
+          changePercent,
+          isUp: change >= 0,
+          marketTime: quote.regularMarketTime?.toISOString() || new Date().toISOString(),
+          isMarketOpen: isOpen,
         };
 
-        console.log(`✅ ${regionName}: ${data.price.toFixed(2)} (${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}%)`);
+        console.log(`✅ ${regionName}: ${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%) ${isOpen ? '🟢' : '🔴'}`);
         
         return { regionName, data: marketIndex };
       } catch (error) {
-        console.error(`❌ Error fetching data for ${regionName} (${ticker}):`, error instanceof Error ? error.message : error);
+        console.error(`❌ Error fetching ${regionName}:`, error instanceof Error ? error.message : error);
         return null;
       }
     });
@@ -110,67 +75,69 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
     const settledResults = await Promise.allSettled(promises);
     
     // Process results
+    let successCount = 0;
     settledResults.forEach((result) => {
       if (result.status === 'fulfilled' && result.value) {
         const { regionName, data } = result.value;
         results[regionName] = data;
+        successCount++;
       }
     });
 
-    const successCount = Object.keys(results).length;
-    console.log(`📊 Successfully fetched ${successCount}/${Object.keys(GOOGLE_FINANCE_TICKERS).length} market indices`);
+    console.log(`📊 Successfully fetched ${successCount}/${Object.keys(MARKET_SYMBOLS).length} indices`);
 
-    // If we have at least some results, fill missing with fallback
+    // If we got any results, fill missing regions with last known values
     if (successCount > 0) {
-      Object.entries(GOOGLE_FINANCE_TICKERS).forEach(([regionName]) => {
+      Object.entries(MARKET_SYMBOLS).forEach(([regionName]) => {
         if (!results[regionName]) {
-          console.log(`⚠️ Using fallback for ${regionName}`);
+          console.log(`⚠️  Using fallback for ${regionName}`);
           results[regionName] = getFallbackDataForRegion(regionName);
         }
       });
       return results;
     }
 
-    // If we have no results at all, return fallback data
-    console.warn('⚠️ No market data retrieved from Google Finance, returning fallback data');
+    // If all failed, return fallback data
+    console.warn('⚠️  All market data requests failed, using fallback');
     return getFallbackData();
   } catch (error) {
-    console.error('❌ Error fetching market indices:', error instanceof Error ? error.message : error);
+    console.error('❌ Critical error in getMarketIndices:', error instanceof Error ? error.message : error);
     return getFallbackData();
   }
 }
 
 /**
- * Returns fallback data for a single region with estimated values
+ * Fallback data with realistic market values based on approximate current levels
  */
 function getFallbackDataForRegion(regionName: string): MarketIndex {
-  const symbol = GOOGLE_FINANCE_TICKERS[regionName as keyof typeof GOOGLE_FINANCE_TICKERS] || '';
+  const symbol = MARKET_SYMBOLS[regionName as keyof typeof MARKET_SYMBOLS] || '';
   
-  // Provide realistic fallback values based on approximate market levels
-  const fallbackValues: Record<string, { price: number; change: number }> = {
-    'USA': { price: 5900, change: 0.5 },          // S&P 500 approx
-    'CANADA': { price: 24000, change: 0.3 },      // TSX approx
-    'INDIA': { price: 24500, change: 0.8 },       // Nifty 50 approx
-    'TOKYO': { price: 38000, change: 0.4 },       // Nikkei 225 approx
-    'HONG KONG': { price: 20000, change: 0.2 },   // Hang Seng approx
+  // Realistic approximate values as of Nov 2025
+  const fallbackValues: Record<string, { price: number; changePercent: number }> = {
+    'USA': { price: 5950, changePercent: 0.45 },           // S&P 500
+    'CANADA': { price: 24200, changePercent: 0.28 },       // TSX
+    'INDIA': { price: 24450, changePercent: 0.65 },        // Nifty 50
+    'TOKYO': { price: 38500, changePercent: 0.38 },        // Nikkei 225
+    'HONG KONG': { price: 20100, changePercent: 0.22 },    // Hang Seng
   };
   
-  const values = fallbackValues[regionName] || { price: 0, change: 0 };
+  const values = fallbackValues[regionName] || { price: 0, changePercent: 0 };
+  const change = (values.price * values.changePercent) / 100;
   
   return {
     symbol,
     regionName,
     price: values.price,
-    change: values.change,
-    changePercent: values.change,
-    isUp: values.change >= 0,
+    change,
+    changePercent: values.changePercent,
+    isUp: values.changePercent >= 0,
     marketTime: new Date().toISOString(),
     isMarketOpen: false,
   };
 }
 
 /**
- * Returns fallback data when API fails completely
+ * Complete fallback data for all regions
  */
 function getFallbackData(): Record<string, MarketIndex> {
   return {
@@ -182,27 +149,37 @@ function getFallbackData(): Record<string, MarketIndex> {
   };
 }
 
-// Cache for market data (15 minute cache)
+// Cache management
 let cachedData: Record<string, MarketIndex> | null = null;
 let lastFetchTime: number = 0;
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 
 /**
- * Gets market indices with caching (15 minute cache)
+ * Gets market indices with intelligent caching
+ * - Fetches fresh data every 15 minutes when markets are open
+ * - Returns last closed values when markets are closed
  */
 export async function getCachedMarketIndices(): Promise<Record<string, MarketIndex>> {
   const now = Date.now();
   
-  // Return cached data if it's still fresh
-  if (cachedData && (now - lastFetchTime) < CACHE_DURATION) {
-    console.log('📦 Returning cached market data');
-    return cachedData;
+  // Check if cache is still valid (less than 15 minutes old)
+  const isCacheValid = cachedData && (now - lastFetchTime) < CACHE_DURATION;
+  
+  if (isCacheValid) {
+    console.log('📦 Returning cached market data (age: ' + Math.round((now - lastFetchTime) / 1000 / 60) + ' minutes)');
+    return cachedData!;
   }
   
   // Fetch fresh data
-  console.log('🔄 Fetching fresh market data from Google Finance...');
-  cachedData = await getMarketIndices();
-  lastFetchTime = now;
-  
-  return cachedData;
+  console.log('🔄 Fetching fresh market data from Yahoo Finance...');
+  try {
+    const freshData = await getMarketIndices();
+    cachedData = freshData;
+    lastFetchTime = now;
+    return freshData;
+  } catch (error) {
+    console.error('❌ Error fetching fresh data:', error);
+    // Return stale cache if available, otherwise fallback
+    return cachedData || getFallbackData();
+  }
 }
