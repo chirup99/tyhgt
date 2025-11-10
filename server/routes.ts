@@ -5382,6 +5382,504 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to add comment' });
     }
   });
+
+  // ==========================
+  // COMPREHENSIVE SOCIAL MEDIA FEATURES WITH FIREBASE
+  // ==========================
+
+  // Helper function to verify user authentication
+  async function verifyUserAuth(authHeader: string | undefined) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Authentication required');
+    }
+    const idToken = authHeader.split('Bearer ')[1];
+    const admin = await import('firebase-admin');
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    return decodedToken.uid;
+  }
+
+  // FOLLOW/UNFOLLOW ENDPOINTS
+  app.post('/api/users/:username/follow', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const targetUsername = req.params.username;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get current user's profile
+      const userDoc = await db.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+      const currentUsername = userDoc.data()?.username;
+      
+      // Find target user by username
+      const usersSnapshot = await db.collection('users').where('username', '==', targetUsername).limit(1).get();
+      if (usersSnapshot.empty) {
+        return res.status(404).json({ error: 'Target user not found' });
+      }
+      const targetUserId = usersSnapshot.docs[0].id;
+      
+      // Don't allow self-follow
+      if (userId === targetUserId) {
+        return res.status(400).json({ error: 'Cannot follow yourself' });
+      }
+      
+      // Create follow relationship
+      await db.collection('follows').doc(`${userId}_${targetUserId}`).set({
+        followerId: userId,
+        followerUsername: currentUsername,
+        followingId: targetUserId,
+        followingUsername: targetUsername,
+        createdAt: new Date()
+      });
+      
+      console.log(`✅ ${currentUsername} is now following ${targetUsername}`);
+      res.json({ success: true, following: true });
+    } catch (error: any) {
+      console.error('Error following user:', error);
+      res.status(500).json({ error: error.message || 'Failed to follow user' });
+    }
+  });
+
+  app.delete('/api/users/:username/follow', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const targetUsername = req.params.username;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Find target user by username
+      const usersSnapshot = await db.collection('users').where('username', '==', targetUsername).limit(1).get();
+      if (usersSnapshot.empty) {
+        return res.status(404).json({ error: 'Target user not found' });
+      }
+      const targetUserId = usersSnapshot.docs[0].id;
+      
+      // Delete follow relationship
+      await db.collection('follows').doc(`${userId}_${targetUserId}`).delete();
+      
+      console.log(`✅ Unfollowed ${targetUsername}`);
+      res.json({ success: true, following: false });
+    } catch (error: any) {
+      console.error('Error unfollowing user:', error);
+      res.status(500).json({ error: error.message || 'Failed to unfollow user' });
+    }
+  });
+
+  app.get('/api/users/:username/follow-status', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const targetUsername = req.params.username;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Find target user
+      const usersSnapshot = await db.collection('users').where('username', '==', targetUsername).limit(1).get();
+      if (usersSnapshot.empty) {
+        return res.json({ following: false });
+      }
+      const targetUserId = usersSnapshot.docs[0].id;
+      
+      // Check if follow relationship exists
+      const followDoc = await db.collection('follows').doc(`${userId}_${targetUserId}`).get();
+      res.json({ following: followDoc.exists });
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      res.json({ following: false });
+    }
+  });
+
+  app.get('/api/users/:username/followers-count', async (req, res) => {
+    try {
+      const username = req.params.username;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Find user by username
+      const usersSnapshot = await db.collection('users').where('username', '==', username).limit(1).get();
+      if (usersSnapshot.empty) {
+        return res.json({ followers: 0, following: 0 });
+      }
+      const userId = usersSnapshot.docs[0].id;
+      
+      // Count followers
+      const followersSnapshot = await db.collection('follows').where('followingId', '==', userId).get();
+      const followersCount = followersSnapshot.size;
+      
+      // Count following
+      const followingSnapshot = await db.collection('follows').where('followerId', '==', userId).get();
+      const followingCount = followingSnapshot.size;
+      
+      res.json({ followers: followersCount, following: followingCount });
+    } catch (error) {
+      console.error('Error getting follower counts:', error);
+      res.json({ followers: 0, following: 0 });
+    }
+  });
+
+  // LIKE ENDPOINTS (with user tracking)
+  app.post('/api/social-posts/:postId/like-v2', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get user's username
+      const userDoc = await db.collection('users').doc(userId).get();
+      const username = userDoc.data()?.username || 'anonymous';
+      
+      // Create like record
+      await db.collection('likes').doc(`${userId}_${postId}`).set({
+        userId,
+        username,
+        postId,
+        createdAt: new Date()
+      });
+      
+      // Get total likes for this post
+      const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+      const likesCount = likesSnapshot.size;
+      
+      console.log(`✅ ${username} liked post ${postId}`);
+      res.json({ success: true, liked: true, likes: likesCount });
+    } catch (error: any) {
+      console.error('Error liking post:', error);
+      res.status(500).json({ error: error.message || 'Failed to like post' });
+    }
+  });
+
+  app.delete('/api/social-posts/:postId/like-v2', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Delete like record
+      await db.collection('likes').doc(`${userId}_${postId}`).delete();
+      
+      // Get updated total likes
+      const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+      const likesCount = likesSnapshot.size;
+      
+      console.log(`✅ Unliked post ${postId}`);
+      res.json({ success: true, liked: false, likes: likesCount });
+    } catch (error: any) {
+      console.error('Error unliking post:', error);
+      res.status(500).json({ error: error.message || 'Failed to unlike post' });
+    }
+  });
+
+  app.get('/api/social-posts/:postId/like-status', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Check if like exists
+      const likeDoc = await db.collection('likes').doc(`${userId}_${postId}`).get();
+      
+      // Get total likes
+      const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+      const likesCount = likesSnapshot.size;
+      
+      res.json({ liked: likeDoc.exists, likes: likesCount });
+    } catch (error) {
+      console.error('Error checking like status:', error);
+      res.json({ liked: false, likes: 0 });
+    }
+  });
+
+  // RETWEET ENDPOINTS
+  app.post('/api/social-posts/:postId/retweet', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get user's username
+      const userDoc = await db.collection('users').doc(userId).get();
+      const username = userDoc.data()?.username || 'anonymous';
+      
+      // Create retweet record
+      await db.collection('retweets').doc(`${userId}_${postId}`).set({
+        userId,
+        username,
+        postId,
+        createdAt: new Date()
+      });
+      
+      // Get total retweets
+      const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+      const retweetsCount = retweetsSnapshot.size;
+      
+      console.log(`✅ ${username} retweeted post ${postId}`);
+      res.json({ success: true, retweeted: true, retweets: retweetsCount });
+    } catch (error: any) {
+      console.error('Error retweeting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to retweet post' });
+    }
+  });
+
+  app.delete('/api/social-posts/:postId/retweet', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Delete retweet record
+      await db.collection('retweets').doc(`${userId}_${postId}`).delete();
+      
+      // Get updated total retweets
+      const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+      const retweetsCount = retweetsSnapshot.size;
+      
+      console.log(`✅ Unretweeted post ${postId}`);
+      res.json({ success: true, retweeted: false, retweets: retweetsCount });
+    } catch (error: any) {
+      console.error('Error unretweeting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to unretweet post' });
+    }
+  });
+
+  app.get('/api/social-posts/:postId/retweet-status', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Check if retweet exists
+      const retweetDoc = await db.collection('retweets').doc(`${userId}_${postId}`).get();
+      
+      // Get total retweets
+      const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+      const retweetsCount = retweetsSnapshot.size;
+      
+      res.json({ retweeted: retweetDoc.exists, retweets: retweetsCount });
+    } catch (error) {
+      console.error('Error checking retweet status:', error);
+      res.json({ retweeted: false, retweets: 0 });
+    }
+  });
+
+  // COMMENT ENDPOINTS (proper storage)
+  app.post('/api/social-posts/:postId/comments', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      const { content } = req.body;
+      
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ error: 'Comment content is required' });
+      }
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get user's profile
+      const userDoc = await db.collection('users').doc(userId).get();
+      const userData = userDoc.data();
+      
+      // Create comment
+      const commentRef = await db.collection('comments').add({
+        postId,
+        userId,
+        username: userData?.username || 'anonymous',
+        displayName: userData?.displayName || 'Anonymous User',
+        content: content.trim(),
+        createdAt: new Date()
+      });
+      
+      // Get total comments
+      const commentsSnapshot = await db.collection('comments').where('postId', '==', postId).get();
+      const commentsCount = commentsSnapshot.size;
+      
+      console.log(`✅ Comment added to post ${postId}`);
+      res.json({ 
+        success: true, 
+        comments: commentsCount,
+        comment: {
+          id: commentRef.id,
+          username: userData?.username,
+          displayName: userData?.displayName,
+          content: content.trim(),
+          createdAt: new Date()
+        }
+      });
+    } catch (error: any) {
+      console.error('Error adding comment:', error);
+      res.status(500).json({ error: error.message || 'Failed to add comment' });
+    }
+  });
+
+  app.get('/api/social-posts/:postId/comments-list', async (req, res) => {
+    try {
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get all comments for this post
+      const commentsSnapshot = await db.collection('comments')
+        .where('postId', '==', postId)
+        .orderBy('createdAt', 'desc')
+        .get();
+      
+      const comments = commentsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.() || new Date()
+      }));
+      
+      res.json(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.json([]);
+    }
+  });
+
+  app.delete('/api/social-posts/:postId/comments/:commentId', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const { postId, commentId } = req.params;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get comment
+      const commentDoc = await db.collection('comments').doc(commentId).get();
+      if (!commentDoc.exists) {
+        return res.status(404).json({ error: 'Comment not found' });
+      }
+      
+      // Check if user owns this comment
+      if (commentDoc.data()?.userId !== userId) {
+        return res.status(403).json({ error: 'Not authorized to delete this comment' });
+      }
+      
+      // Delete comment
+      await db.collection('comments').doc(commentId).delete();
+      
+      // Get updated count
+      const commentsSnapshot = await db.collection('comments').where('postId', '==', postId).get();
+      const commentsCount = commentsSnapshot.size;
+      
+      console.log(`✅ Comment ${commentId} deleted`);
+      res.json({ success: true, comments: commentsCount });
+    } catch (error: any) {
+      console.error('Error deleting comment:', error);
+      res.status(500).json({ error: error.message || 'Failed to delete comment' });
+    }
+  });
+
+  // SHARE ENDPOINT
+  app.post('/api/social-posts/:postId/share', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get user's username
+      const userDoc = await db.collection('users').doc(userId).get();
+      const username = userDoc.data()?.username || 'anonymous';
+      
+      // Track share
+      await db.collection('shares').add({
+        userId,
+        username,
+        postId,
+        createdAt: new Date()
+      });
+      
+      // Get total shares
+      const sharesSnapshot = await db.collection('shares').where('postId', '==', postId).get();
+      const sharesCount = sharesSnapshot.size;
+      
+      console.log(`✅ ${username} shared post ${postId}`);
+      res.json({ success: true, shares: sharesCount });
+    } catch (error: any) {
+      console.error('Error sharing post:', error);
+      res.status(500).json({ error: error.message || 'Failed to share post' });
+    }
+  });
+
+  // DELETE POST ENDPOINT
+  app.delete('/api/social-posts/:postId', async (req, res) => {
+    try {
+      const userId = await verifyUserAuth(req.headers.authorization);
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Get post
+      const postDoc = await db.collection('user_posts').doc(postId).get();
+      if (!postDoc.exists) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      
+      // Check if user owns this post
+      if (postDoc.data()?.userId !== userId) {
+        return res.status(403).json({ error: 'Not authorized to delete this post' });
+      }
+      
+      // Delete post
+      await db.collection('user_posts').doc(postId).delete();
+      
+      // Delete associated likes
+      const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+      const likeBatch = db.batch();
+      likesSnapshot.docs.forEach(doc => likeBatch.delete(doc.ref));
+      await likeBatch.commit();
+      
+      // Delete associated retweets
+      const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+      const retweetBatch = db.batch();
+      retweetsSnapshot.docs.forEach(doc => retweetBatch.delete(doc.ref));
+      await retweetBatch.commit();
+      
+      // Delete associated comments
+      const commentsSnapshot = await db.collection('comments').where('postId', '==', postId).get();
+      const commentBatch = db.batch();
+      commentsSnapshot.docs.forEach(doc => commentBatch.delete(doc.ref));
+      await commentBatch.commit();
+      
+      // Delete associated shares
+      const sharesSnapshot = await db.collection('shares').where('postId', '==', postId).get();
+      const shareBatch = db.batch();
+      sharesSnapshot.docs.forEach(doc => shareBatch.delete(doc.ref));
+      await shareBatch.commit();
+      
+      console.log(`✅ Post ${postId} and all associated data deleted`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error deleting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to delete post' });
+    }
+  });
+
+  // ==========================
+  // END OF SOCIAL MEDIA FEATURES
+  // ==========================
+
   // Attempt auto-reconnection on server start
   console.log('🔄 Server starting - scheduling auto-reconnection check...');
   setTimeout(async () => {
