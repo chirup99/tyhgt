@@ -14886,7 +14886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==========================================
   app.post('/api/advanced-financial-search', async (req, res) => {
     try {
-      const { query, userStocks = [], journalData = [], fyersData = null } = req.body;
+      const { query, userStocks = [], journalData = [], fyersSymbols = [] } = req.body;
       
       if (!query || typeof query !== 'string') {
         return res.status(400).json({ 
@@ -14895,10 +14895,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`🤖 [ADVANCED-FINANCIAL-AI] Processing query: ${query}`);
-      console.log(`📊 [ADVANCED-FINANCIAL-AI] User stocks: ${userStocks.join(', ') || 'None'}`);
-      console.log(`📈 [ADVANCED-FINANCIAL-AI] Journal data: ${journalData.length} days`);
-      console.log(`💰 [ADVANCED-FINANCIAL-AI] Fyers data: ${fyersData ? 'Provided' : 'Not provided'}`);
+      console.log(`[ADVANCED-FINANCIAL-AI] Processing query: ${query}`);
+      console.log(`[ADVANCED-FINANCIAL-AI] User stocks: ${userStocks.join(', ') || 'None'}`);
+      console.log(`[ADVANCED-FINANCIAL-AI] Journal data: ${journalData.length} days`);
+      console.log(`[ADVANCED-FINANCIAL-AI] Fyers symbols: ${fyersSymbols.join(', ') || 'None'}`);
+
+      let fyersData = null;
+      if (fyersSymbols.length > 0) {
+        try {
+          console.log(`[ADVANCED-FINANCIAL-AI] Fetching live data from Fyers API for: ${fyersSymbols.join(', ')}`);
+          const fyersQuotes = await fyersApi.getQuotes(fyersSymbols);
+          fyersData = fyersQuotes;
+          console.log(`[ADVANCED-FINANCIAL-AI] Successfully fetched ${fyersQuotes.length} quotes from Fyers`);
+        } catch (fyersError: any) {
+          console.log(`[ADVANCED-FINANCIAL-AI] Could not fetch Fyers data: ${fyersError.message}`);
+          fyersData = null;
+        }
+      }
 
       const { processAdvancedFinancialQuery } = await import('./advanced-financial-agent');
       
@@ -14906,10 +14919,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         query,
         userStocks,
         journalData,
-        fyersData
+        fyersData: fyersData
       });
 
-      console.log(`✅ [ADVANCED-FINANCIAL-AI] Analysis complete!`);
+      console.log(`[ADVANCED-FINANCIAL-AI] Analysis complete`);
 
       res.json({
         success: true,
@@ -14922,7 +14935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
-      console.error('❌ [ADVANCED-FINANCIAL-AI] Error:', error);
+      console.error('[ADVANCED-FINANCIAL-AI] Error:', error);
       res.status(500).json({
         success: false,
         error: 'Advanced financial AI search failed',

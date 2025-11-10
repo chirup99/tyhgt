@@ -1980,6 +1980,30 @@ export default function Home() {
             console.warn("⚠️ [FRONTEND] Could not load journal data:", journalError);
           }
           
+          const fyersSymbols: string[] = [];
+          const lowerQuery = message.toLowerCase();
+          const indianStocks: Record<string, string> = {
+            'reliance': 'NSE:RELIANCE-EQ',
+            'tcs': 'NSE:TCS-EQ',
+            'infosys': 'NSE:INFY-EQ',
+            'hdfc': 'NSE:HDFCBANK-EQ',
+            'icici': 'NSE:ICICIBANK-EQ',
+            'sbi': 'NSE:SBIN-EQ',
+            'airtel': 'NSE:BHARTIARTL-EQ',
+            'itc': 'NSE:ITC-EQ',
+            'wipro': 'NSE:WIPRO-EQ',
+            'nifty': 'NSE:NIFTY50-INDEX',
+            'sensex': 'BSE:SENSEX-INDEX'
+          };
+          
+          for (const [keyword, symbol] of Object.entries(indianStocks)) {
+            if (lowerQuery.includes(keyword)) {
+              fyersSymbols.push(symbol);
+            }
+          }
+          
+          console.log(`📈 [FRONTEND] Detected Fyers symbols: ${fyersSymbols.join(', ') || 'None'}`);
+          
           const response = await fetch("/api/advanced-financial-search", {
             method: "POST",
             headers: {
@@ -1989,7 +2013,7 @@ export default function Home() {
               query: query,
               userStocks: [],
               journalData: journalData,
-              fyersData: null
+              fyersSymbols: fyersSymbols
             }),
           });
 

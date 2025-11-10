@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
+import type { FyersQuote } from "./fyers-api";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
@@ -16,7 +17,7 @@ export interface FinancialQuery {
   query: string;
   userStocks?: string[];
   journalData?: JournalData[];
-  fyersData?: any;
+  fyersData?: FyersQuote[];
 }
 
 export interface WebSearchResult {
@@ -99,7 +100,7 @@ async function getFinancialReferenceSources(query: string): Promise<WebSearchRes
 }
 
 async function fetchYahooFinanceData(symbol: string): Promise<CompanyFundamentals | null> {
-  console.log(`📊 [YAHOO-FINANCE] Fetching data for: ${symbol}`);
+  console.log(`[YAHOO-FINANCE] Fetching data for: ${symbol}`);
   
   try {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}.NS?interval=1d&range=1mo`;
@@ -113,19 +114,18 @@ async function fetchYahooFinanceData(symbol: string): Promise<CompanyFundamental
     if (response.data?.chart?.result?.[0]) {
       const result = response.data.chart.result[0];
       const meta = result.meta;
-      const quote = result.indicators?.quote?.[0];
       
       const currentPrice = meta.regularMarketPrice || meta.previousClose || null;
       const previousClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
-      const priceChange = currentPrice && previousClose ? (currentPrice - previousClose) : null;
-      const priceChangePercent = currentPrice && previousClose ? ((priceChange / previousClose) * 100) : null;
+      const priceChange = currentPrice && previousClose ? (currentPrice - previousClose) : 0;
+      const priceChangePercent = currentPrice && previousClose && priceChange !== null ? ((priceChange / previousClose) * 100) : 0;
       
       const fundamentals: CompanyFundamentals = {
         symbol: symbol,
         companyName: meta.longName || meta.shortName || symbol,
         currentPrice: currentPrice ? `₹${currentPrice.toFixed(2)}` : 'N/A',
-        priceChange: priceChange ? `${priceChange >= 0 ? '+' : ''}₹${priceChange.toFixed(2)}` : 'N/A',
-        priceChangePercent: priceChangePercent ? `${priceChangePercent >= 0 ? '+' : ''}${priceChangePercent.toFixed(2)}%` : 'N/A',
+        priceChange: `${priceChange >= 0 ? '+' : ''}₹${priceChange.toFixed(2)}`,
+        priceChangePercent: `${priceChangePercent >= 0 ? '+' : ''}${priceChangePercent.toFixed(2)}%`,
         volume: meta.regularMarketVolume ? meta.regularMarketVolume.toLocaleString() : 'N/A',
         marketCap: meta.marketCap ? `₹${(meta.marketCap / 10000000).toFixed(2)} Cr` : 'N/A',
         high52Week: meta.fiftyTwoWeekHigh ? `₹${meta.fiftyTwoWeekHigh.toFixed(2)}` : 'N/A',
@@ -134,15 +134,15 @@ async function fetchYahooFinanceData(symbol: string): Promise<CompanyFundamental
         lastUpdated: new Date().toISOString()
       };
       
-      console.log(`✅ [YAHOO-FINANCE] Successfully fetched data for ${symbol}`);
+      console.log(`[YAHOO-FINANCE] Successfully fetched data for ${symbol}`);
       return fundamentals;
     }
     
-    console.log(`⚠️ [YAHOO-FINANCE] No data found for ${symbol}`);
+    console.log(`[YAHOO-FINANCE] No data found for ${symbol}`);
     return null;
     
   } catch (error: any) {
-    console.error(`❌ [YAHOO-FINANCE] Error fetching ${symbol}:`, error.message);
+    console.error(`[YAHOO-FINANCE] Error fetching ${symbol}:`, error.message);
     return null;
   }
 }
@@ -196,7 +196,7 @@ function extractCompanySymbols(query: string): string[] {
     }
   }
   
-  return [...new Set(detectedSymbols)];
+  return Array.from(new Set(detectedSymbols));
 }
 
 function analyzeJournalPerformance(journalData: JournalData[]): string {
@@ -228,16 +228,35 @@ function analyzeJournalPerformance(journalData: JournalData[]): string {
   `.trim();
 }
 
+function formatFyersData(fyersQuotes: FyersQuote[]): string {
+  if (!fyersQuotes || fyersQuotes.length === 0) {
+    return "";
+  }
+
+  return `
+**Real-Time Stock Prices (Fyers API):**
+
+${fyersQuotes.map((quote, i) => `
+${i + 1}. **${quote.name || quote.symbol}** (${quote.symbol})
+   - LTP: ₹${quote.ltp.toFixed(2)} | Change: ${quote.change >= 0 ? '+' : ''}${quote.change.toFixed(2)} (${quote.change_percentage >= 0 ? '+' : ''}${quote.change_percentage.toFixed(2)}%)
+   - OHLC: O:₹${quote.open_price.toFixed(2)} H:₹${quote.high_price.toFixed(2)} L:₹${quote.low_price.toFixed(2)}
+   - Volume: ${quote.volume.toLocaleString()}
+   - Prev Close: ₹${quote.prev_close_price.toFixed(2)}
+`).join('\n')}
+  `.trim();
+}
+
 export async function processAdvancedFinancialQuery(
   queryData: FinancialQuery
 ): Promise<AdvancedAnalysisResult> {
-  console.log(`🤖 [ADVANCED-AI] Processing query: "${queryData.query}"`);
-  console.log(`📊 [ADVANCED-AI] Journal data: ${queryData.journalData?.length || 0} days`);
-  console.log(`💼 [ADVANCED-AI] User stocks: ${queryData.userStocks?.join(', ') || 'None'}`);
+  console.log(`[ADVANCED-AI] Processing query: "${queryData.query}"`);
+  console.log(`[ADVANCED-AI] Journal data: ${queryData.journalData?.length || 0} days`);
+  console.log(`[ADVANCED-AI] User stocks: ${queryData.userStocks?.join(', ') || 'None'}`);
+  console.log(`[ADVANCED-AI] Fyers data: ${queryData.fyersData?.length || 0} stocks`);
   
   try {
     const symbols = extractCompanySymbols(queryData.query);
-    console.log(`🎯 [ADVANCED-AI] Detected symbols: ${symbols.join(', ') || 'None'}`);
+    console.log(`[ADVANCED-AI] Detected symbols: ${symbols.join(', ') || 'None'}`);
     
     const webResults = await getFinancialReferenceSources(
       symbols[0] || queryData.query
@@ -251,20 +270,18 @@ export async function processAdvancedFinancialQuery(
       }
     }
     
-    if (queryData.fyersData) {
-      console.log(`[FYERS-DATA] Fyers data provided for analysis`);
-    }
+    const fyersDataFormatted = queryData.fyersData ? formatFyersData(queryData.fyersData) : '';
     
     const journalAnalysis = queryData.journalData 
       ? analyzeJournalPerformance(queryData.journalData)
       : '';
     
-    const prompt = `You are an advanced financial AI agent (like Replit Agent but for stock trading). Provide intelligent, actionable insights.
+    const prompt = `You are an advanced financial AI agent similar to Replit Agent but specialized for stock trading and analysis. Provide intelligent, actionable insights based on real market data.
 
 **User Query:** ${queryData.query}
 
 ${fundamentals.length > 0 ? `
-**Real-Time Stock Data (Yahoo Finance):**
+**Company Fundamentals (Yahoo Finance):**
 
 ${fundamentals.map((f, i) => `
 ${i + 1}. **${f.companyName}** (${f.symbol})
@@ -273,6 +290,10 @@ ${i + 1}. **${f.companyName}** (${f.symbol})
    - Volume: ${f.volume}
    - Market Cap: ${f.marketCap}
 `).join('\n')}
+` : ''}
+
+${fyersDataFormatted ? `
+${fyersDataFormatted}
 ` : ''}
 
 ${journalAnalysis ? `
@@ -285,15 +306,15 @@ ${queryData.userStocks && queryData.userStocks.length > 0 ? `
 
 **Your Task:**
 Provide a comprehensive analysis that:
-1. **Market Analysis**: Analyze the stock's current performance and trends
+1. **Market Analysis**: Analyze the stock's current performance and trends based on real-time data
 2. **Technical View**: Comment on price action, 52-week levels, and momentum
-3. **Trading Strategy**: If journal data provided, suggest how to improve trading performance
-4. **Risk Assessment**: Identify key risks and support/resistance levels
-5. **Actionable Insights**: Give specific recommendations (buy/sell/hold zones, stop losses, targets)
+3. **Trading Strategy**: ${journalAnalysis ? 'Review the user\'s trading journal performance and suggest specific improvements' : 'Provide entry/exit strategies'}
+4. **Risk Assessment**: Identify key risks, support/resistance levels based on OHLC data
+5. **Actionable Insights**: Give specific, numbered recommendations with price targets, stop losses, and position sizing
 
-Format with clear sections, bullet points, and **bold headers**. Be specific with numbers and percentages.`;
+Format your response with clear sections, bullet points, and **bold headers**. Be specific with numbers and percentages. Focus on actionable advice.`;
 
-    console.log(`🧠 [ADVANCED-AI] Sending to Gemini AI...`);
+    console.log(`[ADVANCED-AI] Sending to Gemini AI...`);
     
     const result = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
@@ -304,17 +325,20 @@ Format with clear sections, bullet points, and **bold headers**. Be specific wit
     
     const insights: string[] = [];
     if (fundamentals.length > 0) {
-      insights.push(`Live data for ${fundamentals.length} stock(s): ${fundamentals.map(f => f.symbol).join(', ')}`);
+      insights.push(`Fundamentals analyzed for ${fundamentals.length} stock(s): ${fundamentals.map(f => f.symbol).join(', ')}`);
+    }
+    if (fyersDataFormatted) {
+      insights.push(`Live market data from Fyers API for ${queryData.fyersData?.length} stock(s)`);
     }
     if (journalAnalysis) {
-      insights.push(`Trading journal analyzed: ${queryData.journalData?.length} days of P&L data`);
+      insights.push(`Trading journal analyzed: ${queryData.journalData?.length} days of performance data`);
     }
     if (webResults.length > 0) {
       insights.push(`${webResults.length} financial reference sources provided`);
     }
-    insights.push(`AI-powered analysis with real-time market data`);
+    insights.push(`AI-powered analysis combining multiple data sources`);
     
-    console.log(`✅ [ADVANCED-AI] Analysis complete!`);
+    console.log(`[ADVANCED-AI] Analysis complete successfully`);
     
     return {
       query: queryData.query,
@@ -326,34 +350,35 @@ Format with clear sections, bullet points, and **bold headers**. Be specific wit
     };
     
   } catch (error: any) {
-    console.error(`❌ [ADVANCED-AI] Error:`, error);
+    console.error(`[ADVANCED-AI] Error:`, error);
     
     return {
       query: queryData.query,
-      answer: `🔍 **Advanced Financial AI Agent Active**
+      answer: `**Advanced Financial AI Agent**
 
-I'm here to help you with stock analysis! However, I encountered an issue: ${error.message}
+I'm here to help you with stock analysis, but I encountered an issue: ${error.message}
 
 **What I Can Do:**
-- 📊 Analyze stock fundamentals using real-time data from Yahoo Finance
-- 📈 Review your trading journal and provide performance insights
-- 💡 Compare multiple stocks and provide investment recommendations
-- 🎯 Suggest entry/exit points based on technical and fundamental analysis
+- Analyze stock fundamentals using real-time data from Yahoo Finance
+- Fetch live stock prices and OHLC data from Fyers API
+- Review your trading journal and provide performance insights
+- Compare multiple stocks and provide investment recommendations
+- Suggest entry/exit points based on technical and fundamental analysis
 
 **Try asking:**
-- "Analyze Reliance stock fundamentals"
+- "Analyze Reliance stock"
 - "Compare TCS and Infosys"
-- "Review my trading performance" (when journal data available)
+- "Review my trading performance"
 - "Should I buy HDFC Bank?"
 - "Technical analysis for ICICI Bank"
 
-I combine web data, your trading journal, and AI analysis to give you Replit-Agent-level insights for stock trading!`,
+I combine web data, Fyers live prices, your trading journal, and AI analysis to give you comprehensive stock trading insights.`,
       fundamentals: [],
       webSources: [],
       insights: [
-        "🤖 Advanced AI agent ready",
-        "🔍 Web search + Journal + Fyers integration active",
-        "⚡ Real-time stock analysis available"
+        "Advanced AI agent ready for stock analysis",
+        "Web search, Fyers API, and Journal integration active",
+        "Real-time stock analysis available"
       ],
       timestamp: new Date().toISOString()
     };
