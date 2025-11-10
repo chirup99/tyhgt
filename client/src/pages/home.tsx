@@ -5319,13 +5319,13 @@ ${
                   </button>
 
                 {/* World Map Section: Takes 25% of the total height */}
-                <div className="px-8 pt-1 pb-1 flex items-center justify-center md:h-1/4 h-[25vh]">
+                <div className="px-8 pt-1 pb-1 flex items-center justify-center h-1/4">
                   {/* World Map */}
                   <WorldMap />
                 </div>
                 {/* Blue Section: Takes 75% of the total height - Fixed height, not expanding */}
                 <div className="md:h-3/4 h-[75vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-4 py-0 md:px-4 px-0 relative">
-                  <div className="max-w-4xl w-full md:space-y-4 space-y-0 md:pt-2 pt-0 flex flex-col h-full">
+                  <div className="max-w-4xl w-full md:space-y-4">
                     {/* Greeting - Hidden on mobile */}
                     <div className="text-center spacey-4 md:block hidden">
                       <div className="flex items-center justify-center gap-3">
