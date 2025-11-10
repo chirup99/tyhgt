@@ -764,13 +764,16 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
           
           {/* Back Button - Always visible, navigates to home page with world map */}
           <Button
-            onClick={() => setLocation('/app')}
+            onClick={() => {
+              console.log('🏠 Back button clicked - navigating to /app');
+              setLocation('/app');
+            }}
             variant="ghost"
-            size="sm"
-            className="flex-shrink-0 h-9 w-9 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+            size="default"
+            className="flex-shrink-0 min-h-10 min-w-10 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
             data-testid="button-back-to-home"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-6 w-6" />
           </Button>
         </div>
       </div>
