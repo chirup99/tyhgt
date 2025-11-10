@@ -1,4 +1,6 @@
-import yahooFinance from 'yahoo-finance2';
+import YahooFinanceAPI from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinanceAPI();
 
 export interface MarketIndex {
   symbol: string;
@@ -28,23 +30,39 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
   const results: Record<string, MarketIndex> = {};
   
   try {
-    // Fetch quotes for all indices in parallel
+    console.log('🌍 Starting to fetch global market indices data...');
+    
+    // Fetch quotes for all indices in parallel with timeout
     const promises = Object.entries(MARKET_SYMBOLS).map(async ([regionName, symbol]) => {
       try {
         console.log(`📊 Fetching market data for ${regionName} (${symbol})...`);
         
-        // Get quote data from Yahoo Finance
-        const quote: any = await yahooFinance.quote(symbol);
+        // Add timeout to prevent hanging
+        const fetchPromise = yahooFinance.quote(symbol, {
+          return: 'object',
+        });
+        
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 15000)
+        );
+        
+        const quote: any = await Promise.race([fetchPromise, timeoutPromise]);
         
         if (!quote) {
           console.warn(`⚠️ No data returned for ${regionName} (${symbol})`);
           return null;
         }
 
-        const regularMarketPrice = quote.regularMarketPrice || 0;
-        const previousClose = quote.regularMarketPreviousClose || regularMarketPrice;
+        // Extract price data with fallbacks
+        const regularMarketPrice = quote.regularMarketPrice ?? quote.price ?? 0;
+        const previousClose = quote.regularMarketPreviousClose ?? quote.previousClose ?? regularMarketPrice;
         const change = regularMarketPrice - previousClose;
         const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+        
+        // Check if market is open
+        const isOpen = quote.marketState === 'REGULAR' || 
+                       quote.marketState === 'PREPRE' || 
+                       quote.marketState === 'PRE';
         
         const marketIndex: MarketIndex = {
           symbol,
@@ -54,14 +72,14 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
           changePercent: changePercent,
           isUp: change >= 0,
           marketTime: quote.regularMarketTime?.toISOString() || new Date().toISOString(),
-          isMarketOpen: quote.marketState === 'REGULAR' || false,
+          isMarketOpen: isOpen,
         };
 
-        console.log(`✅ ${regionName}: ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}% (${marketIndex.isMarketOpen ? 'OPEN' : 'CLOSED'})`);
+        console.log(`✅ ${regionName}: ${regularMarketPrice.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%) ${marketIndex.isMarketOpen ? '🟢 OPEN' : '🔴 CLOSED'}`);
         
         return { regionName, data: marketIndex };
       } catch (error) {
-        console.error(`❌ Error fetching data for ${regionName} (${symbol}):`, error);
+        console.error(`❌ Error fetching data for ${regionName} (${symbol}):`, error instanceof Error ? error.message : error);
         return null;
       }
     });
@@ -76,17 +94,45 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
       }
     });
 
-    // If we have no results, return fallback data
-    if (Object.keys(results).length === 0) {
-      console.warn('⚠️ No market data retrieved, returning fallback data');
-      return getFallbackData();
+    const successCount = Object.keys(results).length;
+    console.log(`📊 Successfully fetched ${successCount}/${Object.keys(MARKET_SYMBOLS).length} market indices`);
+
+    // If we have at least some results, return them
+    if (successCount > 0) {
+      // Fill in any missing regions with fallback data
+      Object.entries(MARKET_SYMBOLS).forEach(([regionName]) => {
+        if (!results[regionName]) {
+          console.log(`⚠️ Using fallback for ${regionName}`);
+          results[regionName] = getFallbackDataForRegion(regionName);
+        }
+      });
+      return results;
     }
 
-    return results;
+    // If we have no results at all, return fallback data
+    console.warn('⚠️ No market data retrieved, returning full fallback data');
+    return getFallbackData();
   } catch (error) {
-    console.error('❌ Error fetching market indices:', error);
+    console.error('❌ Error fetching market indices:', error instanceof Error ? error.message : error);
     return getFallbackData();
   }
+}
+
+/**
+ * Returns fallback data for a single region
+ */
+function getFallbackDataForRegion(regionName: string): MarketIndex {
+  const symbol = MARKET_SYMBOLS[regionName as keyof typeof MARKET_SYMBOLS] || '';
+  return {
+    symbol,
+    regionName,
+    price: 0,
+    change: 0,
+    changePercent: 0,
+    isUp: false,
+    marketTime: new Date().toISOString(),
+    isMarketOpen: false,
+  };
 }
 
 /**
