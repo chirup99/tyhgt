@@ -1352,10 +1352,17 @@ function PostCard({ post }: { post: FeedPost }) {
   // Like mutation
   const likeMutation = useMutation({
     mutationFn: async () => {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      
+      const idToken = await user.getIdToken();
       const method = liked ? 'DELETE' : 'PUT';
       const response = await fetch(`/api/social-posts/${post.id}/like`, {
         method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
       });
       if (!response.ok) throw new Error('Failed to update like');
       return response.json();
@@ -1396,10 +1403,17 @@ function PostCard({ post }: { post: FeedPost }) {
   // Repost mutation
   const repostMutation = useMutation({
     mutationFn: async () => {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      
+      const idToken = await user.getIdToken();
       const method = reposted ? 'DELETE' : 'POST';
       const response = await fetch(`/api/social-posts/${post.id}/repost`, {
         method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
       });
       if (!response.ok) throw new Error('Failed to update repost');
       return response.json();

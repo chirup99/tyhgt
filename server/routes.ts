@@ -5877,6 +5877,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================
+  // BACKWARD COMPATIBLE ENDPOINTS (for existing frontend)
+  // ==========================
+
+  // Old like endpoint - maps to Firebase implementation
+  app.put('/api/social-posts/:postId/like', async (req, res) => {
+    try {
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      // Verify token
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      // Get user's username
+      const userDoc = await db.collection('users').doc(userId).get();
+      const username = userDoc.data()?.username || 'anonymous';
+      
+      // Create like record
+      await db.collection('likes').doc(`${userId}_${postId}`).set({
+        userId,
+        username,
+        postId,
+        createdAt: new Date()
+      });
+      
+      // Get total likes
+      const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+      const likesCount = likesSnapshot.size;
+      
+      console.log(`✅ ${username} liked post ${postId}`);
+      res.json({ success: true, liked: true, likes: likesCount });
+    } catch (error: any) {
+      console.error('Error liking post:', error);
+      res.status(500).json({ error: error.message || 'Failed to like post' });
+    }
+  });
+
+  app.delete('/api/social-posts/:postId/like', async (req, res) => {
+    try {
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      // Verify token
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      // Delete like record
+      await db.collection('likes').doc(`${userId}_${postId}`).delete();
+      
+      // Get updated total likes
+      const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+      const likesCount = likesSnapshot.size;
+      
+      console.log(`✅ Unliked post ${postId}`);
+      res.json({ success: true, liked: false, likes: likesCount });
+    } catch (error: any) {
+      console.error('Error unliking post:', error);
+      res.status(500).json({ error: error.message || 'Failed to unlike post' });
+    }
+  });
+
+  // Old repost endpoint - maps to Firebase retweet implementation
+  app.post('/api/social-posts/:postId/repost', async (req, res) => {
+    try {
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      // Verify token
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      // Get user's username
+      const userDoc = await db.collection('users').doc(userId).get();
+      const username = userDoc.data()?.username || 'anonymous';
+      
+      // Create retweet record
+      await db.collection('retweets').doc(`${userId}_${postId}`).set({
+        userId,
+        username,
+        postId,
+        createdAt: new Date()
+      });
+      
+      // Get total retweets
+      const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+      const retweetsCount = retweetsSnapshot.size;
+      
+      console.log(`✅ ${username} retweeted post ${postId}`);
+      res.json({ success: true, retweeted: true, reposts: retweetsCount });
+    } catch (error: any) {
+      console.error('Error retweeting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to retweet post' });
+    }
+  });
+
+  app.delete('/api/social-posts/:postId/repost', async (req, res) => {
+    try {
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.postId;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      // Verify token
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+      
+      // Delete retweet record
+      await db.collection('retweets').doc(`${userId}_${postId}`).delete();
+      
+      // Get updated total retweets
+      const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+      const retweetsCount = retweetsSnapshot.size;
+      
+      console.log(`✅ Unretweeted post ${postId}`);
+      res.json({ success: true, retweeted: false, reposts: retweetsCount });
+    } catch (error: any) {
+      console.error('Error unretweeting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to unretweet post' });
+    }
+  });
+
+  // ==========================
   // END OF SOCIAL MEDIA FEATURES
   // ==========================
 
