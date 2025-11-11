@@ -3344,6 +3344,9 @@ ${
   const [selectedJournalInterval, setSelectedJournalInterval] = useState("15");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState([]);
+  
+  // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
+  const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
 
   // Function to fetch journal chart data
   const fetchJournalChartData = useCallback(async () => {
@@ -6247,10 +6250,38 @@ ${
                   Trading Journal
                 </h2>
 
-                {/* PERFORMANCE TIMELINE - Split into Three Blocks with Empty Container */}
-                <div className="grid grid-cols-3 gap-6">
+                {/* PERFORMANCE TIMELINE - Responsive Three Blocks */}
+                {/* Desktop: 3-column grid | Mobile: Single panel with carousel */}
+                <div className="relative">
+                  {/* Mobile Navigation Arrows */}
+                  <div className="md:hidden flex items-center justify-between mb-3">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setMobileJournalPanel((prev) => (prev === 0 ? 2 : prev - 1))}
+                      className="h-10 w-10"
+                      data-testid="button-journal-prev"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {mobileJournalPanel === 0 ? "Chart" : mobileJournalPanel === 1 ? "Upload Images" : "Trading Notes"}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setMobileJournalPanel((prev) => (prev === 2 ? 0 : prev + 1))}
+                      className="h-10 w-10"
+                      data-testid="button-journal-next"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  {/* Desktop: Grid Layout | Mobile: Single Panel */}
+                  <div className="md:grid md:grid-cols-3 gap-6">
                   {/* Left Block - Performance Chart */}
-                  <div className="h-[400px]">
+                  <div className={`h-[400px] ${mobileJournalPanel === 0 ? 'block' : 'hidden'} md:block`}>
                     {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
                     <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg">
                       <div className="p-4 h-full flex flex-col">
@@ -6331,7 +6362,7 @@ ${
                   </div>
 
                   {/* Middle Block - Multiple Image Upload */}
-                  <div className="h-[400px]">
+                  <div className={`h-[400px] ${mobileJournalPanel === 1 ? 'block' : 'hidden'} md:block`}>
                     <MultipleImageUpload
                       ref={imageUploadRef}
                       images={tradingImages}
@@ -6340,7 +6371,7 @@ ${
                   </div>
 
                   {/* Right Block - PERFORMANCE STATS (Split: 30% top, 70% bottom) */}
-                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col">
+                  <Card className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col ${mobileJournalPanel === 2 ? 'block' : 'hidden'} md:block`}>
                     {/* Top 30% - Performance Insights */}
                     <div className="h-[30%] border-b border-gray-200 dark:border-gray-700">
                       <CardContent className="p-4 h-full">
@@ -6646,6 +6677,7 @@ ${
                       </CardContent>
                     </div>
                   </Card>
+                  </div>
                 </div>
 
                 {/* Two Column Layout: TRADE HISTORY SUMMARY (Left) and PROFIT CONSISTENCY (Right) */}
