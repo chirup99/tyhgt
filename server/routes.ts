@@ -6219,8 +6219,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Authorization code is required" });
       }
 
+      console.log('🔐 [AUTH-EXCHANGE] Attempting to exchange auth code for access token...');
+      console.log('📝 [AUTH-EXCHANGE] Auth code preview:', authCode.substring(0, 50) + '...');
+
       const redirectUri = "https://google.com";
       const accessToken = await fyersApi.generateAccessToken(authCode, redirectUri);
+      
+      console.log('✅ [AUTH-EXCHANGE] Access token generated successfully');
+      console.log('🔍 [AUTH-EXCHANGE] Testing connection with new token...');
       
       // Test the connection
       const isConnected = await fyersApi.testConnection();
@@ -6265,21 +6271,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           savedToDatabase: true
         });
       } else {
+        console.error('❌ [AUTH-EXCHANGE] Connection test failed with new token');
         await storage.addActivityLog({
           type: "error",
           message: "Generated access token is invalid"
         });
-        res.status(401).json({ message: "Generated access token is invalid" });
+        res.status(401).json({ message: "Generated access token is invalid - connection test failed" });
       }
     } catch (error) {
-      console.error('Auth code exchange error:', error);
+      console.error('❌ [AUTH-EXCHANGE] Auth code exchange error:', error);
+      console.error('❌ [AUTH-EXCHANGE] Error details:', error instanceof Error ? error.message : JSON.stringify(error));
       
       await storage.addActivityLog({
         type: "error",
         message: `Authorization code exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
 
-      res.status(500).json({ message: "Authentication failed" });
+      res.status(500).json({ 
+        message: "Authentication failed",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
