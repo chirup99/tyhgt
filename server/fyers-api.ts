@@ -156,14 +156,22 @@ export class FyersAPI {
   async generateAccessToken(authCode: string, redirectUri: string): Promise<string> {
     const url = 'https://api-t1.fyers.in/api/v3/validate-authcode';
     
+    const appIdHash = this.generateAppIdHash();
+    console.log('🔐 [FYERS-AUTH] Generating access token...');
+    console.log('📝 [FYERS-AUTH] App ID:', this.credentials.appId);
+    console.log('📝 [FYERS-AUTH] Redirect URI:', redirectUri);
+    console.log('📝 [FYERS-AUTH] App ID Hash (first 20 chars):', appIdHash.substring(0, 20) + '...');
+    console.log('📝 [FYERS-AUTH] Auth Code (first 50 chars):', authCode.substring(0, 50) + '...');
+    
     const requestData = {
       grant_type: 'authorization_code',
-      appIdHash: this.generateAppIdHash(),
+      appIdHash: appIdHash,
       code: authCode,
       redirect_uri: redirectUri,
     };
 
     try {
+      console.log('🌐 [FYERS-AUTH] Sending request to:', url);
       const response = await axios.post<FyersApiResponse<{ access_token: string }>>(
         url,
         requestData,
@@ -172,16 +180,30 @@ export class FyersAPI {
         }
       );
 
+      console.log('📡 [FYERS-AUTH] Response status:', response.data.s);
+      console.log('📡 [FYERS-AUTH] Response code:', response.data.code);
+      console.log('📡 [FYERS-AUTH] Response message:', response.data.message);
+
       if (response.data.s === 'ok' && response.data.data?.access_token) {
         this.credentials.accessToken = response.data.data.access_token;
         this.apiClient.defaults.headers.common['Authorization'] = 
           `${this.credentials.appId}:${this.credentials.accessToken}`;
+        this.dataClient.defaults.headers.common['Authorization'] = 
+          `${this.credentials.appId}:${this.credentials.accessToken}`;
+        console.log('✅ [FYERS-AUTH] Access token generated successfully');
         return response.data.data.access_token;
       } else {
+        console.error('❌ [FYERS-AUTH] Token generation failed:', response.data);
         throw new Error(`Failed to generate access token: ${response.data.message}`);
       }
-    } catch (error) {
-      throw new Error(`Access token generation failed: ${error}`);
+    } catch (error: any) {
+      console.error('❌ [FYERS-AUTH] Error during token generation:', error);
+      if (error.response) {
+        console.error('❌ [FYERS-AUTH] Error response data:', error.response.data);
+        console.error('❌ [FYERS-AUTH] Error response status:', error.response.status);
+        throw new Error(`Access token generation failed: ${JSON.stringify(error.response.data)}`);
+      }
+      throw new Error(`Access token generation failed: ${error.message || error}`);
     }
   }
 

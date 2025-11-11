@@ -988,3 +988,9 @@
 [x] 805. Redirect URI matches standard Fyers API configuration (www.google.com)
 [x] 806. Restarted workflow - server running successfully on port 5000
 [x] 807. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ FYERS AUTH URL FIX COMPLETED - CORRECT REDIRECT URI NOW USED!
+[x] 808. Added comprehensive logging to generateAccessToken() method in fyers-api.ts
+[x] 809. Logs now show: App ID, Redirect URI, App ID Hash, Auth Code, Request/Response details
+[x] 810. Enhanced error handling with detailed error response logging
+[x] 811. This will help debug authentication failures and show exact API error messages
+[x] 812. Restarted workflow - server running successfully on port 5000
+[x] 813. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ FYERS AUTH DEBUG LOGGING ADDED - READY TO TROUBLESHOOT!
