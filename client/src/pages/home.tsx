@@ -7554,29 +7554,7 @@ ${
 
                 {/* ============== MODERN TRADING ANALYTICS DASHBOARD ============== */}
                 {/* Mobile: Show only in "insight" tab | Desktop: Always visible */}
-                <div className={`mt-8 space-y-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 ${mobileBottomTab !== 'insight' ? 'hidden md:block' : 'block'}`}>
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <BarChart3 className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-                          Trading Analytics
-                        </h2>
-                        <p className="text-slate-600 dark:text-slate-400">
-                          Performance insights and trend analysis
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        Live Data
-                      </span>
-                    </div>
-                  </div>
+                <div className={`mt-8 space-y-6 ${mobileBottomTab !== 'insight' ? 'hidden md:block' : 'block'}`}>
 
                   {(() => {
                     // Calculate comprehensive insights from all trading data
@@ -7710,61 +7688,13 @@ ${
                     };
 
                     const insights = calculateTradingInsights();
+                    const totalPnL = insights.overallStats.totalPnL || 0;
+                    const isProfitable = totalPnL >= 0;
 
                     return (
-                      <div className="grid grid-cols-12 gap-6">
-                        {/* Total Performance - Large Card */}
-                        <div className="col-span-12 md:col-span-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-8 text-white shadow-2xl">
-                          <div className="flex items-center justify-between mb-6">
-                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                              <Target className="w-6 h-6" />
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm opacity-80">
-                                Total P&L
-                              </div>
-                              <div className="text-3xl font-bold">
-                                ₹
-                                {Math.abs(
-                                  insights.overallStats.totalPnL || 0
-                                ).toLocaleString("en-IN")}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm opacity-80">
-                                Total Trades
-                              </span>
-                              <span className="font-semibold">
-                                {insights.overallStats.totalTrades}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm opacity-80">
-                                Success Rate
-                              </span>
-                              <span className="font-semibold">
-                                {insights.overallStats.winRate.toFixed(1)}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-white/20 rounded-full h-2">
-                              <div
-                                className="bg-white rounded-full h-2 transition-all duration-1000"
-                                style={{
-                                  width: `${Math.min(
-                                    insights.overallStats.winRate,
-                                    100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Performance Trend Chart */}
-                        <div className="col-span-12 md:col-span-5 bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
+                      <div className="space-y-6">
+                        {/* Performance Trend Chart - Full Width on Top */}
+                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 md:p-8 shadow-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
                               Performance Trend
@@ -7976,8 +7906,58 @@ ${
                           )}
                         </div>
 
-                        {/* Tag Performance Distribution */}
-                        <div className="col-span-12 md:col-span-3 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                        {/* Bottom Section: Total P&L + Tags */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {/* Total Performance Card - Dynamic Color Based on P&L */}
+                          <div className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                                <Target className="w-6 h-6" />
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm opacity-80">
+                                  Total P&L
+                                </div>
+                                <div className="text-2xl md:text-3xl font-bold">
+                                  {totalPnL >= 0 ? '+' : '-'}₹
+                                  {Math.abs(totalPnL).toLocaleString("en-IN")}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm opacity-80">
+                                  Total Trades
+                                </span>
+                                <span className="font-semibold">
+                                  {insights.overallStats.totalTrades}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm opacity-80">
+                                  Success Rate
+                                </span>
+                                <span className="font-semibold">
+                                  {insights.overallStats.winRate.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-white rounded-full h-2 transition-all duration-1000"
+                                  style={{
+                                    width: `${Math.min(
+                                      insights.overallStats.winRate,
+                                      100
+                                    )}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Tag Performance Distribution */}
+                          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
                               <Tag className="w-5 h-5 text-white" />
@@ -8044,10 +8024,11 @@ ${
                               </div>
                             </div>
                           )}
+                          </div>
                         </div>
 
                         {/* Strategy Summary Cards */}
-                        <div className="col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {(() => {
                             const allData = Object.values(
                               tradingDataByDate

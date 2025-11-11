@@ -386,6 +386,15 @@
 [x] 348. Database schema synced with PostgreSQL (Neon)
 [x] 349. Social feed with audio minicast, user profiles, and card stacking features operational
 [x] 350. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ NOVEMBER 11, 2025 MIGRATION COMPLETED - ALL IMPORT TASKS FINISHED SUCCESSFULLY!
+[x] 351. Removed external container from Insights tab for mobile - full width display
+[x] 352. Removed "Trading Analytics" header text for cleaner UX
+[x] 353. Reordered layout - Performance Trend Chart now displays at top with full width
+[x] 354. Total P&L card now displays below the chart
+[x] 355. Fixed Total P&L color - RED gradient for negative values, GREEN gradient for positive
+[x] 356. Added proper +/- signs to Total P&L amount display
+[x] 357. Made layout fully responsive for both desktop and mobile
+[x] 358. Restarted workflow successfully with all changes applied
+[x] 359. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ INSIGHTS TAB LAYOUT & P&L COLOR FIX COMPLETED!
 [x] 343. Pushed database schema to PostgreSQL (Neon) - all tables synced successfully
 [x] 344. Configured workflow with webview output type on port 5000
 [x] 345. Restarted workflow - server running successfully on port 5000
