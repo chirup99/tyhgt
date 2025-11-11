@@ -5286,28 +5286,7 @@ ${
                   </p>
                 </div>
 
-                {/* Fyers API Authentication Required Notice */}
-                <div className="max-w-2xl mx-auto">
-                  <div className="bg-red-900/20 border border-red-700 rounded-lg p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <AlertTriangle className="h-6 w-6 text-red-400" />
-                      <h3 className="text-lg font-semibold text-red-400">
-                        Fyers API Authentication Required
-                      </h3>
-                    </div>
-                    <p className="text-red-300 mb-4">
-                      The Fyers API connection has expired. Please provide a new
-                      access token to restore live market data functionality.
-                    </p>
-                    <div className="text-sm text-red-200">
-                      <p>• All live market data is currently unavailable</p>
-                      <p>
-                        • Historical data and other features remain functional
-                      </p>
-                      <p>• Contact support for token renewal assistance</p>
-                    </div>
-                  </div>
-                </div>
+                
 
                 {/* Authentication Status Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
