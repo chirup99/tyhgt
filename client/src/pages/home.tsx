@@ -8096,21 +8096,23 @@ ${
                             return metrics.map((metric) => (
                               <div
                                 key={metric.label}
-                                className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300"
+                                className="bg-white dark:bg-slate-800 rounded-2xl p-3 md:p-6 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300"
                               >
-                                <div
-                                  className={`w-12 h-12 bg-gradient-to-br ${metric.color} rounded-xl flex items-center justify-center mb-4 shadow-lg`}
-                                >
-                                  <metric.icon className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="space-y-1">
+                                <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-0">
                                   <div
-                                    className={`text-2xl font-bold ${metric.textColor}`}
+                                    className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br ${metric.color} rounded-xl flex items-center justify-center md:mb-4 shadow-lg flex-shrink-0`}
                                   >
-                                    {metric.value}
+                                    <metric.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                                   </div>
-                                  <div className="text-sm text-slate-600 dark:text-slate-400">
-                                    {metric.label}
+                                  <div className="flex-1 md:space-y-1">
+                                    <div
+                                      className={`text-xl md:text-2xl font-bold ${metric.textColor}`}
+                                    >
+                                      {metric.value}
+                                    </div>
+                                    <div className="text-xs md:text-sm text-slate-600 dark:text-slate-400">
+                                      {metric.label}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
