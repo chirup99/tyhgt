@@ -3340,8 +3340,10 @@ ${
 
   // Journal chart controls state
   const [selectedJournalSymbol, setSelectedJournalSymbol] =
-    useState("NSE:ICICIBANK-EQ");
+    useState("NSE:NIFTY50-INDEX");
   const [selectedJournalInterval, setSelectedJournalInterval] = useState("15");
+  const [showStockSearch, setShowStockSearch] = useState(false);
+  const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState([]);
   
@@ -6264,57 +6266,125 @@ ${
                     <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg">
                       <div className="p-4 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            {/* Stock Selector */}
-                            <select
-                              className="bg-gray-800 text-white border border-gray-600 rounded px-3 py-1 text-sm"
-                              value={selectedJournalSymbol}
-                              onChange={(e) =>
-                                setSelectedJournalSymbol(e.target.value)
-                              }
-                            >
-                              <option value="NSE:ICICIBANK-EQ">
-                                ICICI BANK
-                              </option>
-                              <option value="NSE:NIFTY50-INDEX">
-                                NIFTY 50
-                              </option>
-                              <option value="NSE:RELIANCE-EQ">RELIANCE</option>
-                              <option value="NSE:TCS-EQ">TCS</option>
-                              <option value="NSE:HDFCBANK-EQ">HDFC BANK</option>
-                            </select>
+                          <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                            {/* Stock Search Button - Mobile Compact */}
+                            <Popover open={showStockSearch} onOpenChange={setShowStockSearch}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 px-2 md:px-3 text-xs md:text-sm"
+                                  data-testid="button-stock-search"
+                                >
+                                  <Search className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
+                                  <span className="hidden md:inline">
+                                    {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
+                                  </span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-72 p-3" align="start">
+                                <div className="space-y-2">
+                                  <Input
+                                    placeholder="Search stocks..."
+                                    value={stockSearchQuery}
+                                    onChange={(e) => setStockSearchQuery(e.target.value)}
+                                    className="text-sm"
+                                    data-testid="input-stock-search"
+                                  />
+                                  <div className="max-h-64 overflow-y-auto space-y-1">
+                                    {[
+                                      { value: "NSE:NIFTY50-INDEX", label: "NIFTY 50" },
+                                      { value: "NSE:SENSEX-INDEX", label: "SENSEX" },
+                                      { value: "NSE:BANKNIFTY-INDEX", label: "BANK NIFTY" },
+                                      { value: "NSE:RELIANCE-EQ", label: "RELIANCE" },
+                                      { value: "NSE:TCS-EQ", label: "TCS" },
+                                      { value: "NSE:HDFCBANK-EQ", label: "HDFC BANK" },
+                                      { value: "NSE:INFY-EQ", label: "INFOSYS" },
+                                      { value: "NSE:ICICIBANK-EQ", label: "ICICI BANK" },
+                                      { value: "NSE:SBIN-EQ", label: "SBI" },
+                                      { value: "NSE:BHARTIARTL-EQ", label: "BHARTI AIRTEL" },
+                                      { value: "NSE:ITC-EQ", label: "ITC" },
+                                      { value: "NSE:KOTAKBANK-EQ", label: "KOTAK BANK" },
+                                      { value: "NSE:LT-EQ", label: "L&T" },
+                                      { value: "NSE:AXISBANK-EQ", label: "AXIS BANK" },
+                                      { value: "NSE:WIPRO-EQ", label: "WIPRO" },
+                                    ]
+                                      .filter((stock) =>
+                                        stock.label.toLowerCase().includes(stockSearchQuery.toLowerCase())
+                                      )
+                                      .map((stock) => (
+                                        <button
+                                          key={stock.value}
+                                          onClick={() => {
+                                            setSelectedJournalSymbol(stock.value);
+                                            setShowStockSearch(false);
+                                            setStockSearchQuery("");
+                                          }}
+                                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                            selectedJournalSymbol === stock.value
+                                              ? "bg-blue-100 dark:bg-blue-900 font-medium"
+                                              : ""
+                                          }`}
+                                          data-testid={`stock-option-${stock.value}`}
+                                        >
+                                          {stock.label}
+                                        </button>
+                                      ))}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
 
-                            {/* Time Interval Selector */}
+                            {/* Time Interval Selector - Compact */}
                             <select
-                              className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 text-sm"
+                              className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm"
                               value={selectedJournalInterval}
                               onChange={(e) =>
                                 setSelectedJournalInterval(e.target.value)
                               }
+                              data-testid="select-interval"
                             >
-                              <option value="1">1min</option>
-                              <option value="5">5min</option>
-                              <option value="15">15min</option>
-                              <option value="30">30min</option>
+                              <option value="1">1m</option>
+                              <option value="5">5m</option>
+                              <option value="15">15m</option>
+                              <option value="30">30m</option>
                             </select>
 
-                            {/* Date Picker */}
-                            <input
-                              type="date"
-                              className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 text-sm"
-                              value={selectedJournalDate}
-                              onChange={(e) =>
-                                setSelectedJournalDate(e.target.value)
-                              }
-                            />
+                            {/* Date Picker - Mobile Icon Only */}
+                            <div className="relative">
+                              <input
+                                type="date"
+                                className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm w-8 md:w-auto opacity-0 md:opacity-100 absolute md:relative"
+                                value={selectedJournalDate}
+                                onChange={(e) =>
+                                  setSelectedJournalDate(e.target.value)
+                                }
+                                data-testid="input-date"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="md:hidden bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 w-8 p-0"
+                                onClick={() => {
+                                  const input = document.querySelector('[data-testid="input-date"]') as HTMLInputElement;
+                                  input?.showPicker?.();
+                                }}
+                                data-testid="button-date-picker"
+                              >
+                                <Calendar className="h-3 w-3" />
+                              </Button>
+                            </div>
 
-                            {/* Fetch Button */}
-                            <button
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium"
+                            {/* Fetch Button - Mobile Icon Only */}
+                            <Button
+                              size="sm"
                               onClick={fetchJournalChartData}
+                              className="bg-green-600 hover:bg-green-700 text-white h-8 px-2 md:px-3"
+                              data-testid="button-fetch-chart"
                             >
-                              Fetch
-                            </button>
+                              <Check className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
+                              <span className="hidden md:inline text-xs md:text-sm">Fetch</span>
+                            </Button>
                           </div>
                         </div>
 
