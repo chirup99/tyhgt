@@ -400,6 +400,14 @@
 [x] 362. Trend line no longer compressed - more space for data visualization
 [x] 363. Restarted workflow successfully with chart improvement applied
 [x] 364. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ PERFORMANCE CHART PADDING REMOVED!
+[x] 365. Updated Loss Making Analysis section for mobile - 2x2 grid layout (2 columns)
+[x] 366. Losing Days + Emotional Trading Days now display side-by-side in first row
+[x] 367. Impulsive Trades + Loss Rate display side-by-side in second row
+[x] 368. Updated Discipline & Risk Management section for mobile - 2x2 grid layout
+[x] 369. Planned Trades + Avg Trades/Day in first row, Max Win Streak + Consistent Days in second row
+[x] 370. Both sections now consume less vertical space on mobile screens
+[x] 371. Restarted workflow successfully with mobile layout improvements applied
+[x] 372. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ MOBILE LAYOUT OPTIMIZATION COMPLETED!
 [x] 343. Pushed database schema to PostgreSQL (Neon) - all tables synced successfully
 [x] 344. Configured workflow with webview output type on port 5000
 [x] 345. Restarted workflow - server running successfully on port 5000
