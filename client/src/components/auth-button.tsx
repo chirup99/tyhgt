@@ -125,8 +125,12 @@ export function AuthButton() {
     mutationFn: async (url: string) => {
       const extractedCode = extractAuthCodeFromUrl(url);
       if (!extractedCode) {
-        throw new Error("Could not extract auth_code from URL");
+        throw new Error("Could not extract auth_code from URL. Make sure the URL contains 'auth_code=' parameter.");
       }
+      
+      // Show what was extracted for debugging
+      console.log("✅ Extracted auth_code:", extractedCode.substring(0, 50) + "...");
+      
       return await apiRequest("POST", "/api/auth/exchange", { authCode: extractedCode });
     },
     onSuccess: () => {
@@ -139,12 +143,13 @@ export function AuthButton() {
       setShowUrlInput(false);
       
       toast({
-        title: "Authentication Successful",
-        description: "Connected to Fyers API from redirect URL.",
+        title: "✅ Connected Successfully!",
+        description: "Fyers API authentication completed.",
       });
       setRedirectUrl("");
     },
     onError: (error) => {
+      console.error("❌ Authentication error:", error);
       toast({
         title: "Authentication Failed",
         description: error instanceof Error ? error.message : "Could not extract auth code from URL. Please check the URL format.",
@@ -155,12 +160,27 @@ export function AuthButton() {
 
   const extractAuthCodeFromUrl = (url: string): string | null => {
     try {
-      const codeMatch = url.match(/auth_code=([^&]+)/);
+      // Decode URL first in case it's URL-encoded
+      const decodedUrl = decodeURIComponent(url);
+      
+      // Extract auth_code - it's between auth_code= and &state (or end of string)
+      const codeMatch = decodedUrl.match(/auth_code=([^&]+)/);
       if (codeMatch && codeMatch[1]) {
-        return codeMatch[1];
+        const authCode = codeMatch[1];
+        // Remove any trailing &state or other parameters
+        return authCode.split('&')[0];
       }
       return null;
     } catch (error) {
+      // If decoding fails, try with original URL
+      try {
+        const codeMatch = url.match(/auth_code=([^&]+)/);
+        if (codeMatch && codeMatch[1]) {
+          return codeMatch[1].split('&')[0];
+        }
+      } catch {
+        return null;
+      }
       return null;
     }
   };
