@@ -395,6 +395,11 @@
 [x] 357. Made layout fully responsive for both desktop and mobile
 [x] 358. Restarted workflow successfully with all changes applied
 [x] 359. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ INSIGHTS TAB LAYOUT & P&L COLOR FIX COMPLETED!
+[x] 360. Removed Y-axis left padding on Performance Trend Chart (from 20px to 0px)
+[x] 361. Chart now uses full width for better visual presentation
+[x] 362. Trend line no longer compressed - more space for data visualization
+[x] 363. Restarted workflow successfully with chart improvement applied
+[x] 364. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ PERFORMANCE CHART PADDING REMOVED!
 [x] 343. Pushed database schema to PostgreSQL (Neon) - all tables synced successfully
 [x] 344. Configured workflow with webview output type on port 5000
 [x] 345. Restarted workflow - server running successfully on port 5000

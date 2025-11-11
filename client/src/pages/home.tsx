@@ -7794,7 +7794,7 @@ ${
                                         margin={{
                                           top: 40,
                                           right: 30,
-                                          left: 20,
+                                          left: 0,
                                           bottom: 5,
                                         }}
                                       >
