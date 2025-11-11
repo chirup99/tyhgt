@@ -670,3 +670,95 @@ export const insertSavedPatternSchema = createInsertSchema(savedPatterns, {
 
 export type SelectSavedPattern = typeof savedPatterns.$inferSelect;
 export type InsertSavedPattern = z.infer<typeof insertSavedPatternSchema>;
+
+// ============================================================================
+// BROKER INTEGRATION SCHEMA
+// ============================================================================
+
+// Broker identifiers
+export const brokerIds = ['kite', 'fyers', 'dhan'] as const;
+export type BrokerId = typeof brokerIds[number];
+export const brokerIdSchema = z.enum(brokerIds);
+
+// Individual broker credential schemas
+export const kiteCredentialSchema = z.object({
+  broker: z.literal('kite'),
+  apiKey: z.string().min(1, 'API Key is required'),
+  apiSecret: z.string().min(1, 'API Secret is required'),
+  requestToken: z.string().min(1, 'Request Token is required'),
+});
+
+export const fyersCredentialSchema = z.object({
+  broker: z.literal('fyers'),
+  appId: z.string().min(1, 'App ID is required'),
+  secretId: z.string().min(1, 'Secret ID is required'),
+  authCode: z.string().min(1, 'Auth Code is required'),
+});
+
+export const dhanCredentialSchema = z.object({
+  broker: z.literal('dhan'),
+  clientId: z.string().min(1, 'Client ID is required'),
+  accessToken: z.string().min(1, 'Access Token is required'),
+});
+
+// Discriminated union for broker credentials
+export const brokerCredentialSchema = z.discriminatedUnion('broker', [
+  kiteCredentialSchema,
+  fyersCredentialSchema,
+  dhanCredentialSchema,
+]);
+
+// Credential schema map for per-broker access
+export const brokerCredentialSchemas = {
+  kite: kiteCredentialSchema,
+  fyers: fyersCredentialSchema,
+  dhan: dhanCredentialSchema,
+} as const;
+
+// Normalized trade object from broker
+export interface BrokerTrade {
+  broker: BrokerId;
+  tradeId: string;
+  symbol: string;
+  action: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  executedAt: string;
+  pnl?: number;
+  fees?: number;
+  notes?: string;
+}
+
+// Broker trade schema
+export const brokerTradeSchema = z.object({
+  broker: brokerIdSchema,
+  tradeId: z.string(),
+  symbol: z.string().min(1),
+  action: z.enum(['BUY', 'SELL']),
+  quantity: z.number().positive(),
+  price: z.number().positive(),
+  executedAt: z.string(),
+  pnl: z.number().optional(),
+  fees: z.number().optional(),
+  notes: z.string().optional(),
+});
+
+// API request/response schemas
+export const brokerImportRequestSchema = z.object({
+  broker: brokerIdSchema,
+  credentials: brokerCredentialSchema,
+});
+
+export const brokerTradesResponseSchema = z.object({
+  success: z.boolean(),
+  trades: z.array(brokerTradeSchema),
+  message: z.string().optional(),
+});
+
+// Types
+export type KiteCredentials = z.infer<typeof kiteCredentialSchema>;
+export type FyersCredentials = z.infer<typeof fyersCredentialSchema>;
+export type DhanCredentials = z.infer<typeof dhanCredentialSchema>;
+export type BrokerCredentials = z.infer<typeof brokerCredentialSchema>;
+export type BrokerImportRequest = z.infer<typeof brokerImportRequestSchema>;
+export type BrokerTradesResponse = z.infer<typeof brokerTradesResponseSchema>;
