@@ -3347,6 +3347,9 @@ ${
   
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
   const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
+  
+  // Mobile trade history dropdown state
+  const [showMobileTradeHistory, setShowMobileTradeHistory] = useState(false);
 
   // Function to fetch journal chart data
   const fetchJournalChartData = useCallback(async () => {
@@ -6253,31 +6256,6 @@ ${
                 {/* PERFORMANCE TIMELINE - Responsive Three Blocks */}
                 {/* Desktop: 3-column grid | Mobile: Single panel with carousel */}
                 <div className="relative">
-                  {/* Mobile Navigation Arrows */}
-                  <div className="md:hidden flex items-center justify-between mb-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setMobileJournalPanel((prev) => (prev === 0 ? 2 : prev - 1))}
-                      className="h-10 w-10"
-                      data-testid="button-journal-prev"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {mobileJournalPanel === 0 ? "Chart" : mobileJournalPanel === 1 ? "Upload Images" : "Trading Notes"}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setMobileJournalPanel((prev) => (prev === 2 ? 0 : prev + 1))}
-                      className="h-10 w-10"
-                      data-testid="button-journal-next"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                  </div>
-
                   {/* Desktop: Grid Layout | Mobile: Single Panel */}
                   <div className="md:grid md:grid-cols-3 gap-6">
                   {/* Left Block - Performance Chart */}
@@ -6678,10 +6656,43 @@ ${
                     </div>
                   </Card>
                   </div>
+                  
+                  {/* Mobile Navigation Arrows - Bottom of panels */}
+                  <div className="md:hidden flex items-center justify-between mt-4 gap-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setMobileJournalPanel((prev) => (prev === 0 ? 2 : prev - 1))}
+                      className="flex-1 h-12"
+                      data-testid="button-journal-prev"
+                    >
+                      <ChevronLeft className="h-5 w-5 mr-2" />
+                      <span className="text-sm font-medium">
+                        {mobileJournalPanel === 0 ? "Notes" : mobileJournalPanel === 1 ? "Chart" : "Upload"}
+                      </span>
+                    </Button>
+                    <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Current</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {mobileJournalPanel === 0 ? "Chart" : mobileJournalPanel === 1 ? "Upload" : "Notes"}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setMobileJournalPanel((prev) => (prev === 2 ? 0 : prev + 1))}
+                      className="flex-1 h-12"
+                      data-testid="button-journal-next"
+                    >
+                      <span className="text-sm font-medium">
+                        {mobileJournalPanel === 0 ? "Upload" : mobileJournalPanel === 1 ? "Notes" : "Chart"}
+                      </span>
+                      <ChevronRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Two Column Layout: TRADE HISTORY SUMMARY (Left) and PROFIT CONSISTENCY (Right) */}
-                <div className="grid grid-cols-2 gap-6">
+                {/* Desktop: 2-column grid | Mobile: Single column with dropdown */}
+                <div className="md:grid md:grid-cols-2 gap-6">
                   {/* TRADE HISTORY SUMMARY - Left Side */}
                   <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
                     <CardContent className="p-4">
@@ -6690,6 +6701,20 @@ ${
                           TRADE HISTORY SUMMARY
                         </h3>
                         <div className="flex gap-2">
+                          {/* Mobile Dropdown Toggle */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowMobileTradeHistory(!showMobileTradeHistory)}
+                            className="md:hidden h-8 w-8"
+                            data-testid="button-toggle-trade-history"
+                          >
+                            {showMobileTradeHistory ? (
+                              <ChevronUp className="h-5 w-5" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5" />
+                            )}
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -6717,7 +6742,8 @@ ${
                         </div>
                       </div>
 
-                      <div className="max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700">
+                      {/* Trade History Table - Collapsible on mobile */}
+                      <div className={`max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700 ${showMobileTradeHistory ? 'block' : 'hidden'} md:block`}>
                         <table className="w-full text-xs">
                           <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
                             <tr>
@@ -6813,8 +6839,8 @@ ${
                     </CardContent>
                   </Card>
 
-                  {/* trade book - Right Side (Functional Calendar) */}
-                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
+                  {/* trade book - Right Side (Functional Calendar) - Hidden on mobile */}
+                  <Card className="hidden md:block bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
