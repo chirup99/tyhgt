@@ -6691,30 +6691,161 @@ ${
                 </div>
 
                 {/* Two Column Layout: TRADE HISTORY SUMMARY (Left) and PROFIT CONSISTENCY (Right) */}
-                {/* Desktop: 2-column grid | Mobile: Single column with dropdown */}
-                <div className="md:grid md:grid-cols-2 gap-6">
-                  {/* TRADE HISTORY SUMMARY - Left Side */}
-                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
+                {/* Desktop: 2-column grid | Mobile: Show Trade Book with collapsible Trade History */}
+                <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 gap-6">
+                  
+                  {/* Mobile: Collapsible Trade History Summary Header (shows above calendar) */}
+                  <div className="md:hidden">
+                    <div 
+                      onClick={() => setShowMobileTradeHistory(!showMobileTradeHistory)}
+                      className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      data-testid="button-toggle-trade-history"
+                    >
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                          TRADE HISTORY SUMMARY
+                        </span>
+                      </div>
+                      {showMobileTradeHistory ? (
+                        <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      )}
+                    </div>
+                    
+                    {/* Mobile: Trade History Summary Content (Dropdown) */}
+                    {showMobileTradeHistory && (
+                      <Card className="mt-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-end gap-2 mb-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowOrderModal(true)}
+                              className="h-8 px-3"
+                              data-testid="button-place-order"
+                            >
+                              <Target className="h-4 w-4 mr-2" />
+                              Order
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowImportModal(true)}
+                              className="h-8 px-3"
+                              data-testid="button-import-pnl"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Import
+                            </Button>
+                          </div>
+                          <div className="max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700">
+                        <table className="w-full text-xs">
+                          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
+                            <tr>
+                              <th className="p-1 text-left">Time</th>
+                              <th className="p-1 text-left">Order</th>
+                              <th className="p-1 text-left">Symbol</th>
+                              <th className="p-1 text-left">Type</th>
+                              <th className="p-1 text-left">Qty</th>
+                              <th className="p-1 text-left">Price</th>
+                              <th className="p-1 text-left">P&L</th>
+                              <th className="p-1 text-left">%</th>
+                              <th className="p-1 text-left">Duration</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                            {tradeHistoryData.map((trade, index) => (
+                              <tr
+                                key={index}
+                                className="border-b border-gray-200 dark:border-gray-700"
+                              >
+                                <td className="p-1">{trade.time}</td>
+                                <td className="p-1">
+                                  <span
+                                    className={`px-2 py-1 rounded text-xs font-medium ${
+                                      trade.order === "BUY"
+                                        ? "bg-green-600 text-white"
+                                        : "bg-red-600 text-white"
+                                    }`}
+                                  >
+                                    {trade.order}
+                                  </span>
+                                </td>
+                                <td className="p-1">{trade.symbol}</td>
+                                <td className="p-1">{trade.type}</td>
+                                <td className="p-1">{trade.qty}</td>
+                                <td className="p-1">₹{trade.price}</td>
+                                <td
+                                  className={`p-2 ${
+                                    (trade.pnl || "").includes("+")
+                                      ? "text-green-600"
+                                      : (trade.pnl || "").includes("-")
+                                      ? "text-red-600"
+                                      : ""
+                                  }`}
+                                >
+                                  {trade.pnl}
+                                </td>
+                                <td
+                                  className={`p-2 font-medium ${(() => {
+                                    if (!trade.pnl || trade.pnl === "-")
+                                      return "";
+                                    const pnlStr = (trade.pnl || "").replace(
+                                      /[₹,+\s]/g,
+                                      ""
+                                    );
+                                    const pnlValue = parseFloat(pnlStr) || 0;
+                                    const openPrice = trade.price;
+                                    const totalInvestment =
+                                      openPrice * trade.qty || 1;
+                                    const percentage =
+                                      (pnlValue / totalInvestment) * 100;
+                                    return percentage > 0
+                                      ? "text-green-600"
+                                      : percentage < 0
+                                      ? "text-red-600"
+                                      : "text-gray-500";
+                                  })()}`}
+                                >
+                                  {(() => {
+                                    if (!trade.pnl || trade.pnl === "-")
+                                      return "-";
+                                    const pnlStr = (trade.pnl || "").replace(
+                                      /[₹,+\s]/g,
+                                      ""
+                                    );
+                                    const pnlValue = parseFloat(pnlStr) || 0;
+                                    const openPrice = trade.price;
+                                    const totalInvestment =
+                                      openPrice * trade.qty || 1;
+                                    const percentage =
+                                      (pnlValue / totalInvestment) * 100;
+                                    return `${
+                                      percentage >= 0 ? "+" : ""
+                                    }${percentage.toFixed(2)}%`;
+                                  })()}
+                                </td>
+                                <td className="p-1">{trade.duration}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                  
+                  {/* Desktop: TRADE HISTORY SUMMARY - Left Side */}
+                  <Card className="hidden md:block bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                           TRADE HISTORY SUMMARY
                         </h3>
                         <div className="flex gap-2">
-                          {/* Mobile Dropdown Toggle */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setShowMobileTradeHistory(!showMobileTradeHistory)}
-                            className="md:hidden h-8 w-8"
-                            data-testid="button-toggle-trade-history"
-                          >
-                            {showMobileTradeHistory ? (
-                              <ChevronUp className="h-5 w-5" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5" />
-                            )}
-                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -6742,8 +6873,7 @@ ${
                         </div>
                       </div>
 
-                      {/* Trade History Table - Collapsible on mobile */}
-                      <div className={`max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700 ${showMobileTradeHistory ? 'block' : 'hidden'} md:block`}>
+                      <div className="max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700">
                         <table className="w-full text-xs">
                           <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
                             <tr>
@@ -6839,8 +6969,8 @@ ${
                     </CardContent>
                   </Card>
 
-                  {/* trade book - Right Side (Functional Calendar) - Hidden on mobile */}
-                  <Card className="hidden md:block bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
+                  {/* Trade Book - Right Side (Functional Calendar) */}
+                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
