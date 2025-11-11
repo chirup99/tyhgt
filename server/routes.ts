@@ -4,7 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { fyersApi } from "./fyers-api";
 import { AnalysisProcessor } from "./analysis-processor";
-import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, insertSocialPostSchema, type SocialPost } from "@shared/schema";
+import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse } from "@shared/schema";
+import { fetchBrokerTrades } from "./services/broker-integrations";
 import { desc, sql, eq } from "drizzle-orm";
 import { intradayAnalyzer } from "./intraday-market-session";
 import { googleCloudService } from './google-cloud-service';
@@ -6300,6 +6301,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to fetch token from Firebase"
+      });
+    }
+  });
+
+  // ============================================================================
+  // BROKER INTEGRATIONS
+  // ============================================================================
+  
+  // Import trades from broker (Kite, Fyers, Dhan)
+  app.post("/api/brokers/import", async (req, res) => {
+    try {
+      const validatedData = brokerImportRequestSchema.parse(req.body);
+      console.log(`📥 [BROKER-IMPORT] Importing trades from ${validatedData.broker}...`);
+      
+      const credentialsWithBroker = { ...validatedData.credentials, broker: validatedData.broker };
+      const trades = await fetchBrokerTrades(credentialsWithBroker as any);
+      
+      console.log(`✅ [BROKER-IMPORT] Successfully imported ${trades.length} trades from ${validatedData.broker}`);
+      
+      res.status(200).json({
+        success: true,
+        trades,
+        message: `Successfully imported ${trades.length} trades from ${validatedData.broker}`,
+      } as BrokerTradesResponse);
+      
+    } catch (error) {
+      console.error(`❌ [BROKER-IMPORT] Failed to import trades:`, error);
+      
+      if (error instanceof Error && error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          trades: [],
+          message: "Invalid request data. Please check your credentials.",
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        trades: [],
+        message: error instanceof Error ? error.message : "Failed to import trades from broker",
       });
     }
   });

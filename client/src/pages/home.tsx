@@ -160,6 +160,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
+import { BrokerImportDialog } from "@/components/broker-import-dialog";
+import type { BrokerTrade } from "@shared/schema";
 
 // Type definitions for stock data and trading
 interface StockData {
@@ -4916,6 +4918,26 @@ ${
     }
   };
 
+  const handleBrokerImport = (trades: BrokerTrade[]) => {
+    const convertedTrades = trades.map((trade) => ({
+      time: new Date(trade.executedAt).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+      order: trade.action,
+      symbol: trade.symbol,
+      type: "MKT",
+      qty: trade.quantity,
+      price: trade.price,
+      pnl: trade.pnl ? `₹${trade.pnl}` : "-",
+      duration: "-",
+    }));
+
+    setTradeHistoryData((prev) => [...convertedTrades, ...prev]);
+    setShowBrokerImportModal(false);
+  };
+
   // Helper function to handle tab changes with audio stopping
   const handleTabChange = (newTab: string) => {
     // Stop any playing news audio when switching tabs
@@ -9338,6 +9360,13 @@ ${
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Broker Import Dialog */}
+        <BrokerImportDialog
+          open={showBrokerImportModal}
+          onOpenChange={setShowBrokerImportModal}
+          onSuccess={handleBrokerImport}
+        />
 
         {/* Import Modal */}
         <Dialog open={showImportModal} onOpenChange={setShowImportModal}>

@@ -96,17 +96,15 @@ export function BrokerImportDialog({
 
   const importMutation = useMutation({
     mutationFn: async (credentials: BrokerCredentials) => {
-      const response = await apiRequest<BrokerTradesResponse>(
-        "/api/brokers/import",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            broker: selectedBroker,
-            credentials,
-          }),
-        }
-      );
-      return response;
+      const response = await apiRequest({
+        url: "/api/brokers/import",
+        method: "POST",
+        body: {
+          broker: selectedBroker,
+          credentials,
+        },
+      });
+      return response as BrokerTradesResponse;
     },
     onSuccess: (data) => {
       setImportSuccess(true);
