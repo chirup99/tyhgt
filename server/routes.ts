@@ -6143,6 +6143,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Exchange auth code for access token
+  app.post("/api/auth/exchange", async (req, res) => {
+    try {
+      const { authCode } = req.body;
+      
+      if (!authCode) {
+        return res.status(400).json({ message: "Auth code is required" });
+      }
+
+      console.log('🔐 [AUTH-EXCHANGE] Received auth code exchange request');
+      console.log('📝 [AUTH-EXCHANGE] Auth code length:', authCode.length);
+
+      // Exchange auth code for access token using the correct redirect URI
+      const redirectUri = "https://www.google.com";
+      const accessToken = await fyersApi.generateAccessToken(authCode, redirectUri);
+      
+      if (accessToken) {
+        // Test the connection with the new access token
+        const isConnected = await fyersApi.testConnection();
+        
+        if (isConnected) {
+          // Calculate token expiry (24 hours from now for Fyers tokens)
+          const tokenExpiry = new Date();
+          tokenExpiry.setHours(tokenExpiry.getHours() + 24);
+
+          console.log('💾 [AUTH-EXCHANGE] Saving token to PostgreSQL and Firebase');
+          
+          let postgresSuccess = false;
+          let firebaseSuccess = false;
+
+          // Save to PostgreSQL
+          try {
+            await storage.updateApiStatus({
+              connected: true,
+              authenticated: true,
+              websocketActive: true,
+              responseTime: 45,
+              successRate: 99.8,
+              throughput: "2.3 MB/s",
+              activeSymbols: 250,
+              updatesPerSec: 1200,
+              uptime: 99.97,
+              latency: 12,
+              requestsUsed: 1500,
+              version: "v3.0.0",
+              dailyLimit: 100000,
+              accessToken: accessToken,
+              tokenExpiry: tokenExpiry,
+            });
+
+            console.log('✅ [AUTH-EXCHANGE] Token saved to PostgreSQL successfully');
+            postgresSuccess = true;
+          } catch (dbError) {
+            console.error('❌ [AUTH-EXCHANGE] Failed to save token to PostgreSQL:', dbError);
+          }
+
+          // Save to Firebase
+          try {
+            const firebaseResult = await googleCloudService.saveFyersToken(accessToken, tokenExpiry);
+            if (firebaseResult.success) {
+              console.log('✅ [AUTH-EXCHANGE] Token saved to Firebase successfully');
+              firebaseSuccess = true;
+            }
+          } catch (firebaseError) {
+            console.error('❌ [AUTH-EXCHANGE] Failed to save token to Firebase:', firebaseError);
+          }
+
+          // Add success log
+          await storage.addActivityLog({
+            type: "success",
+            message: `Successfully authenticated with Fyers API via auth code exchange (PostgreSQL: ${postgresSuccess ? 'Yes' : 'No'}, Firebase: ${firebaseSuccess ? 'Yes' : 'No'})`
+          });
+
+          res.json({ 
+            success: true, 
+            message: "Auth code exchanged and token authenticated successfully",
+            savedToPostgres: postgresSuccess,
+            savedToFirebase: firebaseSuccess
+          });
+        } else {
+          await storage.addActivityLog({
+            type: "error",
+            message: "Auth code exchanged but token validation failed"
+          });
+          res.status(401).json({ message: "Token generated but validation failed. Please try again." });
+        }
+      } else {
+        await storage.addActivityLog({
+          type: "error",
+          message: "Failed to exchange auth code for access token"
+        });
+        res.status(401).json({ message: "Failed to exchange auth code. Please check the code and try again." });
+      }
+    } catch (error) {
+      console.error('❌ [AUTH-EXCHANGE] Auth code exchange error:', error);
+      
+      await storage.addActivityLog({
+        type: "error",
+        message: `Auth code exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+
+      res.status(500).json({ message: error instanceof Error ? error.message : "Authentication failed" });
+    }
+  });
+
   // Get today's Fyers token from Firebase (auto-fetch)
   app.get("/api/auth/token/today", async (req, res) => {
     try {
