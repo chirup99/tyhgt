@@ -157,6 +157,7 @@ import {
   Briefcase,
   PieChart,
   Lock,
+  Trophy,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 
@@ -3350,6 +3351,9 @@ ${
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
   const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
   
+  // Mobile bottom navigation state (home, insight, ranking)
+  const [mobileBottomTab, setMobileBottomTab] = useState<'home' | 'insight' | 'ranking'>('home');
+  
   // Mobile trade history dropdown state
   const [showMobileTradeHistory, setShowMobileTradeHistory] = useState(false);
 
@@ -6255,6 +6259,8 @@ ${
                   Trading Journal
                 </h2>
 
+                {/* Main Journal Content - Mobile: Show only in "home" tab | Desktop: Always visible */}
+                <div className={`${mobileBottomTab !== 'home' ? 'hidden md:block' : 'block'}`}>
                 {/* PERFORMANCE TIMELINE - Responsive Three Blocks */}
                 {/* Desktop: 3-column grid | Mobile: Single panel with carousel */}
                 <div className="relative">
@@ -7515,9 +7521,40 @@ ${
                     </CardContent>
                   </Card>
                 </div>
+                </div>
+                {/* End of Main Journal Content */}
+
+                {/* Ranking Tab Content - Mobile only, shown when ranking tab is active */}
+                {mobileBottomTab === 'ranking' && (
+                  <div className="md:hidden mt-6 space-y-6">
+                    <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950 dark:to-yellow-950 border-amber-200 dark:border-amber-800">
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center">
+                            <Trophy className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl">Trader Rankings</CardTitle>
+                            <CardDescription>Coming soon: Compare your performance with other traders</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                            <Trophy className="h-16 w-16 mx-auto mb-4 opacity-40" />
+                            <p className="text-sm">Ranking feature coming soon...</p>
+                            <p className="text-xs mt-2">Track your position among top traders</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
 
                 {/* ============== MODERN TRADING ANALYTICS DASHBOARD ============== */}
-                <div className="mt-8 space-y-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-8 rounded-3xl border border-slate-200 dark:border-slate-800">
+                {/* Mobile: Show only in "insight" tab | Desktop: Always visible */}
+                <div className={`mt-8 space-y-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 ${mobileBottomTab !== 'insight' ? 'hidden md:block' : 'block'}`}>
                   {/* Header */}
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
@@ -9595,6 +9632,55 @@ ${
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Mobile Bottom Navigation - Fixed at bottom, only visible on mobile */}
+        {activeTab === "journal" && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-700 z-50 safe-area-bottom">
+            <div className="flex items-center justify-around px-4 py-3">
+              {/* Home Tab */}
+              <button
+                onClick={() => setMobileBottomTab('home')}
+                className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
+                  mobileBottomTab === 'home'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+                data-testid="mobile-tab-home"
+              >
+                <HomeIcon className={`h-6 w-6 ${mobileBottomTab === 'home' ? 'fill-current' : ''}`} />
+                <span className="text-xs font-medium">Home</span>
+              </button>
+
+              {/* Insight Tab */}
+              <button
+                onClick={() => setMobileBottomTab('insight')}
+                className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
+                  mobileBottomTab === 'insight'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+                data-testid="mobile-tab-insight"
+              >
+                <TrendingUp className={`h-6 w-6 ${mobileBottomTab === 'insight' ? 'stroke-2' : ''}`} />
+                <span className="text-xs font-medium">Insight</span>
+              </button>
+
+              {/* Ranking Tab */}
+              <button
+                onClick={() => setMobileBottomTab('ranking')}
+                className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
+                  mobileBottomTab === 'ranking'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+                data-testid="mobile-tab-ranking"
+              >
+                <Trophy className={`h-6 w-6 ${mobileBottomTab === 'ranking' ? 'fill-current' : ''}`} />
+                <span className="text-xs font-medium">Ranking</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
