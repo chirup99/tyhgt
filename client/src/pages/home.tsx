@@ -7554,7 +7554,16 @@ ${
 
                 {/* ============== MODERN TRADING ANALYTICS DASHBOARD ============== */}
                 {/* Mobile: Show only in "insight" tab | Desktop: Always visible */}
-                <div className={`mt-8 space-y-6 ${mobileBottomTab !== 'insight' ? 'hidden md:block' : 'block'}`}>
+                <div className={`mt-8 space-y-4 md:space-y-6 ${mobileBottomTab !== 'insight' ? 'hidden md:block' : 'block'}`}>
+                  {/* Header - Trading Analytics */}
+                  <div className="px-4 md:px-0">
+                    <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+                      Trading Analytics
+                    </h2>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      Performance insights and trend analysis
+                    </p>
+                  </div>
 
                   {(() => {
                     // Calculate comprehensive insights from all trading data
@@ -7692,11 +7701,11 @@ ${
                     const isProfitable = totalPnL >= 0;
 
                     return (
-                      <div className="space-y-6">
+                      <div className="space-y-4 md:space-y-6">
                         {/* Performance Trend Chart - Full Width on Top */}
-                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 md:p-8 shadow-lg border border-slate-200 dark:border-slate-700">
-                          <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+                        <div className="bg-white dark:bg-slate-800 md:rounded-3xl md:shadow-lg md:border border-slate-200 dark:border-slate-700 overflow-hidden">
+                          <div className="flex items-center justify-between mb-4 md:mb-6 px-4 md:px-8 pt-4 md:pt-8">
+                            <h3 className="text-base md:text-lg font-semibold text-slate-800 dark:text-white">
                               Performance Trend
                             </h3>
                             {(() => {
@@ -7734,7 +7743,7 @@ ${
                           </div>
 
                           {insights.tradingDayAnalysis.length > 0 ? (
-                            <div className="h-64 w-full">
+                            <div className="h-56 md:h-64 w-full px-0 md:px-8 pb-4 md:pb-8">
                               {(() => {
                                 // Get ALL trading data and prepare daily chart data
                                 const allDates =
@@ -7792,9 +7801,9 @@ ${
                                       <AreaChart
                                         data={chartData}
                                         margin={{
-                                          top: 40,
-                                          right: 30,
-                                          left: 20,
+                                          top: 20,
+                                          right: 10,
+                                          left: 0,
                                           bottom: 5,
                                         }}
                                       >
@@ -7907,9 +7916,9 @@ ${
                         </div>
 
                         {/* Bottom Section: Total P&L + Tags */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 px-4 md:px-0">
                           {/* Total Performance Card - Dynamic Color Based on P&L */}
-                          <div className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+                          <div className={`rounded-2xl md:rounded-3xl p-5 md:p-8 text-white shadow-lg md:shadow-2xl ${isProfitable ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
                             <div className="flex items-center justify-between mb-6">
                               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                                 <Target className="w-6 h-6" />
@@ -7957,7 +7966,7 @@ ${
                           </div>
 
                           {/* Tag Performance Distribution */}
-                          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
                               <Tag className="w-5 h-5 text-white" />
@@ -8028,7 +8037,7 @@ ${
                         </div>
 
                         {/* Strategy Summary Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 px-4 md:px-0">
                           {(() => {
                             const allData = Object.values(
                               tradingDataByDate
@@ -8096,20 +8105,20 @@ ${
                             return metrics.map((metric) => (
                               <div
                                 key={metric.label}
-                                className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300"
+                                className="bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-md md:shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300"
                               >
                                 <div
-                                  className={`w-12 h-12 bg-gradient-to-br ${metric.color} rounded-xl flex items-center justify-center mb-4 shadow-lg`}
+                                  className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br ${metric.color} rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 shadow-lg`}
                                 >
-                                  <metric.icon className="w-6 h-6 text-white" />
+                                  <metric.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-0.5 md:space-y-1">
                                   <div
-                                    className={`text-2xl font-bold ${metric.textColor}`}
+                                    className={`text-lg md:text-2xl font-bold ${metric.textColor}`}
                                   >
                                     {metric.value}
                                   </div>
-                                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                                  <div className="text-xs md:text-sm text-slate-600 dark:text-slate-400">
                                     {metric.label}
                                   </div>
                                 </div>
@@ -8119,16 +8128,16 @@ ${
                         </div>
 
                         {/* Loss Making Tags Analysis */}
-                        <div className="col-span-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl p-8 text-white shadow-2xl mt-6">
-                          <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                              <TrendingDown className="w-6 h-6" />
+                        <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl md:rounded-3xl p-5 md:p-8 text-white shadow-lg md:shadow-2xl mx-4 md:mx-0">
+                          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl md:rounded-2xl flex items-center justify-center">
+                              <TrendingDown className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             <div>
-                              <h3 className="text-xl font-bold">
+                              <h3 className="text-lg md:text-xl font-bold">
                                 Loss Making Analysis
                               </h3>
-                              <p className="opacity-80">
+                              <p className="text-sm md:text-base opacity-80">
                                 Identify and fix problematic patterns
                               </p>
                             </div>

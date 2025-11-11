@@ -395,6 +395,19 @@
 [x] 357. Made layout fully responsive for both desktop and mobile
 [x] 358. Restarted workflow successfully with all changes applied
 [x] 359. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ INSIGHTS TAB LAYOUT & P&L COLOR FIX COMPLETED!
+[x] 360. Added "Trading Analytics" header at the top of Insights tab
+[x] 361. Removed all padding/spacing from Performance Chart on mobile for full-width coverage
+[x] 362. Chart now displays edge-to-edge on mobile screens
+[x] 363. Adjusted chart margins - reduced from top:40, right:30, left:20 to top:20, right:10, left:0
+[x] 364. Chart positioned in tight corner for perfect mobile display
+[x] 365. Made all cards and sections fully responsive with mobile-first spacing
+[x] 366. Reduced padding on all elements for mobile (p-4 on mobile, p-6/p-8 on desktop)
+[x] 367. Smaller rounded corners on mobile (rounded-2xl) vs desktop (rounded-3xl)
+[x] 368. Strategy cards optimized with smaller icons and text on mobile
+[x] 369. Loss Making Analysis section redesigned for better mobile UX
+[x] 370. Removed excessive spacing - tighter gaps between sections on mobile
+[x] 371. Restarted workflow successfully with all mobile optimizations applied
+[x] 372. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ MOBILE UX OPTIMIZATION COMPLETED - PERFECT INSIGHTS TAB DISPLAY!
 [x] 343. Pushed database schema to PostgreSQL (Neon) - all tables synced successfully
 [x] 344. Configured workflow with webview output type on port 5000
 [x] 345. Restarted workflow - server running successfully on port 5000
