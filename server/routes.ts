@@ -6202,7 +6202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fyers authentication URL
   app.get("/api/auth/url", async (req, res) => {
     try {
-      const redirectUri = "https://google.com";
+      const redirectUri = "https://www.google.com";
       const authUrl = fyersApi.generateAuthUrl(redirectUri, 'cb_connect_auth');
       res.json({ authUrl });
     } catch (error) {
@@ -6222,7 +6222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔐 [AUTH-EXCHANGE] Attempting to exchange auth code for access token...');
       console.log('📝 [AUTH-EXCHANGE] Auth code preview:', authCode.substring(0, 50) + '...');
 
-      const redirectUri = "https://google.com";
+      const redirectUri = "https://www.google.com";
       const accessToken = await fyersApi.generateAccessToken(authCode, redirectUri);
       
       console.log('✅ [AUTH-EXCHANGE] Access token generated successfully');
