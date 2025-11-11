@@ -86,11 +86,16 @@ export function AuthButton() {
     },
     onSuccess: (authUrl) => {
       // Open Fyers authentication in new window
-      window.open(authUrl, '_blank', 'width=600,height=700');
+      window.open(authUrl, 'FyersAuth', 'width=600,height=700');
+      
+      // Auto-show the URL input after opening popup
+      setShowUrlInput(true);
+      setShowTokenInput(false);
+      setShowCodeInput(false);
       
       toast({
-        title: "Authentication Started",
-        description: "Please complete authentication in the popup window.",
+        title: "Step 1: Sign in to Fyers",
+        description: "Complete the login, then paste the redirect URL below.",
       });
     },
     onError: (error) => {
@@ -167,6 +172,22 @@ export function AuthButton() {
     }
   };
 
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setRedirectUrl(url);
+    
+    // Auto-submit if valid Fyers redirect URL is detected
+    if (url.includes('auth_code=') && url.includes('google.com')) {
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        const extractedCode = extractAuthCodeFromUrl(url);
+        if (extractedCode) {
+          urlMutation.mutate(url.trim());
+        }
+      }, 100);
+    }
+  };
+
   // Show authentication options when: no token, disconnected, force show, or token null/missing
   const hasValidToken = apiStatus?.accessToken && apiStatus?.accessToken !== null;
   const shouldShowAuth = !hasValidToken || !apiStatus?.connected || showTokenInput;
@@ -232,14 +253,15 @@ export function AuthButton() {
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <div className="mb-4">
         <h3 className="text-sm font-medium text-blue-900 mb-1">
-          Fyers API Authentication Required
+          🔐 Fyers API Login
         </h3>
         <p className="text-xs text-blue-700">
-          🚀 <strong>Easiest way:</strong> Click OAuth Login, then paste the full redirect URL above!
+          <strong>Quick 2-Step Login:</strong>
         </p>
-        <p className="text-xs text-blue-600 mt-1">
-          Or use Access Token/Auth Code if you prefer
-        </p>
+        <ol className="text-xs text-blue-600 mt-1 ml-4 space-y-0.5">
+          <li>1️⃣ Click "Sign in with Fyers" button below</li>
+          <li>2️⃣ After signing in, paste the redirect URL - it will auto-connect!</li>
+        </ol>
       </div>
 
       <div className="space-y-4">
@@ -303,43 +325,54 @@ export function AuthButton() {
           </form>
         )}
 
-        {/* Redirect URL Input - EASIEST OPTION */}
+        {/* Redirect URL Input - AUTO-CONNECT */}
         {showUrlInput && (
-          <form onSubmit={handleUrlSubmit}>
-            <div className="flex items-end space-x-3">
-              <div className="flex-1">
-                <Label htmlFor="redirectUrl" className="text-xs text-blue-900 font-semibold">
-                  🚀 Paste Full Redirect URL (Easiest Method!)
-                </Label>
-                <Input
-                  id="redirectUrl"
-                  type="text"
-                  placeholder="Paste: https://www.google.com/?s=ok&code=200&auth_code=eyJ...&state=None"
-                  value={redirectUrl}
-                  onChange={(e) => setRedirectUrl(e.target.value)}
-                  className="mt-1 text-sm"
-                  data-testid="input-redirect-url"
-                />
-                <p className="text-xs text-blue-600 mt-1">
-                  After clicking OAuth Login below, paste the entire redirect URL here
-                </p>
-              </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-center">
               <Button
-                type="submit"
-                disabled={urlMutation.isPending || !redirectUrl.trim()}
-                className="bg-[hsl(122,39%,49%)] hover:bg-[hsl(122,39%,39%)] text-white"
-                size="sm"
-                data-testid="button-connect-url"
+                onClick={() => authMutation.mutate()}
+                disabled={authMutation.isPending}
+                className="bg-[hsl(207,90%,54%)] hover:bg-[hsl(207,90%,44%)] text-white"
+                size="lg"
+                data-testid="button-fyers-signin"
               >
-                <Key className="mr-2 h-4 w-4" />
-                {urlMutation.isPending ? 'Connecting...' : 'Connect'}
+                <LogIn className="mr-2 h-5 w-5" />
+                {authMutation.isPending ? 'Opening Fyers...' : 'Step 1: Sign in with Fyers'}
+                <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </div>
-          </form>
+            
+            <div>
+              <Label htmlFor="redirectUrl" className="text-xs text-blue-900 font-semibold">
+                Step 2: Paste the redirect URL here (auto-connects!)
+              </Label>
+              <Input
+                id="redirectUrl"
+                type="text"
+                placeholder="Paste: https://www.google.com/?s=ok&code=200&auth_code=eyJ...&state=None"
+                value={redirectUrl}
+                onChange={handleUrlChange}
+                className="mt-1 text-sm font-mono"
+                data-testid="input-redirect-url"
+                autoFocus={showUrlInput}
+              />
+              {urlMutation.isPending && (
+                <p className="text-xs text-blue-600 mt-1 font-medium animate-pulse">
+                  🔄 Connecting to Fyers API...
+                </p>
+              )}
+              {!urlMutation.isPending && (
+                <p className="text-xs text-green-600 mt-1 font-medium">
+                  ✨ Just paste the URL - it will connect automatically!
+                </p>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-blue-200">
+      <div className="pt-3 border-t border-blue-200">
+        <p className="text-xs text-blue-500 mb-2">Alternative login methods:</p>
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() => {
@@ -352,7 +385,7 @@ export function AuthButton() {
             className={`text-xs ${showUrlInput ? 'bg-blue-100 text-blue-900' : 'text-blue-600'}`}
             data-testid="button-toggle-url"
           >
-            📋 Paste URL
+            📋 Auto Login (Paste URL)
           </Button>
           <Button
             onClick={() => {
@@ -365,7 +398,7 @@ export function AuthButton() {
             className={`text-xs ${showTokenInput ? 'bg-blue-100 text-blue-900' : 'text-blue-600'}`}
             data-testid="button-toggle-token"
           >
-            🔑 Token
+            🔑 Access Token
           </Button>
           <Button
             onClick={() => {
@@ -378,20 +411,9 @@ export function AuthButton() {
             className={`text-xs ${showCodeInput ? 'bg-blue-100 text-blue-900' : 'text-blue-600'}`}
             data-testid="button-toggle-code"
           >
-            🔐 Code
+            🔐 Auth Code
           </Button>
         </div>
-        <Button
-          onClick={() => authMutation.mutate()}
-          disabled={authMutation.isPending}
-          variant="outline"
-          className="border-[hsl(207,90%,54%)] text-[hsl(207,90%,54%)] hover:bg-[hsl(207,90%,54%)]/10"
-          size="sm"
-        >
-          <LogIn className="mr-2 h-4 w-4" />
-          {authMutation.isPending ? 'Opening...' : 'OAuth Login'}
-          <ExternalLink className="ml-2 h-3 w-3" />
-        </Button>
       </div>
     </div>
   );
