@@ -417,6 +417,16 @@
 [x] 379. Cards now consume much less vertical space on mobile screens
 [x] 380. Restarted workflow successfully with compact card layout applied
 [x] 381. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ STRATEGY CARDS COMPACT MOBILE LAYOUT COMPLETED!
+[x] 382. Made Loss Making Analysis metrics compact for mobile - rectangular design
+[x] 383. Reduced padding from p-4 to p-3 on mobile (keeping p-4 on desktop)
+[x] 384. Reduced font sizes: value text from 2xl to lg, labels from sm to xs
+[x] 385. Reduced gap spacing from gap-4 to gap-3 on mobile
+[x] 386. Made Discipline & Risk Management metrics compact for mobile
+[x] 387. Reduced padding from p-4 to p-3, font sizes from 2xl to lg, labels from sm to xs
+[x] 388. Reduced spacing throughout both sections for mobile (space-y-6 to space-y-4)
+[x] 389. Desktop layout remains unchanged with original sizes
+[x] 390. Restarted workflow successfully with compact rectangular layouts applied
+[x] 391. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ LOSS MAKING & DISCIPLINE COMPACT MOBILE LAYOUT COMPLETED!
 [x] 343. Pushed database schema to PostgreSQL (Neon) - all tables synced successfully
 [x] 344. Configured workflow with webview output type on port 5000
 [x] 345. Restarted workflow - server running successfully on port 5000

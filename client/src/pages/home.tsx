@@ -8245,35 +8245,35 @@ ${
                               .slice(0, 4);
 
                             return (
-                              <div className="space-y-6">
+                              <div className="space-y-4 md:space-y-6">
                                 {/* Risk Metrics Summary */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                                    <div className="text-2xl font-bold">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {riskMetrics.totalLossingDays}
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Losing Days
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                                    <div className="text-2xl font-bold">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {riskMetrics.emotionalTradingDays}
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Emotional Trading Days
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                                    <div className="text-2xl font-bold">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {riskMetrics.impulsiveTrades}
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Impulsive Trades
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                                    <div className="text-2xl font-bold">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {allData.length > 0
                                         ? (
                                             (riskMetrics.totalLossingDays /
@@ -8283,7 +8283,7 @@ ${
                                         : 0}
                                       %
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Loss Rate
                                     </div>
                                   </div>
@@ -8570,40 +8570,40 @@ ${
                             ];
 
                             return (
-                              <div className="space-y-6">
+                              <div className="space-y-4 md:space-y-6">
                                 {/* Discipline Metrics */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-                                    <div className="text-2xl font-bold">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 text-center">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {plannedRatio.toFixed(0)}%
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Planned Trades
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-                                    <div className="text-2xl font-bold">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 text-center">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {disciplineMetrics.avgTradesPerDay.toFixed(
                                         1
                                       )}
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Avg Trades/Day
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-                                    <div className="text-2xl font-bold">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 text-center">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {maxWinStreak}
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Max Win Streak
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-                                    <div className="text-2xl font-bold">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 text-center">
+                                    <div className="text-lg md:text-2xl font-bold">
                                       {consistencyRatio.toFixed(0)}%
                                     </div>
-                                    <div className="text-sm opacity-80">
+                                    <div className="text-xs md:text-sm opacity-80">
                                       Consistent Days
                                     </div>
                                   </div>
