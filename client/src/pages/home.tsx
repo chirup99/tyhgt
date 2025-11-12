@@ -8066,6 +8066,129 @@ ${
 
                     return (
                       <div className="space-y-6">
+                        {/* Bottom Section: Total P&L + Tags */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {/* Total Performance Card - Dynamic Color Based on P&L */}
+                          <div
+                            className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}
+                          >
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                                <Target className="w-6 h-6" />
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm opacity-80">
+                                  Total P&L
+                                </div>
+                                <div className="text-2xl md:text-3xl font-bold">
+                                  {totalPnL >= 0 ? "+" : "-"}₹
+                                  {Math.abs(totalPnL).toLocaleString("en-IN")}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm opacity-80">
+                                  Total Trades
+                                </span>
+                                <span className="font-semibold">
+                                  {insights.overallStats.totalTrades}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm opacity-80">
+                                  Success Rate
+                                </span>
+                                <span className="font-semibold">
+                                  {insights.overallStats.winRate.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-white rounded-full h-2 transition-all duration-1000"
+                                  style={{
+                                    width: `${Math.min(
+                                      insights.overallStats.winRate,
+                                      100,
+                                    )}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Tag Performance Distribution */}
+                          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center gap-3 mb-6">
+                              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                <Tag className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-slate-800 dark:text-white">
+                                  Top Tags
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                  Strategy Performance
+                                </p>
+                              </div>
+                            </div>
+
+                            {insights.topPerformers.length > 0 ? (
+                              <div className="space-y-4">
+                                {insights.topPerformers
+                                  .slice(0, 4)
+                                  .map((tag: any, idx: number) => (
+                                    <div key={tag.tag} className="relative">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                          {tag.tag}
+                                        </span>
+                                        <span
+                                          className={`text-sm font-semibold ${
+                                            tag.totalPnL >= 0
+                                              ? "text-emerald-600"
+                                              : "text-red-500"
+                                          }`}
+                                        >
+                                          {tag.totalPnL >= 0 ? "+" : ""}₹
+                                          {Math.abs(
+                                            tag.totalPnL,
+                                          ).toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                        <div
+                                          className={`h-2 rounded-full transition-all duration-1000 ${
+                                            tag.totalPnL >= 0
+                                              ? "bg-gradient-to-r from-emerald-400 to-green-500"
+                                              : "bg-gradient-to-r from-red-400 to-rose-500"
+                                          }`}
+                                          style={{
+                                            width: `${Math.min(
+                                              tag.winRate,
+                                              100,
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <div className="text-xs text-slate-500 mt-1">
+                                        {tag.winRate.toFixed(1)}% success rate
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-32 text-slate-400">
+                                <div className="text-center">
+                                  <Tag className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                  <p className="text-sm">No tag data</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
                         {/* Performance Trend Chart - Full Width on Top */}
                         <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 md:p-8 shadow-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center justify-between mb-6">
@@ -8279,129 +8402,6 @@ ${
                           )}
                         </div>
 
-                        {/* Bottom Section: Total P&L + Tags */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* Total Performance Card - Dynamic Color Based on P&L */}
-                          <div
-                            className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}
-                          >
-                            <div className="flex items-center justify-between mb-6">
-                              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                                <Target className="w-6 h-6" />
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm opacity-80">
-                                  Total P&L
-                                </div>
-                                <div className="text-2xl md:text-3xl font-bold">
-                                  {totalPnL >= 0 ? "+" : "-"}₹
-                                  {Math.abs(totalPnL).toLocaleString("en-IN")}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm opacity-80">
-                                  Total Trades
-                                </span>
-                                <span className="font-semibold">
-                                  {insights.overallStats.totalTrades}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm opacity-80">
-                                  Success Rate
-                                </span>
-                                <span className="font-semibold">
-                                  {insights.overallStats.winRate.toFixed(1)}%
-                                </span>
-                              </div>
-                              <div className="w-full bg-white/20 rounded-full h-2">
-                                <div
-                                  className="bg-white rounded-full h-2 transition-all duration-1000"
-                                  style={{
-                                    width: `${Math.min(
-                                      insights.overallStats.winRate,
-                                      100,
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Tag Performance Distribution */}
-                          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                            <div className="flex items-center gap-3 mb-6">
-                              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                                <Tag className="w-5 h-5 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-slate-800 dark:text-white">
-                                  Top Tags
-                                </h3>
-                                <p className="text-xs text-slate-500">
-                                  Strategy Performance
-                                </p>
-                              </div>
-                            </div>
-
-                            {insights.topPerformers.length > 0 ? (
-                              <div className="space-y-4">
-                                {insights.topPerformers
-                                  .slice(0, 4)
-                                  .map((tag: any, idx: number) => (
-                                    <div key={tag.tag} className="relative">
-                                      <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                          {tag.tag}
-                                        </span>
-                                        <span
-                                          className={`text-sm font-semibold ${
-                                            tag.totalPnL >= 0
-                                              ? "text-emerald-600"
-                                              : "text-red-500"
-                                          }`}
-                                        >
-                                          {tag.totalPnL >= 0 ? "+" : ""}₹
-                                          {Math.abs(
-                                            tag.totalPnL,
-                                          ).toLocaleString()}
-                                        </span>
-                                      </div>
-                                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                                        <div
-                                          className={`h-2 rounded-full transition-all duration-1000 ${
-                                            tag.totalPnL >= 0
-                                              ? "bg-gradient-to-r from-emerald-400 to-green-500"
-                                              : "bg-gradient-to-r from-red-400 to-rose-500"
-                                          }`}
-                                          style={{
-                                            width: `${Math.min(
-                                              tag.winRate,
-                                              100,
-                                            )}%`,
-                                          }}
-                                        ></div>
-                                      </div>
-                                      <div className="text-xs text-slate-500 mt-1">
-                                        {tag.winRate.toFixed(1)}% success rate
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center h-32 text-slate-400">
-                                <div className="text-center">
-                                  <Tag className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                  <p className="text-sm">No tag data</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
                         {/* Strategy Summary Cards */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {(() => {
@@ -8495,21 +8495,23 @@ ${
                           })()}
                         </div>
 
-                        {/* Loss Making Tags Analysis */}
-                        <div className="col-span-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl p-8 text-white shadow-2xl mt-6">
-                          <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                              <TrendingDown className="w-6 h-6" />
+                        {/* Two-column grid for Loss Making Analysis and Discipline & Risk Management */}
+                        <div className="grid gap-6 lg:grid-cols-2">
+                          {/* Loss Making Tags Analysis */}
+                          <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl p-8 text-white shadow-2xl">
+                            <div className="flex items-center gap-4 mb-6">
+                              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                                <TrendingDown className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <h3 className="text-xl font-bold">
+                                  Loss Making Analysis
+                                </h3>
+                                <p className="opacity-80">
+                                  Identify and fix problematic patterns
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="text-xl font-bold">
-                                Loss Making Analysis
-                              </h3>
-                              <p className="opacity-80">
-                                Identify and fix problematic patterns
-                              </p>
-                            </div>
-                          </div>
 
                           {(() => {
                             const allData = Object.values(
