@@ -4616,6 +4616,8 @@ ${
       const lines = csvText.trim().split("\n");
       const data = [];
 
+      console.log("🔍 Parsing", lines.length, "lines of trade data");
+
       for (const line of lines) {
         if (line.trim()) {
           // Handle comma-separated (CSV), tab-separated, and space-separated data
@@ -4642,6 +4644,8 @@ ${
               .map((part) => part.trim())
               .filter((part) => part.length > 0);
           }
+
+          console.log("📋 Parsed parts:", parts);
 
           // Smart broker format detection
           if (parts.length >= 4) {
@@ -4812,6 +4816,8 @@ ${
               .replace(/\s+(CE|PE)\s+(NFO|BFO|NSE|BSE)$/i, " $1")
               .trim();
 
+            console.log("✅ Extracted trade:", { time, order, symbol, type, qty, price });
+
             // Only add trade if we have essential fields
             if (time && order && symbol && qty > 0) {
               const trade = {
@@ -4825,11 +4831,22 @@ ${
                 duration: "-",
               };
 
+              console.log("✅ Adding trade to data:", trade);
               data.push(trade);
+            } else {
+              console.log("❌ Skipping invalid trade - missing:", {
+                hasTime: !!time,
+                hasOrder: !!order,
+                hasSymbol: !!symbol,
+                hasQty: qty > 0,
+                time, order, symbol, qty
+              });
             }
           }
         }
       }
+
+      console.log("📊 Total trades parsed:", data.length);
 
       // Sort trades by time (earliest first)
       data.sort((a, b) => {
