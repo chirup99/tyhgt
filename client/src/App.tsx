@@ -386,7 +386,11 @@ function Router() {
           <Dashboard />
         </MainLayout>
       </Route>
-      <Route path="/voice" component={NeoFeedSocialFeed} />
+      <Route path="/voice">
+        <MainLayout>
+          <NeoFeedSocialFeed />
+        </MainLayout>
+      </Route>
       <Route path="/home" component={NewHome} />
       <Route component={NotFound} />
     </Switch>

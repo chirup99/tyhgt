@@ -1786,7 +1786,7 @@ function MicroAnimationsDemoPage() {
 }
 
 export default function Home() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("trading-home");
   const [showTutorOverlay, setShowTutorOverlay] = useState(false);
   const [swipeStartY, setSwipeStartY] = useState(0);
@@ -1862,6 +1862,22 @@ export default function Home() {
     setShowPasscodeModal(false);
     setPasscodeInput("");
     setPendingTab("");
+  };
+
+  // Check if user is logged in, redirect to login if not
+  const checkAuthAndNavigate = (tabName: string) => {
+    const userId = localStorage.getItem('currentUserId');
+    const userEmail = localStorage.getItem('currentUserEmail');
+    
+    if (!userId || !userEmail) {
+      // User not logged in, redirect to login page
+      setLocation('/login');
+      return false;
+    }
+    
+    // User is logged in, set active tab
+    setActiveTab(tabName);
+    return true;
   };
 
   // AI Finance Assistant Logic - Real data fetching and analysis
@@ -5298,7 +5314,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("trading-master")}
+              onClick={() => checkAuthAndNavigate("trading-master")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "trading-master"
                   ? "bg-primary text-primary-foreground"
@@ -5351,7 +5367,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("journal")}
+              onClick={() => checkAuthAndNavigate("journal")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "journal"
                   ? "bg-primary text-primary-foreground"
@@ -5399,7 +5415,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("voice")}
+              onClick={() => checkAuthAndNavigate("voice")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "voice"
                   ? "bg-primary text-primary-foreground"
@@ -6144,7 +6160,7 @@ ${
                           {/* Social Feed Card */}
                           <div
                             className="bg-blue-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => setActiveTab("voice")}
+                            onClick={() => checkAuthAndNavigate("voice")}
                           >
                             <div className="absolute top-4 left-4">
                               <span className="bg-white bg-opacity-90 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
@@ -6161,7 +6177,7 @@ ${
                           {/* Trading Master Card */}
                           <div
                             className="bg-indigo-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => setActiveTab("trading-master")}
+                            onClick={() => checkAuthAndNavigate("trading-master")}
                           >
                             <div className="absolute top-4 left-4">
                               <span className="bg-white bg-opacity-90 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium">
@@ -6178,7 +6194,7 @@ ${
                           {/* Trading Charts Card */}
                           <div
                             className="bg-emerald-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => setActiveTab("journal")}
+                            onClick={() => checkAuthAndNavigate("journal")}
                           >
                             <div className="absolute top-4 left-4">
                               <span className="bg-white bg-opacity-90 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
@@ -6209,7 +6225,7 @@ ${
                             {/* Social Feed Card */}
                             <div
                               className="bg-blue-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
-                              onClick={() => setActiveTab("voice")}
+                              onClick={() => checkAuthAndNavigate("voice")}
                             >
                               <div className="absolute top-2 left-2">
                                 <span className="bg-white bg-opacity-90 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
@@ -6226,7 +6242,7 @@ ${
                             {/* Trading Master Card */}
                             <div
                               className="bg-purple-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
-                              onClick={() => setActiveTab("trading-master")}
+                              onClick={() => checkAuthAndNavigate("trading-master")}
                             >
                               <div className="absolute top-2 left-2">
                                 <span className="bg-white bg-opacity-90 text-purple-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
@@ -6243,7 +6259,7 @@ ${
                             {/* Journal Card */}
                             <div
                               className="bg-green-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
-                              onClick={() => setActiveTab("journal")}
+                              onClick={() => checkAuthAndNavigate("journal")}
                             >
                               <div className="absolute top-2 left-2">
                                 <span className="bg-white bg-opacity-90 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
