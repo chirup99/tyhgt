@@ -3781,7 +3781,16 @@ ${
   // Date range selection state
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
-  const [heatmapYear, setHeatmapYear] = useState(new Date().getFullYear());
+  // Default to 2025 for demo mode, current year for user mode
+  const [heatmapYear, setHeatmapYear] = useState(() => {
+    if (typeof window !== "undefined") {
+      const demoMode = localStorage.getItem("tradingJournalDemoMode");
+      if (demoMode === null || demoMode === "true") {
+        return 2025; // Demo data is in 2025
+      }
+    }
+    return new Date().getFullYear();
+  });
   const [isCalendarDataFetched, setIsCalendarDataFetched] = useState(false);
 
   // Auto-set calendar data fetched when both dates are selected
@@ -7422,9 +7431,6 @@ ${
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 mr-2">
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                Demo
-                              </span>
                               <Switch
                                 checked={isDemoMode}
                                 onCheckedChange={(checked) => {
@@ -7433,6 +7439,8 @@ ${
                                     "tradingJournalDemoMode",
                                     String(checked),
                                   );
+                                  // Update heatmap year when toggling demo mode
+                                  setHeatmapYear(checked ? 2025 : new Date().getFullYear());
                                   if (!checked) {
                                     setTradingDataByDate({});
                                     localStorage.removeItem(
@@ -7442,6 +7450,9 @@ ${
                                 }}
                                 data-testid="switch-demo-mode"
                               />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                {isDemoMode ? "Demo Mode (June-Sep 2025)" : "Your Journal"}
+                              </span>
                             </div>
                             <Button
                               variant="outline"
