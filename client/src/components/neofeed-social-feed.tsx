@@ -2247,36 +2247,42 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
       </div>
 
       {/* Bottom Navigation Bar - Mobile Only (Hides on scroll) */}
-      <div className={`md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
+      <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 pb-4 px-6 pointer-events-none transition-all duration-300 ${
         showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0'
       }`}>
-        <div className="bg-white dark:bg-gray-900 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-6">
-          {/* Home Icon */}
-          <button
-            onClick={() => handleFilterChange('All')}
-            className="p-2 rounded-full transition-all hover-elevate active-elevate-2"
-            data-testid="button-home-mobile"
-          >
-            <Home className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-          </button>
+        <div className="max-w-xs mx-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-full shadow-lg border border-gray-200/50 dark:border-gray-700/50 pointer-events-auto">
+          <div className="flex items-center justify-around px-1.5 py-1.5">
+            {/* Home Icon */}
+            <button
+              onClick={() => handleFilterChange('All')}
+              className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
+                selectedFilter === 'All'
+                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              data-testid="button-home-mobile"
+            >
+              <Home className={`h-5 w-5 ${selectedFilter === 'All' ? "fill-current" : ""}`} />
+            </button>
 
-          {/* Plus Icon (Create Post) */}
-          <button
-            onClick={() => setShowMobileCreatePost(true)}
-            className="p-2 rounded-full bg-blue-600 text-white transition-all hover-elevate active-elevate-2"
-            data-testid="button-create-mobile"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+            {/* Plus Icon (Create Post) */}
+            <button
+              onClick={() => setShowMobileCreatePost(true)}
+              className="flex items-center justify-center flex-1 rounded-full px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md transition-all duration-200"
+              data-testid="button-create-mobile"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
 
-          {/* Audio Repost Icon */}
-          <button
-            onClick={() => setShowMobileAudioMinicast(true)}
-            className="p-2 rounded-full transition-all hover-elevate active-elevate-2"
-            data-testid="button-audio-repost-mobile"
-          >
-            <Radio className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-          </button>
+            {/* Audio Repost Icon */}
+            <button
+              onClick={() => setShowMobileAudioMinicast(true)}
+              className="flex items-center justify-center flex-1 rounded-full px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
+              data-testid="button-audio-repost-mobile"
+            >
+              <Radio className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
