@@ -1,33 +1,7 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
 import * as battuSchema from "@shared/battu-schema";
 
-neonConfig.webSocketConstructor = ws;
-
-// Private Battu API Database Connection
-// This uses a separate database connection from the main application
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
-
-// Create a dedicated pool for Battu API operations
-export const battuPool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  // Use different connection settings for isolation
-  max: 5, // Limit connections for privacy
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
-
-export const battuDb = drizzle({ 
-  client: battuPool, 
-  schema: battuSchema,
-  // Enable query logging only in development for security
-  logger: process.env.NODE_ENV === 'development' ? true : false
-});
+export const battuPool = null;
+export const battuDb = null;
 
 // Battu API Security Headers
 export const BATTU_API_HEADERS = {
