@@ -1365,7 +1365,7 @@ function HistoricalDataSection() {
               </div>
             </div>
 
-            <div className="max-h-96 overflow-auto border rounded-lg">
+            <div className="max-h-96 overflow-auto border rounded-lg custom-thin-scrollbar">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -6246,7 +6246,7 @@ ${
                         </div>
 
                         {/* Scrollable content */}
-                        <div className="h-full overflow-y-auto pb-20">
+                        <div className="h-full overflow-y-auto pb-20 custom-thin-scrollbar">
                           <div className="p-4 space-y-6">
                             {/* Welcome message */}
                             <div className="text-center space-y-2">
@@ -6443,7 +6443,7 @@ ${
                                     className="text-sm"
                                     data-testid="input-stock-search"
                                   />
-                                  <div className="max-h-64 overflow-y-auto space-y-1">
+                                  <div className="max-h-64 overflow-y-auto space-y-1 custom-thin-scrollbar">
                                     {[
                                       { value: "NSE:NIFTY50-INDEX", label: "NIFTY 50" },
                                       { value: "NSE:SENSEX-INDEX", label: "SENSEX" },
@@ -6721,7 +6721,7 @@ ${
                                   )}
 
                                   {/* Available Tags by Category */}
-                                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                                  <div className="space-y-4 max-h-96 overflow-y-auto custom-thin-scrollbar">
                                     {Object.entries(tradingTagSystem).map(
                                       ([categoryKey, category]) => (
                                         <div
@@ -6840,7 +6840,7 @@ ${
                             data-testid="textarea-notes"
                           />
                         ) : (
-                          <div className="flex-1 w-full p-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto">
+                          <div className="flex-1 w-full p-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto custom-thin-scrollbar">
                             {/* Display tags inline when they exist */}
                             {selectedTags.length > 0 && (
                               <div className="mb-3 pb-3 border-b border-gray-300 dark:border-gray-600">
@@ -6962,19 +6962,19 @@ ${
                               Import
                             </Button>
                           </div>
-                          <div className="max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700">
+                          <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
                         <table className="w-full text-xs">
                           <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
                             <tr>
-                              <th className="p-1 text-left">Time</th>
-                              <th className="p-1 text-left">Order</th>
-                              <th className="p-1 text-left">Symbol</th>
-                              <th className="p-1 text-left">Type</th>
-                              <th className="p-1 text-left">Qty</th>
-                              <th className="p-1 text-left">Price</th>
-                              <th className="p-1 text-left">P&L</th>
-                              <th className="p-1 text-left">%</th>
-                              <th className="p-1 text-left">Duration</th>
+                              <th className="p-1 text-left min-w-[60px]">Time</th>
+                              <th className="p-1 text-left min-w-[50px]">Order</th>
+                              <th className="p-1 text-left min-w-[80px]">Symbol</th>
+                              <th className="p-1 text-left min-w-[50px]">Type</th>
+                              <th className="p-1 text-left min-w-[40px]">Qty</th>
+                              <th className="p-1 text-left min-w-[60px]">Price</th>
+                              <th className="p-1 text-left min-w-[60px]">P&L</th>
+                              <th className="p-1 text-left min-w-[40px]">%</th>
+                              <th className="p-1 text-left min-w-[70px]">Duration</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
@@ -7095,19 +7095,19 @@ ${
                         </div>
                       </div>
 
-                      <div className="max-h-80 overflow-auto border rounded-lg border-gray-200 dark:border-gray-700">
+                      <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
                         <table className="w-full text-xs">
                           <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
                             <tr>
-                              <th className="p-1 text-left">Time</th>
-                              <th className="p-1 text-left">Order</th>
-                              <th className="p-1 text-left">Symbol</th>
-                              <th className="p-1 text-left">Type</th>
-                              <th className="p-1 text-left">Qty</th>
-                              <th className="p-1 text-left">Price</th>
-                              <th className="p-1 text-left">P&L</th>
-                              <th className="p-1 text-left">%</th>
-                              <th className="p-1 text-left">Duration</th>
+                              <th className="p-1 text-left min-w-[60px]">Time</th>
+                              <th className="p-1 text-left min-w-[50px]">Order</th>
+                              <th className="p-1 text-left min-w-[80px]">Symbol</th>
+                              <th className="p-1 text-left min-w-[50px]">Type</th>
+                              <th className="p-1 text-left min-w-[40px]">Qty</th>
+                              <th className="p-1 text-left min-w-[60px]">Price</th>
+                              <th className="p-1 text-left min-w-[60px]">P&L</th>
+                              <th className="p-1 text-left min-w-[40px]">%</th>
+                              <th className="p-1 text-left min-w-[70px]">Duration</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
@@ -9407,13 +9407,13 @@ ${
 
         {/* Trade History Modal */}
         <Dialog open={showOrderModal} onOpenChange={setShowOrderModal}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto custom-thin-scrollbar">
             <DialogHeader>
               <DialogTitle>Imported Trade History</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="max-h-96 overflow-y-auto border rounded-lg">
+              <div className="max-h-96 overflow-y-auto border rounded-lg custom-thin-scrollbar">
                 <table className="w-full text-xs">
                   <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0">
                     <tr>
@@ -9592,7 +9592,7 @@ ${
               )}
 
               {parseErrors.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 max-h-48 overflow-y-auto">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 max-h-48 overflow-y-auto custom-thin-scrollbar">
                   <p className="text-sm font-medium text-yellow-800 mb-2">
                     ⚠️ {parseErrors.length} line(s) could not be parsed:
                   </p>

@@ -5694,7 +5694,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   </div>
                 </div>
                 
-                <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                <div className="space-y-3 max-h-60 overflow-y-auto custom-thin-scrollbar">
                   {feedStocks.length > 0 ? (
                     feedStocks.map((stock, index) => {
                       // Get live price data from streaming state
@@ -8210,7 +8210,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
 
               {/* Strategy Cards Grid - Made scrollable */}
-              <div className="max-h-[600px] overflow-y-auto pr-2">
+              <div className="max-h-[600px] overflow-y-auto pr-2 custom-thin-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Strategy Card 1 */}
                 {!deletedStrategies.includes(1) && defaultStrategies.find(s => s.id === 1) && (
@@ -9553,7 +9553,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                       </div>
                     ) : optionChainData?.strikes && optionChainData.strikes.length > 0 ? (
                       /* Scrollable Option Chain Table */
-                      <div className="overflow-x-auto overflow-y-auto max-h-[460px]">
+                      <div className="overflow-x-auto overflow-y-auto max-h-[460px] custom-thin-scrollbar">
                         <Table>
                           <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                             <TableRow className="bg-gray-50 dark:bg-gray-700/50">
