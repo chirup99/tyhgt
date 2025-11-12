@@ -3201,13 +3201,15 @@ ${
   });
 
   // Demo mode state - toggle between demo data (same for all users) and user-specific data
-  // NOTE: Logic is INVERTED - when switch is OFF (false), use demo mode. When ON (true), use personal mode.
+  // Switch ON (true) = Demo mode active (shared demo data)
+  // Switch OFF (false) = Personal mode active (user-specific data)
   const [isDemoMode, setIsDemoMode] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("tradingJournalDemoMode");
-      return stored === "true";
+      // Default to true (demo mode ON) for new users
+      return stored === null ? true : stored === "true";
     }
-    return false;
+    return true; // Default to demo mode for new users
   });
 
   // Loading state for heatmap data
@@ -3896,14 +3898,14 @@ ${
 
     try {
       // Choose endpoint based on demo mode
-      // NOTE: Logic is INVERTED - when isDemoMode is false, load demo data. When true, load personal data.
+      // Switch ON (true) = Demo mode, Switch OFF (false) = Personal mode
       let response;
-      if (!isDemoMode) {
-        // Switch OFF = Demo mode: Load from shared Google Cloud journal database
+      if (isDemoMode) {
+        // Switch ON = Demo mode: Load from shared Google Cloud journal database
         console.log("📊 Loading from demo data (shared)");
         response = await fetch(`/api/journal/${dateKey}`);
       } else {
-        // Switch ON = Personal mode: Load from Firebase (user-specific)
+        // Switch OFF = Personal mode: Load from Firebase (user-specific)
         const userId = getUserId();
         console.log(`👤 Loading from user-specific data (userId: ${userId})`);
         response = await fetch(`/api/user-journal/${userId}/${dateKey}`);
@@ -4277,7 +4279,7 @@ ${
 
     // For demo mode in 2025, start from June (month 5) since demo data starts from June
     // For personal mode or other years, show all 12 months starting from January
-    const startMonth = (!isDemoMode && year === 2025) ? 5 : 0;
+    const startMonth = (isDemoMode && year === 2025) ? 5 : 0;
     const endMonth = 12;
 
     // Generate proper calendar layout for each month
@@ -4426,10 +4428,10 @@ ${
       );
 
       // Choose endpoint based on demo mode
-      // NOTE: Logic is INVERTED - when isDemoMode is false, save to demo data. When true, save to personal data.
+      // Switch ON (true) = Demo mode, Switch OFF (false) = Personal mode
       let response;
-      if (!isDemoMode) {
-        // Switch OFF = Demo mode: Save to shared Google Cloud journal database
+      if (isDemoMode) {
+        // Switch ON = Demo mode: Save to shared Google Cloud journal database
         console.log("📊 Saving to demo data (shared)");
         response = await fetch(`/api/journal/${selectedDateStr}`, {
           method: "POST",
@@ -4439,7 +4441,7 @@ ${
           body: JSON.stringify(journalData),
         });
       } else {
-        // Switch ON = Personal mode: Save to Firebase (user-specific)
+        // Switch OFF = Personal mode: Save to Firebase (user-specific)
         const userId = getUserId();
         console.log(`👤 Saving to user-specific data (userId: ${userId})`);
         response = await fetch(`/api/user-journal`, {
@@ -7401,8 +7403,8 @@ ${
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 mr-2">
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                {isDemoMode ? "Personal" : "Demo"}
+                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                Demo
                               </span>
                               <Switch
                                 checked={isDemoMode}
@@ -7412,8 +7414,8 @@ ${
                                     "tradingJournalDemoMode",
                                     String(checked),
                                   );
-                                  if (checked) {
-                                    // Switch ON = Personal mode = clear demo data
+                                  if (!checked) {
+                                    // Switch OFF = Personal mode = clear demo data from view
                                     setTradingDataByDate({});
                                     localStorage.removeItem(
                                       "tradingDataByDate",
