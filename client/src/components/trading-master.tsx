@@ -848,21 +848,21 @@ function AtmOhlcDisplay({ optionChainData, selectedStrike, onStrikeChange, selec
             </div>
 
             {/* OHLC Greeks Data Table */}
-            <div className="overflow-x-auto max-h-[460px] border rounded-lg">
+            <div className="overflow-x-auto overflow-y-auto max-h-[460px] border custom-thin-scrollbar">
               <Table>
-                <TableHeader className="sticky top-0 bg-gray-50 dark:bg-gray-700">
+                <TableHeader className="sticky top-0 bg-gray-50 dark:bg-gray-700 z-10">
                   <TableRow>
-                    <TableHead className="w-20">Time</TableHead>
-                    <TableHead className="text-right">Open</TableHead>
-                    <TableHead className="text-right">High</TableHead>
-                    <TableHead className="text-right">Low</TableHead>
-                    <TableHead className="text-right">Close</TableHead>
-                    <TableHead className="text-right">Volume</TableHead>
-                    <TableHead className="text-right">Delta</TableHead>
-                    <TableHead className="text-right">Gamma</TableHead>
-                    <TableHead className="text-right">Theta</TableHead>
-                    <TableHead className="text-right">Vega</TableHead>
-                    <TableHead className="text-right">IV %</TableHead>
+                    <TableHead className="min-w-[80px]">Time</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Open</TableHead>
+                    <TableHead className="text-right min-w-[70px]">High</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Low</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Close</TableHead>
+                    <TableHead className="text-right min-w-[80px]">Volume</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Delta</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Gamma</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Theta</TableHead>
+                    <TableHead className="text-right min-w-[70px]">Vega</TableHead>
+                    <TableHead className="text-right min-w-[70px]">IV %</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -6039,12 +6039,12 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   </PopoverContent>
                 </Popover>
 
-                {/* Calendar Icon Button */}
+                {/* Calendar Icon Button - Hidden on Desktop */}
                 <Button 
                   onClick={() => setShowDatePicker(!showDatePicker)}
                   variant="outline"
                   size="sm"
-                  className={`h-8 px-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 ${showDatePicker ? 'bg-gray-100 dark:bg-slate-700' : ''}`}
+                  className={`h-8 px-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 md:hidden ${showDatePicker ? 'bg-gray-100 dark:bg-slate-700' : ''}`}
                   title="Select Date Range"
                 >
                   <Calendar className="h-3 w-3" />
@@ -6069,14 +6069,15 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   <Shuffle className={`h-3 w-3 ${transformationMode > 0 ? 'animate-pulse' : ''}`} />
                 </Button>
 
-                {/* Fetch Button */}
+                {/* Fetch Button - Icon Only */}
                 <Button 
                   onClick={handleFetchOhlcData}
                   disabled={fetchOhlcData.isPending}
                   size="sm"
-                  className="h-8 px-3 bg-green-600 hover:bg-green-700 text-xs"
+                  className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                  title={fetchOhlcData.isPending ? 'Fetching...' : 'Fetch Data'}
                 >
-                  {fetchOhlcData.isPending ? 'Fetching...' : 'Fetch'}
+                  <Check className="h-3 w-3" />
                 </Button>
 
                 {/* Download Button */}
