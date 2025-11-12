@@ -7241,7 +7241,7 @@ ${
                             <div className="flex flex-col gap-1 flex-shrink-0">
                               <div className="h-5 mb-2"></div>{" "}
                               {/* Spacer for month headers */}
-                              {["S", "M", "T", "W", "T", "F", "S"].map(
+                              {["S", "M", "T", "W", "TH", "F", "S"].map(
                                 (day, index) => (
                                   <div
                                     key={index}
