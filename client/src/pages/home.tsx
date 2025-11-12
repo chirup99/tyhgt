@@ -5613,7 +5613,7 @@ ${
                           try {
                             await signOut(auth);
                             localStorage.clear();
-                            window.location.href = "/";
+                            window.location.href = "/login";
                           } catch (error) {
                             console.error("Logout error:", error);
                           }

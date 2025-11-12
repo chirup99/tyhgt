@@ -43,7 +43,7 @@ export default function Landing() {
         
         // Let user explore the app - profile will be requested when they access social feed
         console.log('✅ Google sign-in successful, redirecting to app...');
-        window.location.href = "/app";
+        window.location.href = "/";
       } else {
         toast({
           title: "Authentication Failed",
@@ -124,7 +124,7 @@ export default function Landing() {
           description: isLogin ? "Welcome back!" : "Account created successfully!",
         });
         console.log('✅ Authentication successful, redirecting to app...');
-        window.location.href = "/app";
+        window.location.href = "/";
       } else {
         const data = await response.json();
         toast({

@@ -297,7 +297,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 if (item.isThemeToggle) {
                   toggleTheme();
                 } else if (item.isSignIn) {
-                  handleNavigation('/');
+                  handleNavigation('/login');
                 } else if (item.href === '/dashboard' && !isDashboardAuthenticated) {
                   setShowPasscodeModal(true);
                 } else {
@@ -360,7 +360,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/login" component={Landing} />
+      <Route path="/">
+        <MainLayout>
+          <Dashboard />
+        </MainLayout>
+      </Route>
       <Route path="/app">
         <MainLayout>
           <Dashboard />
