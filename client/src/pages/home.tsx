@@ -4972,6 +4972,11 @@ ${
       // Parse the trade data using the new format
       const parsedData = parseCSVData(importData);
 
+      if (parsedData.length === 0) {
+        setImportError("No valid trades found in the data. Please check the format.");
+        return;
+      }
+
       // Simple P&L calculation without quantity modification
       const processedData = calculateSimplePnL(parsedData);
 
@@ -4985,6 +4990,7 @@ ${
       setTradeHistoryData(sortedData);
       setShowImportModal(false);
       setImportData("");
+      setShowOrderModal(true);
     } catch (error) {
       setImportError(
         error instanceof Error ? error.message : "Unknown error occurred"
