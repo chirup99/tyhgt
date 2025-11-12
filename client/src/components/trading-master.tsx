@@ -6144,7 +6144,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                 </div>
               </div>
             ) : displayOhlcData && displayOhlcData.candles && displayOhlcData.candles.length > 0 ? (
-              <div className="h-96 overflow-auto border border-slate-700 rounded-lg relative">
+              <div className="h-96 overflow-auto border border-slate-700 relative custom-thin-scrollbar">
                 {/* 🔥 TRANSFORMATION MODE INDICATOR */}
                 {transformationMode > 0 && (
                   <div className="absolute top-2 right-2 z-10 bg-purple-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-lg animate-pulse">
@@ -6152,15 +6152,15 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   </div>
                 )}
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 z-10">
                       <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">Date/Time</TableHead>
-                        <TableHead className="text-right text-slate-300">Open</TableHead>
-                        <TableHead className="text-right text-slate-300">High</TableHead>
-                        <TableHead className="text-right text-slate-300">Low</TableHead>
-                        <TableHead className="text-right text-slate-300">Close</TableHead>
-                        <TableHead className="text-right text-slate-300">Volume</TableHead>
-                        <TableHead className="text-center text-slate-300">Sentiment</TableHead>
+                        <TableHead className="text-slate-300 min-w-[140px]">Date/Time</TableHead>
+                        <TableHead className="text-right text-slate-300 min-w-[80px]">Open</TableHead>
+                        <TableHead className="text-right text-slate-300 min-w-[80px]">High</TableHead>
+                        <TableHead className="text-right text-slate-300 min-w-[80px]">Low</TableHead>
+                        <TableHead className="text-right text-slate-300 min-w-[80px]">Close</TableHead>
+                        <TableHead className="text-right text-slate-300 min-w-[90px]">Volume</TableHead>
+                        <TableHead className="text-center text-slate-300 min-w-[100px]">Sentiment</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
