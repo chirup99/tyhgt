@@ -8666,6 +8666,107 @@ ${
                                   </div>
                                 </div>
 
+                                {/* Visual Loss Distribution Chart */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                                  <h4 className="text-lg font-semibold mb-4">
+                                    📊 Loss Distribution Analysis
+                                  </h4>
+                                  {worstTags.length > 0 ? (
+                                    <div className="h-64">
+                                      <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                          data={worstTags.map(tag => ({
+                                            name: tag.tag.toUpperCase(),
+                                            loss: Math.abs(tag.totalPnL),
+                                            frequency: tag.lossFrequency
+                                          }))}
+                                          margin={{ top: 10, right: 10, left: 10, bottom: 40 }}
+                                        >
+                                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                          <XAxis 
+                                            dataKey="name" 
+                                            angle={-45}
+                                            textAnchor="end"
+                                            height={80}
+                                            tick={{ fill: '#fff', fontSize: 11 }}
+                                          />
+                                          <YAxis 
+                                            tick={{ fill: '#fff', fontSize: 12 }}
+                                            tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
+                                          />
+                                          <Tooltip
+                                            contentStyle={{
+                                              background: 'rgba(0,0,0,0.8)',
+                                              border: '1px solid rgba(255,255,255,0.2)',
+                                              borderRadius: '8px',
+                                              color: '#fff'
+                                            }}
+                                            formatter={(value: any, name: string) => [
+                                              name === 'loss' ? `₹${value.toLocaleString()}` : `${value.toFixed(1)}%`,
+                                              name === 'loss' ? 'Total Loss' : 'Loss Rate'
+                                            ]}
+                                          />
+                                          <Bar dataKey="loss" fill="#ef4444" radius={[8, 8, 0, 0]} />
+                                        </BarChart>
+                                      </ResponsiveContainer>
+                                    </div>
+                                  ) : (
+                                    <div className="text-center py-8">
+                                      <div className="text-4xl mb-2">📈</div>
+                                      <p className="opacity-80">No loss data to visualize</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Emotional vs Rational Trading Pie Chart */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                                  <h4 className="text-lg font-semibold mb-4">
+                                    🧠 Trading Psychology Breakdown
+                                  </h4>
+                                  <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <PieChart>
+                                        <Pie
+                                          data={[
+                                            { name: 'Emotional Trading', value: riskMetrics.emotionalTradingDays, fill: '#f59e0b' },
+                                            { name: 'Rational Trading', value: allData.length - riskMetrics.emotionalTradingDays, fill: '#10b981' }
+                                          ]}
+                                          cx="50%"
+                                          cy="50%"
+                                          labelLine={false}
+                                          label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                          outerRadius={80}
+                                          dataKey="value"
+                                        >
+                                        </Pie>
+                                        <Tooltip
+                                          contentStyle={{
+                                            background: 'rgba(0,0,0,0.8)',
+                                            border: '1px solid rgba(255,255,255,0.2)',
+                                            borderRadius: '8px',
+                                            color: '#fff'
+                                          }}
+                                          formatter={(value: any) => [`${value} days`, 'Count']}
+                                        />
+                                      </PieChart>
+                                    </ResponsiveContainer>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4 mt-4">
+                                    <div className="text-center">
+                                      <div className="text-amber-400 text-2xl font-bold">
+                                        {riskMetrics.emotionalTradingDays}
+                                      </div>
+                                      <div className="text-xs opacity-80">Emotional Days</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="text-emerald-400 text-2xl font-bold">
+                                        {allData.length - riskMetrics.emotionalTradingDays}
+                                      </div>
+                                      <div className="text-xs opacity-80">Rational Days</div>
+                                    </div>
+                                  </div>
+                                </div>
+
                                 {/* Worst Performing Tags */}
                                 <div>
                                   <h4 className="text-lg font-semibold mb-4">
@@ -8676,10 +8777,15 @@ ${
                                       worstTags.map((tag: any, idx: number) => (
                                         <div
                                           key={idx}
-                                          className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20"
+                                          className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 relative overflow-hidden"
                                         >
-                                          <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                          {/* Background indicator bar */}
+                                          <div 
+                                            className="absolute top-0 left-0 h-full bg-red-500/20"
+                                            style={{ width: `${tag.lossFrequency}%` }}
+                                          />
+                                          <div className="flex items-start gap-3 relative z-10">
+                                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
                                               <AlertTriangle className="w-5 h-5" />
                                             </div>
                                             <div className="flex-1">
@@ -8700,6 +8806,19 @@ ${
                                                   tag.totalPnL,
                                                 ).toLocaleString("en-IN")}{" "}
                                                 across {tag.totalDays} days
+                                              </div>
+                                              {/* Visual progress bar */}
+                                              <div className="mt-2">
+                                                <div className="flex justify-between text-xs opacity-70 mb-1">
+                                                  <span>Impact Severity</span>
+                                                  <span>{tag.lossFrequency.toFixed(0)}%</span>
+                                                </div>
+                                                <div className="w-full bg-white/10 rounded-full h-2">
+                                                  <div 
+                                                    className="bg-red-500 h-2 rounded-full transition-all duration-500"
+                                                    style={{ width: `${tag.lossFrequency}%` }}
+                                                  />
+                                                </div>
                                               </div>
                                             </div>
                                           </div>
