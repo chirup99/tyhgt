@@ -8499,30 +8499,30 @@ ${
                         </div>
 
                         {/* Full Width Loss Making Analysis - Extended Like Discipline Window */}
-                        <div className="col-span-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl p-8 text-white shadow-2xl">
-                            <div className="flex items-center gap-4 mb-6">
-                              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                                <TrendingDown className="w-6 h-6" />
-                              </div>
-                              <div>
-                                <h3 className="text-xl font-bold">
-                                  Loss Making Analysis
-                                </h3>
-                                <p className="opacity-80">
-                                  Identify and fix problematic patterns
-                                </p>
-                              </div>
+                        <div className="col-span-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl p-8 text-white shadow-2xl mt-6">
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                              <TrendingDown className="w-6 h-6" />
                             </div>
+                            <div>
+                              <h3 className="text-xl font-bold">
+                                Loss Making Analysis
+                              </h3>
+                              <p className="opacity-80">
+                                Identify and fix problematic patterns
+                              </p>
+                            </div>
+                          </div>
 
                           {(() => {
                             const allData = Object.values(
-                              tradingDataByDate,
+                              tradingDataByDate
                             ).filter(
                               (data: any) =>
                                 data &&
                                 data.tradingTags &&
                                 Array.isArray(data.tradingTags) &&
-                                data.performanceMetrics,
+                                data.performanceMetrics
                             );
 
                             if (allData.length === 0) {
@@ -8571,7 +8571,7 @@ ${
                                 ];
                                 if (
                                   tags.some((tag: string) =>
-                                    emotionalTags.includes(tag.toLowerCase()),
+                                    emotionalTags.includes(tag.toLowerCase())
                                   )
                                 ) {
                                   riskMetrics.emotionalTradingDays++;
@@ -8613,7 +8613,7 @@ ${
                                   100;
                                 analysis.avgLoss =
                                   analysis.totalPnL / analysis.totalDays;
-                              },
+                              }
                             );
 
                             // Get worst performing tags
@@ -8623,284 +8623,98 @@ ${
                               .slice(0, 4);
 
                             return (
-                              <div className="space-y-4 md:space-y-6">
-                                {/* Risk Metrics Summary - Enhanced */}
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                                        <TrendingDown className="w-5 h-5" />
-                                      </div>
-                                      <div className="text-3xl font-bold">
-                                        {riskMetrics.totalLossingDays}
-                                      </div>
+                              <div className="space-y-6">
+                                {/* Risk Metrics Summary */}
+                                <div className="grid md:grid-cols-4 gap-4">
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                    <div className="text-2xl font-bold">
+                                      {riskMetrics.totalLossingDays}
                                     </div>
-                                    <div className="text-sm opacity-90 font-medium">
+                                    <div className="text-sm opacity-80">
                                       Losing Days
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <div className="w-10 h-10 bg-amber-500/30 rounded-xl flex items-center justify-center">
-                                        <AlertCircle className="w-5 h-5 text-amber-300" />
-                                      </div>
-                                      <div className="text-3xl font-bold">
-                                        {riskMetrics.emotionalTradingDays}
-                                      </div>
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                    <div className="text-2xl font-bold">
+                                      {riskMetrics.emotionalTradingDays}
                                     </div>
-                                    <div className="text-sm opacity-90 font-medium">
-                                      Emotional Days
+                                    <div className="text-sm opacity-80">
+                                      Emotional Trading Days
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <div className="w-10 h-10 bg-orange-500/30 rounded-xl flex items-center justify-center">
-                                        <Activity className="w-5 h-5 text-orange-300" />
-                                      </div>
-                                      <div className="text-3xl font-bold">
-                                        {riskMetrics.impulsiveTrades}
-                                      </div>
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                    <div className="text-2xl font-bold">
+                                      {riskMetrics.impulsiveTrades}
                                     </div>
-                                    <div className="text-sm opacity-90 font-medium">
+                                    <div className="text-sm opacity-80">
                                       Impulsive Trades
                                     </div>
                                   </div>
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <div className="w-10 h-10 bg-rose-500/30 rounded-xl flex items-center justify-center">
-                                        <Target className="w-5 h-5 text-rose-300" />
-                                      </div>
-                                      <div className="text-3xl font-bold">
-                                        {allData.length > 0
-                                          ? (
-                                              (riskMetrics.totalLossingDays /
-                                                allData.length) *
-                                              100
-                                            ).toFixed(0)
-                                          : 0}
-                                        %
-                                      </div>
+                                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                    <div className="text-2xl font-bold">
+                                      {allData.length > 0
+                                        ? (
+                                            (riskMetrics.totalLossingDays /
+                                              allData.length) *
+                                            100
+                                          ).toFixed(0)
+                                        : 0}
+                                      %
                                     </div>
-                                    <div className="text-sm opacity-90 font-medium">
+                                    <div className="text-sm opacity-80">
                                       Loss Rate
                                     </div>
                                   </div>
                                 </div>
 
-                                {/* Charts Grid - 2 columns on desktop */}
-                                <div className="grid lg:grid-cols-2 gap-6">
-                                  {/* Loss Trend Line Chart - NEW */}
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                                    <div className="flex items-center gap-3 mb-4">
-                                      <TrendingDown className="w-5 h-5" />
-                                      <h4 className="text-lg font-semibold">
-                                        Loss Trend Analysis
-                                      </h4>
-                                    </div>
-                                    {(() => {
-                                      const lossData = allData
-                                        .map((data: any, idx: number) => ({
-                                          day: idx + 1,
-                                          loss: data.performanceMetrics.netPnL < 0 ? Math.abs(data.performanceMetrics.netPnL) : 0,
-                                          pnl: data.performanceMetrics.netPnL
-                                        }))
-                                        .filter((d: any) => d.loss > 0);
-
-                                      return lossData.length > 0 ? (
-                                        <div className="h-72">
-                                          <ResponsiveContainer width="100%" height="100%">
-                                            <LineChart data={lossData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
-                                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                              <XAxis 
-                                                dataKey="day" 
-                                                tick={{ fill: '#fff', fontSize: 12 }}
-                                                label={{ value: 'Trading Days', position: 'insideBottom', offset: -10, fill: '#fff' }}
-                                              />
-                                              <YAxis 
-                                                tick={{ fill: '#fff', fontSize: 12 }}
-                                                tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
-                                              />
-                                              <Tooltip
-                                                contentStyle={{
-                                                  background: 'rgba(0,0,0,0.9)',
-                                                  border: '1px solid rgba(255,255,255,0.3)',
-                                                  borderRadius: '12px',
-                                                  color: '#fff',
-                                                  padding: '12px'
-                                                }}
-                                                formatter={(value: any) => [`₹${value.toLocaleString()}`, 'Loss Amount']}
-                                                labelFormatter={(label) => `Day ${label}`}
-                                              />
-                                              <Line 
-                                                type="monotone" 
-                                                dataKey="loss" 
-                                                stroke="#fbbf24" 
-                                                strokeWidth={3}
-                                                dot={{ fill: '#ef4444', r: 5 }}
-                                                activeDot={{ r: 7, fill: '#dc2626' }}
-                                              />
-                                            </LineChart>
-                                          </ResponsiveContainer>
-                                        </div>
-                                      ) : (
-                                        <div className="text-center py-12">
-                                          <div className="text-4xl mb-3">🎉</div>
-                                          <p className="opacity-90 font-medium">No loss trend detected!</p>
-                                          <p className="text-sm opacity-70 mt-1">Keep up the great trading!</p>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-
-                                  {/* Enhanced Bar Chart - Loss Distribution */}
-                                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                                    <div className="flex items-center gap-3 mb-4">
-                                      <BarChart3 className="w-5 h-5" />
-                                      <h4 className="text-lg font-semibold">
-                                        Tag Loss Distribution
-                                      </h4>
-                                    </div>
-                                    {worstTags.length > 0 ? (
-                                      <div className="h-72">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                          <BarChart
-                                            data={worstTags.map(tag => ({
-                                              name: tag.tag.toUpperCase(),
-                                              loss: Math.abs(tag.totalPnL),
-                                              frequency: tag.lossFrequency
-                                            }))}
-                                            margin={{ top: 10, right: 20, left: 10, bottom: 50 }}
-                                          >
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                            <XAxis 
-                                              dataKey="name" 
-                                              angle={-45}
-                                              textAnchor="end"
-                                              height={90}
-                                              tick={{ fill: '#fff', fontSize: 11 }}
-                                            />
-                                            <YAxis 
-                                              tick={{ fill: '#fff', fontSize: 12 }}
-                                              tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
-                                            />
-                                            <Tooltip
-                                              contentStyle={{
-                                                background: 'rgba(0,0,0,0.9)',
-                                                border: '1px solid rgba(255,255,255,0.3)',
-                                                borderRadius: '12px',
-                                                color: '#fff',
-                                                padding: '12px'
-                                              }}
-                                              formatter={(value: any, name: string) => [
-                                                name === 'loss' ? `₹${value.toLocaleString()}` : `${value.toFixed(1)}%`,
-                                                name === 'loss' ? 'Total Loss' : 'Loss Rate'
-                                              ]}
-                                            />
-                                            <Bar dataKey="loss" fill="#ef4444" radius={[10, 10, 0, 0]}>
-                                              {worstTags.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={`rgba(239, 68, 68, ${1 - index * 0.2})`} />
-                                              ))}
-                                            </Bar>
-                                          </BarChart>
-                                        </ResponsiveContainer>
-                                      </div>
-                                    ) : (
-                                      <div className="text-center py-12">
-                                        <div className="text-4xl mb-3">📊</div>
-                                        <p className="opacity-90 font-medium">No problematic tags found</p>
-                                        <p className="text-sm opacity-70 mt-1">Your tags are performing well!</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {/* Enhanced Worst Performing Tags Grid */}
+                                {/* Worst Performing Tags */}
                                 <div>
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <AlertTriangle className="w-5 h-5" />
-                                    <h4 className="text-lg font-semibold">
-                                      Most Problematic Tags
-                                    </h4>
-                                  </div>
+                                  <h4 className="text-lg font-semibold mb-4">
+                                    🚨 Most Problematic Tags
+                                  </h4>
                                   <div className="grid md:grid-cols-2 gap-4">
                                     {worstTags.length > 0 ? (
                                       worstTags.map((tag: any, idx: number) => (
                                         <div
                                           key={idx}
-                                          className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 relative overflow-hidden hover:bg-white/15 transition-all group"
+                                          className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20"
                                         >
-                                          {/* Animated gradient background */}
-                                          <div 
-                                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-500/20 to-transparent transition-all group-hover:from-red-500/30"
-                                            style={{ width: `${tag.lossFrequency}%` }}
-                                          />
-                                          
-                                          <div className="flex items-start gap-4 relative z-10">
-                                            <div className="w-12 h-12 bg-red-500/30 rounded-xl flex items-center justify-center flex-shrink-0 border border-red-400/30">
-                                              <AlertTriangle className="w-6 h-6 text-red-200" />
+                                          <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                              <AlertTriangle className="w-5 h-5" />
                                             </div>
-                                            <div className="flex-1 space-y-3">
-                                              {/* Tag Name Badge */}
-                                              <div className="inline-block px-3 py-1 bg-white/20 rounded-lg font-bold text-sm border border-white/30">
+                                            <div className="flex-1">
+                                              <div className="font-semibold text-lg">
                                                 {tag.tag.toUpperCase()}
                                               </div>
-                                              
-                                              {/* Metrics Grid */}
-                                              <div className="grid grid-cols-2 gap-2">
-                                                <div className="bg-white/10 rounded-lg p-2 border border-white/20">
-                                                  <div className="text-xs opacity-80 mb-1">Avg Loss</div>
-                                                  <div className="text-base font-bold">
-                                                    ₹{Math.abs(tag.avgLoss).toFixed(0)}
-                                                  </div>
-                                                </div>
-                                                <div className="bg-white/10 rounded-lg p-2 border border-white/20">
-                                                  <div className="text-xs opacity-80 mb-1">Loss Rate</div>
-                                                  <div className="text-base font-bold">
-                                                    {tag.lossFrequency.toFixed(0)}%
-                                                  </div>
-                                                </div>
+                                              <div className="text-sm opacity-90 mb-2">
+                                                Avg Loss: ₹
+                                                {Math.abs(tag.avgLoss).toFixed(
+                                                  0
+                                                )}{" "}
+                                                • {tag.lossFrequency.toFixed(0)}
+                                                % loss rate
                                               </div>
-
-                                              {/* Total Impact */}
-                                              <div className="bg-red-500/20 rounded-lg p-3 border border-red-400/20">
-                                                <div className="text-xs opacity-90 mb-1">Total Impact</div>
-                                                <div className="text-lg font-bold">
-                                                  ₹{Math.abs(tag.totalPnL).toLocaleString("en-IN")}
-                                                </div>
-                                                <div className="text-xs opacity-80 mt-1">
-                                                  across {tag.totalDays} trading days
-                                                </div>
-                                              </div>
-                                              
-                                              {/* Severity Progress Bar */}
-                                              <div>
-                                                <div className="flex justify-between text-xs opacity-80 mb-2">
-                                                  <span className="font-medium">Severity Score</span>
-                                                  <span className="font-bold">{tag.lossFrequency.toFixed(0)}%</span>
-                                                </div>
-                                                <div className="w-full bg-white/20 rounded-full h-2.5 border border-white/30">
-                                                  <div 
-                                                    className="bg-gradient-to-r from-red-400 to-red-600 h-full rounded-full transition-all duration-700 shadow-lg"
-                                                    style={{ width: `${tag.lossFrequency}%` }}
-                                                  />
-                                                </div>
+                                              <div className="text-xs bg-red-500/30 rounded-lg p-2">
+                                                Total Loss: ₹
+                                                {Math.abs(
+                                                  tag.totalPnL
+                                                ).toLocaleString("en-IN")}{" "}
+                                                across {tag.totalDays} days
                                               </div>
                                             </div>
                                           </div>
                                         </div>
                                       ))
                                     ) : (
-                                      <div className="col-span-2 bg-white/10 backdrop-blur-sm rounded-2xl p-12 text-center border border-white/20">
-                                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                          <svg className="w-10 h-10 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                          </svg>
-                                        </div>
-                                        <p className="text-xl font-bold mb-2">
-                                          Excellent Tag Management!
+                                      <div className="col-span-2 text-center py-8">
+                                        <div className="text-4xl mb-2">🎉</div>
+                                        <p className="font-medium">
+                                          No consistent loss-making patterns
+                                          detected!
                                         </p>
                                         <p className="text-sm opacity-80">
-                                          No consistent loss-making patterns detected across your trading tags.
+                                          Your trading discipline is on track.
                                         </p>
                                       </div>
                                     )}

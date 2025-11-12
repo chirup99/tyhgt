@@ -744,39 +744,34 @@ export function SocialFeed() {
         <div ref={feedEndRef} />
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2 z-50">
-        <div className="max-w-2xl mx-auto flex justify-around items-center">
-          <Button 
-            variant="ghost" 
-            size="lg" 
-            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800"
+      {/* Floating Bottom Navigation - Neo Feed Style */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-700 z-50 safe-area-bottom">
+        <div className="flex justify-around items-center h-16 px-2">
+          <button
+            onClick={scrollToBottom}
+            className="flex flex-col items-center justify-center flex-1 gap-1 transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
             data-testid="button-nav-home"
           >
-            <Home className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">Home</span>
-          </Button>
+            <Home className="h-6 w-6" />
+            <span className="text-xs font-medium">Home</span>
+          </button>
           
-          <Button 
-            variant="ghost" 
-            size="lg" 
-            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800"
+          <button
+            className="flex flex-col items-center justify-center flex-1 gap-1 transition-colors text-blue-600 dark:text-blue-400"
             data-testid="button-nav-post"
           >
-            <div className="w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center">
-              <Plus className="h-6 w-6 text-white" />
+            <div className="w-12 h-12 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+              <Plus className="h-7 w-7 text-white stroke-[2.5]" />
             </div>
-          </Button>
+          </button>
           
-          <Button 
-            variant="ghost" 
-            size="lg" 
-            className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800"
+          <button
+            className="flex flex-col items-center justify-center flex-1 gap-1 transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
             data-testid="button-nav-message"
           >
-            <MessageCircle className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">Messages</span>
-          </Button>
+            <MessageCircle className="h-6 w-6" />
+            <span className="text-xs font-medium">Messages</span>
+          </button>
         </div>
       </div>
 
