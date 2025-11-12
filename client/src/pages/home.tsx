@@ -6929,8 +6929,8 @@ ${
                                       className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
                                       data-testid="button-cancel-notes"
                                     >
-                                      <X className="w-3 h-3 mr-1" />
-                                      Cancel
+                                      <X className="w-3 h-3 md:mr-1" />
+                                      <span className="hidden md:inline">Cancel</span>
                                     </Button>
                                     <Button
                                       size="sm"
@@ -6938,8 +6938,8 @@ ${
                                       className="text-xs bg-green-600 hover:bg-green-700 text-white"
                                       data-testid="button-save-notes"
                                     >
-                                      <Check className="w-3 h-3 mr-1" />
-                                      Save
+                                      <Check className="w-3 h-3 md:mr-1" />
+                                      <span className="hidden md:inline">Save</span>
                                     </Button>
                                   </>
                                 ) : (
@@ -6950,8 +6950,8 @@ ${
                                     className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
                                     data-testid="button-edit-notes"
                                   >
-                                    <Edit className="w-3 h-3 mr-1" />
-                                    Edit
+                                    <Edit className="w-3 h-3 md:mr-1" />
+                                    <span className="hidden md:inline">Edit</span>
                                   </Button>
                                 )}
                               </div>
