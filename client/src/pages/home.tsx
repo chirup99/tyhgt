@@ -10065,57 +10065,50 @@ ${
           </DialogContent>
         </Dialog>
 
-        {/* Mobile Bottom Navigation - Fixed at bottom, only visible on mobile */}
+        {/* Modern Floating Pill Navigation - Mobile Only */}
         {activeTab === "journal" && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-700 z-50 safe-area-bottom">
-            <div className="flex items-center justify-around px-4 py-3">
-              {/* Home Tab */}
-              <button
-                onClick={() => setMobileBottomTab("home")}
-                className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
-                  mobileBottomTab === "home"
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-600 dark:text-gray-400"
-                }`}
-                data-testid="mobile-tab-home"
-              >
-                <HomeIcon
-                  className={`h-6 w-6 ${mobileBottomTab === "home" ? "fill-current" : ""}`}
-                />
-                <span className="text-xs font-medium">Home</span>
-              </button>
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-6 px-4 pointer-events-none">
+            <div className="max-w-sm mx-auto bg-slate-800/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full shadow-2xl border border-slate-700/50 dark:border-slate-600/50 pointer-events-auto">
+              <div className="flex items-center justify-around px-2 py-2">
+                {/* Home Tab */}
+                <button
+                  onClick={() => setMobileBottomTab("home")}
+                  className={`flex items-center justify-center flex-1 rounded-full py-2.5 transition-all duration-200 ${
+                    mobileBottomTab === "home"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                  data-testid="mobile-tab-home"
+                >
+                  <HomeIcon className={`h-6 w-6 ${mobileBottomTab === "home" ? "fill-current" : ""}`} />
+                </button>
 
-              {/* Insight Tab */}
-              <button
-                onClick={() => setMobileBottomTab("insight")}
-                className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
-                  mobileBottomTab === "insight"
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-600 dark:text-gray-400"
-                }`}
-                data-testid="mobile-tab-insight"
-              >
-                <TrendingUp
-                  className={`h-6 w-6 ${mobileBottomTab === "insight" ? "stroke-2" : ""}`}
-                />
-                <span className="text-xs font-medium">Insight</span>
-              </button>
+                {/* Insight Tab */}
+                <button
+                  onClick={() => setMobileBottomTab("insight")}
+                  className={`flex items-center justify-center flex-1 rounded-full py-2.5 transition-all duration-200 ${
+                    mobileBottomTab === "insight"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                  data-testid="mobile-tab-insight"
+                >
+                  <TrendingUp className={`h-6 w-6 ${mobileBottomTab === "insight" ? "stroke-[2.5]" : ""}`} />
+                </button>
 
-              {/* Ranking Tab */}
-              <button
-                onClick={() => setMobileBottomTab("ranking")}
-                className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
-                  mobileBottomTab === "ranking"
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-600 dark:text-gray-400"
-                }`}
-                data-testid="mobile-tab-ranking"
-              >
-                <Trophy
-                  className={`h-6 w-6 ${mobileBottomTab === "ranking" ? "fill-current" : ""}`}
-                />
-                <span className="text-xs font-medium">Ranking</span>
-              </button>
+                {/* Ranking Tab */}
+                <button
+                  onClick={() => setMobileBottomTab("ranking")}
+                  className={`flex items-center justify-center flex-1 rounded-full py-2.5 transition-all duration-200 ${
+                    mobileBottomTab === "ranking"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                  data-testid="mobile-tab-ranking"
+                >
+                  <Trophy className={`h-6 w-6 ${mobileBottomTab === "ranking" ? "fill-current" : ""}`} />
+                </button>
+              </div>
             </div>
           </div>
         )}
