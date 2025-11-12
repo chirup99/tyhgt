@@ -10,10 +10,16 @@ import type {
 import type { IStorage } from './storage';
 
 export class FirebaseStorage implements IStorage {
-  private db: FirebaseFirestore.Firestore;
+  private _db: FirebaseFirestore.Firestore | null = null;
+
+  private get db(): FirebaseFirestore.Firestore {
+    if (!this._db) {
+      this._db = getFirestore();
+    }
+    return this._db;
+  }
 
   constructor() {
-    this.db = getFirestore();
   }
 
   async getUser(id: number): Promise<User | undefined> {
