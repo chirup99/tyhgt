@@ -53,7 +53,7 @@ export function AudioSelectedPostsPreview({ snippets, onTap }: AudioSelectedPost
 
   return (
     <div 
-      className="fixed bottom-4 right-4 z-40 cursor-pointer transition-all duration-300"
+      className="fixed bottom-24 right-4 z-40 cursor-pointer transition-all duration-300 md:bottom-4"
       onClick={onTap}
       data-testid="audio-selected-preview"
     >
