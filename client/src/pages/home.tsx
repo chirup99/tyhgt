@@ -7235,28 +7235,29 @@ ${
                       <div className="mb-1">
                         {/* Optimized Full Calendar Heatmap */}
                         <div className="space-y-2 pt-4 pb-1">
-                          {/* Unified Scrollable Container */}
-                          <div className="overflow-x-auto overflow-y-hidden custom-thin-scrollbar">
-                            <div className="min-w-max flex justify-center">
-                              {/* Calendar Layout */}
-                              <div className="flex gap-4">
-                                {/* Day Headers (Vertical) */}
-                                <div className="flex flex-col gap-1">
-                                  <div className="h-5 mb-2"></div>{" "}
-                                  {/* Spacer for month headers */}
-                                  {["S", "M", "T", "W", "T", "F", "S"].map(
-                                    (day, index) => (
-                                      <div
-                                        key={index}
-                                        className="w-3 h-3 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
-                                      >
-                                        {day}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
+                          {/* Calendar Layout with Sticky Day Headers */}
+                          <div className="flex gap-4">
+                            {/* Day Headers (Vertical) - Sticky */}
+                            <div className="flex flex-col gap-1 flex-shrink-0">
+                              <div className="h-5 mb-2"></div>{" "}
+                              {/* Spacer for month headers */}
+                              {["S", "M", "T", "W", "T", "F", "S"].map(
+                                (day, index) => (
+                                  <div
+                                    key={index}
+                                    className="w-3 h-3 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                                  >
+                                    {day}
+                                  </div>
+                                )
+                              )}
+                            </div>
 
+                            {/* Scrollable Months Container */}
+                            <div className="overflow-x-auto overflow-y-hidden custom-thin-scrollbar flex-1">
+                              <div className="min-w-max">
                                 {/* Months */}
+                                <div className="flex gap-4">
                                 {getHeatmapWeeks().map((month, monthIndex) => (
                                   <div
                                     key={monthIndex}
@@ -7429,6 +7430,7 @@ ${
                                     </div>
                                   </div>
                                 ))}
+                                </div>
                               </div>
                             </div>
                           </div>
