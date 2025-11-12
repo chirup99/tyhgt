@@ -361,7 +361,7 @@ function SwipeableCardStack({
     const cleanText = text
       .replace(
         /^(good morning|good afternoon|good evening|hello|hi|welcome)/gi,
-        ""
+        "",
       )
       .replace(/^(ladies and gentlemen|dear listeners|in today's news)/gi, "")
       .replace(/^[.,\s]+/, "") // Remove leading punctuation and spaces
@@ -376,7 +376,7 @@ function SwipeableCardStack({
     const moiraVoice = voices.find(
       (voice) =>
         voice.lang.startsWith("en") &&
-        voice.name.toLowerCase().includes("moira")
+        voice.name.toLowerCase().includes("moira"),
     );
 
     const otherNaturalVoices = voices.filter(
@@ -398,7 +398,7 @@ function SwipeableCardStack({
           // Neural/premium indicators
           voice.name.toLowerCase().includes("neural") ||
           voice.name.toLowerCase().includes("premium") ||
-          voice.name.toLowerCase().includes("enhanced"))
+          voice.name.toLowerCase().includes("enhanced")),
     );
 
     // Use Moira first, then other natural voices, then any English voice
@@ -410,7 +410,7 @@ function SwipeableCardStack({
       const englishVoices = voices.filter(
         (voice) =>
           voice.lang.startsWith("en") &&
-          !voice.name.toLowerCase().includes("novelty")
+          !voice.name.toLowerCase().includes("novelty"),
       );
       if (englishVoices.length > 0) {
         utterance.voice = englishVoices[0];
@@ -558,10 +558,10 @@ function SwipeableCardStack({
               isTop
                 ? "z-40 scale-100 rotate-0"
                 : isSecond
-                ? "z-30 scale-95 rotate-1 translate-y-2"
-                : isThird
-                ? "z-20 scale-90 rotate-2 translate-y-4"
-                : "z-10 scale-85 rotate-3 translate-y-6 opacity-50"
+                  ? "z-30 scale-95 rotate-1 translate-y-2"
+                  : isThird
+                    ? "z-20 scale-90 rotate-2 translate-y-4"
+                    : "z-10 scale-85 rotate-3 translate-y-6 opacity-50"
             }`}
             onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
               if (!isTop) return;
@@ -586,7 +586,7 @@ function SwipeableCardStack({
                   const rotation = deltaX * 0.1;
                   cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
                   cardElement.style.opacity = String(
-                    Math.max(0.3, 1 - Math.abs(deltaX) / 300)
+                    Math.max(0.3, 1 - Math.abs(deltaX) / 300),
                   );
                 }
               };
@@ -624,7 +624,7 @@ function SwipeableCardStack({
                       setTimeout(() => {
                         const newTopCard =
                           cardElement.parentElement?.querySelector(
-                            '[data-card-index="0"]'
+                            '[data-card-index="0"]',
                           ) as HTMLElement;
                         if (newTopCard) {
                           // Start from right side with rotation (like it's coming back)
@@ -685,7 +685,7 @@ function SwipeableCardStack({
                   const rotation = deltaX * 0.1;
                   cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
                   cardElement.style.opacity = String(
-                    Math.max(0.3, 1 - Math.abs(deltaX) / 300)
+                    Math.max(0.3, 1 - Math.abs(deltaX) / 300),
                   );
                 }
               };
@@ -723,7 +723,7 @@ function SwipeableCardStack({
                       setTimeout(() => {
                         const newTopCard =
                           cardElement.parentElement?.querySelector(
-                            '[data-card-index="0"]'
+                            '[data-card-index="0"]',
                           ) as HTMLElement;
                         if (newTopCard) {
                           // Start from right side with rotation (like it's coming back)
@@ -757,7 +757,9 @@ function SwipeableCardStack({
                 document.removeEventListener("touchend", handleTouchEnd);
               };
 
-              document.addEventListener("touchmove", handleTouchMove, { passive: false });
+              document.addEventListener("touchmove", handleTouchMove, {
+                passive: false,
+              });
               document.addEventListener("touchend", handleTouchEnd);
             }}
             onClick={() => {
@@ -810,8 +812,8 @@ function SwipeableCardStack({
                       {isTop && isLoading
                         ? "Generating..."
                         : isTop && isPlaying
-                        ? "Pause"
-                        : card.buttonText}
+                          ? "Pause"
+                          : card.buttonText}
                     </span>
                   </div>
                 </Button>
@@ -830,7 +832,6 @@ function SwipeableCardStack({
           </div>
         );
       })}
-
     </div>
   );
 }
@@ -1028,7 +1029,7 @@ function HistoricalDataSection() {
     onSuccess: (data) => {
       queryClient.setQueryData(
         ["/api/historical-data", selectedSymbol, fromDate, toDate, timeframe],
-        data
+        data,
       );
     },
   });
@@ -1415,8 +1416,8 @@ function HistoricalDataSection() {
                                 sentimentAnalysis[index].signal === "BUY"
                                   ? "bg-green-100 text-green-800"
                                   : sentimentAnalysis[index].signal === "SELL"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-gray-100 text-gray-800"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
                               }`}
                             >
                               {sentimentAnalysis[index].signal}
@@ -1796,7 +1797,7 @@ export default function Home() {
   const [chartTimeframe, setChartTimeframe] = useState<string>("1");
   // Navigation menu state
   const [isNavOpen, setIsNavOpen] = useState(false);
-  
+
   // Get current user data from Firebase
   const { currentUser } = useCurrentUser();
 
@@ -1817,7 +1818,7 @@ export default function Home() {
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState("");
   const [authenticatedTabs, setAuthenticatedTabs] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [pendingTab, setPendingTab] = useState<string>("");
 
@@ -1862,7 +1863,7 @@ export default function Home() {
 
   // AI Finance Assistant Logic - Real data fetching and analysis
   const fetchRealStockData = async (
-    symbol: string
+    symbol: string,
   ): Promise<StockData | null> => {
     try {
       console.log(`🤖 AI Search fetching real data for ${symbol}...`);
@@ -1872,7 +1873,7 @@ export default function Home() {
       if (data && data.priceData) {
         console.log(
           `✅ AI Search got real data for ${symbol}:`,
-          data.priceData
+          data.priceData,
         );
         return {
           symbol: symbol,
@@ -1931,13 +1932,15 @@ export default function Home() {
         "techm",
       ];
       const mentionedStock = stockSymbols.find((stock) =>
-        message.includes(stock)
+        message.includes(stock),
       );
 
       // USE ADVANCED QUERY PROCESSOR FOR ALL QUERIES - Like Replit Agent
       // This handles ANY question with web search + intelligent analysis
-      console.log("🤖 [FRONTEND] Triggering Advanced AI Query Processor (Web Search Enabled)...");
-      
+      console.log(
+        "🤖 [FRONTEND] Triggering Advanced AI Query Processor (Web Search Enabled)...",
+      );
+
       try {
         console.log("📊 [FRONTEND] Fetching trading journal data...");
         let journalTrades: any[] = [];
@@ -1946,20 +1949,29 @@ export default function Home() {
           if (journalResponse.ok) {
             const allJournalData = await journalResponse.json();
             // Flatten all trades from all dates
-            Object.entries(allJournalData).forEach(([date, data]: [string, any]) => {
-              if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
-                journalTrades.push(...data.tradeHistory.map((trade: any) => ({
-                  ...trade,
-                  date
-                })));
-              }
-            });
-            console.log(`✅ [FRONTEND] Loaded ${journalTrades.length} trades from journal`);
+            Object.entries(allJournalData).forEach(
+              ([date, data]: [string, any]) => {
+                if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
+                  journalTrades.push(
+                    ...data.tradeHistory.map((trade: any) => ({
+                      ...trade,
+                      date,
+                    })),
+                  );
+                }
+              },
+            );
+            console.log(
+              `✅ [FRONTEND] Loaded ${journalTrades.length} trades from journal`,
+            );
           }
         } catch (journalError) {
-          console.warn("⚠️ [FRONTEND] Could not load journal data:", journalError);
+          console.warn(
+            "⚠️ [FRONTEND] Could not load journal data:",
+            journalError,
+          );
         }
-        
+
         const response = await fetch("/api/advanced-query", {
           method: "POST",
           headers: {
@@ -1967,15 +1979,15 @@ export default function Home() {
           },
           body: JSON.stringify({
             query: query,
-            journalTrades: journalTrades
+            journalTrades: journalTrades,
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          
+
           let result = data.answer;
-          
+
           // Add web sources if available
           if (data.sources && data.sources.length > 0) {
             result += `\n\n## 🔗 Web Sources\n\n`;
@@ -1983,13 +1995,16 @@ export default function Home() {
               result += `${index + 1}. [${source.title}](${source.url})\n`;
             });
           }
-          
+
           setSearchResults(result);
           console.log("✅ [FRONTEND] Advanced query processing complete!");
           setIsSearchLoading(false);
           return;
         } else {
-          console.error("❌ [FRONTEND] Advanced query failed:", response.statusText);
+          console.error(
+            "❌ [FRONTEND] Advanced query failed:",
+            response.statusText,
+          );
           // Fall through to other handlers
         }
       } catch (error) {
@@ -2017,8 +2032,8 @@ export default function Home() {
             parseFloat(realData.indicators?.rsi || "50") > 70
               ? "🔴 Overbought"
               : parseFloat(realData.indicators?.rsi || "50") < 30
-              ? "🟢 Oversold"
-              : "🟡 Neutral"
+                ? "🟢 Oversold"
+                : "🟡 Neutral"
           }
 • **EMA 50:** ₹${realData.indicators?.ema50 || "Loading..."}
 • **MACD:** ${realData.indicators?.macd || "Processing..."}
@@ -2030,7 +2045,7 @@ export default function Home() {
 
 **📈 Price Action:**
 • **Current:** ₹${realData.price.toLocaleString()} (${realData.changePercent.toFixed(
-            2
+            2,
           )}%)
 • **Support:** ₹${(realData.price * 0.98).toFixed(0)} | **Resistance:** ₹${(
             realData.price * 1.02
@@ -2044,8 +2059,8 @@ ${
   parseFloat(realData.indicators?.rsi || "50") > 70
     ? "• RSI suggests overbought condition - Consider profit booking"
     : parseFloat(realData.indicators?.rsi || "50") < 30
-    ? "• RSI shows oversold levels - Potential buying opportunity"
-    : "• RSI in neutral zone - Wait for clear signals"
+      ? "• RSI shows oversold levels - Potential buying opportunity"
+      : "• RSI in neutral zone - Wait for clear signals"
 }
 
 **💡 Technical Strategy:**
@@ -2054,7 +2069,7 @@ Use Trading Master for detailed chart analysis with all 14 timeframes and advanc
           setSearchResults(technicalResult);
         } else {
           setSearchResults(
-            `📊 **Technical Analysis Hub**\n\nAccess advanced technical indicators through:\n• **Trading Master:** Full charting suite with RSI, MACD, Bollinger Bands\n• **Live Options:** Greeks and technical levels\n• **Community Analysis:** Social Feed technical discussions\n\n🚀 Switch to Trading Master for comprehensive technical analysis.`
+            `📊 **Technical Analysis Hub**\n\nAccess advanced technical indicators through:\n• **Trading Master:** Full charting suite with RSI, MACD, Bollinger Bands\n• **Live Options:** Greeks and technical levels\n• **Community Analysis:** Social Feed technical discussions\n\n🚀 Switch to Trading Master for comprehensive technical analysis.`,
           );
         }
       }
@@ -2086,7 +2101,7 @@ Use Trading Master for detailed chart analysis with all 14 timeframes and advanc
               relevantPosts = socialData.filter(
                 (post: any) =>
                   post.content &&
-                  post.content.toLowerCase().includes(mentionedStock)
+                  post.content.toLowerCase().includes(mentionedStock),
               );
             }
 
@@ -2094,9 +2109,9 @@ Use Trading Master for detailed chart analysis with all 14 timeframes and advanc
             const trendingTopics = Array.from(
               new Set(
                 socialData.flatMap((post: any) =>
-                  (post.content?.match(/\b[A-Z]{3,}\b/g) || []).slice(0, 3)
-                )
-              )
+                  (post.content?.match(/\b[A-Z]{3,}\b/g) || []).slice(0, 3),
+                ),
+              ),
             ).slice(0, 8);
 
             const socialResult = `## 💬 Social Feed Intelligence ${
@@ -2116,7 +2131,7 @@ ${relevantPosts
     (post: any, index: number) =>
       `${index + 1}. **${post.authorUsername || "Trader"}:** ${(
         post.content || ""
-      ).substring(0, 120)}...`
+      ).substring(0, 120)}...`,
   )
   .join("\n\n")}
 
@@ -2129,16 +2144,16 @@ ${
         relevantPosts.some(
           (p: any) =>
             p.content?.toLowerCase().includes("bullish") ||
-            p.content?.toLowerCase().includes("buy")
+            p.content?.toLowerCase().includes("buy"),
         )
           ? "bullish sentiment"
           : relevantPosts.some(
-              (p: any) =>
-                p.content?.toLowerCase().includes("bearish") ||
-                p.content?.toLowerCase().includes("sell")
-            )
-          ? "bearish sentiment"
-          : "mixed sentiment"
+                (p: any) =>
+                  p.content?.toLowerCase().includes("bearish") ||
+                  p.content?.toLowerCase().includes("sell"),
+              )
+            ? "bearish sentiment"
+            : "mixed sentiment"
       }`
     : "Limited recent discussions on this topic"
 }
@@ -2153,12 +2168,12 @@ ${
             setSearchResults(socialResult);
           } else {
             setSearchResults(
-              `💬 **Social Feed Center**\n\nAccess community insights:\n• **Live Discussions:** Real-time market conversations\n• **Expert Analysis:** Professional trader perspectives\n• **Trending Topics:** What the community is discussing\n\n🚀 Switch to Social Feed tab for full community analysis.`
+              `💬 **Social Feed Center**\n\nAccess community insights:\n• **Live Discussions:** Real-time market conversations\n• **Expert Analysis:** Professional trader perspectives\n• **Trending Topics:** What the community is discussing\n\n🚀 Switch to Social Feed tab for full community analysis.`,
             );
           }
         } catch (error) {
           setSearchResults(
-            `💬 **Social Feed Access**\n\nConnect with the trading community through our Social Feed tab for:\n• Live market discussions\n• Community sentiment analysis\n• Expert trading insights\n\n💡 Navigate to Social Feed for real-time community intelligence.`
+            `💬 **Social Feed Access**\n\nConnect with the trading community through our Social Feed tab for:\n• Live market discussions\n• Community sentiment analysis\n• Expert trading insights\n\n💡 Navigate to Social Feed for real-time community intelligence.`,
           );
         }
       }
@@ -2261,7 +2276,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
 
         // Show immediate response for better UX
         setSearchResults(
-          `🔍 **Loading ${stock} Data...**\n\n⏱️ Fetching live market data...`
+          `🔍 **Loading ${stock} Data...**\n\n⏱️ Fetching live market data...`,
         );
 
         // Use existing stock analysis endpoint with timeout
@@ -2270,7 +2285,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
           realData = await Promise.race([
             fetchRealStockData(stock),
             new Promise<StockData | null>((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout")), 4000)
+              setTimeout(() => reject(new Error("Timeout")), 4000),
             ),
           ]);
         } catch (error) {
@@ -2289,7 +2304,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
                   post.content &&
                   (post.content.toLowerCase().includes(stock.toLowerCase()) ||
                     post.content.toLowerCase().includes("market") ||
-                    post.content.toLowerCase().includes("analysis"))
+                    post.content.toLowerCase().includes("analysis")),
               );
 
               if (relevantPosts.length > 0) {
@@ -2297,7 +2312,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
                   .slice(0, 2)
                   .map(
                     (post: any, index: number) =>
-                      `${index + 1}. ${post.content.substring(0, 150)}...`
+                      `${index + 1}. ${post.content.substring(0, 150)}...`,
                   )
                   .join("\n")}\n`;
               }
@@ -2312,8 +2327,8 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
             realData.sentiment?.trend === "Bullish"
               ? "🟢"
               : realData.sentiment?.trend === "Bearish"
-              ? "🔴"
-              : "🟡";
+                ? "🔴"
+                : "🟡";
           const sentimentText = realData.sentiment?.trend || "Neutral";
           const sentimentConfidence =
             realData.sentiment?.confidence || "Medium";
@@ -2322,7 +2337,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
 
 **📈 Live Market Data (Fyers API):**
 • **Current Price:** ₹${realData.price.toLocaleString()} (${realData.changePercent.toFixed(
-            2
+            2,
           )}%)
 • **Open:** ₹${realData.open.toLocaleString()} | **High:** ₹${realData.high.toLocaleString()}
 • **Low:** ₹${realData.low.toLocaleString()} | **Volume:** ${realData.volume}
@@ -2356,8 +2371,8 @@ ${
             realData.changePercent > 5
               ? "High"
               : realData.changePercent > 2
-              ? "Medium"
-              : "Low"
+                ? "Medium"
+                : "Low"
           } Volatility | ${sentimentConfidence} Confidence
 
 🚀 **Platform Features:** Use Trading Master for advanced charts and options analysis.`;
@@ -2396,7 +2411,7 @@ ${
             ? mentionedStock.toUpperCase()
             : "Indian stock market finance news";
           const response = await fetch(
-            `/api/stock-news?query=${encodeURIComponent(query)}`
+            `/api/stock-news?query=${encodeURIComponent(query)}`,
           );
           const data = await response.json();
 
@@ -2473,16 +2488,16 @@ ${
               sentimentAnalysis.sentiment === "Bullish"
                 ? "🟢"
                 : sentimentAnalysis.sentiment === "Bearish"
-                ? "🔴"
-                : "🟡"
+                  ? "🔴"
+                  : "🟡"
             }
 • **Confidence Score:** ${Math.abs(sentimentAnalysis.score)} signals detected
 • **Market Impact:** ${
               sentimentAnalysis.sentiment === "Bullish"
                 ? "Positive momentum expected"
                 : sentimentAnalysis.sentiment === "Bearish"
-                ? "Caution advised"
-                : "Mixed signals, focus on fundamentals"
+                  ? "Caution advised"
+                  : "Mixed signals, focus on fundamentals"
             }
 
 **📈 Trading Implications:**
@@ -2490,8 +2505,8 @@ ${
   sentimentAnalysis.sentiment === "Bullish"
     ? `• Positive news flow may support price appreciation\n• Consider gradual position building on dips\n• Monitor for continuation patterns`
     : sentimentAnalysis.sentiment === "Bearish"
-    ? `• Negative sentiment may create selling pressure\n• Wait for news clarity before fresh positions\n• Look for oversold bounce opportunities`
-    : `• Mixed news requires balanced approach\n• Focus on technical levels over news sentiment\n• Maintain risk management discipline`
+      ? `• Negative sentiment may create selling pressure\n• Wait for news clarity before fresh positions\n• Look for oversold bounce opportunities`
+      : `• Mixed news requires balanced approach\n• Focus on technical levels over news sentiment\n• Maintain risk management discipline`
 }
 
 **📋 Recent Headlines (${newsArticles.length} articles):**
@@ -2500,7 +2515,7 @@ ${newsArticles
     (article: any, index: number) =>
       `${index + 1}. **${article.title}**\n   ${
         article.description || "Breaking market development"
-      }\n   _Source: ${article.source || "Market News"}_`
+      }\n   _Source: ${article.source || "Market News"}_`,
   )
   .join("\n\n")}
 
@@ -2536,7 +2551,7 @@ ${newsArticles
         } catch (error) {
           console.error("News fetch error:", error);
           setSearchResults(
-            `📰 **News Center**\n\nAccess the latest market news through our platform features:\n\n• **Social Feed:** Community market discussions\n• **Trading Master:** Technical analysis and market updates\n• **Platform Dashboard:** Real-time market information\n\n💡 Use Social Feed for the most current market insights.`
+            `📰 **News Center**\n\nAccess the latest market news through our platform features:\n\n• **Social Feed:** Community market discussions\n• **Trading Master:** Technical analysis and market updates\n• **Platform Dashboard:** Real-time market information\n\n💡 Use Social Feed for the most current market insights.`,
           );
         }
       }
@@ -2631,7 +2646,7 @@ The IPO market is experiencing selective activity with quality companies command
                   (mentionedStock &&
                     post.content
                       .toLowerCase()
-                      .includes(mentionedStock.toLowerCase())))
+                      .includes(mentionedStock.toLowerCase()))),
             );
 
             if (fundamentalPosts.length > 0) {
@@ -2640,7 +2655,7 @@ ${fundamentalPosts
   .slice(0, 3)
   .map(
     (post: any, index: number) =>
-      `${index + 1}. ${post.content.substring(0, 200)}...`
+      `${index + 1}. ${post.content.substring(0, 200)}...`,
   )
   .join("\n\n")}
 
@@ -2660,8 +2675,8 @@ ${fundamentalPosts
                 ? stockData.pe < 15
                   ? "(Attractive)"
                   : stockData.pe < 25
-                  ? "(Fair)"
-                  : "(Premium)"
+                    ? "(Fair)"
+                    : "(Premium)"
                 : ""
             }
 • **Daily Volume:** ${stockData.volume}
@@ -2678,8 +2693,8 @@ ${
         stockData.pe < 15
           ? "**undervalued** opportunity"
           : stockData.pe < 25
-          ? "**fairly valued** with reasonable premium"
-          : "**premium valuation** requiring strong growth"
+            ? "**fairly valued** with reasonable premium"
+            : "**premium valuation** requiring strong growth"
       }\n• Sector comparison needed for complete picture`
     : "• P/E data unavailable - focus on revenue and earnings trends\n• Check recent quarterly results for growth trajectory"
 }
@@ -2695,8 +2710,8 @@ ${
               stockData.changePercent > 5
                 ? "High"
                 : stockData.changePercent > 2
-                ? "Medium"
-                : "Low"
+                  ? "Medium"
+                  : "Low"
             } (based on recent price movement)
 • **Sentiment Risk:** ${
               stockData.sentiment?.confidence || "Medium"
@@ -2776,7 +2791,7 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
         } catch (error) {
           console.error("Fundamental analysis error:", error);
           setSearchResults(
-            `📊 **Fundamental Analysis Hub**\n\n**📱 Available Resources:**\n• **Social Feed:** Community fundamental discussions\n• **Trading Master:** Financial ratios and analysis tools\n• **Platform Data:** Real-time market and company information\n\n💡 Check Social Feed for active fundamental analysis discussions.`
+            `📊 **Fundamental Analysis Hub**\n\n**📱 Available Resources:**\n• **Social Feed:** Community fundamental discussions\n• **Trading Master:** Financial ratios and analysis tools\n• **Platform Data:** Real-time market and company information\n\n💡 Check Social Feed for active fundamental analysis discussions.`,
           );
         }
       }
@@ -2784,35 +2799,35 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
       // Advanced AI Search - Uses Gemini AI + Web Search (like Replit Agent)
       else {
         console.log(`🤖 Using Advanced AI Agent for query: ${query}`);
-        
+
         try {
-          const response = await fetch('/api/advanced-search', {
-            method: 'POST',
+          const response = await fetch("/api/advanced-search", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               query,
-              includeWebSearch: true
-            })
+              includeWebSearch: true,
+            }),
           });
 
           const data = await response.json();
 
           if (data.success && data.answer) {
             let result = `## 🤖 AI Assistant\n\n${data.answer}`;
-            
+
             if (data.sources && data.sources.length > 0) {
-              result += `\n\n**📚 Sources:**\n${data.sources.map((source: string) => `• ${source}`).join('\n')}`;
+              result += `\n\n**📚 Sources:**\n${data.sources.map((source: string) => `• ${source}`).join("\n")}`;
             }
-            
+
             setSearchResults(result);
           } else {
-            throw new Error('AI search failed');
+            throw new Error("AI search failed");
           }
         } catch (error) {
-          console.error('Advanced AI search error:', error);
-          
+          console.error("Advanced AI search error:", error);
+
           const fallbackResponse = `🤖 **AI Trading Assistant Ready!**\n\nI can help you with comprehensive trading and investment analysis:\n\n📈 **Live Stock Prices & Analysis:**\n• Real-time market data and technical indicators\n• Sector performance and trend analysis\n• Support/resistance levels and price targets\n\n📰 **Market News & Updates:**\n• Latest financial news and market movements\n• Economic indicators and policy impacts\n• Corporate earnings and sector trends\n\n🚀 **IPO Analysis & Information:**\n• Upcoming IPO calendar and subscription details\n• Post-listing performance tracking\n• Investment recommendations and risk assessment\n\n📊 **Fundamental Analysis:**\n• Company financials and valuation metrics\n• Sector comparisons and growth prospects\n• Risk analysis and investment recommendations\n\n💡 **Try asking:** "Get NIFTY price", "Latest market news", "IPO updates", or "Analyze fundamentals"`;
 
           setSearchResults(fallbackResponse);
@@ -2821,7 +2836,7 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
     } catch (error) {
       console.error("AI Search error:", error);
       setSearchResults(
-        "🤖 I'm here to help with all your trading and finance questions! I can assist with:\n\n• Stock analysis and live quotes\n• Market news and IPO updates\n• Trading strategies and risk management\n• Platform features (Trading Master, Journal, Social Feed)\n• Options trading and Greeks calculation\n\nWhat would you like to know more about?"
+        "🤖 I'm here to help with all your trading and finance questions! I can assist with:\n\n• Stock analysis and live quotes\n• Market news and IPO updates\n• Trading strategies and risk management\n• Platform features (Trading Master, Journal, Social Feed)\n• Options trading and Greeks calculation\n\nWhat would you like to know more about?",
       );
     } finally {
       setIsSearchLoading(false);
@@ -2857,7 +2872,7 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
 
       if (Object.keys(journalData).length === 0) {
         setSearchResults(
-          "## 📝 Trading Journal Analysis\n\n❌ **No journal data found**\n\nPlease add some trading entries in the Journal tab to see your performance analysis."
+          "## 📝 Trading Journal Analysis\n\n❌ **No journal data found**\n\nPlease add some trading entries in the Journal tab to see your performance analysis.",
         );
         setIsSearchLoading(false);
         return;
@@ -2989,8 +3004,8 @@ ${
   winRate >= 60
     ? "🟢 **Strong Performance:** Your win rate shows good trading discipline!"
     : winRate >= 40
-    ? "🟡 **Moderate Performance:** Focus on improving entry/exit timing."
-    : "🔴 **Needs Improvement:** Consider reviewing your trading strategy and risk management."
+      ? "🟡 **Moderate Performance:** Focus on improving entry/exit timing."
+      : "🔴 **Needs Improvement:** Consider reviewing your trading strategy and risk management."
 }
 
 ${
@@ -3018,7 +3033,7 @@ ${
     } catch (error) {
       console.error("Error generating journal report:", error);
       setSearchResults(
-        "## 📝 Trading Journal Analysis\n\n❌ **Error loading journal data**\n\nPlease try again or check your internet connection."
+        "## 📝 Trading Journal Analysis\n\n❌ **Error loading journal data**\n\nPlease try again or check your internet connection.",
       );
     } finally {
       setIsSearchLoading(false);
@@ -3115,7 +3130,7 @@ ${
   const [importData, setImportData] = useState("");
   const [importError, setImportError] = useState("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
-  
+
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
   const [selectedBroker, setSelectedBroker] = useState<string>("");
@@ -3197,7 +3212,7 @@ ${
   // Helper function to get or create userId from localStorage
   const getUserId = () => {
     if (typeof window === "undefined") return "default-user";
-    
+
     let userId = localStorage.getItem("tradingJournalUserId");
     if (!userId) {
       // Generate a unique user ID if none exists
@@ -3222,7 +3237,7 @@ ${
           console.log(
             "📊 Loaded all journal dates:",
             Object.keys(allDatesData).length,
-            "dates"
+            "dates",
           );
 
           // Update tradingDataByDate with all the loaded data
@@ -3235,7 +3250,7 @@ ${
           // This simulates clicking each date to ensure colors appear immediately
           setTimeout(async () => {
             console.log(
-              "🔄 Ultra-fast auto-clicking all available dates for heatmap colors..."
+              "🔄 Ultra-fast auto-clicking all available dates for heatmap colors...",
             );
 
             // Create all fetch promises in parallel for maximum speed
@@ -3252,11 +3267,11 @@ ${
                 } catch (error) {
                   console.error(
                     `❌ Error auto-loading date ${dateStr}:`,
-                    error
+                    error,
                   );
                 }
                 return null;
-              }
+              },
             );
 
             // Execute all requests simultaneously
@@ -3277,7 +3292,7 @@ ${
             }));
 
             console.log(
-              "✅ Ultra-fast auto-click completed - all heatmap colors should now be visible"
+              "✅ Ultra-fast auto-click completed - all heatmap colors should now be visible",
             );
           }, 10);
 
@@ -3286,7 +3301,7 @@ ${
           // Auto-select the latest date if no date is currently selected
           if (!selectedDate && Object.keys(allDatesData).length > 0) {
             const sortedDates = Object.keys(allDatesData).sort(
-              (a, b) => new Date(b).getTime() - new Date(a).getTime()
+              (a, b) => new Date(b).getTime() - new Date(a).getTime(),
             );
             const latestDateStr = sortedDates[0];
             const latestDate = new Date(latestDateStr);
@@ -3297,7 +3312,7 @@ ${
           }
         } else {
           console.log(
-            "📭 No journal data found or Google Cloud unavailable, using localStorage..."
+            "📭 No journal data found or Google Cloud unavailable, using localStorage...",
           );
           // Use localStorage data as primary fallback
           const localStorageData = localStorage.getItem("tradingDataByDate");
@@ -3306,7 +3321,7 @@ ${
             console.log(
               "💾 Found localStorage journal data:",
               Object.keys(parsedLocalData).length,
-              "entries"
+              "entries",
             );
             setTradingDataByDate(parsedLocalData);
             setCalendarData(parsedLocalData);
@@ -3314,13 +3329,13 @@ ${
             // Auto-select latest date from localStorage
             if (!selectedDate && Object.keys(parsedLocalData).length > 0) {
               const sortedDates = Object.keys(parsedLocalData).sort(
-                (a, b) => new Date(b).getTime() - new Date(a).getTime()
+                (a, b) => new Date(b).getTime() - new Date(a).getTime(),
               );
               const latestDateStr = sortedDates[0];
               const latestDate = new Date(latestDateStr);
               console.log(
                 "🎯 Auto-selecting latest date from localStorage:",
-                latestDateStr
+                latestDateStr,
               );
               setSelectedDate(latestDate);
               await handleDateSelect(latestDate);
@@ -3337,7 +3352,7 @@ ${
           console.log(
             "💾 Emergency fallback - Found localStorage journal data:",
             Object.keys(parsedLocalData).length,
-            "entries"
+            "entries",
           );
           setTradingDataByDate(parsedLocalData);
           setCalendarData(parsedLocalData);
@@ -3362,13 +3377,15 @@ ${
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState([]);
-  
+
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
   const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
-  
+
   // Mobile bottom navigation state (home, insight, ranking)
-  const [mobileBottomTab, setMobileBottomTab] = useState<'home' | 'insight' | 'ranking'>('home');
-  
+  const [mobileBottomTab, setMobileBottomTab] = useState<
+    "home" | "insight" | "ranking"
+  >("home");
+
   // Mobile trade history dropdown state
   const [showMobileTradeHistory, setShowMobileTradeHistory] = useState(false);
 
@@ -3453,7 +3470,7 @@ ${
           const candleMinutesFromStart = candleMinutes - marketStartMinutes;
 
           const timeDiff = Math.abs(
-            candleMinutesFromStart - minutesFromMarketStart
+            candleMinutesFromStart - minutesFromMarketStart,
           );
           if (timeDiff < minTimeDiff) {
             minTimeDiff = timeDiff;
@@ -3486,7 +3503,7 @@ ${
       markers.length,
       "markers from",
       tradeHistoryData.length,
-      "trades"
+      "trades",
     );
     return markers;
   }, [tradeHistoryData, journalChartData]);
@@ -3630,7 +3647,7 @@ ${
     // Check minimum required tags
     if (newTags.length < tagValidationRules.minRequiredTags) {
       errors.push(
-        `Minimum ${tagValidationRules.minRequiredTags} tags required`
+        `Minimum ${tagValidationRules.minRequiredTags} tags required`,
       );
     }
 
@@ -3641,7 +3658,7 @@ ${
         errors.push(
           `Maximum ${
             category.maxSelections
-          } ${category.name.toLowerCase()} tags allowed`
+          } ${category.name.toLowerCase()} tags allowed`,
         );
       }
     });
@@ -3650,11 +3667,11 @@ ${
     Object.entries(tradingTagSystem).forEach(([categoryKey, category]) => {
       if ((category as any).required) {
         const categoryTags = newTags.filter((tag) =>
-          category.tags.includes(tag)
+          category.tags.includes(tag),
         );
         if (categoryTags.length === 0) {
           errors.push(
-            `At least one ${category.name.toLowerCase()} tag is required`
+            `At least one ${category.name.toLowerCase()} tag is required`,
           );
         }
       }
@@ -3663,7 +3680,7 @@ ${
     // Check conflicting tags
     tagValidationRules.conflictingTags.forEach((conflictGroup) => {
       const selectedConflicts = newTags.filter((tag) =>
-        conflictGroup.includes(tag)
+        conflictGroup.includes(tag),
       );
       if (selectedConflicts.length > 1) {
         errors.push(`Conflicting tags: ${selectedConflicts.join(", ")}`);
@@ -3691,13 +3708,13 @@ ${
       const tagCategory = getTagCategory(tag);
       if (tagCategory) {
         const categoryTags = newTags.filter((t) =>
-          tagCategory.tags.includes(t)
+          tagCategory.tags.includes(t),
         );
         if (categoryTags.length > tagCategory.maxSelections) {
           alert(
             `Maximum ${
               tagCategory.maxSelections
-            } ${tagCategory.name.toLowerCase()} tags allowed`
+            } ${tagCategory.name.toLowerCase()} tags allowed`,
           );
           return;
         }
@@ -3870,7 +3887,7 @@ ${
     // Use formatDateKey for consistency with save function
     const dateKey = formatDateKey(date);
     console.log(
-      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()})`
+      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()})`,
     );
 
     try {
@@ -3901,7 +3918,7 @@ ${
         if (journalData && Object.keys(journalData).length > 0) {
           console.log(
             "🎯 Found journal data from Google Cloud journal-database, populating UI:",
-            journalData
+            journalData,
           );
 
           // Clear existing data first
@@ -3942,7 +3959,7 @@ ${
             console.log(
               "📊 Loaded trade history from journal-database:",
               journalData.tradeHistory.length,
-              "trades"
+              "trades",
             );
           } else if (journalData.totalTrades) {
             // Construct trade history from summary data
@@ -3966,7 +3983,7 @@ ${
             if (journalData.losingTrades > 0) {
               for (let i = 0; i < journalData.losingTrades; i++) {
                 const lossAmount = Math.abs(
-                  journalData.totalLoss / journalData.losingTrades
+                  journalData.totalLoss / journalData.losingTrades,
                 );
                 constructedTrades.push({
                   time: "10:15:00 AM",
@@ -3984,7 +4001,7 @@ ${
             console.log(
               "📊 Constructed trade history from summary data:",
               constructedTrades.length,
-              "trades"
+              "trades",
             );
           }
 
@@ -3993,7 +4010,7 @@ ${
             console.log(
               "🖼️ Loaded images from journal-database:",
               journalData.images.length,
-              "images"
+              "images",
             );
           }
 
@@ -4020,16 +4037,16 @@ ${
           // Save to localStorage as backup
           localStorage.setItem(
             "tradingDataByDate",
-            JSON.stringify(updatedTradingData)
+            JSON.stringify(updatedTradingData),
           );
           localStorage.setItem(
             "calendarData",
-            JSON.stringify(updatedCalendarData)
+            JSON.stringify(updatedCalendarData),
           );
 
           console.log(
             "✅ Successfully loaded and saved all journal data for:",
-            dateKey
+            dateKey,
           );
         } else {
           console.log("📭 No journal data found for:", dateKey);
@@ -4049,7 +4066,7 @@ ${
         const errorText = await response.text();
         console.error(
           `❌ Load failed with status ${response.status}:`,
-          errorText
+          errorText,
         );
       }
     } catch (error) {
@@ -4395,7 +4412,7 @@ ${
       };
       console.log(
         `🔄 Attempting to save data for date: ${selectedDateStr}`,
-        journalData
+        journalData,
       );
 
       // Choose endpoint based on demo mode
@@ -4442,7 +4459,7 @@ ${
 
         console.log(
           `✅ All trading data saved to Google Cloud for ${selectedDateStr}`,
-          journalData
+          journalData,
         );
 
         // Automatically reload the data for this date to ensure UI updates
@@ -4466,18 +4483,18 @@ ${
             }\n• Images: ${
               safeImages.length
             }\n• Net P&L: ₹${safePerformanceMetrics.netPnL.toLocaleString(
-              "en-IN"
-            )}`
+              "en-IN",
+            )}`,
           );
         }
       } else {
         const errorText = await response.text();
         console.error(
           `❌ Save failed with status ${response.status}:`,
-          errorText
+          errorText,
         );
         throw new Error(
-          `Failed to save to Google Cloud: ${response.status} ${errorText}`
+          `Failed to save to Google Cloud: ${response.status} ${errorText}`,
         );
       }
     } catch (error) {
@@ -4485,7 +4502,7 @@ ${
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       alert(
-        `❌ Failed to save trading data to Google Cloud: ${errorMessage}. Please try again.`
+        `❌ Failed to save trading data to Google Cloud: ${errorMessage}. Please try again.`,
       );
     }
   };
@@ -4519,7 +4536,7 @@ ${
       .filter((pnl) => pnl > 0)
       .reduce((sum, pnl) => sum + pnl, 0);
     const totalLoss = Math.abs(
-      tradesPnL.filter((pnl) => pnl < 0).reduce((sum, pnl) => sum + pnl, 0)
+      tradesPnL.filter((pnl) => pnl < 0).reduce((sum, pnl) => sum + pnl, 0),
     );
     const netPnL = tradesPnL.reduce((sum, pnl) => sum + pnl, 0);
     const closedTrades = winningTrades + losingTrades;
@@ -4580,7 +4597,7 @@ ${
 
           // Calculate duration from first buy to this sell
           const entryTime = new Date(
-            `1970-01-01 ${positions[symbol].firstTradeTime}`
+            `1970-01-01 ${positions[symbol].firstTradeTime}`,
           );
           const exitTime = new Date(`1970-01-01 ${trade.time}`);
           const durationMs = exitTime.getTime() - entryTime.getTime();
@@ -4660,8 +4677,9 @@ ${
 
             // Detect format by checking first field
             const firstField = parts[0];
-            const isTimeFirst = firstField && /^\d{1,2}:\d{2}(:\d{2})?/.test(firstField);
-            
+            const isTimeFirst =
+              firstField && /^\d{1,2}:\d{2}(:\d{2})?/.test(firstField);
+
             // Check if there's a date column
             let startIndex = 0;
             if (
@@ -4673,13 +4691,19 @@ ${
               startIndex = 1; // Skip the date column
             }
 
-            if (isTimeFirst || (startIndex === 1 && /^\d{1,2}:\d{2}/.test(parts[startIndex]))) {
+            if (
+              isTimeFirst ||
+              (startIndex === 1 && /^\d{1,2}:\d{2}/.test(parts[startIndex]))
+            ) {
               // FORMAT 1: Time first (most common)
               // Time, Symbol/Order, Other fields...
               time = parts[startIndex];
-              
+
               // Handle AM/PM
-              if (parts[startIndex + 1] && /^(AM|PM)$/i.test(parts[startIndex + 1])) {
+              if (
+                parts[startIndex + 1] &&
+                /^(AM|PM)$/i.test(parts[startIndex + 1])
+              ) {
                 time = `${time} ${parts[startIndex + 1]}`;
                 startIndex++;
               }
@@ -4687,7 +4711,7 @@ ${
               // Next field could be symbol or order
               let nextFieldIndex = startIndex + 1;
               let nextField = parts[nextFieldIndex] || "";
-              
+
               // Check if it's an order type (BUY/SELL with optional pipe)
               const orderMatch = nextField.match(/^(BUY|SELL)\|?$/i);
               if (orderMatch) {
@@ -4700,21 +4724,27 @@ ${
               } else {
                 // Alternative: Time, Symbol, OrderType(combined), Qty, Price
                 symbol = nextField;
-                
+
                 // Next field might be combined order+type (e.g., "buynrml", "sellmis")
-                const combinedField = (parts[nextFieldIndex + 1] || "").toLowerCase();
+                const combinedField = (
+                  parts[nextFieldIndex + 1] || ""
+                ).toLowerCase();
                 if (combinedField.startsWith("buy")) {
                   order = "BUY";
-                  type = combinedField.replace("buy", "").toUpperCase() || "MIS";
+                  type =
+                    combinedField.replace("buy", "").toUpperCase() || "MIS";
                 } else if (combinedField.startsWith("sell")) {
                   order = "SELL";
-                  type = combinedField.replace("sell", "").toUpperCase() || "MIS";
+                  type =
+                    combinedField.replace("sell", "").toUpperCase() || "MIS";
                 } else {
                   // Might be separate order and type
-                  order = (parts[nextFieldIndex + 1] || "").toUpperCase().replace("|", "");
+                  order = (parts[nextFieldIndex + 1] || "")
+                    .toUpperCase()
+                    .replace("|", "");
                   type = (parts[nextFieldIndex + 2] || "MIS").toUpperCase();
                 }
-                
+
                 // Get qty and price
                 const remainingParts = parts.slice(nextFieldIndex + 2);
                 for (const part of remainingParts) {
@@ -4732,19 +4762,22 @@ ${
               // FORMAT 2: Symbol first (legacy format)
               // Symbol, Order|Type, Qty, Price, Time
               symbol = parts[startIndex];
-              
+
               // Next field is order (might have pipe or be combined with type)
-              const orderField = (parts[startIndex + 1] || "");
-              
+              const orderField = parts[startIndex + 1] || "";
+
               // Check for "BUY| NRML" format (order and type in same field with pipe)
               if (orderField.includes("|")) {
-                const orderParts = orderField.split("|").map(p => p.trim());
+                const orderParts = orderField.split("|").map((p) => p.trim());
                 order = orderParts[0].toUpperCase();
                 type = (orderParts[1] || "MIS").toUpperCase();
                 qty = parseInt(parts[startIndex + 2] || "0");
                 price = parseFloat(parts[startIndex + 3] || "0");
                 time = parts[startIndex + 4] || "";
-              } else if (orderField.toLowerCase().startsWith("buy") || orderField.toLowerCase().startsWith("sell")) {
+              } else if (
+                orderField.toLowerCase().startsWith("buy") ||
+                orderField.toLowerCase().startsWith("sell")
+              ) {
                 // Extract order and type from combined field (e.g., "buynrml", "sellmis")
                 const orderFieldUpper = orderField.toUpperCase();
                 if (orderFieldUpper.startsWith("BUY")) {
@@ -4787,7 +4820,11 @@ ${
                 const priceMatch = part.match(/(\d+\.?\d*)/);
                 if (priceMatch) {
                   const testPrice = parseFloat(priceMatch[1]);
-                  if (testPrice > 0 && testPrice < 100000 && testPrice !== qty) {
+                  if (
+                    testPrice > 0 &&
+                    testPrice < 100000 &&
+                    testPrice !== qty
+                  ) {
                     price = testPrice;
                     break;
                   }
@@ -4821,7 +4858,14 @@ ${
               .replace(/\s+(CE|PE)\s+(NFO|BFO|NSE|BSE)$/i, " $1")
               .trim();
 
-            console.log("✅ Extracted trade:", { time, order, symbol, type, qty, price });
+            console.log("✅ Extracted trade:", {
+              time,
+              order,
+              symbol,
+              type,
+              qty,
+              price,
+            });
 
             // Only add trade if we have essential fields
             if (time && order && symbol && qty > 0) {
@@ -4844,7 +4888,10 @@ ${
                 hasOrder: !!order,
                 hasSymbol: !!symbol,
                 hasQty: qty > 0,
-                time, order, symbol, qty
+                time,
+                order,
+                symbol,
+                qty,
               });
             }
           }
@@ -4863,7 +4910,7 @@ ${
       return data;
     } catch (error) {
       throw new Error(
-        "Failed to parse trade data. Please check the format and try again."
+        "Failed to parse trade data. Please check the format and try again.",
       );
     }
   };
@@ -5000,9 +5047,13 @@ ${
 
       if (trades.length === 0) {
         if (errors.length > 0) {
-          setImportError(`No valid trades found. ${errors.length} error(s) detected. See details below.`);
+          setImportError(
+            `No valid trades found. ${errors.length} error(s) detected. See details below.`,
+          );
         } else {
-          setImportError("No valid trades found in the data. Please check the format.");
+          setImportError(
+            "No valid trades found in the data. Please check the format.",
+          );
         }
         return;
       }
@@ -5012,11 +5063,13 @@ ${
 
       // Set trade history data
       setTradeHistoryData(processedData);
-      
+
       // Show success message with counts
       if (errors.length > 0) {
         // Partial import - some trades succeeded, some failed
-        console.log(`✅ Imported ${trades.length} trades successfully. ⚠️ ${errors.length} line(s) had errors.`);
+        console.log(
+          `✅ Imported ${trades.length} trades successfully. ⚠️ ${errors.length} line(s) had errors.`,
+        );
       } else {
         // Full success
         console.log(`✅ Successfully imported all ${trades.length} trades!`);
@@ -5033,7 +5086,7 @@ ${
       }
     } catch (error) {
       setImportError(
-        error instanceof Error ? error.message : "Unknown error occurred"
+        error instanceof Error ? error.message : "Unknown error occurred",
       );
     }
   };
@@ -5453,8 +5506,6 @@ ${
                   </p>
                 </div>
 
-                
-
                 {/* Authentication Status Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <AuthButton />
@@ -5482,50 +5533,69 @@ ${
                     <div className="flex items-center gap-3 mb-8">
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                         <span className="text-white font-semibold text-xl">
-                          {(currentUser.displayName || currentUser.username || 'U').charAt(0).toUpperCase()}
+                          {(
+                            currentUser.displayName ||
+                            currentUser.username ||
+                            "U"
+                          )
+                            .charAt(0)
+                            .toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-semibold text-base truncate">
-                          {currentUser.displayName || 'User'}
+                          {currentUser.displayName || "User"}
                         </p>
                         <p className="text-blue-200 text-sm truncate">
-                          @{currentUser.username || 'username'}
+                          @{currentUser.username || "username"}
                         </p>
                       </div>
                     </div>
 
                     {/* Navigation Menu Items */}
                     <div className="space-y-2">
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-profile">
+                      <button
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors"
+                        data-testid="nav-profile"
+                      >
                         profile
                       </button>
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-saved">
+                      <button
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors"
+                        data-testid="nav-saved"
+                      >
                         saved
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setActiveTab("dashboard");
                           setIsNavOpen(false);
                         }}
-                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" 
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
                         data-testid="nav-dashboard"
                       >
                         <BarChart3 className="h-4 w-4" />
                         <span>dashboard</span>
                       </button>
-                      <button className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors" data-testid="nav-settings">
+                      <button
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors"
+                        data-testid="nav-settings"
+                      >
                         setting & privacy
                       </button>
-                      <button 
+                      <button
                         onClick={toggleTheme}
-                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" 
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
                         data-testid="nav-darkmode"
                       >
-                        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        {theme === "dark" ? (
+                          <Sun className="h-4 w-4" />
+                        ) : (
+                          <Moon className="h-4 w-4" />
+                        )}
                         <span>dark mode</span>
                       </button>
-                      <button 
+                      <button
                         onClick={async () => {
                           try {
                             await signOut(auth);
@@ -5535,7 +5605,7 @@ ${
                             console.error("Logout error:", error);
                           }
                         }}
-                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2" 
+                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
                         data-testid="nav-logout"
                       >
                         <LogOut className="h-4 w-4" />
@@ -5546,15 +5616,15 @@ ${
                 </div>
 
                 {/* Home Screen - Stacks on top with card effect */}
-                <div 
+                <div
                   onClick={() => isNavOpen && setIsNavOpen(false)}
                   className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 ${
-                    isNavOpen 
-                      ? 'scale-90 -translate-x-[70%] rounded-2xl shadow-2xl' 
-                      : 'scale-100 translate-x-0'
+                    isNavOpen
+                      ? "scale-90 -translate-x-[70%] rounded-2xl shadow-2xl"
+                      : "scale-100 translate-x-0"
                   }`}
                   style={{
-                    transformOrigin: 'right center',
+                    transformOrigin: "right center",
                   }}
                 >
                   {/* Two-line Hamburger Icon - Mobile only */}
@@ -5566,256 +5636,265 @@ ${
                     className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-white/10 rounded-lg transition-all duration-300"
                     data-testid="button-nav-toggle"
                   >
-                    <div className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'w-5 rotate-45 translate-y-1' : 'w-5'}`}></div>
-                    <div className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? 'w-5 -rotate-45 -translate-y-1' : 'w-4 ml-1'}`}></div>
+                    <div
+                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
+                    ></div>
+                    <div
+                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
+                    ></div>
                   </button>
 
-                {/* World Map Section: Takes 25% of the total height */}
-                <div className="px-8 pt-1 pb-1 flex items-center justify-center h-1/4">
-                  {/* World Map */}
-                  <WorldMap />
-                </div>
-                {/* Blue Section: Takes 75% of the total height - Fixed height, not expanding */}
-                <div className="md:h-3/4 h-[75vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-4 py-0 md:px-4 px-0 relative">
-                  <div className="max-w-4xl w-full md:space-y-4">
-                    {/* Greeting - Hidden on mobile */}
-                    <div className="text-center spacey-4 md:block hidden">
-                      <div className="flex items-center justify-center gap-3">
-                        <Sparkles className="4-5 w-4 text-blue-400" />
-                        <h1 className="text-2xl font-normal text-gray-100">
-                          Welcome to Trading Platform
-                        </h1>
-                      </div>
-                    </div>
-
-                    {/* Search Input - Hidden on mobile */}
-                    <div
-                      className={`relative mx-auto transition-all duration-300 md:block hidden ${
-                        isSearchActive ? "max-w-4xl" : "max-w-2xl"
-                      }`}
-                    >
-                      <Input
-                        placeholder="Search stocks, technical analysis, social feed, news, journal, alerts, or ask AI anything..."
-                        value={searchQuery}
-                        onFocus={() => setIsSearchActive(true)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setSearchQuery(value);
-                          setIsSearchActive(value.length > 0);
-                        }}
-                        onKeyPress={async (e) => {
-                          if (e.key === "Enter" && searchQuery.trim()) {
-                            await handleSearch();
-                          }
-                        }}
-                        className={`w-full transition-all duration-300 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          isSearchActive
-                            ? "h-14 rounded-xl"
-                            : "h-12 rounded-2xl"
-                        }`}
-                      />
-                      <Button
-                        size="sm"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300 h-6 w-6 p-0"
-                        onClick={() => handleSearch()}
-                        disabled={!searchQuery.trim() || isSearchLoading}
-                      >
-                        {isSearchLoading ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Bot className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* AI Search Results - Desktop only */}
-                    {isSearchActive && (
-                      <div className="max-w-5xl mx-auto mt-4 animate-in slide-in-from-top-4 duration-300 md:block hidden">
-                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4">
-                          {searchResults ? (
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2 pb-3 border-b border-gray-700">
-                                <Bot className="h-4 w-4 text-blue-400" />
-                                <h3 className="text-lg font-medium text-gray-100">
-                                  AI Assistant
-                                </h3>
-                              </div>
-                              <div className="prose prose-invert max-w-none">
-                                <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
-                                  {(() => {
-                                    // Render text with inline charts
-                                    if (
-                                      searchResults.includes(
-                                        "[CHART:PERFORMANCE_TREND]"
-                                      )
-                                    ) {
-                                      const parts = searchResults.split(
-                                        "[CHART:PERFORMANCE_TREND]"
-                                      );
-                                      const chartData =
-                                        (window as any)
-                                          .performanceTrendChartData || [];
-
-                                      return (
-                                        <>
-                                          {parts[0]}
-                                          {chartData.length > 0 && (
-                                            <div className="my-4 bg-gray-900/50 rounded-lg p-3 border border-gray-600">
-                                              <div className="h-32 w-full">
-                                                <ResponsiveContainer
-                                                  width="100%"
-                                                  height="100%"
-                                                >
-                                                  <AreaChart
-                                                    data={chartData}
-                                                    margin={{
-                                                      top: 20,
-                                                      right: 20,
-                                                      left: 10,
-                                                      bottom: 5,
-                                                    }}
-                                                  >
-                                                    <defs>
-                                                      <linearGradient
-                                                        id="aiAreaGradient"
-                                                        x1="0"
-                                                        y1="0"
-                                                        x2="0"
-                                                        y2="1"
-                                                      >
-                                                        <stop
-                                                          offset="0%"
-                                                          stopColor="rgb(107, 114, 128)"
-                                                          stopOpacity={0.6}
-                                                        />
-                                                        <stop
-                                                          offset="100%"
-                                                          stopColor="rgb(107, 114, 128)"
-                                                          stopOpacity={0.1}
-                                                        />
-                                                      </linearGradient>
-                                                    </defs>
-                                                    <XAxis
-                                                      dataKey="day"
-                                                      axisLine={false}
-                                                      tickLine={false}
-                                                      tick={false}
-                                                      className="text-slate-500 dark:text-slate-400"
-                                                    />
-                                                    <YAxis
-                                                      axisLine={false}
-                                                      tickLine={false}
-                                                      tick={{
-                                                        fontSize: 10,
-                                                        fill: "#64748b",
-                                                      }}
-                                                      tickFormatter={(value) =>
-                                                        `${
-                                                          value >= 0 ? "" : "-"
-                                                        }${(
-                                                          Math.abs(value) / 1000
-                                                        ).toFixed(0)}K`
-                                                      }
-                                                      domain={[
-                                                        "dataMin - 1000",
-                                                        "dataMax + 1000",
-                                                      ]}
-                                                      className="text-slate-500 dark:text-slate-400"
-                                                    />
-                                                    <Tooltip
-                                                      contentStyle={{
-                                                        background:
-                                                          "var(--background)",
-                                                        border:
-                                                          "1px solid var(--border)",
-                                                        borderRadius: "8px",
-                                                        color:
-                                                          "var(--foreground)",
-                                                        fontSize: "11px",
-                                                        padding: "6px 10px",
-                                                      }}
-                                                      formatter={(
-                                                        value: any
-                                                      ) => [
-                                                        `${
-                                                          value >= 0
-                                                            ? "₹"
-                                                            : "-₹"
-                                                        }${Math.abs(
-                                                          value
-                                                        ).toLocaleString()}`,
-                                                        "Daily P&L",
-                                                      ]}
-                                                      labelFormatter={(label) =>
-                                                        `${label}`
-                                                      }
-                                                    />
-                                                    <Area
-                                                      type="monotone"
-                                                      dataKey="value"
-                                                      stroke="#000000"
-                                                      strokeWidth={2}
-                                                      fill="url(#aiAreaGradient)"
-                                                      dot={false}
-                                                      activeDot={{
-                                                        r: 4,
-                                                        stroke: "#000000",
-                                                        strokeWidth: 1,
-                                                        fill: "#ffffff",
-                                                      }}
-                                                    />
-                                                  </AreaChart>
-                                                </ResponsiveContainer>
-                                              </div>
-                                            </div>
-                                          )}
-                                          {parts[1] || ""}
-                                        </>
-                                      );
-                                    }
-                                    return searchResults;
-                                  })()}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3 pt-4 border-t border-gray-700">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSearchQuery("");
-                                    setIsSearchActive(false);
-                                    setSearchResults("");
-                                  }}
-                                  className="text-gray-400 hover:text-gray-200"
-                                >
-                                  <X className="h-4 w-4 mr-2" />
-                                  Clear
-                                </Button>
-                              </div>
-                            </div>
-                          ) : searchQuery && !isSearchLoading ? (
-                            <div className="text-center text-gray-400 py-8">
-                              <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                              <p>
-                                Press Enter or click the search button to get AI
-                                assistance
-                              </p>
-                            </div>
-                          ) : isSearchLoading ? (
-                            <div className="text-center text-gray-400 py-8">
-                              <div className="flex items-center justify-center gap-3">
-                                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                <p>Getting AI assistance...</p>
-                              </div>
-                            </div>
-                          ) : null}
+                  {/* World Map Section: Takes 25% of the total height */}
+                  <div className="px-8 pt-1 pb-1 flex items-center justify-center h-1/4">
+                    {/* World Map */}
+                    <WorldMap />
+                  </div>
+                  {/* Blue Section: Takes 75% of the total height - Fixed height, not expanding */}
+                  <div className="md:h-3/4 h-[75vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-4 py-0 md:px-4 px-0 relative">
+                    <div className="max-w-4xl w-full md:space-y-4">
+                      {/* Greeting - Hidden on mobile */}
+                      <div className="text-center spacey-4 md:block hidden">
+                        <div className="flex items-center justify-center gap-3">
+                          <Sparkles className="4-5 w-4 text-blue-400" />
+                          <h1 className="text-2xl font-normal text-gray-100">
+                            Welcome to Trading Platform
+                          </h1>
                         </div>
                       </div>
-                    )}
 
-                    {/* Enhanced AI Suggestion Buttons - Desktop only */}
-                    <div className="md:flex hidden flex-wrap items-center justify-center gap-3 max-w-6xl mx-auto">
-                      {/* <Button
+                      {/* Search Input - Hidden on mobile */}
+                      <div
+                        className={`relative mx-auto transition-all duration-300 md:block hidden ${
+                          isSearchActive ? "max-w-4xl" : "max-w-2xl"
+                        }`}
+                      >
+                        <Input
+                          placeholder="Search stocks, technical analysis, social feed, news, journal, alerts, or ask AI anything..."
+                          value={searchQuery}
+                          onFocus={() => setIsSearchActive(true)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSearchQuery(value);
+                            setIsSearchActive(value.length > 0);
+                          }}
+                          onKeyPress={async (e) => {
+                            if (e.key === "Enter" && searchQuery.trim()) {
+                              await handleSearch();
+                            }
+                          }}
+                          className={`w-full transition-all duration-300 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            isSearchActive
+                              ? "h-14 rounded-xl"
+                              : "h-12 rounded-2xl"
+                          }`}
+                        />
+                        <Button
+                          size="sm"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300 h-6 w-6 p-0"
+                          onClick={() => handleSearch()}
+                          disabled={!searchQuery.trim() || isSearchLoading}
+                        >
+                          {isSearchLoading ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Bot className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+
+                      {/* AI Search Results - Desktop only */}
+                      {isSearchActive && (
+                        <div className="max-w-5xl mx-auto mt-4 animate-in slide-in-from-top-4 duration-300 md:block hidden">
+                          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4">
+                            {searchResults ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 pb-3 border-b border-gray-700">
+                                  <Bot className="h-4 w-4 text-blue-400" />
+                                  <h3 className="text-lg font-medium text-gray-100">
+                                    AI Assistant
+                                  </h3>
+                                </div>
+                                <div className="prose prose-invert max-w-none">
+                                  <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                                    {(() => {
+                                      // Render text with inline charts
+                                      if (
+                                        searchResults.includes(
+                                          "[CHART:PERFORMANCE_TREND]",
+                                        )
+                                      ) {
+                                        const parts = searchResults.split(
+                                          "[CHART:PERFORMANCE_TREND]",
+                                        );
+                                        const chartData =
+                                          (window as any)
+                                            .performanceTrendChartData || [];
+
+                                        return (
+                                          <>
+                                            {parts[0]}
+                                            {chartData.length > 0 && (
+                                              <div className="my-4 bg-gray-900/50 rounded-lg p-3 border border-gray-600">
+                                                <div className="h-32 w-full">
+                                                  <ResponsiveContainer
+                                                    width="100%"
+                                                    height="100%"
+                                                  >
+                                                    <AreaChart
+                                                      data={chartData}
+                                                      margin={{
+                                                        top: 20,
+                                                        right: 20,
+                                                        left: 10,
+                                                        bottom: 5,
+                                                      }}
+                                                    >
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="aiAreaGradient"
+                                                          x1="0"
+                                                          y1="0"
+                                                          x2="0"
+                                                          y2="1"
+                                                        >
+                                                          <stop
+                                                            offset="0%"
+                                                            stopColor="rgb(107, 114, 128)"
+                                                            stopOpacity={0.6}
+                                                          />
+                                                          <stop
+                                                            offset="100%"
+                                                            stopColor="rgb(107, 114, 128)"
+                                                            stopOpacity={0.1}
+                                                          />
+                                                        </linearGradient>
+                                                      </defs>
+                                                      <XAxis
+                                                        dataKey="day"
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={false}
+                                                        className="text-slate-500 dark:text-slate-400"
+                                                      />
+                                                      <YAxis
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{
+                                                          fontSize: 10,
+                                                          fill: "#64748b",
+                                                        }}
+                                                        tickFormatter={(
+                                                          value,
+                                                        ) =>
+                                                          `${
+                                                            value >= 0
+                                                              ? ""
+                                                              : "-"
+                                                          }${(
+                                                            Math.abs(value) /
+                                                            1000
+                                                          ).toFixed(0)}K`
+                                                        }
+                                                        domain={[
+                                                          "dataMin - 1000",
+                                                          "dataMax + 1000",
+                                                        ]}
+                                                        className="text-slate-500 dark:text-slate-400"
+                                                      />
+                                                      <Tooltip
+                                                        contentStyle={{
+                                                          background:
+                                                            "var(--background)",
+                                                          border:
+                                                            "1px solid var(--border)",
+                                                          borderRadius: "8px",
+                                                          color:
+                                                            "var(--foreground)",
+                                                          fontSize: "11px",
+                                                          padding: "6px 10px",
+                                                        }}
+                                                        formatter={(
+                                                          value: any,
+                                                        ) => [
+                                                          `${
+                                                            value >= 0
+                                                              ? "₹"
+                                                              : "-₹"
+                                                          }${Math.abs(
+                                                            value,
+                                                          ).toLocaleString()}`,
+                                                          "Daily P&L",
+                                                        ]}
+                                                        labelFormatter={(
+                                                          label,
+                                                        ) => `${label}`}
+                                                      />
+                                                      <Area
+                                                        type="monotone"
+                                                        dataKey="value"
+                                                        stroke="#000000"
+                                                        strokeWidth={2}
+                                                        fill="url(#aiAreaGradient)"
+                                                        dot={false}
+                                                        activeDot={{
+                                                          r: 4,
+                                                          stroke: "#000000",
+                                                          strokeWidth: 1,
+                                                          fill: "#ffffff",
+                                                        }}
+                                                      />
+                                                    </AreaChart>
+                                                  </ResponsiveContainer>
+                                                </div>
+                                              </div>
+                                            )}
+                                            {parts[1] || ""}
+                                          </>
+                                        );
+                                      }
+                                      return searchResults;
+                                    })()}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3 pt-4 border-t border-gray-700">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSearchQuery("");
+                                      setIsSearchActive(false);
+                                      setSearchResults("");
+                                    }}
+                                    className="text-gray-400 hover:text-gray-200"
+                                  >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Clear
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : searchQuery && !isSearchLoading ? (
+                              <div className="text-center text-gray-400 py-8">
+                                <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                <p>
+                                  Press Enter or click the search button to get
+                                  AI assistance
+                                </p>
+                              </div>
+                            ) : isSearchLoading ? (
+                              <div className="text-center text-gray-400 py-8">
+                                <div className="flex items-center justify-center gap-3">
+                                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                  <p>Getting AI assistance...</p>
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Enhanced AI Suggestion Buttons - Desktop only */}
+                      <div className="md:flex hidden flex-wrap items-center justify-center gap-3 max-w-6xl mx-auto">
+                        {/* <Button
                         variant="secondary"
                         className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
                         onClick={() =>
@@ -5830,64 +5909,64 @@ ${
                         </div>
                       </Button> */}
 
-                      <Button
-                        variant="secondary"
-                        className="bg-cyan-600 hover:bg-cyan-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
-                        onClick={() =>
-                          handleSuggestionClick(
-                            "RSI technical analysis for RELIANCE"
-                          )
-                        }
-                      >
-                        <div className="flex items-center justify-center gap-1">
-                          <BarChart3 className="h-3 w-3" />
-                          <span>Technical Analysis</span>
-                        </div>
-                      </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-cyan-600 hover:bg-cyan-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          onClick={() =>
+                            handleSuggestionClick(
+                              "RSI technical analysis for RELIANCE",
+                            )
+                          }
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            <BarChart3 className="h-3 w-3" />
+                            <span>Technical Analysis</span>
+                          </div>
+                        </Button>
 
-                      <Button
-                        variant="secondary"
-                        className="bg-pink-600 hover:bg-pink-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
-                        onClick={() =>
-                          handleSuggestionClick(
-                            "Social feed community discussions and trending topics"
-                          )
-                        }
-                      >
-                        <div className="flex items-center gap-2">
-                          <User className="h-3 w-3" />
-                          <span>Social Feed</span>
-                        </div>
-                      </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-pink-600 hover:bg-pink-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          onClick={() =>
+                            handleSuggestionClick(
+                              "Social feed community discussions and trending topics",
+                            )
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <User className="h-3 w-3" />
+                            <span>Social Feed</span>
+                          </div>
+                        </Button>
 
-                      <Button
-                        variant="secondary"
-                        className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
-                        onClick={() =>
-                          handleSuggestionClick(
-                            "What are today's top financial news and market updates?"
-                          )
-                        }
-                      >
-                        <div className="flex items-center gap-2">
-                          <Newspaper className="h-3 w-3" />
-                          <span>Market News</span>
-                        </div>
-                      </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          onClick={() =>
+                            handleSuggestionClick(
+                              "What are today's top financial news and market updates?",
+                            )
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <Newspaper className="h-3 w-3" />
+                            <span>Market News</span>
+                          </div>
+                        </Button>
 
-                      <Button
-                        variant="secondary"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
-                        onClick={generateJournalAIReport}
-                        data-testid="button-trading-journal"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-3 w-3" />
-                          <span>Trading Journal</span>
-                        </div>
-                      </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          onClick={generateJournalAIReport}
+                          data-testid="button-trading-journal"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3 w-3" />
+                            <span>Trading Journal</span>
+                          </div>
+                        </Button>
 
-                      {/* <Button
+                        {/* <Button
                         variant="secondary"
                         className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
                         onClick={() =>
@@ -5902,7 +5981,7 @@ ${
                         </div>
                       </Button> */}
 
-                      {/* <Button
+                        {/* <Button
                         variant="secondary"
                         className="bg-purple-600 hover:bg-purple-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
                         onClick={() =>
@@ -5917,439 +5996,447 @@ ${
                         </div>
                       </Button> */}
 
-                      <Button
-                        variant="secondary"
-                        className="bg-orange-600 hover:bg-orange-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
-                        onClick={() =>
-                          handleSuggestionClick(
-                            "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics"
-                          )
-                        }
-                      >
-                        <div className="flex items-center gap-2">
-                          <BarChart3 className="h-3 w-3" />
-                          <span>Fundamentals</span>
-                        </div>
-                      </Button>
-                    </div>
-
-                    {/* Mobile Welcome Text - Fixed position in blue area */}
-                    <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4 relative z-10">
-                      <Sparkles className="h-4 w-4 text-blue-400" />
-                      <h1 className="text-base font-normal text-gray-100">
-                        Welcome to Trading Platform
-                      </h1>
-                    </div>
-
-                    {/* Trading Tools Section - White container moved up with all rounded corners */}
-                    <div className="bg-white md:pt-1 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 md:flex-1 mt-0">
-                      {/* Mobile Search Bar - Fully visible at top */}
-                      <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
-                        <div className="relative">
-                          <Input
-                            placeholder="Search stocks, technical analysis, social feed..."
-                            value={searchQuery}
-                            onFocus={() => setIsSearchActive(true)}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setSearchQuery(value);
-                              setIsSearchActive(value.length > 0);
-                            }}
-                            onKeyPress={async (e) => {
-                              if (e.key === "Enter" && searchQuery.trim()) {
-                                await handleSearch();
-                              }
-                            }}
-                            className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
-                          />
-                          <Button
-                            size="sm"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300"
-                            onClick={() => handleSearch()}
-                            disabled={!searchQuery.trim() || isSearchLoading}
-                          >
-                            {isSearchLoading ? (
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <Bot className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                        
-                        {/* Mobile Quick Suggestion Buttons - Horizontal scroll when search is active */}
-                        {isSearchActive && (
-                          <div className="mt-2 flex gap-2 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                            <Button
-                              variant="secondary"
-                              className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "Show me live stock prices for ICICI Bank and TCS"
-                                )
-                              }
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <TrendingUp className="h-3 w-3" />
-                                <span>Stock Prices</span>
-                              </div>
-                            </Button>
-
-                            <Button
-                              variant="secondary"
-                              className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "Social feed community discussions and trending topics"
-                                )
-                              }
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <User className="h-3 w-3" />
-                                <span>Social Feed</span>
-                              </div>
-                            </Button>
-
-                            <Button
-                              variant="secondary"
-                              className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "What are today's top financial news and market updates?"
-                                )
-                              }
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <Newspaper className="h-3 w-3" />
-                                <span>Market News</span>
-                              </div>
-                            </Button>
-
-                            <Button
-                              variant="secondary"
-                              className="bg-orange-600 hover:bg-orange-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
-                              onClick={() =>
-                                handleSuggestionClick(
-                                  "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics"
-                                )
-                              }
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <BarChart3 className="h-3 w-3" />
-                                <span>Fundamentals</span>
-                              </div>
-                            </Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-orange-600 hover:bg-orange-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          onClick={() =>
+                            handleSuggestionClick(
+                              "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics",
+                            )
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="h-3 w-3" />
+                            <span>Fundamentals</span>
                           </div>
-                        )}
+                        </Button>
                       </div>
-                      {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
-                      <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
-                        {/* Social Feed Card */}
-                        <div
-                          className="bg-blue-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
-                          onClick={() => setActiveTab("voice")}
-                        >
-                          <div className="absolute top-4 left-4">
-                            <span className="bg-white bg-opacity-90 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
-                              Social Feed
-                            </span>
-                          </div>
-                          <div className="absolute bottom-4 right-4">
-                            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                              <MessageCircle className="h-8 w-8 text-white" />
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Trading Master Card */}
-                        <div
-                          className="bg-indigo-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
-                          onClick={() => setActiveTab("trading-master")}
-                        >
-                          <div className="absolute top-4 left-4">
-                            <span className="bg-white bg-opacity-90 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium">
-                              Trading Master
-                            </span>
-                          </div>
-                          <div className="absolute bottom-4 right-4">
-                            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                              <Activity className="h-8 w-8 text-white" />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Trading Charts Card */}
-                        <div
-                          className="bg-emerald-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
-                          onClick={() => setActiveTab("journal")}
-                        >
-                          <div className="absolute top-4 left-4">
-                            <span className="bg-white bg-opacity-90 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
-                              Journal
-                            </span>
-                          </div>
-                          <div className="absolute bottom-4 right-4">
-                            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                              <BarChart3 className="h-8 w-8 text-white" />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Tutor Daily News Swipeable Cards - No Container */}
-                        <div className="relative h-48 flex items-center justify-center">
-                          <SwipeableCardStack
-                            onSectorChange={handleSectorChange}
-                            selectedSector={selectedSector}
-                            onCardIndexChange={setCurrentCardIndex}
-                            currentCardIndex={currentCardIndex}
-                          />
-                        </div>
+                      {/* Mobile Welcome Text - Fixed position in blue area */}
+                      <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4 relative z-10">
+                        <Sparkles className="h-4 w-4 text-blue-400" />
+                        <h1 className="text-base font-normal text-gray-100">
+                          Welcome to Trading Platform
+                        </h1>
                       </div>
-                      {/* Mobile Layout: 3 horizontal cards + swipeable below */}
-                      <div className="md:hidden mt-6">
-                        {/* Three cards in a row */}
-                        <div className="grid grid-cols-3 gap-3 px-4 mb-3">
+
+                      {/* Trading Tools Section - White container moved up with all rounded corners */}
+                      <div className="bg-white md:pt-1 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 md:flex-1 mt-0">
+                        {/* Mobile Search Bar - Fully visible at top */}
+                        <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
+                          <div className="relative">
+                            <Input
+                              placeholder="Search stocks, technical analysis, social feed..."
+                              value={searchQuery}
+                              onFocus={() => setIsSearchActive(true)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setSearchQuery(value);
+                                setIsSearchActive(value.length > 0);
+                              }}
+                              onKeyPress={async (e) => {
+                                if (e.key === "Enter" && searchQuery.trim()) {
+                                  await handleSearch();
+                                }
+                              }}
+                              className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                            />
+                            <Button
+                              size="sm"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300"
+                              onClick={() => handleSearch()}
+                              disabled={!searchQuery.trim() || isSearchLoading}
+                            >
+                              {isSearchLoading ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Bot className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+
+                          {/* Mobile Quick Suggestion Buttons - Horizontal scroll when search is active */}
+                          {isSearchActive && (
+                            <div
+                              className="mt-2 flex gap-2 overflow-x-auto scrollbar-hide pb-2"
+                              style={{
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                              }}
+                            >
+                              <Button
+                                variant="secondary"
+                                className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                                onClick={() =>
+                                  handleSuggestionClick(
+                                    "Show me live stock prices for ICICI Bank and TCS",
+                                  )
+                                }
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <TrendingUp className="h-3 w-3" />
+                                  <span>Stock Prices</span>
+                                </div>
+                              </Button>
+
+                              <Button
+                                variant="secondary"
+                                className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                                onClick={() =>
+                                  handleSuggestionClick(
+                                    "Social feed community discussions and trending topics",
+                                  )
+                                }
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <User className="h-3 w-3" />
+                                  <span>Social Feed</span>
+                                </div>
+                              </Button>
+
+                              <Button
+                                variant="secondary"
+                                className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                                onClick={() =>
+                                  handleSuggestionClick(
+                                    "What are today's top financial news and market updates?",
+                                  )
+                                }
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <Newspaper className="h-3 w-3" />
+                                  <span>Market News</span>
+                                </div>
+                              </Button>
+
+                              <Button
+                                variant="secondary"
+                                className="bg-orange-600 hover:bg-orange-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                                onClick={() =>
+                                  handleSuggestionClick(
+                                    "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics",
+                                  )
+                                }
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <BarChart3 className="h-3 w-3" />
+                                  <span>Fundamentals</span>
+                                </div>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
+                        <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
                           {/* Social Feed Card */}
                           <div
-                            className="bg-blue-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
+                            className="bg-blue-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => setActiveTab("voice")}
                           >
-                            <div className="absolute top-2 left-2">
-                              <span className="bg-white bg-opacity-90 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-4 left-4">
+                              <span className="bg-white bg-opacity-90 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
                                 Social Feed
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <MessageCircle className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-4 right-4">
+                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <MessageCircle className="h-8 w-8 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Master Card */}
                           <div
-                            className="bg-purple-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
+                            className="bg-indigo-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => setActiveTab("trading-master")}
                           >
-                            <div className="absolute top-2 left-2">
-                              <span className="bg-white bg-opacity-90 text-purple-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-4 left-4">
+                              <span className="bg-white bg-opacity-90 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium">
                                 Trading Master
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <Activity className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-4 right-4">
+                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <Activity className="h-8 w-8 text-white" />
                               </div>
                             </div>
                           </div>
 
-                          {/* Journal Card */}
+                          {/* Trading Charts Card */}
                           <div
-                            className="bg-green-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
+                            className="bg-emerald-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => setActiveTab("journal")}
                           >
-                            <div className="absolute top-2 left-2">
-                              <span className="bg-white bg-opacity-90 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-4 left-4">
+                              <span className="bg-white bg-opacity-90 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
                                 Journal
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <BarChart3 className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-4 right-4">
+                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <BarChart3 className="h-8 w-8 text-white" />
                               </div>
                             </div>
                           </div>
+
+                          {/* Tutor Daily News Swipeable Cards - No Container */}
+                          <div className="relative h-48 flex items-center justify-center">
+                            <SwipeableCardStack
+                              onSectorChange={handleSectorChange}
+                              selectedSector={selectedSector}
+                              onCardIndexChange={setCurrentCardIndex}
+                              currentCardIndex={currentCardIndex}
+                            />
+                          </div>
+                        </div>
+                        {/* Mobile Layout: 3 horizontal cards + swipeable below */}
+                        <div className="md:hidden mt-6">
+                          {/* Three cards in a row */}
+                          <div className="grid grid-cols-3 gap-3 px-4 mb-3">
+                            {/* Social Feed Card */}
+                            <div
+                              className="bg-blue-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
+                              onClick={() => setActiveTab("voice")}
+                            >
+                              <div className="absolute top-2 left-2">
+                                <span className="bg-white bg-opacity-90 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                  Social Feed
+                                </span>
+                              </div>
+                              <div className="absolute bottom-2 right-2">
+                                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                  <MessageCircle className="h-5 w-5 text-white" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Trading Master Card */}
+                            <div
+                              className="bg-purple-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
+                              onClick={() => setActiveTab("trading-master")}
+                            >
+                              <div className="absolute top-2 left-2">
+                                <span className="bg-white bg-opacity-90 text-purple-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                  Trading Master
+                                </span>
+                              </div>
+                              <div className="absolute bottom-2 right-2">
+                                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                  <Activity className="h-5 w-5 text-white" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Journal Card */}
+                            <div
+                              className="bg-green-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
+                              onClick={() => setActiveTab("journal")}
+                            >
+                              <div className="absolute top-2 left-2">
+                                <span className="bg-white bg-opacity-90 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                  Journal
+                                </span>
+                              </div>
+                              <div className="absolute bottom-2 right-2">
+                                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                  <BarChart3 className="h-5 w-5 text-white" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Swipeable News Cards Below - Properly Centered */}
+                          <div className="flex items-center justify-center px-4 pb-2">
+                            <SwipeableCardStack
+                              onSectorChange={handleSectorChange}
+                              selectedSector={selectedSector}
+                              onCardIndexChange={setCurrentCardIndex}
+                              currentCardIndex={currentCardIndex}
+                            />
+                          </div>
                         </div>
 
-                        {/* Swipeable News Cards Below - Properly Centered */}
-                        <div className="flex items-center justify-center px-4 pb-2">
-                          <SwipeableCardStack
-                            onSectorChange={handleSectorChange}
-                            selectedSector={selectedSector}
-                            onCardIndexChange={setCurrentCardIndex}
-                            currentCardIndex={currentCardIndex}
-                          />
+                        {/* Navigation Dots - Outside white container, in blue area */}
+                        <div className="md:hidden absolute -bottom-14 left-1/2 transform -translate-x-1/2 flex gap-2 justify-center z-40">
+                          {[0, 1, 2, 3, 4, 5].map((index) => (
+                            <button
+                              key={index}
+                              data-testid={`nav-dot-${index}`}
+                              onClick={() => {
+                                // Calculate how many swipes needed to get to this card
+                                const diff = index - currentCardIndex;
+                                // Navigate to the selected card (this would need to be implemented in SwipeableCardStack)
+                                setCurrentCardIndex(index);
+                              }}
+                              className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
+                                index === currentCardIndex
+                                  ? "bg-white scale-125"
+                                  : "bg-white/40"
+                              }`}
+                            ></button>
+                          ))}
                         </div>
-                      </div>
-
-                      {/* Navigation Dots - Outside white container, in blue area */}
-                      <div className="md:hidden absolute -bottom-14 left-1/2 transform -translate-x-1/2 flex gap-2 justify-center z-40">
-                        {[0, 1, 2, 3, 4, 5].map((index) => (
-                          <button
-                            key={index}
-                            data-testid={`nav-dot-${index}`}
-                            onClick={() => {
-                              // Calculate how many swipes needed to get to this card
-                              const diff = index - currentCardIndex;
-                              // Navigate to the selected card (this would need to be implemented in SwipeableCardStack)
-                              setCurrentCardIndex(index);
-                            }}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
-                              index === currentCardIndex ? "bg-white scale-125" : "bg-white/40"
-                            }`}
-                          ></button>
-                        ))}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Animated Floating Tutor Button */}
-                  <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-auto">
-                    <div className="relative">
-                      {/* Background animation rings */}
-                      <div className="absolute inset-0 w-16 h-16 rounded-full bg-gradient-to-r from-violet-600/30 to-indigo-600/30 animate-ping pointer-events-none"></div>
-                      <div className="absolute inset-0 w-16 h-16 rounded-full bg-gradient-to-r from-violet-600/20 to-indigo-600/20 animate-pulse pointer-events-none"></div>
+                    {/* Animated Floating Tutor Button */}
+                    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-auto">
+                      <div className="relative">
+                        {/* Background animation rings */}
+                        <div className="absolute inset-0 w-16 h-16 rounded-full bg-gradient-to-r from-violet-600/30 to-indigo-600/30 animate-ping pointer-events-none"></div>
+                        <div className="absolute inset-0 w-16 h-16 rounded-full bg-gradient-to-r from-violet-600/20 to-indigo-600/20 animate-pulse pointer-events-none"></div>
 
-                      {/* Main clickable button */}
-                      <Button
-                        onClick={() => setActiveTab("tutor")}
-                        className="relative w-16 h-16 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-2xl hover:animate-none transition-all duration-300 border-4 border-white/20 pointer-events-auto animate-bounce hover:scale-110"
-                      >
-                        <ChevronUp className="h-8 w-8 text-gray-400 pointer-events-none" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Tutor Vertical Sidebar - Slides from right */}
-                  {showTutorOverlay && (
-                    <>
-                      {/* Backdrop */}
-                      <div
-                        className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
-                        onClick={() => setShowTutorOverlay(false)}
-                      />
-
-                      {/* Sidebar */}
-                      <div
-                        className="fixed top-0 right-0 h-full w-96 bg-slate-900 z-50 shadow-2xl transition-transform duration-500 ease-out"
-                        style={{
-                          animation: "slideInFromRight 0.5s ease-out",
-                        }}
-                      >
-                        {/* Header with close button */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-700">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                              <GraduationCap className="h-5 w-5 text-white" />
-                            </div>
-                            <span className="text-lg font-semibold text-white">
-                              AI Trading Tutor
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowTutorOverlay(false)}
-                            className="text-slate-400 hover:text-white hover:bg-slate-800"
-                          >
-                            <X className="h-5 w-5" />
-                          </Button>
-                        </div>
-
-                        {/* Scrollable content */}
-                        <div className="h-full overflow-y-auto pb-20 custom-thin-scrollbar">
-                          <div className="p-4 space-y-6">
-                            {/* Welcome message */}
-                            <div className="text-center space-y-2">
-                              <h2 className="text-xl font-bold text-white">
-                                Learn & Master Trading
-                              </h2>
-                              <p className="text-slate-300 text-sm">
-                                Interactive lessons and personalized guidance
-                              </p>
-                            </div>
-
-                            {/* Quick access cards - vertical stack */}
-                            <div className="space-y-4">
-                              <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                                    <BookOpen className="h-5 w-5 text-white" />
-                                  </div>
-                                  <h3 className="text-lg font-semibold text-white">
-                                    Trading Basics
-                                  </h3>
-                                </div>
-                                <p className="text-slate-300 text-sm">
-                                  Learn fundamental concepts and strategies
-                                </p>
-                              </div>
-
-                              <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                                    <BarChart3 className="h-5 w-5 text-white" />
-                                  </div>
-                                  <h3 className="text-lg font-semibold text-white">
-                                    Chart Analysis
-                                  </h3>
-                                </div>
-                                <p className="text-slate-300 text-sm">
-                                  Master technical analysis and patterns
-                                </p>
-                              </div>
-
-                              <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-                                    <Target className="h-5 w-5 text-white" />
-                                  </div>
-                                  <h3 className="text-lg font-semibold text-white">
-                                    Risk Management
-                                  </h3>
-                                </div>
-                                <p className="text-slate-300 text-sm">
-                                  Protect your capital with smart strategies
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Additional learning sections */}
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-semibold text-white">
-                                Quick Actions
-                              </h3>
-
-                              <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                                    <Lightbulb className="h-4 w-4 text-white" />
-                                  </div>
-                                  <span className="text-white font-medium">
-                                    Trading Tips
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                                    <AlertCircle className="h-4 w-4 text-white" />
-                                  </div>
-                                  <span className="text-white font-medium">
-                                    Market Alerts
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-                                    <TrendingUp className="h-4 w-4 text-white" />
-                                  </div>
-                                  <span className="text-white font-medium">
-                                    Performance Insights
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        {/* Main clickable button */}
+                        <Button
+                          onClick={() => setActiveTab("tutor")}
+                          className="relative w-16 h-16 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-2xl hover:animate-none transition-all duration-300 border-4 border-white/20 pointer-events-auto animate-bounce hover:scale-110"
+                        >
+                          <ChevronUp className="h-8 w-8 text-gray-400 pointer-events-none" />
+                        </Button>
                       </div>
-                    </>
-                  )}
+                    </div>
 
-                  {/* Global CSS for animations */}
-                  <style>{`
+                    {/* Tutor Vertical Sidebar - Slides from right */}
+                    {showTutorOverlay && (
+                      <>
+                        {/* Backdrop */}
+                        <div
+                          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+                          onClick={() => setShowTutorOverlay(false)}
+                        />
+
+                        {/* Sidebar */}
+                        <div
+                          className="fixed top-0 right-0 h-full w-96 bg-slate-900 z-50 shadow-2xl transition-transform duration-500 ease-out"
+                          style={{
+                            animation: "slideInFromRight 0.5s ease-out",
+                          }}
+                        >
+                          {/* Header with close button */}
+                          <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                                <GraduationCap className="h-5 w-5 text-white" />
+                              </div>
+                              <span className="text-lg font-semibold text-white">
+                                AI Trading Tutor
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowTutorOverlay(false)}
+                              className="text-slate-400 hover:text-white hover:bg-slate-800"
+                            >
+                              <X className="h-5 w-5" />
+                            </Button>
+                          </div>
+
+                          {/* Scrollable content */}
+                          <div className="h-full overflow-y-auto pb-20 custom-thin-scrollbar">
+                            <div className="p-4 space-y-6">
+                              {/* Welcome message */}
+                              <div className="text-center space-y-2">
+                                <h2 className="text-xl font-bold text-white">
+                                  Learn & Master Trading
+                                </h2>
+                                <p className="text-slate-300 text-sm">
+                                  Interactive lessons and personalized guidance
+                                </p>
+                              </div>
+
+                              {/* Quick access cards - vertical stack */}
+                              <div className="space-y-4">
+                                <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                                      <BookOpen className="h-5 w-5 text-white" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-white">
+                                      Trading Basics
+                                    </h3>
+                                  </div>
+                                  <p className="text-slate-300 text-sm">
+                                    Learn fundamental concepts and strategies
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                      <BarChart3 className="h-5 w-5 text-white" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-white">
+                                      Chart Analysis
+                                    </h3>
+                                  </div>
+                                  <p className="text-slate-300 text-sm">
+                                    Master technical analysis and patterns
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                                      <Target className="h-5 w-5 text-white" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-white">
+                                      Risk Management
+                                    </h3>
+                                  </div>
+                                  <p className="text-slate-300 text-sm">
+                                    Protect your capital with smart strategies
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Additional learning sections */}
+                              <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-white">
+                                  Quick Actions
+                                </h3>
+
+                                <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                                      <Lightbulb className="h-4 w-4 text-white" />
+                                    </div>
+                                    <span className="text-white font-medium">
+                                      Trading Tips
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                                      <AlertCircle className="h-4 w-4 text-white" />
+                                    </div>
+                                    <span className="text-white font-medium">
+                                      Market Alerts
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="bg-slate-800 rounded-xl p-4 hover:bg-slate-700 transition-colors cursor-pointer">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
+                                      <TrendingUp className="h-4 w-4 text-white" />
+                                    </div>
+                                    <span className="text-white font-medium">
+                                      Performance Insights
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Global CSS for animations */}
+                    <style>{`
                   @keyframes slideUpFromBottom {
                     from {
                       transform: translateY(100%);
@@ -6368,8 +6455,8 @@ ${
                     }
                   }
                 `}</style>
+                  </div>
                 </div>
-              </div>
               </div>
             )}
 
@@ -6406,541 +6493,780 @@ ${
                 </h2>
 
                 {/* Main Journal Content - Mobile: Show only in "home" tab | Desktop: Always visible */}
-                <div className={`${mobileBottomTab !== 'home' ? 'hidden md:block' : 'block'}`}>
-                {/* PERFORMANCE TIMELINE - Responsive Three Blocks */}
-                {/* Desktop: 3-column grid | Mobile: Single panel with carousel */}
-                <div className="relative">
-                  {/* Desktop: Grid Layout | Mobile: Single Panel */}
-                  <div className="md:grid md:grid-cols-3 gap-6">
-                  {/* Left Block - Performance Chart */}
-                  <div className={`h-[400px] ${mobileJournalPanel === 0 ? 'block' : 'hidden'} md:block`}>
-                    {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
-                    <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg">
-                      <div className="p-4 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                            {/* Stock Search Button - Mobile Compact */}
-                            <Popover open={showStockSearch} onOpenChange={setShowStockSearch}>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 px-2 md:px-3 text-xs md:text-sm"
-                                  data-testid="button-stock-search"
+                <div
+                  className={`${mobileBottomTab !== "home" ? "hidden md:block" : "block"}`}
+                >
+                  {/* PERFORMANCE TIMELINE - Responsive Three Blocks */}
+                  {/* Desktop: 3-column grid | Mobile: Single panel with carousel */}
+                  <div className="relative">
+                    {/* Desktop: Grid Layout | Mobile: Single Panel */}
+                    <div className="md:grid md:grid-cols-3 gap-6">
+                      {/* Left Block - Performance Chart */}
+                      <div
+                        className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
+                      >
+                        {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
+                        <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg">
+                          <div className="p-4 h-full flex flex-col">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                                {/* Stock Search Button - Mobile Compact */}
+                                <Popover
+                                  open={showStockSearch}
+                                  onOpenChange={setShowStockSearch}
                                 >
-                                  <Search className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
-                                  <span className="hidden md:inline">
-                                    {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 px-2 md:px-3 text-xs md:text-sm"
+                                      data-testid="button-stock-search"
+                                    >
+                                      <Search className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
+                                      <span className="hidden md:inline">
+                                        {selectedJournalSymbol
+                                          .replace("NSE:", "")
+                                          .replace("-EQ", "")
+                                          .replace("-INDEX", "")}
+                                      </span>
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-72 p-3"
+                                    align="start"
+                                  >
+                                    <div className="space-y-2">
+                                      <Input
+                                        placeholder="Search stocks..."
+                                        value={stockSearchQuery}
+                                        onChange={(e) =>
+                                          setStockSearchQuery(e.target.value)
+                                        }
+                                        className="text-sm"
+                                        data-testid="input-stock-search"
+                                      />
+                                      <div className="max-h-64 overflow-y-auto space-y-1 custom-thin-scrollbar">
+                                        {[
+                                          {
+                                            value: "NSE:NIFTY50-INDEX",
+                                            label: "NIFTY 50",
+                                          },
+                                          {
+                                            value: "NSE:SENSEX-INDEX",
+                                            label: "SENSEX",
+                                          },
+                                          {
+                                            value: "NSE:BANKNIFTY-INDEX",
+                                            label: "BANK NIFTY",
+                                          },
+                                          {
+                                            value: "NSE:RELIANCE-EQ",
+                                            label: "RELIANCE",
+                                          },
+                                          { value: "NSE:TCS-EQ", label: "TCS" },
+                                          {
+                                            value: "NSE:HDFCBANK-EQ",
+                                            label: "HDFC BANK",
+                                          },
+                                          {
+                                            value: "NSE:INFY-EQ",
+                                            label: "INFOSYS",
+                                          },
+                                          {
+                                            value: "NSE:ICICIBANK-EQ",
+                                            label: "ICICI BANK",
+                                          },
+                                          {
+                                            value: "NSE:SBIN-EQ",
+                                            label: "SBI",
+                                          },
+                                          {
+                                            value: "NSE:BHARTIARTL-EQ",
+                                            label: "BHARTI AIRTEL",
+                                          },
+                                          { value: "NSE:ITC-EQ", label: "ITC" },
+                                          {
+                                            value: "NSE:KOTAKBANK-EQ",
+                                            label: "KOTAK BANK",
+                                          },
+                                          { value: "NSE:LT-EQ", label: "L&T" },
+                                          {
+                                            value: "NSE:AXISBANK-EQ",
+                                            label: "AXIS BANK",
+                                          },
+                                          {
+                                            value: "NSE:WIPRO-EQ",
+                                            label: "WIPRO",
+                                          },
+                                        ]
+                                          .filter((stock) =>
+                                            stock.label
+                                              .toLowerCase()
+                                              .includes(
+                                                stockSearchQuery.toLowerCase(),
+                                              ),
+                                          )
+                                          .map((stock) => (
+                                            <button
+                                              key={stock.value}
+                                              onClick={() => {
+                                                setSelectedJournalSymbol(
+                                                  stock.value,
+                                                );
+                                                setShowStockSearch(false);
+                                                setStockSearchQuery("");
+                                              }}
+                                              className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                                selectedJournalSymbol ===
+                                                stock.value
+                                                  ? "bg-blue-100 dark:bg-blue-900 font-medium"
+                                                  : ""
+                                              }`}
+                                              data-testid={`stock-option-${stock.value}`}
+                                            >
+                                              {stock.label}
+                                            </button>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+
+                                {/* Time Interval Selector - Compact */}
+                                <select
+                                  className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm"
+                                  value={selectedJournalInterval}
+                                  onChange={(e) =>
+                                    setSelectedJournalInterval(e.target.value)
+                                  }
+                                  data-testid="select-interval"
+                                >
+                                  <option value="1">1m</option>
+                                  <option value="5">5m</option>
+                                  <option value="15">15m</option>
+                                  <option value="30">30m</option>
+                                </select>
+
+                                {/* Date Picker - Mobile Icon Only */}
+                                <div className="relative">
+                                  <input
+                                    type="date"
+                                    className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm w-8 md:w-auto opacity-0 md:opacity-100 absolute md:relative"
+                                    value={selectedJournalDate}
+                                    onChange={(e) =>
+                                      setSelectedJournalDate(e.target.value)
+                                    }
+                                    data-testid="input-date"
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="md:hidden bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 w-8 p-0"
+                                    onClick={() => {
+                                      const input = document.querySelector(
+                                        '[data-testid="input-date"]',
+                                      ) as HTMLInputElement;
+                                      input?.showPicker?.();
+                                    }}
+                                    data-testid="button-date-picker"
+                                  >
+                                    <Calendar className="h-3 w-3" />
+                                  </Button>
+                                </div>
+
+                                {/* Fetch Button - Mobile Icon Only */}
+                                <Button
+                                  size="sm"
+                                  onClick={fetchJournalChartData}
+                                  className="bg-green-600 hover:bg-green-700 text-white h-8 px-2 md:px-3"
+                                  data-testid="button-fetch-chart"
+                                >
+                                  <Check className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
+                                  <span className="hidden md:inline text-xs md:text-sm">
+                                    Fetch
                                   </span>
                                 </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-72 p-3" align="start">
-                                <div className="space-y-2">
-                                  <Input
-                                    placeholder="Search stocks..."
-                                    value={stockSearchQuery}
-                                    onChange={(e) => setStockSearchQuery(e.target.value)}
-                                    className="text-sm"
-                                    data-testid="input-stock-search"
-                                  />
-                                  <div className="max-h-64 overflow-y-auto space-y-1 custom-thin-scrollbar">
-                                    {[
-                                      { value: "NSE:NIFTY50-INDEX", label: "NIFTY 50" },
-                                      { value: "NSE:SENSEX-INDEX", label: "SENSEX" },
-                                      { value: "NSE:BANKNIFTY-INDEX", label: "BANK NIFTY" },
-                                      { value: "NSE:RELIANCE-EQ", label: "RELIANCE" },
-                                      { value: "NSE:TCS-EQ", label: "TCS" },
-                                      { value: "NSE:HDFCBANK-EQ", label: "HDFC BANK" },
-                                      { value: "NSE:INFY-EQ", label: "INFOSYS" },
-                                      { value: "NSE:ICICIBANK-EQ", label: "ICICI BANK" },
-                                      { value: "NSE:SBIN-EQ", label: "SBI" },
-                                      { value: "NSE:BHARTIARTL-EQ", label: "BHARTI AIRTEL" },
-                                      { value: "NSE:ITC-EQ", label: "ITC" },
-                                      { value: "NSE:KOTAKBANK-EQ", label: "KOTAK BANK" },
-                                      { value: "NSE:LT-EQ", label: "L&T" },
-                                      { value: "NSE:AXISBANK-EQ", label: "AXIS BANK" },
-                                      { value: "NSE:WIPRO-EQ", label: "WIPRO" },
-                                    ]
-                                      .filter((stock) =>
-                                        stock.label.toLowerCase().includes(stockSearchQuery.toLowerCase())
-                                      )
-                                      .map((stock) => (
-                                        <button
-                                          key={stock.value}
-                                          onClick={() => {
-                                            setSelectedJournalSymbol(stock.value);
-                                            setShowStockSearch(false);
-                                            setStockSearchQuery("");
-                                          }}
-                                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                                            selectedJournalSymbol === stock.value
-                                              ? "bg-blue-100 dark:bg-blue-900 font-medium"
-                                              : ""
-                                          }`}
-                                          data-testid={`stock-option-${stock.value}`}
-                                        >
-                                          {stock.label}
-                                        </button>
-                                      ))}
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-
-                            {/* Time Interval Selector - Compact */}
-                            <select
-                              className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm"
-                              value={selectedJournalInterval}
-                              onChange={(e) =>
-                                setSelectedJournalInterval(e.target.value)
-                              }
-                              data-testid="select-interval"
-                            >
-                              <option value="1">1m</option>
-                              <option value="5">5m</option>
-                              <option value="15">15m</option>
-                              <option value="30">30m</option>
-                            </select>
-
-                            {/* Date Picker - Mobile Icon Only */}
-                            <div className="relative">
-                              <input
-                                type="date"
-                                className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm w-8 md:w-auto opacity-0 md:opacity-100 absolute md:relative"
-                                value={selectedJournalDate}
-                                onChange={(e) =>
-                                  setSelectedJournalDate(e.target.value)
-                                }
-                                data-testid="input-date"
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="md:hidden bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 w-8 p-0"
-                                onClick={() => {
-                                  const input = document.querySelector('[data-testid="input-date"]') as HTMLInputElement;
-                                  input?.showPicker?.();
-                                }}
-                                data-testid="button-date-picker"
-                              >
-                                <Calendar className="h-3 w-3" />
-                              </Button>
+                              </div>
                             </div>
 
-                            {/* Fetch Button - Mobile Icon Only */}
-                            <Button
-                              size="sm"
-                              onClick={fetchJournalChartData}
-                              className="bg-green-600 hover:bg-green-700 text-white h-8 px-2 md:px-3"
-                              data-testid="button-fetch-chart"
-                            >
-                              <Check className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
-                              <span className="hidden md:inline text-xs md:text-sm">Fetch</span>
-                            </Button>
+                            {/* Visual Chart Window */}
+                            <div className="flex-1 relative">
+                              <MinimalChart
+                                height={320}
+                                ohlcData={journalChartData}
+                                symbol={selectedJournalSymbol
+                                  .replace("NSE:", "")
+                                  .replace("-EQ", "")
+                                  .replace("-INDEX", "")}
+                                isInteractiveMode={false}
+                                enablePointSelection={false}
+                                chartType="candles"
+                                indicators={{}}
+                                tradeMarkers={getTradeMarkersForChart()}
+                                hideControls={true}
+                              />
+                            </div>
                           </div>
-                        </div>
-
-                        {/* Visual Chart Window */}
-                        <div className="flex-1 relative">
-                          <MinimalChart
-                            height={320}
-                            ohlcData={journalChartData}
-                            symbol={selectedJournalSymbol
-                              .replace("NSE:", "")
-                              .replace("-EQ", "")
-                              .replace("-INDEX", "")}
-                            isInteractiveMode={false}
-                            enablePointSelection={false}
-                            chartType="candles"
-                            indicators={{}}
-                            tradeMarkers={getTradeMarkersForChart()}
-                            hideControls={true}
-                          />
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Middle Block - Multiple Image Upload */}
-                  <div className={`h-[400px] ${mobileJournalPanel === 1 ? 'block' : 'hidden'} md:block`}>
-                    <MultipleImageUpload
-                      ref={imageUploadRef}
-                      images={tradingImages}
-                      onImagesChange={setTradingImages}
-                    />
-                  </div>
+                      {/* Middle Block - Multiple Image Upload */}
+                      <div
+                        className={`h-[400px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
+                      >
+                        <MultipleImageUpload
+                          ref={imageUploadRef}
+                          images={tradingImages}
+                          onImagesChange={setTradingImages}
+                        />
+                      </div>
 
-                  {/* Right Block - PERFORMANCE STATS (Split: 30% top, 70% bottom) */}
-                  <Card className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col ${mobileJournalPanel === 2 ? 'block' : 'hidden'} md:block`}>
-                    {/* Top 30% - Performance Insights */}
-                    <div className="h-[30%] border-b border-gray-200 dark:border-gray-700">
-                      <CardContent className="p-4 h-full">
-                        <div className="grid grid-cols-3 gap-3 text-sm">
-                          <div className="text-center">
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Total Trades
-                            </p>
-                            <p className="text-xl font-bold text-gray-800 dark:text-white">
-                              {performanceMetrics.totalTrades}
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Win Rate
-                            </p>
-                            <p className="text-xl font-bold text-green-600">
-                              {performanceMetrics.winRate}%
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Net P&L
-                            </p>
-                            <p
-                              className={`text-xl font-bold ${
-                                performanceMetrics.netPnL >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }`}
-                            >
-                              ₹
-                              {performanceMetrics.netPnL.toLocaleString(
-                                "en-IN"
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mt-3 text-xs">
-                          <div className="space-y-1">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Winning Trades:
-                              </span>
-                              <span className="text-green-600 font-medium">
-                                {performanceMetrics.winningTrades}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Total Profit:
-                              </span>
-                              <span className="text-green-600 font-medium">
-                                ₹
-                                {performanceMetrics.totalProfit.toLocaleString(
-                                  "en-IN"
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Losing Trades:
-                              </span>
-                              <span className="text-red-600 font-medium">
-                                {performanceMetrics.losingTrades}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Total Loss:
-                              </span>
-                              <span className="text-red-600 font-medium">
-                                ₹
-                                {performanceMetrics.totalLoss.toLocaleString(
-                                  "en-IN"
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </div>
-
-                    {/* Bottom 70% - Notes Section */}
-                    <div className="h-[70%] flex flex-col">
-                      <CardContent className="p-4 flex-1 flex flex-col">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                            TRADING NOTES
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            {/* Tag Dropdown */}
-                            <Popover
-                              open={isTagDropdownOpen}
-                              onOpenChange={setIsTagDropdownOpen}
-                            >
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
-                                  data-testid="button-tags-dropdown"
+                      {/* Right Block - PERFORMANCE STATS (Split: 30% top, 70% bottom) */}
+                      <Card
+                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
+                      >
+                        {/* Top 30% - Performance Insights */}
+                        <div className="h-[30%] border-b border-gray-200 dark:border-gray-700">
+                          <CardContent className="p-4 h-full">
+                            <div className="grid grid-cols-3 gap-3 text-sm">
+                              <div className="text-center">
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  Total Trades
+                                </p>
+                                <p className="text-xl font-bold text-gray-800 dark:text-white">
+                                  {performanceMetrics.totalTrades}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  Win Rate
+                                </p>
+                                <p className="text-xl font-bold text-green-600">
+                                  {performanceMetrics.winRate}%
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  Net P&L
+                                </p>
+                                <p
+                                  className={`text-xl font-bold ${
+                                    performanceMetrics.netPnL >= 0
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }`}
                                 >
-                                  <Tag className="w-3 h-3 mr-1" />
-                                  Tags ({selectedTags.length})
-                                  <ChevronDown className="w-3 h-3 ml-1" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-80 p-3">
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="font-medium text-sm">
-                                      Trading Psychology & Strategy Tags
-                                    </h4>
-                                    {selectedTags.length > 0 && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={clearAllTags}
-                                        className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                        data-testid="button-clear-tags"
-                                      >
-                                        <Trash2 className="w-3 h-3 mr-1" />
-                                        Clear All
-                                      </Button>
-                                    )}
-                                  </div>
-
-                                  {/* Selected Tags Display */}
-                                  {selectedTags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-                                      {selectedTags.map((tag) => (
-                                        <span
-                                          key={tag}
-                                          className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
-                                          onClick={() => toggleTag(tag)}
-                                          data-testid={`selected-tag-${tag}`}
-                                        >
-                                          {tag}
-                                          <X className="w-3 h-3 ml-1" />
-                                        </span>
-                                      ))}
-                                    </div>
+                                  ₹
+                                  {performanceMetrics.netPnL.toLocaleString(
+                                    "en-IN",
                                   )}
+                                </p>
+                              </div>
+                            </div>
 
-                                  {/* Available Tags by Category */}
-                                  <div className="space-y-4 max-h-96 overflow-y-auto custom-thin-scrollbar">
-                                    {Object.entries(tradingTagSystem).map(
-                                      ([categoryKey, category]) => (
-                                        <div
-                                          key={categoryKey}
-                                          className="space-y-2"
-                                        >
-                                          <div className="flex items-center justify-between">
-                                            <h5
-                                              className={`text-xs font-semibold text-${category.color}-600 dark:text-${category.color}-400`}
+                            <div className="grid grid-cols-2 gap-4 mt-3 text-xs">
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    Winning Trades:
+                                  </span>
+                                  <span className="text-green-600 font-medium">
+                                    {performanceMetrics.winningTrades}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    Total Profit:
+                                  </span>
+                                  <span className="text-green-600 font-medium">
+                                    ₹
+                                    {performanceMetrics.totalProfit.toLocaleString(
+                                      "en-IN",
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    Losing Trades:
+                                  </span>
+                                  <span className="text-red-600 font-medium">
+                                    {performanceMetrics.losingTrades}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    Total Loss:
+                                  </span>
+                                  <span className="text-red-600 font-medium">
+                                    ₹
+                                    {performanceMetrics.totalLoss.toLocaleString(
+                                      "en-IN",
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </div>
+
+                        {/* Bottom 70% - Notes Section */}
+                        <div className="h-[70%] flex flex-col">
+                          <CardContent className="p-4 flex-1 flex flex-col">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                                TRADING NOTES
+                              </h3>
+                              <div className="flex items-center gap-2">
+                                {/* Tag Dropdown */}
+                                <Popover
+                                  open={isTagDropdownOpen}
+                                  onOpenChange={setIsTagDropdownOpen}
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
+                                      data-testid="button-tags-dropdown"
+                                    >
+                                      <Tag className="w-3 h-3 mr-1" />
+                                      Tags ({selectedTags.length})
+                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-80 p-3">
+                                    <div className="space-y-3">
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-medium text-sm">
+                                          Trading Psychology & Strategy Tags
+                                        </h4>
+                                        {selectedTags.length > 0 && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={clearAllTags}
+                                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                            data-testid="button-clear-tags"
+                                          >
+                                            <Trash2 className="w-3 h-3 mr-1" />
+                                            Clear All
+                                          </Button>
+                                        )}
+                                      </div>
+
+                                      {/* Selected Tags Display */}
+                                      {selectedTags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+                                          {selectedTags.map((tag) => (
+                                            <span
+                                              key={tag}
+                                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
+                                              onClick={() => toggleTag(tag)}
+                                              data-testid={`selected-tag-${tag}`}
                                             >
-                                              {category.name}
-                                              {(category as any).required && (
-                                                <span className="text-red-500 ml-1">
-                                                  *
-                                                </span>
-                                              )}
-                                            </h5>
-                                            <span className="text-xs text-gray-500">
-                                              {
-                                                selectedTags.filter((tag) =>
-                                                  category.tags.includes(tag)
-                                                ).length
-                                              }
-                                              /{category.maxSelections}
+                                              {tag}
+                                              <X className="w-3 h-3 ml-1" />
                                             </span>
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-1">
-                                            {category.tags.map((tag) => {
-                                              const isSelected =
-                                                selectedTags.includes(tag);
-                                              const categoryCount =
-                                                selectedTags.filter((t) =>
-                                                  category.tags.includes(t)
-                                                ).length;
-                                              const isDisabled =
-                                                !isSelected &&
-                                                categoryCount >=
-                                                  category.maxSelections;
+                                          ))}
+                                        </div>
+                                      )}
 
-                                              return (
-                                                <button
-                                                  key={tag}
-                                                  onClick={() =>
-                                                    toggleTagWithValidation(tag)
+                                      {/* Available Tags by Category */}
+                                      <div className="space-y-4 max-h-96 overflow-y-auto custom-thin-scrollbar">
+                                        {Object.entries(tradingTagSystem).map(
+                                          ([categoryKey, category]) => (
+                                            <div
+                                              key={categoryKey}
+                                              className="space-y-2"
+                                            >
+                                              <div className="flex items-center justify-between">
+                                                <h5
+                                                  className={`text-xs font-semibold text-${category.color}-600 dark:text-${category.color}-400`}
+                                                >
+                                                  {category.name}
+                                                  {(category as any)
+                                                    .required && (
+                                                    <span className="text-red-500 ml-1">
+                                                      *
+                                                    </span>
+                                                  )}
+                                                </h5>
+                                                <span className="text-xs text-gray-500">
+                                                  {
+                                                    selectedTags.filter((tag) =>
+                                                      category.tags.includes(
+                                                        tag,
+                                                      ),
+                                                    ).length
                                                   }
-                                                  disabled={isDisabled}
-                                                  className={`
+                                                  /{category.maxSelections}
+                                                </span>
+                                              </div>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                {category.tags.map((tag) => {
+                                                  const isSelected =
+                                                    selectedTags.includes(tag);
+                                                  const categoryCount =
+                                                    selectedTags.filter((t) =>
+                                                      category.tags.includes(t),
+                                                    ).length;
+                                                  const isDisabled =
+                                                    !isSelected &&
+                                                    categoryCount >=
+                                                      category.maxSelections;
+
+                                                  return (
+                                                    <button
+                                                      key={tag}
+                                                      onClick={() =>
+                                                        toggleTagWithValidation(
+                                                          tag,
+                                                        )
+                                                      }
+                                                      disabled={isDisabled}
+                                                      className={`
                                                   px-2 py-1.5 text-xs rounded-md border transition-all duration-200 text-left
                                                   ${
                                                     isSelected
                                                       ? `bg-${category.color}-500 text-white border-${category.color}-500 hover:bg-${category.color}-600`
                                                       : isDisabled
-                                                      ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed"
-                                                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                                        ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed"
+                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                                                   }
                                                 `}
-                                                  data-testid={`tag-option-${tag}`}
-                                                >
-                                                  {tag}
-                                                </button>
-                                              );
-                                            })}
-                                          </div>
-                                        </div>
-                                      )
-                                    )}
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                            {isEditingNotes ? (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={handleCancelNotes}
-                                  className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
-                                  data-testid="button-cancel-notes"
-                                >
-                                  <X className="w-3 h-3 mr-1" />
-                                  Cancel
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={handleSaveNotesOnly}
-                                  className="text-xs bg-green-600 hover:bg-green-700 text-white"
-                                  data-testid="button-save-notes"
-                                >
-                                  <Check className="w-3 h-3 mr-1" />
-                                  Save
-                                </Button>
-                              </>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleEditNotes}
-                                className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
-                                data-testid="button-edit-notes"
-                              >
-                                <Edit className="w-3 h-3 mr-1" />
-                                Edit
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-
-                        {isEditingNotes ? (
-                          <textarea
-                            value={tempNotesContent}
-                            onChange={(e) =>
-                              setTempNotesContent(e.target.value)
-                            }
-                            placeholder="Write your trading notes, strategies, observations..."
-                            className="flex-1 w-full p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            data-testid="textarea-notes"
-                          />
-                        ) : (
-                          <div className="flex-1 w-full p-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto custom-thin-scrollbar">
-                            {/* Display tags inline when they exist */}
-                            {selectedTags.length > 0 && (
-                              <div className="mb-3 pb-3 border-b border-gray-300 dark:border-gray-600">
-                                <div className="flex flex-wrap gap-1">
-                                  {selectedTags.map((tag) => (
-                                    <span
-                                      key={tag}
-                                      className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors group"
-                                      onClick={() => toggleTag(tag)}
-                                      title="Click to remove tag"
-                                      data-testid={`inline-tag-${tag}`}
+                                                      data-testid={`tag-option-${tag}`}
+                                                    >
+                                                      {tag}
+                                                    </button>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          ),
+                                        )}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                                {isEditingNotes ? (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={handleCancelNotes}
+                                      className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
+                                      data-testid="button-cancel-notes"
                                     >
-                                      {tag}
-                                      <X className="w-3 h-3 ml-1 opacity-60 group-hover:opacity-100" />
-                                    </span>
-                                  ))}
-                                </div>
+                                      <X className="w-3 h-3 mr-1" />
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={handleSaveNotesOnly}
+                                      className="text-xs bg-green-600 hover:bg-green-700 text-white"
+                                      data-testid="button-save-notes"
+                                    >
+                                      <Check className="w-3 h-3 mr-1" />
+                                      Save
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleEditNotes}
+                                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
+                                    data-testid="button-edit-notes"
+                                  >
+                                    <Edit className="w-3 h-3 mr-1" />
+                                    Edit
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+
+                            {isEditingNotes ? (
+                              <textarea
+                                value={tempNotesContent}
+                                onChange={(e) =>
+                                  setTempNotesContent(e.target.value)
+                                }
+                                placeholder="Write your trading notes, strategies, observations..."
+                                className="flex-1 w-full p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                data-testid="textarea-notes"
+                              />
+                            ) : (
+                              <div className="flex-1 w-full p-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto custom-thin-scrollbar">
+                                {/* Display tags inline when they exist */}
+                                {selectedTags.length > 0 && (
+                                  <div className="mb-3 pb-3 border-b border-gray-300 dark:border-gray-600">
+                                    <div className="flex flex-wrap gap-1">
+                                      {selectedTags.map((tag) => (
+                                        <span
+                                          key={tag}
+                                          className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors group"
+                                          onClick={() => toggleTag(tag)}
+                                          title="Click to remove tag"
+                                          data-testid={`inline-tag-${tag}`}
+                                        >
+                                          {tag}
+                                          <X className="w-3 h-3 ml-1 opacity-60 group-hover:opacity-100" />
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Notes content */}
+                                {notesContent ? (
+                                  <pre className="whitespace-pre-wrap font-sans">
+                                    {notesContent}
+                                  </pre>
+                                ) : (
+                                  <p className="text-gray-500 dark:text-gray-400 italic">
+                                    No trading notes yet. Click Edit to add your
+                                    first note.
+                                  </p>
+                                )}
                               </div>
                             )}
-
-                            {/* Notes content */}
-                            {notesContent ? (
-                              <pre className="whitespace-pre-wrap font-sans">
-                                {notesContent}
-                              </pre>
-                            ) : (
-                              <p className="text-gray-500 dark:text-gray-400 italic">
-                                No trading notes yet. Click Edit to add your
-                                first note.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
+                          </CardContent>
+                        </div>
+                      </Card>
                     </div>
-                  </Card>
-                  </div>
-                  
-                  {/* Mobile Navigation Arrows - Bottom of panels */}
-                  <div className="md:hidden flex items-center justify-between mt-4 gap-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => setMobileJournalPanel((prev) => (prev === 0 ? 2 : prev - 1))}
-                      className="flex-1 h-12"
-                      data-testid="button-journal-prev"
-                    >
-                      <ChevronLeft className="h-5 w-5 mr-2" />
-                      <span className="text-sm font-medium">
-                        {mobileJournalPanel === 0 ? "Notes" : mobileJournalPanel === 1 ? "Chart" : "Upload"}
-                      </span>
-                    </Button>
-                    <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Current</div>
-                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {mobileJournalPanel === 0 ? "Chart" : mobileJournalPanel === 1 ? "Upload" : "Notes"}
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => setMobileJournalPanel((prev) => (prev === 2 ? 0 : prev + 1))}
-                      className="flex-1 h-12"
-                      data-testid="button-journal-next"
-                    >
-                      <span className="text-sm font-medium">
-                        {mobileJournalPanel === 0 ? "Upload" : mobileJournalPanel === 1 ? "Notes" : "Chart"}
-                      </span>
-                      <ChevronRight className="h-5 w-5 ml-2" />
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Two Column Layout: TRADE HISTORY SUMMARY (Left) and PROFIT CONSISTENCY (Right) */}
-                {/* Desktop: 2-column grid | Mobile: Show Trade Book with collapsible Trade History */}
-                <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 gap-6">
-                  
-                  {/* Mobile: Collapsible Trade History Summary Header (shows above calendar) */}
-                  <div className="md:hidden">
-                    <div 
-                      onClick={() => setShowMobileTradeHistory(!showMobileTradeHistory)}
-                      className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                      data-testid="button-toggle-trade-history"
-                    >
-                      <div className="flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                        <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                          TRADE HISTORY SUMMARY
+                    {/* Mobile Navigation Arrows - Bottom of panels */}
+                    <div className="md:hidden flex items-center justify-between mt-4 gap-4">
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setMobileJournalPanel((prev) =>
+                            prev === 0 ? 2 : prev - 1,
+                          )
+                        }
+                        className="flex-1 h-12"
+                        data-testid="button-journal-prev"
+                      >
+                        <ChevronLeft className="h-5 w-5 mr-2" />
+                        <span className="text-sm font-medium">
+                          {mobileJournalPanel === 0
+                            ? "Notes"
+                            : mobileJournalPanel === 1
+                              ? "Chart"
+                              : "Upload"}
                         </span>
+                      </Button>
+                      <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Current
+                        </div>
+                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {mobileJournalPanel === 0
+                            ? "Chart"
+                            : mobileJournalPanel === 1
+                              ? "Upload"
+                              : "Notes"}
+                        </div>
                       </div>
-                      {showMobileTradeHistory ? (
-                        <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setMobileJournalPanel((prev) =>
+                            prev === 2 ? 0 : prev + 1,
+                          )
+                        }
+                        className="flex-1 h-12"
+                        data-testid="button-journal-next"
+                      >
+                        <span className="text-sm font-medium">
+                          {mobileJournalPanel === 0
+                            ? "Upload"
+                            : mobileJournalPanel === 1
+                              ? "Notes"
+                              : "Chart"}
+                        </span>
+                        <ChevronRight className="h-5 w-5 ml-2" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Two Column Layout: TRADE HISTORY SUMMARY (Left) and PROFIT CONSISTENCY (Right) */}
+                  {/* Desktop: 2-column grid | Mobile: Show Trade Book with collapsible Trade History */}
+                  <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 gap-6">
+                    {/* Mobile: Collapsible Trade History Summary Header (shows above calendar) */}
+                    <div className="md:hidden">
+                      <div
+                        onClick={() =>
+                          setShowMobileTradeHistory(!showMobileTradeHistory)
+                        }
+                        className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        data-testid="button-toggle-trade-history"
+                      >
+                        <div className="flex items-center gap-2">
+                          <BarChart3 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                          <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                            TRADE HISTORY SUMMARY
+                          </span>
+                        </div>
+                        {showMobileTradeHistory ? (
+                          <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                        )}
+                      </div>
+
+                      {/* Mobile: Trade History Summary Content (Dropdown) */}
+                      {showMobileTradeHistory && (
+                        <Card className="mt-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-end gap-2 mb-4">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowOrderModal(true)}
+                                className="h-8 px-3"
+                                data-testid="button-place-order"
+                              >
+                                <Target className="h-4 w-4 mr-2" />
+                                Order
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowImportModal(true)}
+                                className="h-8 px-3"
+                                data-testid="button-import-pnl"
+                              >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Import
+                              </Button>
+                            </div>
+                            <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
+                              <table className="w-full text-xs">
+                                <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
+                                  <tr>
+                                    <th className="p-1 text-left min-w-[60px]">
+                                      Time
+                                    </th>
+                                    <th className="p-1 text-left min-w-[50px]">
+                                      Order
+                                    </th>
+                                    <th className="p-1 text-left min-w-[80px]">
+                                      Symbol
+                                    </th>
+                                    <th className="p-1 text-left min-w-[50px]">
+                                      Type
+                                    </th>
+                                    <th className="p-1 text-left min-w-[40px]">
+                                      Qty
+                                    </th>
+                                    <th className="p-1 text-left min-w-[60px]">
+                                      Price
+                                    </th>
+                                    <th className="p-1 text-left min-w-[60px]">
+                                      P&L
+                                    </th>
+                                    <th className="p-1 text-left min-w-[40px]">
+                                      %
+                                    </th>
+                                    <th className="p-1 text-left min-w-[70px]">
+                                      Duration
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                  {tradeHistoryData.map((trade, index) => (
+                                    <tr
+                                      key={index}
+                                      className="border-b border-gray-200 dark:border-gray-700"
+                                    >
+                                      <td className="p-1">{trade.time}</td>
+                                      <td className="p-1">
+                                        <span
+                                          className={`px-2 py-1 rounded text-xs font-medium ${
+                                            trade.order === "BUY"
+                                              ? "bg-green-600 text-white"
+                                              : "bg-red-600 text-white"
+                                          }`}
+                                        >
+                                          {trade.order}
+                                        </span>
+                                      </td>
+                                      <td className="p-1">{trade.symbol}</td>
+                                      <td className="p-1">{trade.type}</td>
+                                      <td className="p-1">{trade.qty}</td>
+                                      <td className="p-1">₹{trade.price}</td>
+                                      <td
+                                        className={`p-2 ${
+                                          (trade.pnl || "").includes("+")
+                                            ? "text-green-600"
+                                            : (trade.pnl || "").includes("-")
+                                              ? "text-red-600"
+                                              : ""
+                                        }`}
+                                      >
+                                        {trade.pnl}
+                                      </td>
+                                      <td
+                                        className={`p-2 font-medium ${(() => {
+                                          if (!trade.pnl || trade.pnl === "-")
+                                            return "";
+                                          const pnlStr = (
+                                            trade.pnl || ""
+                                          ).replace(/[₹,+\s]/g, "");
+                                          const pnlValue =
+                                            parseFloat(pnlStr) || 0;
+                                          const openPrice = trade.price;
+                                          const totalInvestment =
+                                            openPrice * trade.qty || 1;
+                                          const percentage =
+                                            (pnlValue / totalInvestment) * 100;
+                                          return percentage > 0
+                                            ? "text-green-600"
+                                            : percentage < 0
+                                              ? "text-red-600"
+                                              : "text-gray-500";
+                                        })()}`}
+                                      >
+                                        {(() => {
+                                          if (!trade.pnl || trade.pnl === "-")
+                                            return "-";
+                                          const pnlStr = (
+                                            trade.pnl || ""
+                                          ).replace(/[₹,+\s]/g, "");
+                                          const pnlValue =
+                                            parseFloat(pnlStr) || 0;
+                                          const openPrice = trade.price;
+                                          const totalInvestment =
+                                            openPrice * trade.qty || 1;
+                                          const percentage =
+                                            (pnlValue / totalInvestment) * 100;
+                                          return `${
+                                            percentage >= 0 ? "+" : ""
+                                          }${percentage.toFixed(2)}%`;
+                                        })()}
+                                      </td>
+                                      <td className="p-1">{trade.duration}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
                     </div>
-                    
-                    {/* Mobile: Trade History Summary Content (Dropdown) */}
-                    {showMobileTradeHistory && (
-                      <Card className="mt-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-end gap-2 mb-4">
+
+                    {/* Desktop: TRADE HISTORY SUMMARY - Left Side */}
+                    <Card className="hidden md:block bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                            TRADE HISTORY SUMMARY
+                          </h3>
+                          <div className="flex gap-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -6961,719 +7287,638 @@ ${
                               <Upload className="h-4 w-4 mr-2" />
                               Import
                             </Button>
-                          </div>
-                          <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
-                        <table className="w-full text-xs">
-                          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
-                            <tr>
-                              <th className="p-1 text-left min-w-[60px]">Time</th>
-                              <th className="p-1 text-left min-w-[50px]">Order</th>
-                              <th className="p-1 text-left min-w-[80px]">Symbol</th>
-                              <th className="p-1 text-left min-w-[50px]">Type</th>
-                              <th className="p-1 text-left min-w-[40px]">Qty</th>
-                              <th className="p-1 text-left min-w-[60px]">Price</th>
-                              <th className="p-1 text-left min-w-[60px]">P&L</th>
-                              <th className="p-1 text-left min-w-[40px]">%</th>
-                              <th className="p-1 text-left min-w-[70px]">Duration</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                            {tradeHistoryData.map((trade, index) => (
-                              <tr
-                                key={index}
-                                className="border-b border-gray-200 dark:border-gray-700"
-                              >
-                                <td className="p-1">{trade.time}</td>
-                                <td className="p-1">
-                                  <span
-                                    className={`px-2 py-1 rounded text-xs font-medium ${
-                                      trade.order === "BUY"
-                                        ? "bg-green-600 text-white"
-                                        : "bg-red-600 text-white"
-                                    }`}
-                                  >
-                                    {trade.order}
-                                  </span>
-                                </td>
-                                <td className="p-1">{trade.symbol}</td>
-                                <td className="p-1">{trade.type}</td>
-                                <td className="p-1">{trade.qty}</td>
-                                <td className="p-1">₹{trade.price}</td>
-                                <td
-                                  className={`p-2 ${
-                                    (trade.pnl || "").includes("+")
-                                      ? "text-green-600"
-                                      : (trade.pnl || "").includes("-")
-                                      ? "text-red-600"
-                                      : ""
-                                  }`}
-                                >
-                                  {trade.pnl}
-                                </td>
-                                <td
-                                  className={`p-2 font-medium ${(() => {
-                                    if (!trade.pnl || trade.pnl === "-")
-                                      return "";
-                                    const pnlStr = (trade.pnl || "").replace(
-                                      /[₹,+\s]/g,
-                                      ""
-                                    );
-                                    const pnlValue = parseFloat(pnlStr) || 0;
-                                    const openPrice = trade.price;
-                                    const totalInvestment =
-                                      openPrice * trade.qty || 1;
-                                    const percentage =
-                                      (pnlValue / totalInvestment) * 100;
-                                    return percentage > 0
-                                      ? "text-green-600"
-                                      : percentage < 0
-                                      ? "text-red-600"
-                                      : "text-gray-500";
-                                  })()}`}
-                                >
-                                  {(() => {
-                                    if (!trade.pnl || trade.pnl === "-")
-                                      return "-";
-                                    const pnlStr = (trade.pnl || "").replace(
-                                      /[₹,+\s]/g,
-                                      ""
-                                    );
-                                    const pnlValue = parseFloat(pnlStr) || 0;
-                                    const openPrice = trade.price;
-                                    const totalInvestment =
-                                      openPrice * trade.qty || 1;
-                                    const percentage =
-                                      (pnlValue / totalInvestment) * 100;
-                                    return `${
-                                      percentage >= 0 ? "+" : ""
-                                    }${percentage.toFixed(2)}%`;
-                                  })()}
-                                </td>
-                                <td className="p-1">{trade.duration}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                  
-                  {/* Desktop: TRADE HISTORY SUMMARY - Left Side */}
-                  <Card className="hidden md:block bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                          TRADE HISTORY SUMMARY
-                        </h3>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowOrderModal(true)}
-                            className="h-8 px-3"
-                            data-testid="button-place-order"
-                          >
-                            <Target className="h-4 w-4 mr-2" />
-                            Order
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowImportModal(true)}
-                            className="h-8 px-3"
-                            data-testid="button-import-pnl"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Import
-                          </Button>
-                          <div className="h-8 px-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md flex items-center justify-center text-xs font-medium text-indigo-700 dark:text-indigo-300 min-w-[80px]">
-                            <Timer className="h-4 w-4 mr-2" />
-                            {calculateTotalDuration(tradeHistoryData)}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
-                        <table className="w-full text-xs">
-                          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
-                            <tr>
-                              <th className="p-1 text-left min-w-[60px]">Time</th>
-                              <th className="p-1 text-left min-w-[50px]">Order</th>
-                              <th className="p-1 text-left min-w-[80px]">Symbol</th>
-                              <th className="p-1 text-left min-w-[50px]">Type</th>
-                              <th className="p-1 text-left min-w-[40px]">Qty</th>
-                              <th className="p-1 text-left min-w-[60px]">Price</th>
-                              <th className="p-1 text-left min-w-[60px]">P&L</th>
-                              <th className="p-1 text-left min-w-[40px]">%</th>
-                              <th className="p-1 text-left min-w-[70px]">Duration</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                            {tradeHistoryData.map((trade, index) => (
-                              <tr
-                                key={index}
-                                className="border-b border-gray-200 dark:border-gray-700"
-                              >
-                                <td className="p-1">{trade.time}</td>
-                                <td className="p-1">
-                                  <span
-                                    className={`px-2 py-1 rounded text-xs font-medium ${
-                                      trade.order === "BUY"
-                                        ? "bg-green-600 text-white"
-                                        : "bg-red-600 text-white"
-                                    }`}
-                                  >
-                                    {trade.order}
-                                  </span>
-                                </td>
-                                <td className="p-1">{trade.symbol}</td>
-                                <td className="p-1">{trade.type}</td>
-                                <td className="p-1">{trade.qty}</td>
-                                <td className="p-1">₹{trade.price}</td>
-                                <td
-                                  className={`p-2 ${
-                                    (trade.pnl || "").includes("+")
-                                      ? "text-green-600"
-                                      : (trade.pnl || "").includes("-")
-                                      ? "text-red-600"
-                                      : ""
-                                  }`}
-                                >
-                                  {trade.pnl}
-                                </td>
-                                <td
-                                  className={`p-2 font-medium ${(() => {
-                                    if (!trade.pnl || trade.pnl === "-")
-                                      return "";
-                                    const pnlStr = (trade.pnl || "").replace(
-                                      /[₹,+\s]/g,
-                                      ""
-                                    );
-                                    const pnlValue = parseFloat(pnlStr) || 0;
-                                    const openPrice = trade.price;
-                                    const totalInvestment =
-                                      openPrice * trade.qty || 1;
-                                    const percentage =
-                                      (pnlValue / totalInvestment) * 100;
-                                    return percentage > 0
-                                      ? "text-green-600"
-                                      : percentage < 0
-                                      ? "text-red-600"
-                                      : "text-gray-500";
-                                  })()}`}
-                                >
-                                  {(() => {
-                                    if (!trade.pnl || trade.pnl === "-")
-                                      return "-";
-                                    const pnlStr = (trade.pnl || "").replace(
-                                      /[₹,+\s]/g,
-                                      ""
-                                    );
-                                    const pnlValue = parseFloat(pnlStr) || 0;
-                                    const openPrice = trade.price;
-                                    const totalInvestment =
-                                      openPrice * trade.qty || 1;
-                                    const percentage =
-                                      (pnlValue / totalInvestment) * 100;
-                                    return `${
-                                      percentage >= 0 ? "+" : ""
-                                    }${percentage.toFixed(2)}%`;
-                                  })()}
-                                </td>
-                                <td className="p-1">{trade.duration}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Trade Book - Right Side (Functional Calendar) */}
-                  <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                            trade book
-                          </h3>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-2 mr-2">
-                            <span className="text-xs text-gray-600 dark:text-gray-400">
-                              Demo
-                            </span>
-                            <Switch
-                              checked={isDemoMode}
-                              onCheckedChange={(checked) => {
-                                setIsDemoMode(checked);
-                                localStorage.setItem("tradingJournalDemoMode", String(checked));
-                                if (!checked) {
-                                  setTradingDataByDate({});
-                                  localStorage.removeItem("tradingDataByDate");
-                                }
-                              }}
-                              data-testid="switch-demo-mode"
-                            />
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={saveAllTradingData}
-                            className="h-8 px-3 bg-black dark:bg-black border-black dark:border-black hover:bg-gray-800 dark:hover:bg-gray-800 text-white dark:text-white"
-                            data-testid="button-save-trade-book"
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Calendar Grid - Heatmap Default View */}
-                      <div className="mb-1">
-                        {/* Optimized Full Calendar Heatmap */}
-                        <div className="space-y-2 pt-4 pb-1">
-                          {/* Calendar Layout with Sticky Day Headers */}
-                          <div className="flex gap-4">
-                            {/* Day Headers (Vertical) - Sticky */}
-                            <div className="flex flex-col gap-1 flex-shrink-0">
-                              <div className="h-5 mb-2"></div>{" "}
-                              {/* Spacer for month headers */}
-                              {["S", "M", "T", "W", "TH", "F", "S"].map(
-                                (day, index) => (
-                                  <div
-                                    key={index}
-                                    className="w-3 h-3 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
-                                  >
-                                    {day}
-                                  </div>
-                                )
-                              )}
+                            <div className="h-8 px-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md flex items-center justify-center text-xs font-medium text-indigo-700 dark:text-indigo-300 min-w-[80px]">
+                              <Timer className="h-4 w-4 mr-2" />
+                              {calculateTotalDuration(tradeHistoryData)}
                             </div>
+                          </div>
+                        </div>
 
-                            {/* Scrollable Months Container */}
-                            <div className="overflow-x-auto overflow-y-hidden custom-thin-scrollbar flex-1">
-                              <div className="min-w-max">
-                                {/* Months */}
-                                <div className="flex gap-4">
-                                {getHeatmapWeeks().map((month, monthIndex) => (
-                                  <div
-                                    key={monthIndex}
-                                    className="flex flex-col"
+                        <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
+                              <tr>
+                                <th className="p-1 text-left min-w-[60px]">
+                                  Time
+                                </th>
+                                <th className="p-1 text-left min-w-[50px]">
+                                  Order
+                                </th>
+                                <th className="p-1 text-left min-w-[80px]">
+                                  Symbol
+                                </th>
+                                <th className="p-1 text-left min-w-[50px]">
+                                  Type
+                                </th>
+                                <th className="p-1 text-left min-w-[40px]">
+                                  Qty
+                                </th>
+                                <th className="p-1 text-left min-w-[60px]">
+                                  Price
+                                </th>
+                                <th className="p-1 text-left min-w-[60px]">
+                                  P&L
+                                </th>
+                                <th className="p-1 text-left min-w-[40px]">
+                                  %
+                                </th>
+                                <th className="p-1 text-left min-w-[70px]">
+                                  Duration
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                              {tradeHistoryData.map((trade, index) => (
+                                <tr
+                                  key={index}
+                                  className="border-b border-gray-200 dark:border-gray-700"
+                                >
+                                  <td className="p-1">{trade.time}</td>
+                                  <td className="p-1">
+                                    <span
+                                      className={`px-2 py-1 rounded text-xs font-medium ${
+                                        trade.order === "BUY"
+                                          ? "bg-green-600 text-white"
+                                          : "bg-red-600 text-white"
+                                      }`}
+                                    >
+                                      {trade.order}
+                                    </span>
+                                  </td>
+                                  <td className="p-1">{trade.symbol}</td>
+                                  <td className="p-1">{trade.type}</td>
+                                  <td className="p-1">{trade.qty}</td>
+                                  <td className="p-1">₹{trade.price}</td>
+                                  <td
+                                    className={`p-2 ${
+                                      (trade.pnl || "").includes("+")
+                                        ? "text-green-600"
+                                        : (trade.pnl || "").includes("-")
+                                          ? "text-red-600"
+                                          : ""
+                                    }`}
                                   >
-                                    {/* Month Header */}
-                                    <div className="h-5 mb-2 flex items-center justify-center">
-                                      <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        {month.name}
-                                      </div>
+                                    {trade.pnl}
+                                  </td>
+                                  <td
+                                    className={`p-2 font-medium ${(() => {
+                                      if (!trade.pnl || trade.pnl === "-")
+                                        return "";
+                                      const pnlStr = (trade.pnl || "").replace(
+                                        /[₹,+\s]/g,
+                                        "",
+                                      );
+                                      const pnlValue = parseFloat(pnlStr) || 0;
+                                      const openPrice = trade.price;
+                                      const totalInvestment =
+                                        openPrice * trade.qty || 1;
+                                      const percentage =
+                                        (pnlValue / totalInvestment) * 100;
+                                      return percentage > 0
+                                        ? "text-green-600"
+                                        : percentage < 0
+                                          ? "text-red-600"
+                                          : "text-gray-500";
+                                    })()}`}
+                                  >
+                                    {(() => {
+                                      if (!trade.pnl || trade.pnl === "-")
+                                        return "-";
+                                      const pnlStr = (trade.pnl || "").replace(
+                                        /[₹,+\s]/g,
+                                        "",
+                                      );
+                                      const pnlValue = parseFloat(pnlStr) || 0;
+                                      const openPrice = trade.price;
+                                      const totalInvestment =
+                                        openPrice * trade.qty || 1;
+                                      const percentage =
+                                        (pnlValue / totalInvestment) * 100;
+                                      return `${
+                                        percentage >= 0 ? "+" : ""
+                                      }${percentage.toFixed(2)}%`;
+                                    })()}
+                                  </td>
+                                  <td className="p-1">{trade.duration}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Trade Book - Right Side (Functional Calendar) */}
+                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                              trade book
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mr-2">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                Demo
+                              </span>
+                              <Switch
+                                checked={isDemoMode}
+                                onCheckedChange={(checked) => {
+                                  setIsDemoMode(checked);
+                                  localStorage.setItem(
+                                    "tradingJournalDemoMode",
+                                    String(checked),
+                                  );
+                                  if (!checked) {
+                                    setTradingDataByDate({});
+                                    localStorage.removeItem(
+                                      "tradingDataByDate",
+                                    );
+                                  }
+                                }}
+                                data-testid="switch-demo-mode"
+                              />
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={saveAllTradingData}
+                              className="h-8 px-3 bg-black dark:bg-black border-black dark:border-black hover:bg-gray-800 dark:hover:bg-gray-800 text-white dark:text-white"
+                              data-testid="button-save-trade-book"
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Calendar Grid - Heatmap Default View */}
+                        <div className="mb-1">
+                          {/* Optimized Full Calendar Heatmap */}
+                          <div className="space-y-2 pt-4 pb-1">
+                            {/* Calendar Layout with Sticky Day Headers */}
+                            <div className="flex gap-4">
+                              {/* Day Headers (Vertical) - Sticky */}
+                              <div className="flex flex-col gap-1 flex-shrink-0">
+                                <div className="h-5 mb-2"></div>{" "}
+                                {/* Spacer for month headers */}
+                                {["S", "M", "T", "W", "TH", "F", "S"].map(
+                                  (day, index) => (
+                                    <div
+                                      key={index}
+                                      className="w-3 h-3 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                                    >
+                                      {day}
                                     </div>
+                                  ),
+                                )}
+                              </div>
 
-                                    {/* Month Grid */}
-                                    <div className="flex gap-1">
-                                      {month.weeks.map((week, weekIndex) => (
+                              {/* Scrollable Months Container */}
+                              <div className="overflow-x-auto overflow-y-hidden custom-thin-scrollbar flex-1">
+                                <div className="min-w-max">
+                                  {/* Months */}
+                                  <div className="flex gap-4">
+                                    {getHeatmapWeeks().map(
+                                      (month, monthIndex) => (
                                         <div
-                                          key={weekIndex}
-                                          className="flex flex-col gap-1"
+                                          key={monthIndex}
+                                          className="flex flex-col"
                                         >
-                                          {week.map((date, dateIndex) => {
-                                            // Return empty space for null dates (empty calendar slots)
-                                            if (date === null) {
-                                              return (
+                                          {/* Month Header */}
+                                          <div className="h-5 mb-2 flex items-center justify-center">
+                                            <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                              {month.name}
+                                            </div>
+                                          </div>
+
+                                          {/* Month Grid */}
+                                          <div className="flex gap-1">
+                                            {month.weeks.map(
+                                              (week, weekIndex) => (
                                                 <div
-                                                  key={dateIndex}
-                                                  className="w-3 h-3"
-                                                ></div>
-                                              );
-                                            }
+                                                  key={weekIndex}
+                                                  className="flex flex-col gap-1"
+                                                >
+                                                  {week.map(
+                                                    (date, dateIndex) => {
+                                                      // Return empty space for null dates (empty calendar slots)
+                                                      if (date === null) {
+                                                        return (
+                                                          <div
+                                                            key={dateIndex}
+                                                            className="w-3 h-3"
+                                                          ></div>
+                                                        );
+                                                      }
 
-                                            const currentYear =
-                                              new Date().getFullYear();
-                                            const isCurrentYear =
-                                              date.getFullYear() ===
-                                              currentYear;
-                                            const isHeatmapYear =
-                                              date.getFullYear() ===
-                                              heatmapYear;
-                                            const isInSelectedRange =
-                                              isCalendarDataFetched &&
-                                              fromDate &&
-                                              toDate &&
-                                              date >= fromDate &&
-                                              date <= toDate;
-                                            const isStartDate =
-                                              isCalendarDataFetched &&
-                                              fromDate &&
-                                              date.toDateString() ===
-                                                fromDate.toDateString();
-                                            const isEndDate =
-                                              isCalendarDataFetched &&
-                                              toDate &&
-                                              date.toDateString() ===
-                                                toDate.toDateString();
-                                            const hasData =
-                                              isInSelectedRange &&
-                                              hasDataForDate(date);
-                                            const isToday =
-                                              date.toDateString() ===
-                                              new Date().toDateString();
+                                                      const currentYear =
+                                                        new Date().getFullYear();
+                                                      const isCurrentYear =
+                                                        date.getFullYear() ===
+                                                        currentYear;
+                                                      const isHeatmapYear =
+                                                        date.getFullYear() ===
+                                                        heatmapYear;
+                                                      const isInSelectedRange =
+                                                        isCalendarDataFetched &&
+                                                        fromDate &&
+                                                        toDate &&
+                                                        date >= fromDate &&
+                                                        date <= toDate;
+                                                      const isStartDate =
+                                                        isCalendarDataFetched &&
+                                                        fromDate &&
+                                                        date.toDateString() ===
+                                                          fromDate.toDateString();
+                                                      const isEndDate =
+                                                        isCalendarDataFetched &&
+                                                        toDate &&
+                                                        date.toDateString() ===
+                                                          toDate.toDateString();
+                                                      const hasData =
+                                                        isInSelectedRange &&
+                                                        hasDataForDate(date);
+                                                      const isToday =
+                                                        date.toDateString() ===
+                                                        new Date().toDateString();
 
-                                            // Get saved trading data for this date
-                                            const dateStr = date
-                                              .toISOString()
-                                              .split("T")[0];
-                                            const savedData =
-                                              tradingDataByDate[dateStr];
-                                            const netPnL =
-                                              savedData?.performanceMetrics
-                                                ?.netPnL || 0;
+                                                      // Get saved trading data for this date
+                                                      const dateStr = date
+                                                        .toISOString()
+                                                        .split("T")[0];
+                                                      const savedData =
+                                                        tradingDataByDate[
+                                                          dateStr
+                                                        ];
+                                                      const netPnL =
+                                                        savedData
+                                                          ?.performanceMetrics
+                                                          ?.netPnL || 0;
 
-                                            // Determine cell color based on P&L
-                                            let cellColor =
-                                              "bg-gray-100 dark:bg-gray-700"; // Default - grey background
-                                            let hasTradeData = false;
+                                                      // Determine cell color based on P&L
+                                                      let cellColor =
+                                                        "bg-gray-100 dark:bg-gray-700"; // Default - grey background
+                                                      let hasTradeData = false;
 
-                                            // Check for any trading data (always check, but only show if no range selected OR date is in range)
-                                            const hasActualTradeData =
-                                              savedData &&
-                                              ((savedData.tradeHistory &&
-                                                savedData.tradeHistory.length >
-                                                  0) ||
-                                                (savedData.performanceMetrics &&
-                                                  savedData.performanceMetrics
-                                                    .totalTrades > 0) ||
-                                                savedData.tradingNotes ||
-                                                savedData.notesContent ||
-                                                savedData.content || // Alternative format
-                                                savedData.tradeNotes || // Alternative format
-                                                savedData.tradeResult || // Alternative format
-                                                savedData.mood || // Alternative format
-                                                (savedData.images &&
-                                                  savedData.images.length > 0));
+                                                      // Check for any trading data (always check, but only show if no range selected OR date is in range)
+                                                      const hasActualTradeData =
+                                                        savedData &&
+                                                        ((savedData.tradeHistory &&
+                                                          savedData.tradeHistory
+                                                            .length > 0) ||
+                                                          (savedData.performanceMetrics &&
+                                                            savedData
+                                                              .performanceMetrics
+                                                              .totalTrades >
+                                                              0) ||
+                                                          savedData.tradingNotes ||
+                                                          savedData.notesContent ||
+                                                          savedData.content || // Alternative format
+                                                          savedData.tradeNotes || // Alternative format
+                                                          savedData.tradeResult || // Alternative format
+                                                          savedData.mood || // Alternative format
+                                                          (savedData.images &&
+                                                            savedData.images
+                                                              .length > 0));
 
-                                            // Only show trade data colors if no date range selected OR date is in selected range
-                                            const shouldShowTradeColors =
-                                              !fromDate ||
-                                              !toDate ||
-                                              isInSelectedRange;
+                                                      // Only show trade data colors if no date range selected OR date is in selected range
+                                                      const shouldShowTradeColors =
+                                                        !fromDate ||
+                                                        !toDate ||
+                                                        isInSelectedRange;
 
-                                            if (
-                                              hasActualTradeData &&
-                                              shouldShowTradeColors
-                                            ) {
-                                              hasTradeData = true;
-                                              // Use P&L if available, otherwise use green for any trading activity
-                                              if (netPnL !== 0) {
-                                                cellColor =
-                                                  getHeatmapColor(netPnL);
-                                              } else if (
-                                                savedData.tradeResult ===
-                                                "profit"
-                                              ) {
-                                                cellColor =
-                                                  "bg-green-300 dark:bg-green-600";
-                                              } else if (
-                                                savedData.tradeResult === "loss"
-                                              ) {
-                                                cellColor =
-                                                  "bg-red-300 dark:bg-red-600";
-                                              } else {
-                                                // Default to light green for any trading activity
-                                                cellColor =
-                                                  "bg-green-200 dark:bg-green-700";
-                                              }
-                                            }
+                                                      if (
+                                                        hasActualTradeData &&
+                                                        shouldShowTradeColors
+                                                      ) {
+                                                        hasTradeData = true;
+                                                        // Use P&L if available, otherwise use green for any trading activity
+                                                        if (netPnL !== 0) {
+                                                          cellColor =
+                                                            getHeatmapColor(
+                                                              netPnL,
+                                                            );
+                                                        } else if (
+                                                          savedData.tradeResult ===
+                                                          "profit"
+                                                        ) {
+                                                          cellColor =
+                                                            "bg-green-300 dark:bg-green-600";
+                                                        } else if (
+                                                          savedData.tradeResult ===
+                                                          "loss"
+                                                        ) {
+                                                          cellColor =
+                                                            "bg-red-300 dark:bg-red-600";
+                                                        } else {
+                                                          // Default to light green for any trading activity
+                                                          cellColor =
+                                                            "bg-green-200 dark:bg-green-700";
+                                                        }
+                                                      }
 
-                                            // Special highlighting for selected dates
-                                            if (isStartDate || isEndDate) {
-                                              cellColor =
-                                                "bg-blue-600 dark:bg-blue-500 ring-1 ring-blue-400 dark:ring-blue-300";
-                                            } else if (
-                                              isToday &&
-                                              isCurrentYear &&
-                                              !hasTradeData
-                                            ) {
-                                              cellColor =
-                                                "bg-teal-300 dark:bg-teal-600";
-                                            }
+                                                      // Special highlighting for selected dates
+                                                      if (
+                                                        isStartDate ||
+                                                        isEndDate
+                                                      ) {
+                                                        cellColor =
+                                                          "bg-blue-600 dark:bg-blue-500 ring-1 ring-blue-400 dark:ring-blue-300";
+                                                      } else if (
+                                                        isToday &&
+                                                        isCurrentYear &&
+                                                        !hasTradeData
+                                                      ) {
+                                                        cellColor =
+                                                          "bg-teal-300 dark:bg-teal-600";
+                                                      }
 
-                                            return (
-                                              <div
-                                                key={dateIndex}
-                                                className={`
+                                                      return (
+                                                        <div
+                                                          key={dateIndex}
+                                                          className={`
                                                     w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 relative
                                                     ${cellColor}
                                                     hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
                                                     flex items-center justify-center
                                                   `}
-                                                onClick={() =>
-                                                  handleDateSelect(date)
-                                                }
-                                                title={`${date.toDateString()}${
-                                                  hasTradeData
-                                                    ? ` - P&L: ₹${netPnL.toLocaleString(
-                                                        "en-IN"
-                                                      )}`
-                                                    : ""
-                                                }`}
-                                                data-testid={`calendar-day-${date.getDate()}-${date.getMonth()}`}
-                                              >
-                                                {hasTradeData && (
-                                                  <div className="absolute inset-0 bg-white dark:bg-black opacity-10 rounded-sm"></div>
-                                                )}
-                                              </div>
-                                            );
-                                          })}
+                                                          onClick={() =>
+                                                            handleDateSelect(
+                                                              date,
+                                                            )
+                                                          }
+                                                          title={`${date.toDateString()}${
+                                                            hasTradeData
+                                                              ? ` - P&L: ₹${netPnL.toLocaleString(
+                                                                  "en-IN",
+                                                                )}`
+                                                              : ""
+                                                          }`}
+                                                          data-testid={`calendar-day-${date.getDate()}-${date.getMonth()}`}
+                                                        >
+                                                          {hasTradeData && (
+                                                            <div className="absolute inset-0 bg-white dark:bg-black opacity-10 rounded-sm"></div>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    },
+                                                  )}
+                                                </div>
+                                              ),
+                                            )}
+                                          </div>
                                         </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* P&L Color Legend */}
-                          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                Loss
-                              </span>
-                              <div className="flex gap-0.5">
-                                <div
-                                  className="w-2 h-2 bg-red-800 dark:bg-red-700 rounded-sm"
-                                  title="High Loss (₹5000+)"
-                                ></div>
-                                <div
-                                  className="w-2 h-2 bg-red-600 dark:bg-red-500 rounded-sm"
-                                  title="Medium Loss (₹1500+)"
-                                ></div>
-                                <div
-                                  className="w-2 h-2 bg-red-300 dark:bg-red-300 rounded-sm"
-                                  title="Small Loss"
-                                ></div>
-                              </div>
-                            </div>
-                            <div
-                              className="w-2 h-2 bg-gray-100 dark:bg-gray-700 rounded-sm"
-                              title="No trades"
-                            ></div>
-                            <div className="flex items-center gap-1">
-                              <div className="flex gap-0.5">
-                                <div
-                                  className="w-2 h-2 bg-green-300 dark:bg-green-300 rounded-sm"
-                                  title="Small Profit"
-                                ></div>
-                                <div
-                                  className="w-2 h-2 bg-green-600 dark:bg-green-500 rounded-sm"
-                                  title="Medium Profit (₹1500+)"
-                                ></div>
-                                <div
-                                  className="w-2 h-2 bg-green-800 dark:bg-green-700 rounded-sm"
-                                  title="High Profit (₹5000+)"
-                                ></div>
-                              </div>
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                Profit
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Date Range Display Below Heatmap */}
-                          {fromDate && toDate && (
-                            <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                              <div className="text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                  <h6 className="text-sm font-semibold text-gray-800 dark:text-white">
-                                    Selected Date Range: {heatmapYear}
-                                  </h6>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleResetDateRange}
-                                    className="p-1 h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                    data-testid="button-reset-date-range"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                                <div className="text-xs text-gray-600 dark:text-gray-400">
-                                  {fromDate.toLocaleDateString("en-US", {
-                                    weekday: "short",
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  })}{" "}
-                                  -{" "}
-                                  {toDate.toLocaleDateString("en-US", {
-                                    weekday: "short",
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  })}
-                                </div>
-                                <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
-                                  Showing trade data within selected range
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Selected Date Info */}
-                      {selectedDate && !(fromDate && toDate) && (
-                        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <div className="mb-3">
-                            <div className="flex items-center gap-2">
-                              <Popover>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handlePreviousYear}
-                                    className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
-                                    data-testid="button-prev-year"
-                                  >
-                                    <ChevronLeft className="w-4 h-4" />
-                                  </Button>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      className="p-0 h-auto hover:bg-transparent"
-                                      data-testid="button-date-range-picker"
-                                    >
-                                      <h5 className="text-sm font-semibold text-gray-800 dark:text-white flex items-center gap-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
-                                        <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                                        {fromDate && toDate
-                                          ? `${fromDate.toLocaleDateString(
-                                              "en-US",
-                                              { month: "short", day: "numeric" }
-                                            )} - ${toDate.toLocaleDateString(
-                                              "en-US",
-                                              {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                              }
-                                            )}`
-                                          : selectedDate
-                                              .toLocaleDateString("en-US", {
-                                                weekday: "long",
-                                                month: "long",
-                                                day: "numeric",
-                                                year: "numeric",
-                                              })
-                                              .replace(
-                                                /\d{4}/,
-                                                heatmapYear.toString()
-                                              )}
-                                      </h5>
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleNextYear}
-                                    className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
-                                    data-testid="button-next-year"
-                                  >
-                                    <ChevronRight className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                                <PopoverContent
-                                  className="w-auto p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-                                  align="start"
-                                >
-                                  <div className="space-y-3">
-                                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                      Select Date Range
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-3">
-                                      <div>
-                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                          From Date
-                                        </label>
-                                        <input
-                                          type="date"
-                                          value={
-                                            fromDate
-                                              ? fromDate
-                                                  .toISOString()
-                                                  .split("T")[0]
-                                              : ""
-                                          }
-                                          onChange={(e) =>
-                                            setFromDate(
-                                              e.target.value
-                                                ? new Date(e.target.value)
-                                                : null
-                                            )
-                                          }
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                          data-testid="input-from-date"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                          To Date
-                                        </label>
-                                        <input
-                                          type="date"
-                                          value={
-                                            toDate
-                                              ? toDate
-                                                  .toISOString()
-                                                  .split("T")[0]
-                                              : ""
-                                          }
-                                          onChange={(e) =>
-                                            setToDate(
-                                              e.target.value
-                                                ? new Date(e.target.value)
-                                                : null
-                                            )
-                                          }
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                          data-testid="input-to-date"
-                                        />
-                                      </div>
-                                    </div>
-                                    {fromDate && toDate && (
-                                      <Button
-                                        onClick={() => {
-                                          console.log(
-                                            "📊 Fetching calendar data from",
-                                            fromDate,
-                                            "to",
-                                            toDate
-                                          );
-                                          setIsCalendarDataFetched(true);
-                                        }}
-                                        size="sm"
-                                        className="w-full bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-7"
-                                        data-testid="button-fetch-calendar-data"
-                                      >
-                                        Fetch Range Data
-                                      </Button>
+                                      ),
                                     )}
                                   </div>
-                                </PopoverContent>
-                              </Popover>
+                                </div>
+                              </div>
                             </div>
+
+                            {/* P&L Color Legend */}
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                  Loss
+                                </span>
+                                <div className="flex gap-0.5">
+                                  <div
+                                    className="w-2 h-2 bg-red-800 dark:bg-red-700 rounded-sm"
+                                    title="High Loss (₹5000+)"
+                                  ></div>
+                                  <div
+                                    className="w-2 h-2 bg-red-600 dark:bg-red-500 rounded-sm"
+                                    title="Medium Loss (₹1500+)"
+                                  ></div>
+                                  <div
+                                    className="w-2 h-2 bg-red-300 dark:bg-red-300 rounded-sm"
+                                    title="Small Loss"
+                                  ></div>
+                                </div>
+                              </div>
+                              <div
+                                className="w-2 h-2 bg-gray-100 dark:bg-gray-700 rounded-sm"
+                                title="No trades"
+                              ></div>
+                              <div className="flex items-center gap-1">
+                                <div className="flex gap-0.5">
+                                  <div
+                                    className="w-2 h-2 bg-green-300 dark:bg-green-300 rounded-sm"
+                                    title="Small Profit"
+                                  ></div>
+                                  <div
+                                    className="w-2 h-2 bg-green-600 dark:bg-green-500 rounded-sm"
+                                    title="Medium Profit (₹1500+)"
+                                  ></div>
+                                  <div
+                                    className="w-2 h-2 bg-green-800 dark:bg-green-700 rounded-sm"
+                                    title="High Profit (₹5000+)"
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                  Profit
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Date Range Display Below Heatmap */}
+                            {fromDate && toDate && (
+                              <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <div className="text-center">
+                                  <div className="flex items-center justify-center gap-2 mb-2">
+                                    <h6 className="text-sm font-semibold text-gray-800 dark:text-white">
+                                      Selected Date Range: {heatmapYear}
+                                    </h6>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={handleResetDateRange}
+                                      className="p-1 h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                      data-testid="button-reset-date-range"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    {fromDate.toLocaleDateString("en-US", {
+                                      weekday: "short",
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}{" "}
+                                    -{" "}
+                                    {toDate.toLocaleDateString("en-US", {
+                                      weekday: "short",
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}
+                                  </div>
+                                  <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
+                                    Showing trade data within selected range
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+
+                        {/* Selected Date Info */}
+                        {selectedDate && !(fromDate && toDate) && (
+                          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div className="mb-3">
+                              <div className="flex items-center gap-2">
+                                <Popover>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={handlePreviousYear}
+                                      className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
+                                      data-testid="button-prev-year"
+                                    >
+                                      <ChevronLeft className="w-4 h-4" />
+                                    </Button>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        className="p-0 h-auto hover:bg-transparent"
+                                        data-testid="button-date-range-picker"
+                                      >
+                                        <h5 className="text-sm font-semibold text-gray-800 dark:text-white flex items-center gap-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+                                          <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                          {fromDate && toDate
+                                            ? `${fromDate.toLocaleDateString(
+                                                "en-US",
+                                                {
+                                                  month: "short",
+                                                  day: "numeric",
+                                                },
+                                              )} - ${toDate.toLocaleDateString(
+                                                "en-US",
+                                                {
+                                                  month: "short",
+                                                  day: "numeric",
+                                                  year: "numeric",
+                                                },
+                                              )}`
+                                            : selectedDate
+                                                .toLocaleDateString("en-US", {
+                                                  weekday: "long",
+                                                  month: "long",
+                                                  day: "numeric",
+                                                  year: "numeric",
+                                                })
+                                                .replace(
+                                                  /\d{4}/,
+                                                  heatmapYear.toString(),
+                                                )}
+                                        </h5>
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={handleNextYear}
+                                      className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
+                                      data-testid="button-next-year"
+                                    >
+                                      <ChevronRight className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                  <PopoverContent
+                                    className="w-auto p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                                    align="start"
+                                  >
+                                    <div className="space-y-3">
+                                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Select Date Range
+                                      </div>
+                                      <div className="grid grid-cols-1 gap-3">
+                                        <div>
+                                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            From Date
+                                          </label>
+                                          <input
+                                            type="date"
+                                            value={
+                                              fromDate
+                                                ? fromDate
+                                                    .toISOString()
+                                                    .split("T")[0]
+                                                : ""
+                                            }
+                                            onChange={(e) =>
+                                              setFromDate(
+                                                e.target.value
+                                                  ? new Date(e.target.value)
+                                                  : null,
+                                              )
+                                            }
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                            data-testid="input-from-date"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            To Date
+                                          </label>
+                                          <input
+                                            type="date"
+                                            value={
+                                              toDate
+                                                ? toDate
+                                                    .toISOString()
+                                                    .split("T")[0]
+                                                : ""
+                                            }
+                                            onChange={(e) =>
+                                              setToDate(
+                                                e.target.value
+                                                  ? new Date(e.target.value)
+                                                  : null,
+                                              )
+                                            }
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                            data-testid="input-to-date"
+                                          />
+                                        </div>
+                                      </div>
+                                      {fromDate && toDate && (
+                                        <Button
+                                          onClick={() => {
+                                            console.log(
+                                              "📊 Fetching calendar data from",
+                                              fromDate,
+                                              "to",
+                                              toDate,
+                                            );
+                                            setIsCalendarDataFetched(true);
+                                          }}
+                                          size="sm"
+                                          className="w-full bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-7"
+                                          data-testid="button-fetch-calendar-data"
+                                        >
+                                          Fetch Range Data
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
                 {/* End of Main Journal Content */}
 
                 {/* Ranking Tab Content - Mobile only, shown when ranking tab is active */}
-                {mobileBottomTab === 'ranking' && (
+                {mobileBottomTab === "ranking" && (
                   <div className="md:hidden mt-6 space-y-6">
                     <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950 dark:to-yellow-950 border-amber-200 dark:border-amber-800">
                       <CardHeader>
@@ -7682,8 +7927,13 @@ ${
                             <Trophy className="h-6 w-6 text-white" />
                           </div>
                           <div>
-                            <CardTitle className="text-xl">Trader Rankings</CardTitle>
-                            <CardDescription>Coming soon: Compare your performance with other traders</CardDescription>
+                            <CardTitle className="text-xl">
+                              Trader Rankings
+                            </CardTitle>
+                            <CardDescription>
+                              Coming soon: Compare your performance with other
+                              traders
+                            </CardDescription>
                           </div>
                         </div>
                       </CardHeader>
@@ -7691,8 +7941,12 @@ ${
                         <div className="space-y-4">
                           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                             <Trophy className="h-16 w-16 mx-auto mb-4 opacity-40" />
-                            <p className="text-sm">Ranking feature coming soon...</p>
-                            <p className="text-xs mt-2">Track your position among top traders</p>
+                            <p className="text-sm">
+                              Ranking feature coming soon...
+                            </p>
+                            <p className="text-xs mt-2">
+                              Track your position among top traders
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -7702,8 +7956,9 @@ ${
 
                 {/* ============== MODERN TRADING ANALYTICS DASHBOARD ============== */}
                 {/* Mobile: Show only in "insight" tab | Desktop: Always visible */}
-                <div className={`mt-8 space-y-6 ${mobileBottomTab !== 'insight' ? 'hidden md:block' : 'block'}`}>
-
+                <div
+                  className={`mt-8 space-y-6 ${mobileBottomTab !== "insight" ? "hidden md:block" : "block"}`}
+                >
                   {(() => {
                     // Calculate comprehensive insights from all trading data
                     const calculateTradingInsights = () => {
@@ -7712,7 +7967,7 @@ ${
                           data &&
                           data.tradeHistory &&
                           Array.isArray(data.tradeHistory) &&
-                          data.tradeHistory.length > 0
+                          data.tradeHistory.length > 0,
                       );
 
                       if (allData.length === 0) {
@@ -7776,11 +8031,11 @@ ${
                             stats.totalPnL += metrics.netPnL || 0;
                             stats.bestDay = Math.max(
                               stats.bestDay,
-                              metrics.netPnL || 0
+                              metrics.netPnL || 0,
                             );
                             stats.worstDay = Math.min(
                               stats.worstDay,
-                              metrics.netPnL || 0
+                              metrics.netPnL || 0,
                             );
                           }
                         });
@@ -7799,21 +8054,21 @@ ${
                       });
 
                       const tagAnalysis = Object.values(tagStats).sort(
-                        (a: any, b: any) => b.totalPnL - a.totalPnL
+                        (a: any, b: any) => b.totalPnL - a.totalPnL,
                       );
 
                       // Overall statistics
                       const totalTrades = tagAnalysis.reduce(
                         (sum: number, tag: any) => sum + tag.totalTrades,
-                        0
+                        0,
                       );
                       const totalPnL = tagAnalysis.reduce(
                         (sum: number, tag: any) => sum + tag.totalPnL,
-                        0
+                        0,
                       );
                       const totalWins = tagAnalysis.reduce(
                         (sum: number, tag: any) => sum + tag.wins,
-                        0
+                        0,
                       );
                       const overallWinRate =
                         totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0;
@@ -7857,7 +8112,7 @@ ${
                                     dayData?.performanceMetrics?.netPnL || 0;
                                   return sum + netPnL;
                                 },
-                                0
+                                0,
                               );
 
                               const isProfitable = totalPnL > 0;
@@ -7894,7 +8149,7 @@ ${
                                     const date = new Date(dateStr);
                                     const dayData =
                                       insights.tradingDayAnalysis.find(
-                                        (day: any) => day.date === dateStr
+                                        (day: any) => day.date === dateStr,
                                       ) || tradingDataByDate[dateStr];
 
                                     const netPnL =
@@ -7918,17 +8173,17 @@ ${
                                         {
                                           day: "numeric",
                                           month: "short",
-                                        }
+                                        },
                                       ),
                                     };
-                                  }
+                                  },
                                 );
 
                                 // Find peak value for indicator
                                 const peakData = chartData.reduce(
                                   (max, current) =>
                                     current.value > max.value ? current : max,
-                                  chartData[0] || { value: 0, day: "", pnl: 0 }
+                                  chartData[0] || { value: 0, day: "", pnl: 0 },
                                 );
 
                                 return (
@@ -8003,12 +8258,12 @@ ${
                                           formatter={(
                                             value: any,
                                             name: any,
-                                            props: any
+                                            props: any,
                                           ) => [
                                             `${
                                               value >= 0 ? "₹" : "-₹"
                                             }${Math.abs(
-                                              value
+                                              value,
                                             ).toLocaleString()}`,
                                             "Daily P&L",
                                           ]}
@@ -8057,7 +8312,9 @@ ${
                         {/* Bottom Section: Total P&L + Tags */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           {/* Total Performance Card - Dynamic Color Based on P&L */}
-                          <div className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+                          <div
+                            className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}
+                          >
                             <div className="flex items-center justify-between mb-6">
                               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                                 <Target className="w-6 h-6" />
@@ -8067,7 +8324,7 @@ ${
                                   Total P&L
                                 </div>
                                 <div className="text-2xl md:text-3xl font-bold">
-                                  {totalPnL >= 0 ? '+' : '-'}₹
+                                  {totalPnL >= 0 ? "+" : "-"}₹
                                   {Math.abs(totalPnL).toLocaleString("en-IN")}
                                 </div>
                               </div>
@@ -8096,7 +8353,7 @@ ${
                                   style={{
                                     width: `${Math.min(
                                       insights.overallStats.winRate,
-                                      100
+                                      100,
                                     )}%`,
                                   }}
                                 ></div>
@@ -8106,72 +8363,72 @@ ${
 
                           {/* Tag Performance Distribution */}
                           <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                              <Tag className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-slate-800 dark:text-white">
-                                Top Tags
-                              </h3>
-                              <p className="text-xs text-slate-500">
-                                Strategy Performance
-                              </p>
-                            </div>
-                          </div>
-
-                          {insights.topPerformers.length > 0 ? (
-                            <div className="space-y-4">
-                              {insights.topPerformers
-                                .slice(0, 4)
-                                .map((tag: any, idx: number) => (
-                                  <div key={tag.tag} className="relative">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {tag.tag}
-                                      </span>
-                                      <span
-                                        className={`text-sm font-semibold ${
-                                          tag.totalPnL >= 0
-                                            ? "text-emerald-600"
-                                            : "text-red-500"
-                                        }`}
-                                      >
-                                        {tag.totalPnL >= 0 ? "+" : ""}₹
-                                        {Math.abs(
-                                          tag.totalPnL
-                                        ).toLocaleString()}
-                                      </span>
-                                    </div>
-                                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                                      <div
-                                        className={`h-2 rounded-full transition-all duration-1000 ${
-                                          tag.totalPnL >= 0
-                                            ? "bg-gradient-to-r from-emerald-400 to-green-500"
-                                            : "bg-gradient-to-r from-red-400 to-rose-500"
-                                        }`}
-                                        style={{
-                                          width: `${Math.min(
-                                            tag.winRate,
-                                            100
-                                          )}%`,
-                                        }}
-                                      ></div>
-                                    </div>
-                                    <div className="text-xs text-slate-500 mt-1">
-                                      {tag.winRate.toFixed(1)}% success rate
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center h-32 text-slate-400">
-                              <div className="text-center">
-                                <Tag className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">No tag data</p>
+                            <div className="flex items-center gap-3 mb-6">
+                              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                <Tag className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-slate-800 dark:text-white">
+                                  Top Tags
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                  Strategy Performance
+                                </p>
                               </div>
                             </div>
-                          )}
+
+                            {insights.topPerformers.length > 0 ? (
+                              <div className="space-y-4">
+                                {insights.topPerformers
+                                  .slice(0, 4)
+                                  .map((tag: any, idx: number) => (
+                                    <div key={tag.tag} className="relative">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                          {tag.tag}
+                                        </span>
+                                        <span
+                                          className={`text-sm font-semibold ${
+                                            tag.totalPnL >= 0
+                                              ? "text-emerald-600"
+                                              : "text-red-500"
+                                          }`}
+                                        >
+                                          {tag.totalPnL >= 0 ? "+" : ""}₹
+                                          {Math.abs(
+                                            tag.totalPnL,
+                                          ).toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                        <div
+                                          className={`h-2 rounded-full transition-all duration-1000 ${
+                                            tag.totalPnL >= 0
+                                              ? "bg-gradient-to-r from-emerald-400 to-green-500"
+                                              : "bg-gradient-to-r from-red-400 to-rose-500"
+                                          }`}
+                                          style={{
+                                            width: `${Math.min(
+                                              tag.winRate,
+                                              100,
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <div className="text-xs text-slate-500 mt-1">
+                                        {tag.winRate.toFixed(1)}% success rate
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-32 text-slate-400">
+                                <div className="text-center">
+                                  <Tag className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                  <p className="text-sm">No tag data</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -8179,27 +8436,27 @@ ${
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {(() => {
                             const allData = Object.values(
-                              tradingDataByDate
+                              tradingDataByDate,
                             ).filter(
-                              (data: any) => data && data.performanceMetrics
+                              (data: any) => data && data.performanceMetrics,
                             );
 
                             if (allData.length === 0) return null;
 
                             const totalDays = allData.length;
                             const profitableDays = allData.filter(
-                              (d: any) => d.performanceMetrics.netPnL > 0
+                              (d: any) => d.performanceMetrics.netPnL > 0,
                             ).length;
                             const avgDailyPnL =
                               allData.reduce(
                                 (sum: number, d: any) =>
                                   sum + d.performanceMetrics.netPnL,
-                                0
+                                0,
                               ) / totalDays;
                             const maxProfit = Math.max(
                               ...allData.map(
-                                (d: any) => d.performanceMetrics.netPnL
-                              )
+                                (d: any) => d.performanceMetrics.netPnL,
+                              ),
                             );
 
                             const metrics = [
@@ -8227,7 +8484,7 @@ ${
                               {
                                 label: "Avg Daily P&L",
                                 value: `₹${Math.abs(
-                                  avgDailyPnL
+                                  avgDailyPnL,
                                 ).toLocaleString()}`,
                                 icon: BarChart3,
                                 color:
@@ -8286,13 +8543,13 @@ ${
 
                           {(() => {
                             const allData = Object.values(
-                              tradingDataByDate
+                              tradingDataByDate,
                             ).filter(
                               (data: any) =>
                                 data &&
                                 data.tradingTags &&
                                 Array.isArray(data.tradingTags) &&
-                                data.performanceMetrics
+                                data.performanceMetrics,
                             );
 
                             if (allData.length === 0) {
@@ -8341,7 +8598,7 @@ ${
                                 ];
                                 if (
                                   tags.some((tag: string) =>
-                                    emotionalTags.includes(tag.toLowerCase())
+                                    emotionalTags.includes(tag.toLowerCase()),
                                   )
                                 ) {
                                   riskMetrics.emotionalTradingDays++;
@@ -8383,7 +8640,7 @@ ${
                                   100;
                                 analysis.avgLoss =
                                   analysis.totalPnL / analysis.totalDays;
-                              }
+                              },
                             );
 
                             // Get worst performing tags
@@ -8460,7 +8717,7 @@ ${
                                               <div className="text-sm opacity-90 mb-2">
                                                 Avg Loss: ₹
                                                 {Math.abs(tag.avgLoss).toFixed(
-                                                  0
+                                                  0,
                                                 )}{" "}
                                                 • {tag.lossFrequency.toFixed(0)}
                                                 % loss rate
@@ -8468,7 +8725,7 @@ ${
                                               <div className="text-xs bg-red-500/30 rounded-lg p-2">
                                                 Total Loss: ₹
                                                 {Math.abs(
-                                                  tag.totalPnL
+                                                  tag.totalPnL,
                                                 ).toLocaleString("en-IN")}{" "}
                                                 across {tag.totalDays} days
                                               </div>
@@ -8513,13 +8770,13 @@ ${
 
                           {(() => {
                             const allData = Object.values(
-                              tradingDataByDate
+                              tradingDataByDate,
                             ).filter(
                               (data: any) =>
                                 data &&
                                 data.tradingTags &&
                                 Array.isArray(data.tradingTags) &&
-                                data.performanceMetrics
+                                data.performanceMetrics,
                             );
 
                             if (allData.length === 0) {
@@ -8582,7 +8839,7 @@ ${
                               ];
                               if (
                                 tags.some((tag: string) =>
-                                  emotionalTags.includes(tag.toLowerCase())
+                                  emotionalTags.includes(tag.toLowerCase()),
                                 )
                               ) {
                                 disciplineMetrics.emotionalTrades++;
@@ -8594,14 +8851,14 @@ ${
                                 consecutiveLosses = 0;
                                 maxWinStreak = Math.max(
                                   maxWinStreak,
-                                  consecutiveWins
+                                  consecutiveWins,
                                 );
                               } else if (pnl < 0) {
                                 consecutiveLosses++;
                                 consecutiveWins = 0;
                                 maxLossStreak = Math.max(
                                   maxLossStreak,
-                                  consecutiveLosses
+                                  consecutiveLosses,
                                 );
                               }
 
@@ -8637,7 +8894,7 @@ ${
                                 icon: "🎯",
                                 title: "Excellent Planning",
                                 message: `${plannedRatio.toFixed(
-                                  0
+                                  0,
                                 )}% of your trades are well-planned. Keep this discipline!`,
                               });
                             } else if (plannedRatio < 30) {
@@ -8646,7 +8903,7 @@ ${
                                 icon: "⚠️",
                                 title: "Planning Needed",
                                 message: `Only ${plannedRatio.toFixed(
-                                  0
+                                  0,
                                 )}% planned trades. Create setups before trading.`,
                               });
                             }
@@ -8657,7 +8914,7 @@ ${
                                 icon: "🚨",
                                 title: "Emotional Trading Alert",
                                 message: `${emotionalRatio.toFixed(
-                                  0
+                                  0,
                                 )}% emotional trades detected. Practice mindfulness.`,
                               });
                             }
@@ -8668,7 +8925,7 @@ ${
                                 icon: "⚡",
                                 title: "Overtrading Risk",
                                 message: `Avg ${disciplineMetrics.avgTradesPerDay.toFixed(
-                                  1
+                                  1,
                                 )} trades/day. Consider quality over quantity.`,
                               });
                             }
@@ -8688,7 +8945,7 @@ ${
                                 icon: "⭐",
                                 title: "Great Consistency",
                                 message: `${consistencyRatio.toFixed(
-                                  0
+                                  0,
                                 )}% consistent trading days. Excellent discipline!`,
                               });
                             }
@@ -8732,7 +8989,7 @@ ${
                                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 text-center">
                                     <div className="text-lg md:text-2xl font-bold">
                                       {disciplineMetrics.avgTradesPerDay.toFixed(
-                                        1
+                                        1,
                                       )}
                                     </div>
                                     <div className="text-xs md:text-sm opacity-80">
@@ -8774,8 +9031,8 @@ ${
                                                 insight.type === "success"
                                                   ? "bg-emerald-500/20 border-emerald-400/30"
                                                   : insight.type === "warning"
-                                                  ? "bg-amber-500/20 border-amber-400/30"
-                                                  : "bg-red-500/20 border-red-400/30"
+                                                    ? "bg-amber-500/20 border-amber-400/30"
+                                                    : "bg-red-500/20 border-red-400/30"
                                               }`}
                                             >
                                               <div className="flex items-start gap-3">
@@ -9473,11 +9730,14 @@ ${
                                   trade.pnl === "-"
                                     ? "text-gray-500"
                                     : trade.pnl &&
-                                      parseFloat(
-                                        (trade.pnl || "").replace(/[₹,]/g, "")
-                                      ) > 0
-                                    ? "text-green-600"
-                                    : "text-red-600"
+                                        parseFloat(
+                                          (trade.pnl || "").replace(
+                                            /[₹,]/g,
+                                            "",
+                                          ),
+                                        ) > 0
+                                      ? "text-green-600"
+                                      : "text-red-600"
                                 }
                               >
                                 {trade.pnl}
@@ -9542,9 +9802,7 @@ ${
               </div>
 
               <div>
-                <Label className="text-sm font-medium">
-                  Fetch from Broker
-                </Label>
+                <Label className="text-sm font-medium">Fetch from Broker</Label>
                 <Button
                   variant="outline"
                   className="w-full mt-2 justify-start"
@@ -9840,43 +10098,49 @@ ${
             <div className="flex items-center justify-around px-4 py-3">
               {/* Home Tab */}
               <button
-                onClick={() => setMobileBottomTab('home')}
+                onClick={() => setMobileBottomTab("home")}
                 className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
-                  mobileBottomTab === 'home'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400'
+                  mobileBottomTab === "home"
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-400"
                 }`}
                 data-testid="mobile-tab-home"
               >
-                <HomeIcon className={`h-6 w-6 ${mobileBottomTab === 'home' ? 'fill-current' : ''}`} />
+                <HomeIcon
+                  className={`h-6 w-6 ${mobileBottomTab === "home" ? "fill-current" : ""}`}
+                />
                 <span className="text-xs font-medium">Home</span>
               </button>
 
               {/* Insight Tab */}
               <button
-                onClick={() => setMobileBottomTab('insight')}
+                onClick={() => setMobileBottomTab("insight")}
                 className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
-                  mobileBottomTab === 'insight'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400'
+                  mobileBottomTab === "insight"
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-400"
                 }`}
                 data-testid="mobile-tab-insight"
               >
-                <TrendingUp className={`h-6 w-6 ${mobileBottomTab === 'insight' ? 'stroke-2' : ''}`} />
+                <TrendingUp
+                  className={`h-6 w-6 ${mobileBottomTab === "insight" ? "stroke-2" : ""}`}
+                />
                 <span className="text-xs font-medium">Insight</span>
               </button>
 
               {/* Ranking Tab */}
               <button
-                onClick={() => setMobileBottomTab('ranking')}
+                onClick={() => setMobileBottomTab("ranking")}
                 className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
-                  mobileBottomTab === 'ranking'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400'
+                  mobileBottomTab === "ranking"
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-400"
                 }`}
                 data-testid="mobile-tab-ranking"
               >
-                <Trophy className={`h-6 w-6 ${mobileBottomTab === 'ranking' ? 'fill-current' : ''}`} />
+                <Trophy
+                  className={`h-6 w-6 ${mobileBottomTab === "ranking" ? "fill-current" : ""}`}
+                />
                 <span className="text-xs font-medium">Ranking</span>
               </button>
             </div>
