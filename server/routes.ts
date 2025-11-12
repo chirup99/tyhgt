@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { fyersApi } from "./fyers-api";
 import { AnalysisProcessor } from "./analysis-processor";
-import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse } from "@shared/schema";
+import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, socialPostLikes, socialPostComments, socialPostReposts, userFollows, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse } from "@shared/schema";
 import { fetchBrokerTrades } from "./services/broker-integrations";
 import { desc, sql, eq } from "drizzle-orm";
 import { intradayAnalyzer } from "./intraday-market-session";
@@ -5792,6 +5792,416 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error deleting comment:', error);
       res.status(500).json({ error: error.message || 'Failed to delete comment' });
+    }
+  });
+
+  // ==========================
+  // POSTGRESQL-BASED SOCIAL FEATURES
+  // ==========================
+
+  // Helper to get user email from Firebase token
+  async function getUserEmailFromToken(authHeader: string | undefined): Promise<string> {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Authentication required');
+    }
+    const idToken = authHeader.split('Bearer ')[1];
+    const admin = await import('firebase-admin');
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    return decodedToken.email || '';
+  }
+
+  // DELETE POST
+  app.delete('/api/social-posts/:id', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Get post to verify ownership
+      const posts = await storage.db.select().from(socialPosts).where(eq(socialPosts.id, postId));
+      if (posts.length === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      // Check if user owns the post (using Firebase email)
+      const admin = await import('firebase-admin');
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      const userProfile = await db.collection('users').where('email', '==', userEmail).limit(1).get();
+      if (userProfile.empty) {
+        return res.status(403).json({ error: 'Not authorized' });
+      }
+      
+      const username = userProfile.docs[0].data().username;
+      if (posts[0].authorUsername !== username) {
+        return res.status(403).json({ error: 'Not authorized to delete this post' });
+      }
+
+      // Delete post (cascade will delete likes, comments, reposts)
+      await storage.db.delete(socialPosts).where(eq(socialPosts.id, postId));
+      
+      console.log(`✅ Post ${postId} deleted by ${username}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error deleting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to delete post' });
+    }
+  });
+
+  // LIKE POST (PostgreSQL)
+  app.post('/api/social-posts/:id/like-pg', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Check if already liked
+      const existing = await storage.db.select().from(socialPostLikes)
+        .where(sql`${socialPostLikes.postId} = ${postId} AND ${socialPostLikes.userEmail} = ${userEmail}`);
+      
+      if (existing.length > 0) {
+        return res.json({ success: true, liked: true, alreadyLiked: true });
+      }
+
+      // Add like
+      await storage.db.insert(socialPostLikes).values({ postId, userEmail });
+
+      // Update post like count
+      await storage.db.update(socialPosts)
+        .set({ likes: sql`${socialPosts.likes} + 1` })
+        .where(eq(socialPosts.id, postId));
+
+      // Get updated count
+      const likeCount = await storage.db.select().from(socialPostLikes).where(eq(socialPostLikes.postId, postId));
+      
+      console.log(`✅ Post ${postId} liked by ${userEmail}`);
+      res.json({ success: true, liked: true, likes: likeCount.length });
+    } catch (error: any) {
+      console.error('Error liking post:', error);
+      res.status(500).json({ error: error.message || 'Failed to like post' });
+    }
+  });
+
+  // UNLIKE POST (PostgreSQL)
+  app.delete('/api/social-posts/:id/like-pg', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Remove like
+      await storage.db.delete(socialPostLikes)
+        .where(sql`${socialPostLikes.postId} = ${postId} AND ${socialPostLikes.userEmail} = ${userEmail}`);
+
+      // Update post like count
+      await storage.db.update(socialPosts)
+        .set({ likes: sql`GREATEST(${socialPosts.likes} - 1, 0)` })
+        .where(eq(socialPosts.id, postId));
+
+      // Get updated count
+      const likeCount = await storage.db.select().from(socialPostLikes).where(eq(socialPostLikes.postId, postId));
+      
+      console.log(`✅ Post ${postId} unliked by ${userEmail}`);
+      res.json({ success: true, liked: false, likes: likeCount.length });
+    } catch (error: any) {
+      console.error('Error unliking post:', error);
+      res.status(500).json({ error: error.message || 'Failed to unlike post' });
+    }
+  });
+
+  // CHECK LIKE STATUS (PostgreSQL)
+  app.get('/api/social-posts/:id/like-status-pg', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.json({ liked: false });
+      }
+
+      const likes = await storage.db.select().from(socialPostLikes)
+        .where(sql`${socialPostLikes.postId} = ${postId} AND ${socialPostLikes.userEmail} = ${userEmail}`);
+      
+      res.json({ liked: likes.length > 0 });
+    } catch (error) {
+      res.json({ liked: false });
+    }
+  });
+
+  // REPOST (PostgreSQL)
+  app.post('/api/social-posts/:id/repost-pg', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Get username from Firebase
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const userProfile = await db.collection('users').where('email', '==', userEmail).limit(1).get();
+      const username = userProfile.empty ? 'anonymous' : userProfile.docs[0].data().username;
+
+      // Check if already reposted
+      const existing = await storage.db.select().from(socialPostReposts)
+        .where(sql`${socialPostReposts.postId} = ${postId} AND ${socialPostReposts.userEmail} = ${userEmail}`);
+      
+      if (existing.length > 0) {
+        return res.json({ success: true, reposted: true, alreadyReposted: true });
+      }
+
+      // Add repost
+      await storage.db.insert(socialPostReposts).values({ postId, userEmail, username });
+
+      // Update post repost count
+      await storage.db.update(socialPosts)
+        .set({ reposts: sql`${socialPosts.reposts} + 1` })
+        .where(eq(socialPosts.id, postId));
+
+      // Get updated count
+      const repostCount = await storage.db.select().from(socialPostReposts).where(eq(socialPostReposts.postId, postId));
+      
+      console.log(`✅ Post ${postId} reposted by ${username}`);
+      res.json({ success: true, reposted: true, reposts: repostCount.length });
+    } catch (error: any) {
+      console.error('Error reposting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to repost' });
+    }
+  });
+
+  // UNREPOST (PostgreSQL)
+  app.delete('/api/social-posts/:id/repost-pg', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Remove repost
+      await storage.db.delete(socialPostReposts)
+        .where(sql`${socialPostReposts.postId} = ${postId} AND ${socialPostReposts.userEmail} = ${userEmail}`);
+
+      // Update post repost count
+      await storage.db.update(socialPosts)
+        .set({ reposts: sql`GREATEST(${socialPosts.reposts} - 1, 0)` })
+        .where(eq(socialPosts.id, postId));
+
+      // Get updated count
+      const repostCount = await storage.db.select().from(socialPostReposts).where(eq(socialPostReposts.postId, postId));
+      
+      console.log(`✅ Post ${postId} unreposted by ${userEmail}`);
+      res.json({ success: true, reposted: false, reposts: repostCount.length });
+    } catch (error: any) {
+      console.error('Error unreposting post:', error);
+      res.status(500).json({ error: error.message || 'Failed to unrepost' });
+    }
+  });
+
+  // ADD COMMENT (PostgreSQL)
+  app.post('/api/social-posts/:id/comment-pg', async (req, res) => {
+    try {
+      const userEmail = await getUserEmailFromToken(req.headers.authorization);
+      const postId = parseInt(req.params.id);
+      const { comment } = req.body;
+      
+      if (!comment || comment.trim().length === 0) {
+        return res.status(400).json({ error: 'Comment cannot be empty' });
+      }
+
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Get username from Firebase
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const userProfile = await db.collection('users').where('email', '==', userEmail).limit(1).get();
+      const username = userProfile.empty ? 'anonymous' : userProfile.docs[0].data().username;
+
+      // Add comment
+      const newComment = await storage.db.insert(socialPostComments)
+        .values({ postId, userEmail, username, comment: comment.trim() })
+        .returning();
+
+      // Update post comment count
+      await storage.db.update(socialPosts)
+        .set({ comments: sql`${socialPosts.comments} + 1` })
+        .where(eq(socialPosts.id, postId));
+
+      console.log(`✅ Comment added to post ${postId} by ${username}`);
+      res.json({ 
+        success: true, 
+        comment: newComment[0]
+      });
+    } catch (error: any) {
+      console.error('Error adding comment:', error);
+      res.status(500).json({ error: error.message || 'Failed to add comment' });
+    }
+  });
+
+  // GET COMMENTS (PostgreSQL)
+  app.get('/api/social-posts/:id/comments-pg', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.json([]);
+      }
+
+      const comments = await storage.db.select().from(socialPostComments)
+        .where(eq(socialPostComments.postId, postId))
+        .orderBy(desc(socialPostComments.createdAt));
+      
+      res.json(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.json([]);
+    }
+  });
+
+  // GET COMMENTS (existing endpoint - update to use PostgreSQL)
+  app.get('/api/social-posts/:id/comments', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      
+      if (!storage.db) {
+        return res.json([]);
+      }
+
+      const comments = await storage.db.select().from(socialPostComments)
+        .where(eq(socialPostComments.postId, postId))
+        .orderBy(desc(socialPostComments.createdAt));
+      
+      res.json(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.json([]);
+    }
+  });
+
+  // FOLLOW USER (PostgreSQL)
+  app.post('/api/users/:username/follow-pg', async (req, res) => {
+    try {
+      const followerEmail = await getUserEmailFromToken(req.headers.authorization);
+      const followingUsername = req.params.username;
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Get following user's email from Firebase
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const targetUser = await db.collection('users').where('username', '==', followingUsername).limit(1).get();
+      
+      if (targetUser.empty) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const followingEmail = targetUser.docs[0].data().email;
+
+      // Don't allow self-follow
+      if (followerEmail === followingEmail) {
+        return res.status(400).json({ error: 'Cannot follow yourself' });
+      }
+
+      // Check if already following
+      const existing = await storage.db.select().from(userFollows)
+        .where(sql`${userFollows.followerEmail} = ${followerEmail} AND ${userFollows.followingEmail} = ${followingEmail}`);
+      
+      if (existing.length > 0) {
+        return res.json({ success: true, following: true, alreadyFollowing: true });
+      }
+
+      // Add follow
+      await storage.db.insert(userFollows).values({ 
+        followerEmail, 
+        followingEmail, 
+        followingUsername 
+      });
+      
+      console.log(`✅ ${followerEmail} is now following ${followingUsername}`);
+      res.json({ success: true, following: true });
+    } catch (error: any) {
+      console.error('Error following user:', error);
+      res.status(500).json({ error: error.message || 'Failed to follow user' });
+    }
+  });
+
+  // UNFOLLOW USER (PostgreSQL)
+  app.delete('/api/users/:username/follow-pg', async (req, res) => {
+    try {
+      const followerEmail = await getUserEmailFromToken(req.headers.authorization);
+      const followingUsername = req.params.username;
+      
+      if (!storage.db) {
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Get following user's email
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const targetUser = await db.collection('users').where('username', '==', followingUsername).limit(1).get();
+      
+      if (targetUser.empty) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const followingEmail = targetUser.docs[0].data().email;
+
+      // Remove follow
+      await storage.db.delete(userFollows)
+        .where(sql`${userFollows.followerEmail} = ${followerEmail} AND ${userFollows.followingEmail} = ${followingEmail}`);
+      
+      console.log(`✅ ${followerEmail} unfollowed ${followingUsername}`);
+      res.json({ success: true, following: false });
+    } catch (error: any) {
+      console.error('Error unfollowing user:', error);
+      res.status(500).json({ error: error.message || 'Failed to unfollow user' });
+    }
+  });
+
+  // CHECK FOLLOW STATUS (PostgreSQL)
+  app.get('/api/users/:username/follow-status-pg', async (req, res) => {
+    try {
+      const followerEmail = await getUserEmailFromToken(req.headers.authorization);
+      const followingUsername = req.params.username;
+      
+      if (!storage.db) {
+        return res.json({ following: false });
+      }
+
+      // Get following user's email
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const targetUser = await db.collection('users').where('username', '==', followingUsername).limit(1).get();
+      
+      if (targetUser.empty) {
+        return res.json({ following: false });
+      }
+
+      const followingEmail = targetUser.docs[0].data().email;
+
+      const follows = await storage.db.select().from(userFollows)
+        .where(sql`${userFollows.followerEmail} = ${followerEmail} AND ${userFollows.followingEmail} = ${followingEmail}`);
+      
+      res.json({ following: follows.length > 0 });
+    } catch (error) {
+      res.json({ following: false });
     }
   });
 
