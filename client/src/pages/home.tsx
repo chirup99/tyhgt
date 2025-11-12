@@ -44,6 +44,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft } from "lucide-react";
+import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
 
 // Global window type declaration for audio control
 declare global {
@@ -3113,6 +3114,7 @@ ${
   const [showImportModal, setShowImportModal] = useState(false);
   const [importData, setImportData] = useState("");
   const [importError, setImportError] = useState("");
+  const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
@@ -4983,34 +4985,52 @@ ${
   const handleImportData = () => {
     try {
       setImportError("");
+      setParseErrors([]);
 
       if (!importData.trim()) {
         setImportError("Please paste trade data");
         return;
       }
 
-      // Parse the trade data using the new format
-      const parsedData = parseCSVData(importData);
+      // Parse the trade data using the new robust parser
+      const { trades, errors } = parseBrokerTrades(importData);
 
-      if (parsedData.length === 0) {
-        setImportError("No valid trades found in the data. Please check the format.");
+      // Store parse errors for detailed display
+      setParseErrors(errors);
+
+      if (trades.length === 0) {
+        if (errors.length > 0) {
+          setImportError(`No valid trades found. ${errors.length} error(s) detected. See details below.`);
+        } else {
+          setImportError("No valid trades found in the data. Please check the format.");
+        }
         return;
       }
 
-      // Simple P&L calculation without quantity modification
-      const processedData = calculateSimplePnL(parsedData);
+      // Calculate P&L for the successfully parsed trades
+      const processedData = calculateSimplePnL(trades);
 
-      // Final sort by time to ensure chronological order in display
-      const sortedData = processedData.sort((a, b) => {
-        const timeA = convertTimeToComparable(a.time);
-        const timeB = convertTimeToComparable(b.time);
-        return timeA.localeCompare(timeB);
-      });
+      // Set trade history data
+      setTradeHistoryData(processedData);
+      
+      // Show success message with counts
+      if (errors.length > 0) {
+        // Partial import - some trades succeeded, some failed
+        console.log(`✅ Imported ${trades.length} trades successfully. ⚠️ ${errors.length} line(s) had errors.`);
+      } else {
+        // Full success
+        console.log(`✅ Successfully imported all ${trades.length} trades!`);
+      }
 
-      setTradeHistoryData(sortedData);
-      setShowImportModal(false);
-      setImportData("");
-      setShowOrderModal(true);
+      // Close modal and show order modal only if no errors, otherwise keep modal open to show errors
+      if (errors.length === 0) {
+        setShowImportModal(false);
+        setImportData("");
+        setShowOrderModal(true);
+      } else {
+        // Keep modal open to show errors but still set the data
+        setShowOrderModal(true);
+      }
     } catch (error) {
       setImportError(
         error instanceof Error ? error.message : "Unknown error occurred"
@@ -9571,6 +9591,34 @@ ${
                 </div>
               )}
 
+              {parseErrors.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 max-h-48 overflow-y-auto">
+                  <p className="text-sm font-medium text-yellow-800 mb-2">
+                    ⚠️ {parseErrors.length} line(s) could not be parsed:
+                  </p>
+                  <div className="space-y-2">
+                    {parseErrors.map((error, index) => (
+                      <div
+                        key={index}
+                        className="bg-white rounded p-2 text-xs border border-yellow-100"
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="font-mono text-yellow-700">
+                            Line {error.line}:
+                          </span>
+                          <span className="text-red-600 font-medium">
+                            {error.reason}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-gray-600 font-mono truncate">
+                          {error.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 pt-4">
                 <Button
                   variant="outline"
@@ -9578,6 +9626,7 @@ ${
                     setShowImportModal(false);
                     setImportData("");
                     setImportError("");
+                    setParseErrors([]);
                   }}
                 >
                   Cancel
