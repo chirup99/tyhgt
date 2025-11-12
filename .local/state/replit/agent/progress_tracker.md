@@ -1163,3 +1163,13 @@
 [x] 956. Cards preview now sits comfortably above the navigation bar on mobile
 [x] 957. Desktop positioning remains unchanged for optimal placement
 [x] 958. ✅✅ CARDS PREVIEW POSITIONING FIX COMPLETED - No more overlap with navigation bar!
+
+## 🔙 Neo Feed Back Button Fix (November 12, 2025 - 4:25 PM)
+[x] 959. Fixed non-working back button on Neo Feed app bar (right corner)
+[x] 960. Replaced complex onClick handler with simple onBackClick callback (like trading journal)
+[x] 961. Removed fallback setLocation('/app') code that wasn't working
+[x] 962. Changed back button to only render when onBackClick prop is provided (conditional rendering)
+[x] 963. Removed unused setLocation hook from FeedHeader component
+[x] 964. Removed useLocation import since it's no longer needed
+[x] 965. Back button now uses same clean implementation as trading journal tab
+[x] 966. ✅✅ BACK BUTTON FIX COMPLETED - Simple, working implementation matching trading journal!

@@ -637,7 +637,6 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
 }
 
 function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, searchQuery, setSearchQuery, onSearch, showAppBar, onBackClick }: { onAllClick: () => void; isRefreshing: boolean; selectedFilter: string; onFilterChange: (filter: string) => void; searchQuery: string; setSearchQuery: (query: string) => void; onSearch: () => void; showAppBar: boolean; onBackClick?: () => void }) {
-  const [, setLocation] = useLocation();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
 
@@ -762,23 +761,18 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
             ))}
           </div>
           
-          {/* Back Button - Always visible, returns to previous tab or home page */}
-          <Button
-            onClick={() => {
-              console.log('🏠 Back button clicked - returning to previous tab');
-              if (onBackClick) {
-                onBackClick();
-              } else {
-                setLocation('/app');
-              }
-            }}
-            variant="ghost"
-            size="default"
-            className="flex-shrink-0 min-h-10 min-w-10 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-            data-testid="button-back-to-home"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
+          {/* Back Button */}
+          {onBackClick && (
+            <Button
+              onClick={onBackClick}
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 min-h-10 min-w-10 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              data-testid="button-back-to-home"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+          )}
         </div>
       </div>
       </div>
