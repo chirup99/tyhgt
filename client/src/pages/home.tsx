@@ -45,6 +45,7 @@ import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
+import { DEMO_JOURNAL_DATA } from "@/utils/trading-journal-demo";
 
 // Global window type declaration for audio control
 declare global {
@@ -3201,12 +3202,17 @@ ${
   });
 
   // Demo mode state - toggle between demo data (same for all users) and user-specific data
+  // Default to TRUE for new users to show them what the journal can do
   const [isDemoMode, setIsDemoMode] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("tradingJournalDemoMode");
+      // If never set before, default to true (demo mode ON for new users)
+      if (stored === null) {
+        return true;
+      }
       return stored === "true";
     }
-    return false;
+    return true; // Default to demo mode for new users
   });
 
   // Loading state for heatmap data
@@ -3225,8 +3231,31 @@ ${
     return userId;
   };
 
-  // Load all heatmap data on startup
+  // Load demo data when in demo mode
   useEffect(() => {
+    if (isDemoMode) {
+      console.log("🎭 Demo mode enabled - Loading demo journal data (June-September 2025)");
+      setTradingDataByDate(DEMO_JOURNAL_DATA.dataByDate);
+      setCalendarData(DEMO_JOURNAL_DATA.dataByDate);
+      setIsLoadingHeatmapData(false);
+      
+      // Auto-select first demo date (June 2, 2025)
+      const firstDemoDate = new Date(DEMO_JOURNAL_DATA.range.start);
+      firstDemoDate.setDate(2); // June 2, 2025 - first trading day in demo data
+      setSelectedDate(firstDemoDate);
+      
+      console.log("✅ Demo data loaded successfully - June to September 2025");
+    }
+  }, [isDemoMode]);
+
+  // Load all heatmap data on startup (skip if in demo mode)
+  useEffect(() => {
+    // Skip loading from API if in demo mode
+    if (isDemoMode) {
+      console.log("🎭 Skipping API load - Demo mode is active");
+      return;
+    }
+
     const loadAllHeatmapData = async () => {
       console.log("🔄 Loading all heatmap data for color persistence...");
       try {
