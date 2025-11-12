@@ -4732,29 +4732,32 @@ ${
               symbol = parts[startIndex];
               
               // Next field is order (might have pipe or be combined with type)
-              const orderField = (parts[startIndex + 1] || "").toUpperCase();
+              const orderField = (parts[startIndex + 1] || "");
+              
+              // Check for "BUY| NRML" format (order and type in same field with pipe)
               if (orderField.includes("|")) {
-                // Has pipe separator: "BUY|" or "SELL|"
-                order = orderField.replace("|", "").trim();
-                type = (parts[startIndex + 2] || "MIS").toUpperCase();
-                qty = parseInt(parts[startIndex + 3] || "0");
-                price = parseFloat(parts[startIndex + 4] || "0");
-                time = parts[startIndex + 5] || "";
-              } else if (orderField.startsWith("BUY") || orderField.startsWith("SELL")) {
-                // Extract order and type from combined field
-                if (orderField.startsWith("BUY")) {
+                const orderParts = orderField.split("|").map(p => p.trim());
+                order = orderParts[0].toUpperCase();
+                type = (orderParts[1] || "MIS").toUpperCase();
+                qty = parseInt(parts[startIndex + 2] || "0");
+                price = parseFloat(parts[startIndex + 3] || "0");
+                time = parts[startIndex + 4] || "";
+              } else if (orderField.toLowerCase().startsWith("buy") || orderField.toLowerCase().startsWith("sell")) {
+                // Extract order and type from combined field (e.g., "buynrml", "sellmis")
+                const orderFieldUpper = orderField.toUpperCase();
+                if (orderFieldUpper.startsWith("BUY")) {
                   order = "BUY";
-                  type = orderField.replace("BUY", "").trim() || "MIS";
+                  type = orderFieldUpper.replace("BUY", "").trim() || "MIS";
                 } else {
                   order = "SELL";
-                  type = orderField.replace("SELL", "").trim() || "MIS";
+                  type = orderFieldUpper.replace("SELL", "").trim() || "MIS";
                 }
                 qty = parseInt(parts[startIndex + 2] || "0");
                 price = parseFloat(parts[startIndex + 3] || "0");
                 time = parts[startIndex + 4] || "";
               } else {
-                // Separate order and type
-                order = orderField;
+                // Separate order and type fields
+                order = orderField.toUpperCase();
                 type = (parts[startIndex + 2] || "MIS").toUpperCase();
                 qty = parseInt(parts[startIndex + 3] || "0");
                 price = parseFloat(parts[startIndex + 4] || "0");
