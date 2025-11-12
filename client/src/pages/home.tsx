@@ -10065,48 +10065,48 @@ ${
           </DialogContent>
         </Dialog>
 
-        {/* Modern Floating Pill Navigation - Mobile Only */}
+        {/* Minimalist Floating Pill Navigation - Mobile Only */}
         {activeTab === "journal" && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-6 px-4 pointer-events-none">
-            <div className="max-w-sm mx-auto bg-slate-800/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full shadow-2xl border border-slate-700/50 dark:border-slate-600/50 pointer-events-auto">
-              <div className="flex items-center justify-around px-2 py-2">
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-4 px-6 pointer-events-none">
+            <div className="max-w-xs mx-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-full shadow-lg border border-gray-200/50 dark:border-gray-700/50 pointer-events-auto">
+              <div className="flex items-center justify-around px-1.5 py-1.5">
                 {/* Home Tab */}
                 <button
                   onClick={() => setMobileBottomTab("home")}
-                  className={`flex items-center justify-center flex-1 rounded-full py-2.5 transition-all duration-200 ${
+                  className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
                     mobileBottomTab === "home"
-                      ? "bg-blue-500 text-white shadow-lg"
-                      : "text-gray-300 hover:text-white"
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
                   data-testid="mobile-tab-home"
                 >
-                  <HomeIcon className={`h-6 w-6 ${mobileBottomTab === "home" ? "fill-current" : ""}`} />
+                  <HomeIcon className={`h-5 w-5 ${mobileBottomTab === "home" ? "fill-current" : ""}`} />
                 </button>
 
                 {/* Insight Tab */}
                 <button
                   onClick={() => setMobileBottomTab("insight")}
-                  className={`flex items-center justify-center flex-1 rounded-full py-2.5 transition-all duration-200 ${
+                  className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
                     mobileBottomTab === "insight"
-                      ? "bg-blue-500 text-white shadow-lg"
-                      : "text-gray-300 hover:text-white"
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
                   data-testid="mobile-tab-insight"
                 >
-                  <TrendingUp className={`h-6 w-6 ${mobileBottomTab === "insight" ? "stroke-[2.5]" : ""}`} />
+                  <TrendingUp className={`h-5 w-5 ${mobileBottomTab === "insight" ? "stroke-[2.5]" : ""}`} />
                 </button>
 
                 {/* Ranking Tab */}
                 <button
                   onClick={() => setMobileBottomTab("ranking")}
-                  className={`flex items-center justify-center flex-1 rounded-full py-2.5 transition-all duration-200 ${
+                  className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
                     mobileBottomTab === "ranking"
-                      ? "bg-blue-500 text-white shadow-lg"
-                      : "text-gray-300 hover:text-white"
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
                   data-testid="mobile-tab-ranking"
                 >
-                  <Trophy className={`h-6 w-6 ${mobileBottomTab === "ranking" ? "fill-current" : ""}`} />
+                  <Trophy className={`h-5 w-5 ${mobileBottomTab === "ranking" ? "fill-current" : ""}`} />
                 </button>
               </div>
             </div>
