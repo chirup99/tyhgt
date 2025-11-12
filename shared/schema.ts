@@ -94,6 +94,42 @@ export const socialPosts = pgTable("social_posts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Social Post Likes - Track which users liked which posts
+export const socialPostLikes = pgTable("social_post_likes", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => socialPosts.id, { onDelete: 'cascade' }),
+  userEmail: text("user_email").notNull(), // Using email as user identifier (from Firebase)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Social Post Comments - Store comments on posts
+export const socialPostComments = pgTable("social_post_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => socialPosts.id, { onDelete: 'cascade' }),
+  userEmail: text("user_email").notNull(), // User who commented
+  username: text("username").notNull(), // Display username
+  comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Social Post Reposts - Track who reposted which posts
+export const socialPostReposts = pgTable("social_post_reposts", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => socialPosts.id, { onDelete: 'cascade' }),
+  userEmail: text("user_email").notNull(), // User who reposted
+  username: text("username").notNull(), // Display username
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// User Follows - Track user follow relationships
+export const userFollows = pgTable("user_follows", {
+  id: serial("id").primaryKey(),
+  followerEmail: text("follower_email").notNull(), // User who is following
+  followingEmail: text("following_email").notNull(), // User being followed
+  followingUsername: text("following_username").notNull(), // Username of the person being followed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Historical Data Backup - Top 50 Stocks OHLC Data Storage
 export const historicalBackupData = pgTable("historical_backup_data", {
   id: serial("id").primaryKey(),
