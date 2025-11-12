@@ -499,5 +499,6 @@ export class PgStorage implements IStorage {
   }
 }
 
-// Use PostgreSQL storage if DATABASE_URL is available, otherwise fallback to memory storage
-export const storage = process.env.DATABASE_URL ? new PgStorage() : new MemStorage();
+// Firebase-only storage - no PostgreSQL
+import { storage as firebaseStorage } from './firebase-storage';
+export const storage = firebaseStorage;
