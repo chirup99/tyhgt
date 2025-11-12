@@ -45,7 +45,6 @@ import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
-import { DEMO_JOURNAL_DATA } from "@/utils/trading-journal-demo";
 
 // Global window type declaration for audio control
 declare global {
@@ -3202,17 +3201,12 @@ ${
   });
 
   // Demo mode state - toggle between demo data (same for all users) and user-specific data
-  // Default to TRUE for new users to show them what the journal can do
   const [isDemoMode, setIsDemoMode] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("tradingJournalDemoMode");
-      // If never set before, default to true (demo mode ON for new users)
-      if (stored === null) {
-        return true;
-      }
       return stored === "true";
     }
-    return true; // Default to demo mode for new users
+    return false;
   });
 
   // Loading state for heatmap data
@@ -3231,31 +3225,8 @@ ${
     return userId;
   };
 
-  // Load demo data when in demo mode
+  // Load all heatmap data on startup
   useEffect(() => {
-    if (isDemoMode) {
-      console.log("🎭 Demo mode enabled - Loading demo journal data (June-September 2025)");
-      setTradingDataByDate(DEMO_JOURNAL_DATA.dataByDate);
-      setCalendarData(DEMO_JOURNAL_DATA.dataByDate);
-      setIsLoadingHeatmapData(false);
-      
-      // Auto-select first demo date (June 2, 2025)
-      const firstDemoDate = new Date(DEMO_JOURNAL_DATA.range.start);
-      firstDemoDate.setDate(2); // June 2, 2025 - first trading day in demo data
-      setSelectedDate(firstDemoDate);
-      
-      console.log("✅ Demo data loaded successfully - June to September 2025");
-    }
-  }, [isDemoMode]);
-
-  // Load all heatmap data on startup (skip if in demo mode)
-  useEffect(() => {
-    // Skip loading from API if in demo mode
-    if (isDemoMode) {
-      console.log("🎭 Skipping API load - Demo mode is active");
-      return;
-    }
-
     const loadAllHeatmapData = async () => {
       console.log("🔄 Loading all heatmap data for color persistence...");
       try {
@@ -3395,7 +3366,7 @@ ${
     };
 
     loadAllHeatmapData();
-  }, [isDemoMode]); // Re-run when demo mode changes
+  }, []);
 
   // Images state for saving (with proper type)
   const [tradingImages, setTradingImages] = useState<any[]>([]);
@@ -3781,16 +3752,7 @@ ${
   // Date range selection state
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
-  // Default to 2025 for demo mode, current year for user mode
-  const [heatmapYear, setHeatmapYear] = useState(() => {
-    if (typeof window !== "undefined") {
-      const demoMode = localStorage.getItem("tradingJournalDemoMode");
-      if (demoMode === null || demoMode === "true") {
-        return 2025; // Demo data is in 2025
-      }
-    }
-    return new Date().getFullYear();
-  });
+  const [heatmapYear, setHeatmapYear] = useState(new Date().getFullYear());
   const [isCalendarDataFetched, setIsCalendarDataFetched] = useState(false);
 
   // Auto-set calendar data fetched when both dates are selected
@@ -7431,6 +7393,9 @@ ${
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 mr-2">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                Demo
+                              </span>
                               <Switch
                                 checked={isDemoMode}
                                 onCheckedChange={(checked) => {
@@ -7439,8 +7404,6 @@ ${
                                     "tradingJournalDemoMode",
                                     String(checked),
                                   );
-                                  // Update heatmap year when toggling demo mode
-                                  setHeatmapYear(checked ? 2025 : new Date().getFullYear());
                                   if (!checked) {
                                     setTradingDataByDate({});
                                     localStorage.removeItem(
@@ -7450,9 +7413,6 @@ ${
                                 }}
                                 data-testid="switch-demo-mode"
                               />
-                              <span className="text-xs text-gray-600 dark:text-gray-400">
-                                {isDemoMode ? "Demo Mode (June-Sep 2025)" : "Your Journal"}
-                              </span>
                             </div>
                             <Button
                               variant="outline"
