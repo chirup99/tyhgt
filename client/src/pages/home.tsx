@@ -6783,12 +6783,12 @@ ${
 
                         {/* Bottom 70% - Notes Section */}
                         <div className="h-[70%] flex flex-col">
-                          <CardContent className="p-4 flex-1 flex flex-col">
-                            <div className="flex items-center justify-between mb-3">
-                              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                          <CardContent className="p-2 flex-1 flex flex-col">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
                                 TRADING NOTES
                               </h3>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
                                 {/* Tag Dropdown */}
                                 <Popover
                                   open={isTagDropdownOpen}
@@ -6964,19 +6964,19 @@ ${
                                   setTempNotesContent(e.target.value)
                                 }
                                 placeholder="Write your trading notes, strategies, observations..."
-                                className="flex-1 w-full p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="flex-1 w-full p-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 data-testid="textarea-notes"
                               />
                             ) : (
-                              <div className="flex-1 w-full p-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto custom-thin-scrollbar">
+                              <div className="flex-1 w-full p-2 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto custom-thin-scrollbar">
                                 {/* Display tags inline when they exist */}
                                 {selectedTags.length > 0 && (
-                                  <div className="mb-3 pb-3 border-b border-gray-300 dark:border-gray-600">
+                                  <div className="mb-2 pb-2 border-b border-gray-300 dark:border-gray-600">
                                     <div className="flex flex-wrap gap-1">
                                       {selectedTags.map((tag) => (
                                         <span
                                           key={tag}
-                                          className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors group"
+                                          className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors group"
                                           onClick={() => toggleTag(tag)}
                                           title="Click to remove tag"
                                           data-testid={`inline-tag-${tag}`}
