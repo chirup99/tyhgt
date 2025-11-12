@@ -792,6 +792,11 @@ function ProfileHeader() {
   const [profileData, setProfileData] = useState<any>(null);
   const [postCount, setPostCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch real user profile data from Firebase
   useEffect(() => {
@@ -826,8 +831,8 @@ function ProfileHeader() {
     loadProfileData();
   }, []);
 
-  // Fetch user's post count from all posts
-  const { data: allPosts = [] } = useQuery({
+  // Fetch all posts
+  const { data: allPosts = [], refetch: refetchPosts } = useQuery({
     queryKey: ['/api/social-posts'],
     queryFn: async (): Promise<SocialPost[]> => {
       const response = await fetch(`/api/social-posts?refresh=${Date.now()}`);
@@ -836,23 +841,75 @@ function ProfileHeader() {
     }
   });
 
-  // Count user's posts
+  // Filter user's posts
+  const userPosts = allPosts.filter(post => 
+    profileData && post.authorUsername === profileData.username
+  );
+
   useEffect(() => {
-    if (allPosts && profileData) {
-      const userPosts = allPosts.filter(post => 
-        post.authorUsername === profileData.username
-      );
+    if (profileData) {
       setPostCount(userPosts.length);
     }
-  }, [allPosts, profileData]);
+  }, [userPosts.length, profileData]);
+
+  // Delete post mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const idToken = await currentUser?.getIdToken();
+      const response = await fetch(`/api/social-posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to delete post');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      refetchPosts();
+      toast({ description: "Post deleted successfully!" });
+      setShowDeleteConfirm(null);
+    },
+    onError: () => {
+      toast({ description: "Failed to delete post", variant: "destructive" });
+    }
+  });
+
+  // Edit post mutation
+  const editMutation = useMutation({
+    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+      const idToken = await currentUser?.getIdToken();
+      const response = await fetch(`/api/social-posts/${postId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ content })
+      });
+      if (!response.ok) throw new Error('Failed to update post');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      refetchPosts();
+      toast({ description: "Post updated successfully!" });
+      setEditingPost(null);
+    },
+    onError: () => {
+      toast({ description: "Failed to update post", variant: "destructive" });
+    }
+  });
 
   const displayName = profileData?.displayName || currentUser?.displayName || '';
   const username = profileData?.username || currentUser?.email?.split('@')[0] || '';
   const bio = profileData?.bio || '';
   const following = profileData?.following || 0;
   const followers = profileData?.followers || 0;
+  const profilePicUrl = profileData?.profilePicUrl;
+  const coverPicUrl = profileData?.coverPicUrl;
 
-  // Get user initials for avatar
   const initials = displayName ? displayName.charAt(0).toUpperCase() : username.charAt(0).toUpperCase();
 
   if (isLoading) {
@@ -868,86 +925,373 @@ function ProfileHeader() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 mb-6">
-      {/* Cover Photo */}
-      <div className="h-48 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 relative">
-        {/* Profile Picture - overlapping cover */}
-        <div className="absolute -bottom-16 left-4">
-          <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-800">
-            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-4xl font-bold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      </div>
-
-      {/* Profile Info */}
-      <div className="pt-20 px-4 pb-4">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="text-gray-900 dark:text-white font-bold text-2xl flex items-center gap-2">
-              {displayName || username}
-              <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-current" />
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">@{username}</p>
-          </div>
-          <Button variant="outline" className="rounded-full px-6 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-            Edit profile
-          </Button>
-        </div>
-
-        {/* Bio */}
-        {bio && (
-          <p className="text-gray-900 dark:text-white mb-4 text-base">
-            {bio}
-          </p>
-        )}
-
-        {/* Meta Info */}
-        <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            <span>India</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            <span>Joined {new Date().getFullYear()}</span>
-          </div>
-        </div>
-
-        {/* Follower Stats - Real data from Firebase */}
-        <div className="flex gap-4 text-sm mb-4">
-          <button className="hover:underline">
-            <span className="font-bold text-gray-900 dark:text-white">{following}</span>
-            <span className="text-gray-600 dark:text-gray-400 ml-1">Following</span>
-          </button>
-          <button className="hover:underline">
-            <span className="font-bold text-gray-900 dark:text-white">{followers}</span>
-            <span className="text-gray-600 dark:text-gray-400 ml-1">Followers</span>
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-8 border-b border-gray-200 dark:border-gray-700">
-          {[`Posts ${postCount > 0 ? `(${postCount})` : ''}`, 'Media', 'Likes'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab.split(' ')[0])}
-              className={`pb-3 px-2 font-medium transition-colors relative ${
-                activeTab === tab.split(' ')[0]
-                  ? 'text-gray-900 dark:text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              {tab}
-              {activeTab === tab.split(' ')[0] && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full"></div>
+    <>
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 mb-6">
+        {/* Cover Photo */}
+        <div className={`h-48 relative ${coverPicUrl ? '' : 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'}`}>
+          {coverPicUrl && (
+            <img src={coverPicUrl} alt="Cover" className="w-full h-full object-cover" />
+          )}
+          {/* Profile Picture - overlapping cover */}
+          <div className="absolute -bottom-16 left-4">
+            <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-800">
+              {profilePicUrl ? (
+                <AvatarImage src={profilePicUrl} />
+              ) : (
+                <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-4xl font-bold">
+                  {initials}
+                </AvatarFallback>
               )}
+            </Avatar>
+          </div>
+        </div>
+
+        {/* Profile Info */}
+        <div className="pt-20 px-4 pb-4">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-gray-900 dark:text-white font-bold text-2xl flex items-center gap-2">
+                {displayName || username}
+                <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-current" />
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">@{username}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              className="rounded-full px-6 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => setShowEditProfile(true)}
+              data-testid="button-edit-profile"
+            >
+              Edit profile
+            </Button>
+          </div>
+
+          {bio && (
+            <p className="text-gray-900 dark:text-white mb-4 text-base">{bio}</p>
+          )}
+
+          <div className="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400 text-sm mb-4">
+            <div className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              <span>India</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              <span>Joined {new Date().getFullYear()}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-4 text-sm mb-4">
+            <button className="hover:underline">
+              <span className="font-bold text-gray-900 dark:text-white">{following}</span>
+              <span className="text-gray-600 dark:text-gray-400 ml-1">Following</span>
             </button>
-          ))}
+            <button className="hover:underline">
+              <span className="font-bold text-gray-900 dark:text-white">{followers}</span>
+              <span className="text-gray-600 dark:text-gray-400 ml-1">Followers</span>
+            </button>
+          </div>
+
+          <div className="flex gap-8 border-b border-gray-200 dark:border-gray-700">
+            {[`Posts ${postCount > 0 ? `(${postCount})` : ''}`, 'Media', 'Likes'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab.split(' ')[0])}
+                className={`pb-3 px-2 font-medium transition-colors relative ${
+                  activeTab === tab.split(' ')[0]
+                    ? 'text-gray-900 dark:text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+                data-testid={`button-tab-${tab.split(' ')[0].toLowerCase()}`}
+              >
+                {tab}
+                {activeTab === tab.split(' ')[0] && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full"></div>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* User Posts Display */}
+      {activeTab === 'Posts' && (
+        <div className="space-y-4 mb-6">
+          {userPosts.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400">No posts yet</p>
+            </Card>
+          ) : (
+            userPosts.map((post) => (
+              <Card key={post.id} className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-10 h-10">
+                      {profilePicUrl ? (
+                        <AvatarImage src={profilePicUrl} />
+                      ) : (
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">{displayName || username}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">@{username}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setEditingPost(post)}
+                      data-testid={`button-edit-post-${post.id}`}
+                    >
+                      <PenTool className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setShowDeleteConfirm(String(post.id))}
+                      data-testid={`button-delete-post-${post.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+                <CardContent className="p-0">
+                  <p className="text-gray-900 dark:text-white mb-2">{post.content}</p>
+                  {post.imageUrl && (
+                    <img src={post.imageUrl} alt="Post" className="rounded-lg w-full max-h-96 object-cover" />
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Edit Profile Dialog */}
+      <EditProfileDialog
+        isOpen={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+        profileData={profileData}
+        onSuccess={() => {
+          setShowEditProfile(false);
+          window.location.reload();
+        }}
+      />
+
+      {/* Edit Post Dialog */}
+      {editingPost && (
+        <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Post</DialogTitle>
+            </DialogHeader>
+            <Textarea
+              defaultValue={editingPost.content}
+              id="edit-content"
+              rows={4}
+              data-testid="textarea-edit-post"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEditingPost(null)} data-testid="button-cancel-edit">
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  const content = (document.getElementById('edit-content') as HTMLTextAreaElement)?.value;
+                  if (content) {
+                    editMutation.mutate({ postId: editingPost.id, content });
+                  }
+                }}
+                disabled={editMutation.isPending}
+                data-testid="button-save-edit"
+              >
+                {editMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <Dialog open={!!showDeleteConfirm} onOpenChange={() => setShowDeleteConfirm(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Post</DialogTitle>
+            </DialogHeader>
+            <p className="text-gray-600 dark:text-gray-400">Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(null)} data-testid="button-cancel-delete">
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => deleteMutation.mutate(showDeleteConfirm)}
+                disabled={deleteMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
+function EditProfileDialog({ isOpen, onClose, profileData, onSuccess }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  profileData: any;
+  onSuccess: () => void;
+}) {
+  const [username, setUsername] = useState(profileData?.username || '');
+  const [displayName, setDisplayName] = useState(profileData?.displayName || '');
+  const [bio, setBio] = useState(profileData?.bio || '');
+  const [uploading, setUploading] = useState(false);
+  const [profilePicUrl, setProfilePicUrl] = useState(profileData?.profilePicUrl || '');
+  const [coverPicUrl, setCoverPicUrl] = useState(profileData?.coverPicUrl || '');
+  const { toast } = useToast();
+  const currentUser = auth.currentUser;
+
+  const handleFileUpload = async (file: File, type: 'profile' | 'cover') => {
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      const idToken = await currentUser?.getIdToken();
+      const response = await fetch('/api/upload-profile-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+      
+      const { url } = await response.json();
+      
+      if (type === 'profile') {
+        setProfilePicUrl(url);
+      } else {
+        setCoverPicUrl(url);
+      }
+      
+      toast({ description: `${type === 'profile' ? 'Profile' : 'Cover'} photo uploaded successfully!` });
+    } catch (error) {
+      toast({ description: "Failed to upload image", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const idToken = await currentUser?.getIdToken();
+      const response = await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          username,
+          displayName,
+          bio,
+          profilePicUrl,
+          coverPicUrl
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update profile');
+
+      toast({ description: "Profile updated successfully!" });
+      onSuccess();
+    } catch (error) {
+      toast({ description: "Failed to update profile", variant: "destructive" });
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Username</label>
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter username"
+              data-testid="input-username"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Display Name</label>
+            <Input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Enter display name"
+              data-testid="input-displayname"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Bio</label>
+            <Textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell us about yourself"
+              rows={3}
+              data-testid="textarea-bio"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Profile Picture</label>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'profile')}
+              disabled={uploading}
+              data-testid="input-profile-pic"
+            />
+            {profilePicUrl && (
+              <img src={profilePicUrl} alt="Profile preview" className="mt-2 w-20 h-20 rounded-full object-cover" />
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Cover Picture</label>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'cover')}
+              disabled={uploading}
+              data-testid="input-cover-pic"
+            />
+            {coverPicUrl && (
+              <img src={coverPicUrl} alt="Cover preview" className="mt-2 w-full h-32 rounded-lg object-cover" />
+            )}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={onClose} data-testid="button-cancel-profile">
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={uploading} data-testid="button-save-profile">
+              {uploading ? 'Uploading...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -2168,10 +2512,12 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
         showAppBar={showAppBar}
       />
       
-      {/* Live Banner - Spans full width */}
-      <div className="px-4 py-4 max-w-7xl mx-auto">
-        <LiveBanner />
-      </div>
+      {/* Live Banner - Spans full width (Hidden in Profile view) */}
+      {selectedFilter !== 'Profile' && (
+        <div className="px-4 py-4 max-w-7xl mx-auto">
+          <LiveBanner />
+        </div>
+      )}
       
       {/* Main Content Area with Post Creation Panel on Right */}
       <div className="flex-1 flex gap-2 xl:gap-4 px-2 md:px-3 py-2 md:py-3 max-w-6xl mx-auto">

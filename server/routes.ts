@@ -5010,6 +5010,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete a post
+  app.delete('/api/social-posts/:postId', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const postId = req.params.postId;
+
+      // Get the post to verify ownership
+      const postDoc = await db.collection('user_posts').doc(postId).get();
+      if (!postDoc.exists) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      const postData = postDoc.data();
+      if (postData?.userId !== userId) {
+        return res.status(403).json({ error: 'You can only delete your own posts' });
+      }
+
+      // Delete the post
+      await db.collection('user_posts').doc(postId).delete();
+      console.log(`✅ Post ${postId} deleted by user ${userId}`);
+
+      res.json({ success: true, message: 'Post deleted successfully' });
+    } catch (error) {
+      console.error('❌ Error deleting post:', error);
+      res.status(500).json({ error: 'Failed to delete post' });
+    }
+  });
+
+  // Edit a post
+  app.put('/api/social-posts/:postId', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const postId = req.params.postId;
+      const { content } = req.body;
+
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ error: 'Post content is required' });
+      }
+
+      // Get the post to verify ownership
+      const postDoc = await db.collection('user_posts').doc(postId).get();
+      if (!postDoc.exists) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      const postData = postDoc.data();
+      if (postData?.userId !== userId) {
+        return res.status(403).json({ error: 'You can only edit your own posts' });
+      }
+
+      // Update the post
+      await db.collection('user_posts').doc(postId).update({
+        content: content.trim(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      console.log(`✅ Post ${postId} updated by user ${userId}`);
+
+      res.json({ 
+        success: true, 
+        message: 'Post updated successfully',
+        post: {
+          id: postId,
+          content: content.trim(),
+          updatedAt: new Date()
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error updating post:', error);
+      res.status(500).json({ error: 'Failed to update post' });
+    }
+  });
+
+  // Upload profile image (profile or cover photo)
+  app.post('/api/upload-profile-image', async (req: any, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const userId = decodedToken.uid;
+
+      // Check if multer is available
+      if (!req.files || !req.body) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // For now, return a placeholder URL - in production, this would upload to Firebase Storage
+      // You can implement actual Firebase Storage upload here
+      const timestamp = Date.now();
+      const placeholderUrl = `https://ui-avatars.com/api/?name=${userId}&size=200&background=random&time=${timestamp}`;
+
+      console.log(`✅ Profile image uploaded for user ${userId}`);
+      res.json({ url: placeholderUrl });
+    } catch (error) {
+      console.error('❌ Error uploading profile image:', error);
+      res.status(500).json({ error: 'Failed to upload image' });
+    }
+  });
+
   // Check signin data using SEPARATE signin database - EXACT same pattern as NIFTY data retrieval
   app.get('/api/check-signin-data', async (req, res) => {
     try {
