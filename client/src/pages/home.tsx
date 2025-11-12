@@ -3395,7 +3395,7 @@ ${
     };
 
     loadAllHeatmapData();
-  }, []);
+  }, [isDemoMode]); // Re-run when demo mode changes
 
   // Images state for saving (with proper type)
   const [tradingImages, setTradingImages] = useState<any[]>([]);
