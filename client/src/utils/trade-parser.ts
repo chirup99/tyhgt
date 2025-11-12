@@ -222,6 +222,21 @@ function normalizeSymbol(symbol: string): string {
 }
 
 /**
+ * Safely parses a numeric string, handling commas and currency symbols
+ */
+function parseNumeric(value: string): number {
+  if (!value) return 0;
+  
+  // Remove common currency symbols and separators
+  const cleaned = value
+    .replace(/[₹$,\s]/g, "")  // Remove ₹, $, commas, and spaces
+    .trim();
+  
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
+/**
  * Normalizes a single record into a ParsedTrade
  */
 export function normalizeRecord(
@@ -256,17 +271,17 @@ export function normalizeRecord(
         : "MIS";
       
       qty = columnMap.qtyIndex >= 0 && tokens[columnMap.qtyIndex]
-        ? parseFloat(tokens[columnMap.qtyIndex])
+        ? parseNumeric(tokens[columnMap.qtyIndex])
         : 0;
       
       price = columnMap.priceIndex >= 0 && tokens[columnMap.priceIndex]
-        ? parseFloat(tokens[columnMap.priceIndex])
+        ? parseNumeric(tokens[columnMap.priceIndex])
         : 0;
 
       // If qty or price not found in mapped columns, search all tokens
       if (qty === 0 || price === 0) {
         const numbers = tokens
-          .map(t => parseFloat(t))
+          .map(t => parseNumeric(t))
           .filter(n => !isNaN(n) && n > 0);
         
         if (qty === 0 && numbers.length > 0) {
@@ -298,16 +313,16 @@ export function normalizeRecord(
           // TIME, ORDER, SYMBOL, TYPE, QTY, PRICE
           symbol = normalizeSymbol(tokens[2] || "");
           type = (tokens[3] || "MIS").toUpperCase().replace(/[|\s]/g, "");
-          qty = parseFloat(tokens[4] || "0");
-          price = parseFloat(tokens[5] || "0");
+          qty = parseNumeric(tokens[4] || "0");
+          price = parseNumeric(tokens[5] || "0");
         } else {
           // TIME, SYMBOL, ORDER/TYPE, QTY, PRICE
           symbol = normalizeSymbol(tokens[1] || "");
           const orderTypeField = tokens[2] || "";
           order = extractOrder(orderTypeField);
           type = orderTypeField.toUpperCase().replace(/BUY|SELL/g, "").replace(/[|\s]/g, "").trim() || "MIS";
-          qty = parseFloat(tokens[3] || "0");
-          price = parseFloat(tokens[4] || "0");
+          qty = parseNumeric(tokens[3] || "0");
+          price = parseNumeric(tokens[4] || "0");
         }
       } else {
         // Format: SYMBOL, ORDER/TYPE, QTY, PRICE, TIME
@@ -320,14 +335,14 @@ export function normalizeRecord(
           const parts = orderTypeField.split("|").map(p => p.trim());
           order = extractOrder(parts[0]);
           type = (parts[1] || "MIS").toUpperCase();
-          qty = parseFloat(tokens[2] || "0");
-          price = parseFloat(tokens[3] || "0");
+          qty = parseNumeric(tokens[2] || "0");
+          price = parseNumeric(tokens[3] || "0");
           time = normalizeTime(tokens[4] || "");
         } else {
           order = extractOrder(orderTypeField);
           type = orderTypeField.toUpperCase().replace(/BUY|SELL/g, "").replace(/[|\s]/g, "").trim() || "MIS";
-          qty = parseFloat(tokens[2] || "0");
-          price = parseFloat(tokens[3] || "0");
+          qty = parseNumeric(tokens[2] || "0");
+          price = parseNumeric(tokens[3] || "0");
           time = normalizeTime(tokens[4] || tokens[5] || "");
         }
       }
@@ -354,7 +369,7 @@ export function normalizeRecord(
 
       if (qty === 0 || price === 0) {
         const numbers = tokens
-          .map(t => parseFloat(t))
+          .map(t => parseNumeric(t))
           .filter(n => !isNaN(n) && n > 0);
         
         if (qty === 0 && numbers.length > 0) {
@@ -367,6 +382,31 @@ export function normalizeRecord(
           if (priceCandidate) price = priceCandidate;
         }
       }
+    }
+
+    // Validate that parsed quantities and prices are valid
+    if (qty > 0 && qty < 1) {
+      // Likely a parsing error (e.g., "1,234" became "1")
+      return {
+        trade: null,
+        error: {
+          line: lineNum,
+          content: tokens.join(" | "),
+          reason: "Invalid quantity detected (possible comma-formatting issue)",
+        },
+      };
+    }
+
+    if (price > 0 && price < 0.01) {
+      // Likely a parsing error
+      return {
+        trade: null,
+        error: {
+          line: lineNum,
+          content: tokens.join(" | "),
+          reason: "Invalid price detected (possible comma-formatting issue)",
+        },
+      };
     }
 
     // Clean up type
