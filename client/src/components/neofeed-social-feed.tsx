@@ -10,7 +10,7 @@ import {
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
   Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
-  ChevronDown, ChevronUp, ArrowLeft, Check, Radio
+  ChevronDown, ChevronUp, ArrowLeft, Check, Layers, Mic
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -1528,7 +1528,7 @@ function PostCard({ post }: { post: FeedPost }) {
             {/* Audio mode indicator */}
             {isAudioMode && (
               <div className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
-                <Radio className="w-3 h-3" />
+                <Mic className="w-3 h-3" />
                 <span>Select text</span>
               </div>
             )}
@@ -2255,14 +2255,10 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
             {/* Home Icon */}
             <button
               onClick={() => handleFilterChange('All')}
-              className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
-                selectedFilter === 'All'
-                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              }`}
+              className="flex items-center justify-center flex-1 rounded-full px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
               data-testid="button-home-mobile"
             >
-              <Home className={`h-5 w-5 ${selectedFilter === 'All' ? "fill-current" : ""}`} />
+              <Home className="h-5 w-5" />
             </button>
 
             {/* Plus Icon (Create Post) */}
@@ -2274,13 +2270,13 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
               <Plus className="h-5 w-5" />
             </button>
 
-            {/* Audio Repost Icon */}
+            {/* Cards Swiping Icon */}
             <button
               onClick={() => setShowMobileAudioMinicast(true)}
               className="flex items-center justify-center flex-1 rounded-full px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
-              data-testid="button-audio-repost-mobile"
+              data-testid="button-cards-mobile"
             >
-              <Radio className="h-5 w-5" />
+              <Layers className="h-5 w-5" />
             </button>
           </div>
         </div>
