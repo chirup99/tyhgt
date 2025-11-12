@@ -8723,6 +8723,7 @@ ${
                             );
                           })()}
                         </div>
+                        </div>
 
                         {/* Disciplined Trading Insights */}
                         <div className="col-span-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-8 text-white shadow-2xl mt-6">
