@@ -6498,7 +6498,7 @@ ${
                 >
                   {/* PERFORMANCE TIMELINE - Responsive Three Blocks */}
                   {/* Desktop: 3-column grid | Mobile: Single panel with carousel */}
-                  <div className="relative">
+                  <div className="relative mb-6">
                     {/* Desktop: Grid Layout | Mobile: Single Panel */}
                     <div className="md:grid md:grid-cols-3 gap-6">
                       {/* Left Block - Performance Chart */}
@@ -6506,9 +6506,9 @@ ${
                         className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
                       >
                         {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
-                        <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg">
-                          <div className="p-4 h-full flex flex-col">
-                            <div className="flex items-center justify-between mb-3">
+                        <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+                          <div className="h-full flex flex-col">
+                            <div className="flex items-center justify-between px-2 py-2">
                               <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                                 {/* Stock Search Button - Mobile Compact */}
                                 <Popover
@@ -6659,10 +6659,10 @@ ${
                               </div>
                             </div>
 
-                            {/* Visual Chart Window */}
-                            <div className="flex-1 relative">
+                            {/* Visual Chart Window - Full Width No Padding */}
+                            <div className="flex-1 relative -mx-0">
                               <MinimalChart
-                                height={320}
+                                height={350}
                                 ohlcData={journalChartData}
                                 symbol={selectedJournalSymbol
                                   .replace("NSE:", "")

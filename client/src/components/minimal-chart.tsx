@@ -690,7 +690,7 @@ export function MinimalChart({
   const [chartState, setChartState] = useState({
     scrollOffset: 0,
     zoomLevel: 1,
-    priceScaleWidth: 80,
+    priceScaleWidth: 45,
     isExpanded: false,
     isDraggingPriceScale: false,
     isDragging: false,
