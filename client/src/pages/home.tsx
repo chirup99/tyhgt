@@ -6647,44 +6647,14 @@ ${
                                   <option value="30">30m</option>
                                 </select>
 
-                                {/* Date Picker - Mobile Icon Only */}
-                                <div className="relative">
-                                  <input
-                                    type="date"
-                                    className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm w-8 md:w-auto opacity-0 md:opacity-100 absolute md:relative"
-                                    value={selectedJournalDate}
-                                    onChange={(e) =>
-                                      setSelectedJournalDate(e.target.value)
-                                    }
-                                    data-testid="input-date"
-                                  />
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="md:hidden bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 w-8 p-0"
-                                    onClick={() => {
-                                      const input = document.querySelector(
-                                        '[data-testid="input-date"]',
-                                      ) as HTMLInputElement;
-                                      input?.showPicker?.();
-                                    }}
-                                    data-testid="button-date-picker"
-                                  >
-                                    <Calendar className="h-3 w-3" />
-                                  </Button>
-                                </div>
-
-                                {/* Fetch Button - Mobile Icon Only */}
+                                {/* Fetch Button - Icon Only */}
                                 <Button
                                   size="sm"
                                   onClick={fetchJournalChartData}
-                                  className="bg-green-600 hover:bg-green-700 text-white h-8 px-2 md:px-3"
+                                  className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
                                   data-testid="button-fetch-chart"
                                 >
-                                  <Check className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
-                                  <span className="hidden md:inline text-xs md:text-sm">
-                                    Fetch
-                                  </span>
+                                  <Check className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
