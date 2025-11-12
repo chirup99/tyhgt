@@ -4643,86 +4643,174 @@ ${
               .filter((part) => part.length > 0);
           }
 
-          // Simple direct mapping approach - expect fields in order
+          // Smart broker format detection
           if (parts.length >= 4) {
-            let startIndex = 0;
+            let time = "";
+            let order = "";
+            let symbol = "";
+            let type = "MIS";
+            let qty = 0;
+            let price = 0;
 
-            // Check if first column is a date (like "10-Jun", "10/06", etc.)
+            // Detect format by checking first field
+            const firstField = parts[0];
+            const isTimeFirst = firstField && /^\d{1,2}:\d{2}(:\d{2})?/.test(firstField);
+            
+            // Check if there's a date column
+            let startIndex = 0;
             if (
               parts[0] &&
               (parts[0].includes("-") || parts[0].includes("/")) &&
               parts[1] &&
-              (parts[1].includes(":") ||
-                parts[1].includes("AM") ||
-                parts[1].includes("PM"))
+              /\d{1,2}:\d{2}/.test(parts[1])
             ) {
-              // Format: Date, Time, Order, Symbol, Type, Qty, Price
               startIndex = 1; // Skip the date column
             }
 
-            // Expected format: Time, Order, Symbol, Type, Qty, Price (with optional date at start)
-            let time = parts[startIndex] || "";
-            let order = parts[startIndex + 1] || "";
-            let symbol = parts[startIndex + 2] || "";
-            let type = parts[startIndex + 3] || "MIS";
-            let qtyStr = parts[startIndex + 4] || "";
-            let priceStr = parts[startIndex + 5] || parts[startIndex + 4] || ""; // Price might be in position 4 or 5
-
-            // Clean up time (handle "9:57:26 AM" format)
-            if (
-              time &&
-              !time.includes("AM") &&
-              !time.includes("PM") &&
-              parts.length > startIndex + 1
-            ) {
-              // Check if next part is AM/PM
-              if (
-                parts[startIndex + 1] &&
-                (parts[startIndex + 1].toUpperCase() === "AM" ||
-                  parts[startIndex + 1].toUpperCase() === "PM")
-              ) {
+            if (isTimeFirst || (startIndex === 1 && /^\d{1,2}:\d{2}/.test(parts[startIndex]))) {
+              // FORMAT 1: Time first (most common)
+              // Time, Symbol/Order, Other fields...
+              time = parts[startIndex];
+              
+              // Handle AM/PM
+              if (parts[startIndex + 1] && /^(AM|PM)$/i.test(parts[startIndex + 1])) {
                 time = `${time} ${parts[startIndex + 1]}`;
-                order = parts[startIndex + 2] || "";
-                symbol = parts[startIndex + 3] || "";
-                type = parts[startIndex + 4] || "MIS";
-                qtyStr = parts[startIndex + 5] || "";
-                priceStr = parts[startIndex + 6] || parts[startIndex + 5] || "";
+                startIndex++;
+              }
+
+              // Next field could be symbol or order
+              let nextFieldIndex = startIndex + 1;
+              let nextField = parts[nextFieldIndex] || "";
+              
+              // Check if it's an order type (BUY/SELL with optional pipe)
+              const orderMatch = nextField.match(/^(BUY|SELL)\|?$/i);
+              if (orderMatch) {
+                // Standard format: Time, Order, Symbol, Type, Qty, Price
+                order = orderMatch[1].toUpperCase();
+                symbol = parts[nextFieldIndex + 1] || "";
+                type = parts[nextFieldIndex + 2] || "MIS";
+                qty = parseInt(parts[nextFieldIndex + 3] || "0");
+                price = parseFloat(parts[nextFieldIndex + 4] || "0");
+              } else {
+                // Alternative: Time, Symbol, OrderType(combined), Qty, Price
+                symbol = nextField;
+                
+                // Next field might be combined order+type (e.g., "buynrml", "sellmis")
+                const combinedField = (parts[nextFieldIndex + 1] || "").toLowerCase();
+                if (combinedField.startsWith("buy")) {
+                  order = "BUY";
+                  type = combinedField.replace("buy", "").toUpperCase() || "MIS";
+                } else if (combinedField.startsWith("sell")) {
+                  order = "SELL";
+                  type = combinedField.replace("sell", "").toUpperCase() || "MIS";
+                } else {
+                  // Might be separate order and type
+                  order = (parts[nextFieldIndex + 1] || "").toUpperCase().replace("|", "");
+                  type = (parts[nextFieldIndex + 2] || "MIS").toUpperCase();
+                }
+                
+                // Get qty and price
+                const remainingParts = parts.slice(nextFieldIndex + 2);
+                for (const part of remainingParts) {
+                  const num = parseFloat(part);
+                  if (!isNaN(num) && num > 0) {
+                    if (qty === 0 && num >= 1) {
+                      qty = Math.floor(num);
+                    } else if (price === 0) {
+                      price = num;
+                    }
+                  }
+                }
+              }
+            } else {
+              // FORMAT 2: Symbol first (legacy format)
+              // Symbol, Order|Type, Qty, Price, Time
+              symbol = parts[startIndex];
+              
+              // Next field is order (might have pipe or be combined with type)
+              const orderField = (parts[startIndex + 1] || "").toUpperCase();
+              if (orderField.includes("|")) {
+                // Has pipe separator: "BUY|" or "SELL|"
+                order = orderField.replace("|", "").trim();
+                type = (parts[startIndex + 2] || "MIS").toUpperCase();
+                qty = parseInt(parts[startIndex + 3] || "0");
+                price = parseFloat(parts[startIndex + 4] || "0");
+                time = parts[startIndex + 5] || "";
+              } else if (orderField.startsWith("BUY") || orderField.startsWith("SELL")) {
+                // Extract order and type from combined field
+                if (orderField.startsWith("BUY")) {
+                  order = "BUY";
+                  type = orderField.replace("BUY", "").trim() || "MIS";
+                } else {
+                  order = "SELL";
+                  type = orderField.replace("SELL", "").trim() || "MIS";
+                }
+                qty = parseInt(parts[startIndex + 2] || "0");
+                price = parseFloat(parts[startIndex + 3] || "0");
+                time = parts[startIndex + 4] || "";
+              } else {
+                // Separate order and type
+                order = orderField;
+                type = (parts[startIndex + 2] || "MIS").toUpperCase();
+                qty = parseInt(parts[startIndex + 3] || "0");
+                price = parseFloat(parts[startIndex + 4] || "0");
+                time = parts[startIndex + 5] || "";
               }
             }
 
-            // Extract quantity from "225 / 225" format
-            let qty = 0;
-            if (qtyStr) {
-              const qtyMatch = qtyStr.match(/(\d+)/);
-              if (qtyMatch) {
-                qty = parseInt(qtyMatch[1]);
+            // Extract quantity from "225 / 225" format if needed
+            if (qty === 0) {
+              for (const part of parts) {
+                const qtyMatch = part.match(/(\d+)/);
+                if (qtyMatch) {
+                  const testQty = parseInt(qtyMatch[1]);
+                  if (testQty > 0 && testQty < 100000) {
+                    qty = testQty;
+                    break;
+                  }
+                }
               }
             }
 
-            // Extract price from "200.00 / 200.00 trg." format
-            let price = 0;
-            if (priceStr) {
-              const priceMatch = priceStr.match(/(\d+\.?\d*)/);
-              if (priceMatch) {
-                price = parseFloat(priceMatch[1]);
+            // Extract price from "200.00 / 200.00 trg." format if needed
+            if (price === 0) {
+              for (const part of parts) {
+                const priceMatch = part.match(/(\d+\.?\d*)/);
+                if (priceMatch) {
+                  const testPrice = parseFloat(priceMatch[1]);
+                  if (testPrice > 0 && testPrice < 100000 && testPrice !== qty) {
+                    price = testPrice;
+                    break;
+                  }
+                }
               }
             }
 
             // Clean up order type
-            order = order.toUpperCase();
+            order = order.toUpperCase().trim();
             if (!["BUY", "SELL"].includes(order)) {
-              // Skip invalid orders
-              continue;
+              // Try to extract from the line if we still don't have a valid order
+              const lineUpper = line.toUpperCase();
+              if (lineUpper.includes("BUY")) {
+                order = "BUY";
+              } else if (lineUpper.includes("SELL")) {
+                order = "SELL";
+              } else {
+                continue; // Skip invalid orders
+              }
             }
 
             // Clean up type
-            type = type.toUpperCase();
+            type = type.toUpperCase().trim();
             if (!["MIS", "CNC", "NRML", "BFO", "LIM", "LIMIT"].includes(type)) {
               type = "MIS"; // Default
             }
 
-            // Clean symbol - remove NFO, BFO suffixes if present
-            symbol = symbol.replace(/\s+(NFO|BFO)$/i, "").trim();
+            // Clean symbol - remove NFO, BFO, NSE, BSE suffixes and handle CE/PE
+            symbol = symbol
+              .replace(/\s+(NFO|BFO|NSE|BSE)$/i, "")
+              .replace(/\s+(CE|PE)\s+(NFO|BFO|NSE|BSE)$/i, " $1")
+              .trim();
 
             // Only add trade if we have essential fields
             if (time && order && symbol && qty > 0) {
