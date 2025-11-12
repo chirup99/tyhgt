@@ -8066,11 +8066,11 @@ ${
 
                     return (
                       <div className="space-y-6">
-                        {/* Bottom Section: Total P&L + Tags */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* Total Performance Card - Dynamic Color Based on P&L */}
+                        {/* Desktop: Single Row with Total P&L, Performance Trend, Top Tags */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                          {/* Total Performance Card - Desktop: Left side */}
                           <div
-                            className={`rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}
+                            className={`md:col-span-3 rounded-3xl p-6 md:p-8 text-white shadow-2xl ${isProfitable ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-red-500 to-rose-600"}`}
                           >
                             <div className="flex items-center justify-between mb-6">
                               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
@@ -8118,79 +8118,8 @@ ${
                             </div>
                           </div>
 
-                          {/* Tag Performance Distribution */}
-                          <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                            <div className="flex items-center gap-3 mb-6">
-                              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                                <Tag className="w-5 h-5 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-slate-800 dark:text-white">
-                                  Top Tags
-                                </h3>
-                                <p className="text-xs text-slate-500">
-                                  Strategy Performance
-                                </p>
-                              </div>
-                            </div>
-
-                            {insights.topPerformers.length > 0 ? (
-                              <div className="space-y-4">
-                                {insights.topPerformers
-                                  .slice(0, 4)
-                                  .map((tag: any, idx: number) => (
-                                    <div key={tag.tag} className="relative">
-                                      <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                          {tag.tag}
-                                        </span>
-                                        <span
-                                          className={`text-sm font-semibold ${
-                                            tag.totalPnL >= 0
-                                              ? "text-emerald-600"
-                                              : "text-red-500"
-                                          }`}
-                                        >
-                                          {tag.totalPnL >= 0 ? "+" : ""}₹
-                                          {Math.abs(
-                                            tag.totalPnL,
-                                          ).toLocaleString()}
-                                        </span>
-                                      </div>
-                                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                                        <div
-                                          className={`h-2 rounded-full transition-all duration-1000 ${
-                                            tag.totalPnL >= 0
-                                              ? "bg-gradient-to-r from-emerald-400 to-green-500"
-                                              : "bg-gradient-to-r from-red-400 to-rose-500"
-                                          }`}
-                                          style={{
-                                            width: `${Math.min(
-                                              tag.winRate,
-                                              100,
-                                            )}%`,
-                                          }}
-                                        ></div>
-                                      </div>
-                                      <div className="text-xs text-slate-500 mt-1">
-                                        {tag.winRate.toFixed(1)}% success rate
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center h-32 text-slate-400">
-                                <div className="text-center">
-                                  <Tag className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                  <p className="text-sm">No tag data</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Performance Trend Chart - Full Width on Top */}
-                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 md:p-8 shadow-lg border border-slate-200 dark:border-slate-700">
+                          {/* Performance Trend Chart - Desktop: Middle */}
+                          <div className="md:col-span-6 bg-white dark:bg-slate-800 rounded-3xl p-4 md:p-8 shadow-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
                               Performance Trend
@@ -8400,6 +8329,77 @@ ${
                               </div>
                             </div>
                           )}
+                        </div>
+
+                          {/* Top Tags - Desktop: Right side */}
+                          <div className="md:col-span-3 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center gap-3 mb-6">
+                              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                <Tag className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-slate-800 dark:text-white">
+                                  Top Tags
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                  Strategy Performance
+                                </p>
+                              </div>
+                            </div>
+
+                            {insights.topPerformers.length > 0 ? (
+                              <div className="space-y-4">
+                                {insights.topPerformers
+                                  .slice(0, 4)
+                                  .map((tag: any, idx: number) => (
+                                    <div key={tag.tag} className="relative">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                          {tag.tag}
+                                        </span>
+                                        <span
+                                          className={`text-sm font-semibold ${
+                                            tag.totalPnL >= 0
+                                              ? "text-emerald-600"
+                                              : "text-red-500"
+                                          }`}
+                                        >
+                                          {tag.totalPnL >= 0 ? "+" : ""}₹
+                                          {Math.abs(
+                                            tag.totalPnL,
+                                          ).toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                                        <div
+                                          className={`h-2 rounded-full transition-all duration-1000 ${
+                                            tag.totalPnL >= 0
+                                              ? "bg-gradient-to-r from-emerald-400 to-green-500"
+                                              : "bg-gradient-to-r from-red-400 to-rose-500"
+                                          }`}
+                                          style={{
+                                            width: `${Math.min(
+                                              tag.winRate,
+                                              100,
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <div className="text-xs text-slate-500 mt-1">
+                                        {tag.winRate.toFixed(1)}% success rate
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-32 text-slate-400">
+                                <div className="text-center">
+                                  <Tag className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                  <p className="text-sm">No tag data</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Strategy Summary Cards */}
