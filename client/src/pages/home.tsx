@@ -849,6 +849,8 @@ import {
   ResponsiveContainer,
   Tooltip,
   CartesianGrid,
+  Pie,
+  Cell,
 } from "recharts";
 
 function NiftyIndex() {
