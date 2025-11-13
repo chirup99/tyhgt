@@ -5227,250 +5227,938 @@ ${
   // MiniCast/Tutor tab with full page view
   if (activeTab === "tutor") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="h-screen w-full overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-slate-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
+      <div className="min-h-screen bg-slate-900 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          {/* MiniCast Component - Left Side (replacing search bar) */}
+          <div className="flex items-center gap-6">
+            <div className="bg-gray-900 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg border border-gray-700">
+              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">M</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">MiniCast</h1>
-                <p className="text-sm text-slate-400">Premium Insights</p>
+                <div className="text-white font-semibold text-sm">MiniCast</div>
+                <div className="text-gray-400 text-xs">Premium Podcasts</div>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setActiveTab("trading-home")}
-              className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-full"
-              data-testid="button-back-to-home-minicast"
-            >
-              <X className="h-6 w-6" />
-            </Button>
+          </div>
+          <div className="flex items-center gap-6">
+            {/* Top right navigation items removed as requested */}
+          </div>
+        </div>
+
+        {/* Main Greeting */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-normal text-white mb-2">
+            {getTimeBasedGreeting()}
+          </h1>
+        </div>
+
+
+        {/* Main Layout Grid - Left Card Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          {/* Left Section - Stack-based Swipeable Cards */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="relative h-80 pl-[80px] pr-[56px]">
+              <SwipeableCardStack onSectorChange={handleSectorChange} selectedSector={selectedSector} />
+            </div>
+
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6 max-w-5xl mx-auto">
-            {/* Greeting */}
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white flex items-center justify-center gap-2">
-                Hey, Good Afternoon! <span className="text-2xl">👋</span>
-              </h2>
-            </div>
-
-            {/* Market Updates Card - Green */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-white">
-                    TRADING NEWS
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="rounded-full bg-white/20 hover:bg-white/30 text-white"
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Market updates & trends</h3>
-                <p className="text-white/80 text-sm mb-4">Stay informed with latest market insights</p>
-                <Button className="bg-white text-green-600 hover:bg-white/90 rounded-full px-6">
-                  <Search className="h-4 w-4 mr-2" />
-                  Search Here...
-                </Button>
-              </div>
-            </div>
-
-            {/* Study, Courses, Live Cards - Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Study Card - Purple */}
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 shadow-xl relative overflow-hidden cursor-pointer hover:scale-105 transition-transform">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4">
-                    <BookOpen className="h-7 w-7 text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Study</h3>
-                  <p className="text-white/80 text-sm">Learning Materials</p>
-                </div>
+          {/* Right Section - Wallet View */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Wallet View Section */}
+            <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+              <div className="mb-6">
               </div>
 
-              {/* Courses Card - Teal */}
-              <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 shadow-xl relative overflow-hidden cursor-pointer hover:scale-105 transition-transform">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4">
-                    <GraduationCap className="h-7 w-7 text-white" />
+              {/* Swipe Cards Section */}
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Card 1 - Study */}
+                  <div className="relative h-48 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 p-6 cursor-pointer hover:scale-105 transition-transform duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-transparent"></div>
+                    <div className="relative z-10 h-full flex flex-col justify-center items-center text-center">
+                      <div className="text-6xl mb-4">📚</div>
+                      <div className="text-white text-2xl font-bold">Study</div>
+                      <div className="text-white/60 text-sm mt-2">Learning Materials</div>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Courses</h3>
-                  <p className="text-white/80 text-sm">Training Programs</p>
-                </div>
-              </div>
 
-              {/* Live Card - Orange */}
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 shadow-xl relative overflow-hidden cursor-pointer hover:scale-105 transition-transform">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4">
-                    <Radio className="h-7 w-7 text-white" />
+                  {/* Card 2 - Courses */}
+                  <div className="relative h-48 rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 p-6 cursor-pointer hover:scale-105 transition-transform duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-transparent"></div>
+                    <div className="relative z-10 h-full flex flex-col justify-center items-center text-center">
+                      <div className="text-6xl mb-4">🎓</div>
+                      <div className="text-white text-2xl font-bold">Courses</div>
+                      <div className="text-white/60 text-sm mt-2">Training Programs</div>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Live</h3>
-                  <p className="text-white/80 text-sm">Live Sessions</p>
+
+                  {/* Card 3 - Live */}
+                  <div className="relative h-48 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-600 to-orange-700 p-6 cursor-pointer hover:scale-105 transition-transform duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-transparent"></div>
+                    <div className="relative z-10 h-full flex flex-col justify-center items-center text-center">
+                      <div className="text-6xl mb-4">🔴</div>
+                      <div className="text-white text-2xl font-bold">Live</div>
+                      <div className="text-white/60 text-sm mt-2">Live Sessions</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Trending Podcasts Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white">TRENDING PODCASTS - {selectedSector}</h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400">Podcasts</span>
-                  <span className="text-sm text-slate-400">Fresh</span>
-                </div>
-              </div>
+        {/* Statistics Section - 70% Width with Subscribe Window - 30% Width */}
+        <div className="mb-8 flex gap-6">
+          {/* Statistics Window - 70% */}
+          <div className="w-[70%]">
+            <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+              <Tabs value={statisticsTab} onValueChange={setStatisticsTab} className="w-full">
+                <div className="flex items-center justify-between mb-6">
 
-              {/* Two Column Layout: Featured Podcast + Saved Podcasts List */}
-              {isPodcastsLoading ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 bg-slate-800 rounded-xl p-8 animate-pulse">
-                    <div className="h-40 bg-slate-700 rounded"></div>
-                  </div>
-                  <div className="bg-slate-800 rounded-xl p-4 animate-pulse">
-                    <div className="h-40 bg-slate-700 rounded"></div>
-                  </div>
+                  {/* Tab Switch Buttons */}
+                  <TabsList className="bg-slate-700 border-slate-600">
+                    <TabsTrigger 
+                      value="overview" 
+                      className="text-slate-300 data-[state=active]:bg-slate-600 data-[state=active]:text-white flex items-center gap-2"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                      Podcast
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="setup" 
+                      className="text-slate-300 data-[state=active]:bg-slate-600 data-[state=active]:text-white flex items-center gap-2"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Events
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left: Featured Podcast Card (2/3 width) */}
-                  <div className="lg:col-span-2">
-                    <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl p-8 shadow-xl relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform h-full">
-                      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
-                      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
-                      
-                      <div className="relative z-10 flex items-start gap-6">
-                        <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-                          <Mic className="h-12 w-12 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <span className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-white mb-3">
-                            FEATURED
-                          </span>
-                          <h4 className="text-2xl font-bold text-white mb-2">
-                            {trendingPodcasts[0]?.title || "Rich Mindset"}
-                          </h4>
-                          <p className="text-white/90 text-base mb-4">
-                            {trendingPodcasts[0]?.expert || "Financial Expert"}
-                          </p>
-                          <div className="flex items-center gap-4 mb-4">
-                            <div className="flex items-center gap-2">
-                              <Heart className="h-5 w-5 text-white/80" />
-                              <span className="text-white/80 text-sm">{trendingPodcasts[0]?.likes || "66%"}</span>
+
+                {/* Overview Tab Content - Music-Style Podcast Dashboard */}
+                <TabsContent value="overview" className="mt-0">
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div className="text-white text-xl font-bold mb-6">
+                      TRENDING PODCASTS - {selectedSector === 'FINANCE' ? 'FINANCE' : selectedSector === 'IT' ? 'TECH' : selectedSector === 'COMMODITY' ? 'COMMODITY' : selectedSector === 'GLOBAL' ? 'GLOBAL' : selectedSector === 'BANKS' ? 'BANKING' : selectedSector === 'AUTOMOBILE' ? 'AUTO' : 'FINANCE'}
+                    </div>
+
+
+                    {/* Main Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Featured Podcast - Left Side (2/3 width) */}
+                      <div className="lg:col-span-2">
+                        <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 rounded-3xl p-8 relative overflow-hidden min-h-[280px]">
+                          {/* Background Elements */}
+                          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+                          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
+
+                          <div className="flex items-center gap-6 relative z-10 h-full">
+                            {/* Podcast Host Image */}
+                            <div className="w-40 h-40 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                              <Mic className="w-20 h-20 text-white" />
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Eye className="h-5 w-5 text-white/80" />
-                              <span className="text-white/80 text-sm">{trendingPodcasts[0]?.views || "0"}</span>
+
+                            {/* Content */}
+                            <div className="flex-1">
+                              <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-medium inline-block mb-4">
+                                PODCAST OF THE WEEK
+                              </div>
+                              <h2 className="text-white text-3xl font-bold mb-2">Rich Mindset</h2>
+                              <p className="text-white/80 mb-4">Finance Expert</p>
+
+                              {/* Play Button */}
+                              <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 w-12 h-12 rounded-full p-0">
+                                <Play className="w-6 h-6 ml-1" />
+                              </Button>
                             </div>
                           </div>
-                          <Button 
-                            onClick={() => handlePodcastSelect(trendingPodcasts[0])}
-                            className="bg-white/20 hover:bg-white/30 text-white rounded-full px-6"
-                          >
-                            <Play className="h-4 w-4 mr-2" />
-                            Play Now
-                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Top Charts - Right Side (1/3 width) */}
+                      <div className="lg:col-span-1">
+                        <div className="bg-slate-800 rounded-2xl p-4">
+                          <h3 className="text-white text-lg font-bold mb-4">Saved Podcast</h3>
+
+                          <div className="space-y-3">
+                            {/* Podcast Item 1 */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <DollarSign className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-white font-medium text-sm">Budget Planning</h4>
+                                <p className="text-slate-400 text-xs">Money Expert</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="text-slate-400 text-xs">03:13</span>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Heart className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Play className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Podcast Item 2 */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Mic className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-white font-medium text-sm">Psychology of Money</h4>
+                                <p className="text-slate-400 text-xs">Mind & Money</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-slate-400 text-xs">05:26</span>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Heart className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Play className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Podcast Item 3 */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <BookOpen className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-white font-medium text-sm">Entrepreneur Mindset</h4>
+                                <p className="text-slate-400 text-xs">Business Weekly</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-2 bg-yellow-500 rounded-full"></div>
+                                <span className="text-slate-400 text-xs">02:51</span>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Heart className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Play className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Podcast Item 4 - Resilience */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-teal-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Shield className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-white font-medium text-sm">Building Resilience</h4>
+                                <p className="text-slate-400 text-xs">Mental Strength</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-2 bg-teal-500 rounded-full"></div>
+                                <span className="text-slate-400 text-xs">04:12</span>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Heart className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="w-6 h-6 p-0 text-slate-400 hover:text-white">
+                                  <Play className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI-Generated Trending Podcasts */}
+                    <div className="mt-8">
+                      <h3 className="text-white text-lg font-medium mb-4">AI-Generated {selectedSector} Podcasts</h3>
+
+                      {isPodcastsLoading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                          <p className="text-slate-400 text-sm">Generating trending podcasts...</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                          {trendingPodcasts.slice(0, 10).map((podcast, index) => (
+                            <div 
+                              key={podcast.id} 
+                              className={`rounded-lg p-4 hover:bg-slate-600/50 transition-colors cursor-pointer group ${
+                                selectedPodcast?.id === podcast.id 
+                                  ? 'bg-purple-600/30 border border-purple-500' 
+                                  : 'bg-slate-700/50'
+                              }`}
+                              onClick={() => handlePodcastSelect(podcast)}
+                              data-testid={`podcast-card-${podcast.id}`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <span className="text-white font-bold text-lg">#{index + 1}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between mb-1">
+                                    <h4 className="text-white font-medium text-sm leading-tight">{podcast.title}</h4>
+                                    {podcast.trending && <span className="text-orange-400 text-xs bg-orange-400/20 px-2 py-1 rounded-full">TRENDING</span>}
+                                  </div>
+                                  <p className="text-slate-400 text-xs mb-2 line-clamp-2">{podcast.description}</p>
+                                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                                    <span>🎙️ {podcast.host}</span>
+                                    <span>⏱️ {podcast.duration}</span>
+                                    <span>👥 {podcast.listeners}</span>
+                                  </div>
+                                </div>
+                                <Button size="sm" className="w-8 h-8 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border-0 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play className="w-4 h-4 ml-0.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Weekly Top Tracks */}
+                    <div className="mt-8">
+                      <h3 className="text-white text-lg font-medium mb-4">Weekly top tracks</h3>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        {/* Track 1 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-green-600 to-blue-800 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">🤖</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">AI FINANCE</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">{selectedPodcast ? selectedPodcast.title : `AI in ${selectedSector === 'FINANCE' ? 'Finance' : selectedSector === 'IT' ? 'Tech' : selectedSector === 'COMMODITY' ? 'Commodity' : selectedSector === 'GLOBAL' ? 'Global' : selectedSector === 'BANKS' ? 'Banking' : selectedSector === 'AUTOMOBILE' ? 'Auto' : 'Finance'}`}</h4>
+                          <p className="text-slate-400 text-xs">Tech Weekly</p>
+                        </div>
+
+                        {/* Track 2 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-yellow-400 to-orange-600 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">📰</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">MARKET NEWS</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">Market News</h4>
+                          <p className="text-slate-400 text-xs">Daily Report</p>
+                        </div>
+
+                        {/* Track 3 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-red-500 to-pink-600 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">🛡️</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">RISK MGMT</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">Risk Management</h4>
+                          <p className="text-slate-400 text-xs">Pro Trader</p>
+                        </div>
+
+                        {/* Track 4 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">🚀</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">STARTUP</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">Building Companies</h4>
+                          <p className="text-slate-400 text-xs">Startup Stories</p>
+                        </div>
+
+                        {/* Track 5 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-purple-600 to-indigo-800 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">🎓</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">FELLOWSHIP</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">Fellowship Programs</h4>
+                          <p className="text-slate-400 text-xs">Career Growth</p>
+                        </div>
+
+                        {/* Track 6 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-orange-500 to-red-600 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">💼</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">BUSINESS</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">Business Models</h4>
+                          <p className="text-slate-400 text-xs">Strategy Tips</p>
+                        </div>
+
+                        {/* Track 7 */}
+                        <div className="group cursor-pointer">
+                          <div className="w-full aspect-square bg-gradient-to-br from-emerald-600 to-teal-800 rounded-lg mb-3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-4xl">⭐</span>
+                            </div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs font-bold">HERO ZERO</div>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" className="w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-full p-0">
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h4 className="text-white font-medium text-sm">Hero to Zero Stories</h4>
+                          <p className="text-slate-400 text-xs">Quick Lessons</p>
                         </div>
                       </div>
                     </div>
                   </div>
+                </TabsContent>
 
-                  {/* Right: Saved Podcasts List (1/3 width) */}
-                  <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-bold text-white">Saved Podcast</h4>
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                        <Heart className="h-4 w-4" />
-                      </Button>
+                {/* Initial Setup Tab Content - Upcoming Events */}
+                <TabsContent value="setup" className="mt-0">
+                  <div className="h-full flex flex-col">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                      <h4 className="text-white text-lg font-medium">Upcoming Events</h4>
+                      <div className="flex items-center gap-2 text-slate-400 text-sm">
+                        <span>Showing</span>
+                        <span className="text-white">10</span>
+                        <span>out of 48</span>
+                      </div>
                     </div>
 
-                    <div className="space-y-4">
-                      {/* Podcast Items with Progress Bars */}
-                      {[
-                        { name: "Budget Planning", expert: "Budget Tips", color: "from-orange-500 to-orange-600", progress: 66 },
-                        { name: "Psychology of Money", expert: "Morgan Housel", color: "from-blue-500 to-blue-600", progress: 50 },
-                        { name: "Independent Mindset", expert: "Mindset Insights", color: "from-purple-500 to-purple-600", progress: 66 },
-                        { name: "Building Resilience", expert: "Resilience Thoughts", color: "from-teal-500 to-teal-600", progress: 88 },
-                      ].map((item, index) => (
-                        <div key={index} className="space-y-2 cursor-pointer hover:bg-white/5 rounded-lg p-2 transition-colors">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 bg-gradient-to-br ${item.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                              <Mic className="h-5 w-5 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h5 className="text-sm font-semibold text-white truncate">{item.name}</h5>
-                              <p className="text-xs text-slate-400 truncate">{item.expert}</p>
-                            </div>
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto pr-2">
+                      {/* Events Grid */}
+                      <div className="grid grid-cols-3 gap-4 pb-4">
+                      {/* Art & Design Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-blue-400/80 via-cyan-500/60 to-blue-600/80 flex gap-3">
+                        {/* Background Pattern */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-600/40"></div>
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
+                        <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full -ml-8 -mb-8"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-slate-400">{item.progress}%</span>
-                              <Heart className="h-4 w-4 text-slate-400" />
-                              <SkipForward className="h-4 w-4 text-slate-400" />
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Startup Summit</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
                             </div>
                           </div>
-                          {/* Progress Bar */}
-                          <div className="w-full bg-slate-700 rounded-full h-1.5">
-                            <div 
-                              className={`bg-gradient-to-r ${item.color} h-1.5 rounded-full transition-all duration-300`}
-                              style={{ width: `${item.progress}%` }}
-                            ></div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">Global Startup Summit | Hyderabad 2025</h5>
+                            <p className="text-white/90 text-xs mb-1">Sat, 06 Sept • 9:00 AM</p>
+                            <p className="text-white/70 text-xs">📍 Deccan Serai Hotel, Hitech City, Hyderabad</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-4/5"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">85%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹1,299</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          <img 
+                            src={getEventImage("Global Startup Summit | Hyderabad 2025")} 
+                            alt="Global Startup Summit Hyderabad 2025" 
+                            className="w-full h-full object-cover rounded-lg border border-white/20"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Music Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-indigo-600/80 via-blue-700/70 to-purple-800/80 flex gap-3">
+                        {/* Starry Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-purple-900/60"></div>
+                        <div className="absolute top-2 right-4 w-1 h-1 bg-white rounded-full opacity-80"></div>
+                        <div className="absolute top-6 right-8 w-0.5 h-0.5 bg-white rounded-full opacity-60"></div>
+                        <div className="absolute top-4 right-12 w-1 h-1 bg-yellow-200 rounded-full opacity-90"></div>
+                        <div className="absolute top-8 right-6 w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Music</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">TiE Bangalore Founders Summit</h5>
+                            <p className="text-white/90 text-xs mb-1">Feb 10, 2025 • 9:30 AM</p>
+                            <p className="text-white/70 text-xs">📍 TiE Bangalore, Koramangala</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-3/4"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">75%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹560</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          <img 
+                            src={getEventImage("TiE Bangalore Founders Summit")} 
+                            alt="TiE Bangalore Founders Summit" 
+                            className="w-full h-full object-cover rounded-lg border border-white/20"
+                          />
+                        </div>
+                      </div>
+
+
+                      {/* Health & Wellness Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-sky-400/80 via-blue-500/70 to-cyan-600/80 flex gap-3">
+                        {/* Wellness Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-sky-400/30 to-blue-600/40"></div>
+                        <div className="absolute top-2 right-2 w-12 h-12 bg-white/10 rounded-full"></div>
+                        <div className="absolute bottom-2 left-2 w-8 h-8 bg-white/10 rounded-full"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Health & Wellness</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">Pharma Bio Summit Hyderabad</h5>
+                            <p className="text-white/90 text-xs mb-1">Jan 28, 2025 • 10:00 AM</p>
+                            <p className="text-white/70 text-xs">📍 HICC, Hyderabad</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-2/5"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">40%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹580</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          <img 
+                            src={getEventImage("Pharma Bio Summit Hyderabad")} 
+                            alt="Pharma Bio Summit Hyderabad" 
+                            className="w-full h-full object-cover rounded-lg border border-white/20"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Food & Culinary Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-orange-400/80 via-red-500/70 to-pink-500/80 flex gap-3">
+                        {/* Food Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-red-600/40"></div>
+                        <div className="absolute top-1 right-1 w-6 h-6 bg-yellow-300/20 rounded-full"></div>
+                        <div className="absolute top-3 right-6 w-4 h-4 bg-orange-300/30 rounded-full"></div>
+                        <div className="absolute bottom-2 left-3 w-5 h-5 bg-red-300/20 rounded-full"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Food & Culinary</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">Hyderabad Food Festival</h5>
+                            <p className="text-white/90 text-xs mb-1">Feb 20, 2025 • 6:00 PM</p>
+                            <p className="text-white/70 text-xs">📍 Shilpakala Vedika, Hyderabad</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-3/5"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">60%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹1,200</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          <img 
+                            src={getEventImage("Hyderabad Food Festival")} 
+                            alt="Hyderabad Food Festival" 
+                            className="w-full h-full object-cover rounded-lg border border-white/20"
+                          />
+                        </div>
+                      </div>
+
+
+                      {/* Technology Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-purple-500/80 via-violet-600/70 to-indigo-700/80 flex gap-3">
+                        {/* Tech Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/30 to-indigo-800/40"></div>
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 transform rotate-45 -mr-8 -mt-8"></div>
+                        <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/5 transform rotate-12 -ml-6 -mb-6"></div>
+                        <div className="absolute top-1/2 right-4 w-2 h-2 bg-cyan-400/60 rounded-full"></div>
+                        <div className="absolute top-1/3 right-8 w-1 h-1 bg-pink-400/60 rounded-full"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Technology</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">HITEX IT Expo Hyderabad</h5>
+                            <p className="text-white/90 text-xs mb-1">Mar 5, 2025 • 9:00 AM</p>
+                            <p className="text-white/70 text-xs">📍 Hitex Exhibition Centre</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-1/2"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">55%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹575</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          <div className="w-full h-full bg-gradient-to-br from-purple-500/30 to-indigo-700/30 rounded-lg border border-white/20 flex items-center justify-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-indigo-800/20"></div>
+                            <div className="absolute top-1 right-1 w-1 h-1 bg-cyan-400/60 rounded-full"></div>
+                            <div className="absolute bottom-1 left-1 w-1 h-1 bg-pink-400/60 rounded-full"></div>
+                            <div className="relative z-10 text-center">
+                              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mb-1">
+                                <Zap className="w-4 h-4 text-white/60" />
+                              </div>
+                              <div className="text-white/70 text-[8px] font-medium">TECH</div>
+                            </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Outdoor & Adventure Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-purple-400/80 via-indigo-500/70 to-blue-600/80 flex gap-3">
+                        {/* Adventure Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-blue-700/40"></div>
+                        <div className="absolute top-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mt-10"></div>
+                        <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mb-12"></div>
+                        <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-white/10 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Business</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">Mumbai Fintech Festival</h5>
+                            <p className="text-white/90 text-xs mb-1">Jan 15, 2025 • 10:30 AM</p>
+                            <p className="text-white/70 text-xs">📍 Bombay Exhibition Centre</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-4/5"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">65%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹850</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          {getEventImage("Mumbai Fintech Festival") ? (
+                            <img 
+                              src={getEventImage("Mumbai Fintech Festival")!} 
+                              alt="Mumbai Fintech Festival" 
+                              className="w-full h-full object-cover rounded-lg border border-white/20"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-purple-400/30 to-blue-600/30 rounded-lg border border-white/20 flex items-center justify-center relative overflow-hidden">
+                              <div className="text-white/70 text-[8px] font-medium">BUSINESS</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Startup Innovations Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-emerald-400/80 via-teal-500/70 to-cyan-600/80 flex gap-3">
+                        {/* Innovation Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-cyan-700/40"></div>
+                        <div className="absolute top-2 right-3 w-3 h-3 bg-white/20 rounded-full"></div>
+                        <div className="absolute top-6 right-8 w-2 h-2 bg-white/15 rounded-full"></div>
+                        <div className="absolute bottom-4 left-4 w-4 h-4 bg-white/10 rounded-full"></div>
+                        <div className="absolute top-1/3 left-6 w-1 h-1 bg-yellow-300/60 rounded-full"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Startup Innovations</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">Nasscom Product Conclave Bangalore</h5>
+                            <p className="text-white/90 text-xs mb-1">Feb 25, 2025 • 9:00 AM</p>
+                            <p className="text-white/70 text-xs">📍 UB City Mall, Bengaluru</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-4/5"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">80%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹1,250</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          {getEventImage("Nasscom Product Conclave Bangalore") ? (
+                            <img 
+                              src={getEventImage("Nasscom Product Conclave Bangalore")!} 
+                              alt="Nasscom Product Conclave Bangalore" 
+                              className="w-full h-full object-cover rounded-lg border border-white/20"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-emerald-400/30 to-cyan-600/30 rounded-lg border border-white/20 flex items-center justify-center relative overflow-hidden">
+                              <div className="text-white/70 text-[8px] font-medium">STARTUP</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Promotions Event */}
+                      <div className="relative rounded-xl p-4 overflow-hidden bg-gradient-to-br from-fuchsia-400/80 via-purple-500/70 to-violet-600/80 flex gap-3">
+                        {/* Marketing Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/30 to-violet-700/40"></div>
+                        <div className="absolute top-0 right-0 w-14 h-14 bg-white/10 transform rotate-12 -mr-7 -mt-7"></div>
+                        <div className="absolute bottom-0 left-0 w-10 h-10 bg-white/10 transform -rotate-12 -ml-5 -mb-5"></div>
+                        <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-white/5 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+
+                        {/* Event Content */}
+                        <div className="relative z-10 flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">Technology</span>
+                              <span className="bg-green-500/80 text-white px-2 py-1 rounded-full text-xs">● Active</span>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <h5 className="text-white font-semibold mb-1">India AI Summit Mumbai</h5>
+                            <p className="text-white/90 text-xs mb-1">Mar 12, 2025 • 10:00 AM</p>
+                            <p className="text-white/70 text-xs">📍 NESCO Goregaon, Mumbai</p>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 bg-white/30 rounded-full h-1.5 mr-3">
+                              <div className="bg-white h-1.5 rounded-full w-3/4"></div>
+                            </div>
+                            <span className="text-white/90 text-xs font-medium">70%</span>
+                          </div>
+                          <div className="text-white font-bold text-sm">₹950</div>
+                        </div>
+
+                        {/* Event Image */}
+                        <div className="relative z-10 w-20 h-20 flex-shrink-0">
+                          {getEventImage("India AI Summit Mumbai") ? (
+                            <img 
+                              src={getEventImage("India AI Summit Mumbai")!} 
+                              alt="India AI Summit Mumbai" 
+                              className="w-full h-full object-cover rounded-lg border border-white/20"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-fuchsia-400/30 to-violet-600/30 rounded-lg border border-white/20 flex items-center justify-center relative overflow-hidden">
+                              <div className="text-white/70 text-[8px] font-medium">AI TECH</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      </div>
+
+                      {/* Pagination */}
+                      <div className="flex items-center justify-center gap-2 pt-4">
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="bg-purple-600 text-white w-8 h-8 p-0">
+                          1
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white w-8 h-8 p-0">
+                          2
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white w-8 h-8 p-0">
+                          3
+                        </Button>
+                        <span className="text-slate-400 px-2">...</span>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white w-8 h-8 p-0">
+                          6
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+
+          {/* Subscribe Window - 30% */}
+          <div className="w-[30%] flex flex-col gap-3 h-full">
+            {/* Subscribe Card - 30% height */}
+            <div className="h-[40%] bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute top-2 right-2">
+                <span className="text-xs font-medium opacity-80">Ad</span>
+              </div>
+
+              <h3 className="text-lg font-bold mb-1">Global Startup Summit | Hyderabad 2025</h3>
+
+              <Button className="bg-white text-blue-600 hover:bg-gray-100 text-sm px-4 py-2">
+                Subscribe
+              </Button>
+
+              {/* Global Startup Summit Image - Bigger */}
+              <div className="absolute bottom-2 right-2 w-20 h-20 opacity-90">
+                <img 
+                  src={getEventImage("Global Startup Summit | Hyderabad 2025")} 
+                  alt="Global Startup Summit Hyderabad 2025" 
+                  className="w-full h-full object-cover rounded-lg border border-white/30"
+                />
+              </div>
             </div>
 
-            {/* AI Community Section */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">Global Startup Summit | Hyderabad 2025</h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-white">
-                      Upcoming
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-sm text-white/90 mb-4">
-                    <p className="flex items-center gap-2">
-                      <span className="font-medium">📍 Live Community</span>
-                    </p>
-                    <p>Join Finance AI Meetups</p>
-                    <p>Connect with startup & finance experts. Create value, no spam-matched.</p>
-                  </div>
-                  <div className="space-y-2 text-sm text-white/80">
-                    <p className="flex items-center gap-2">
-                      <span>👥 AI Startup Disruption - 14 days</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span>💡 AI Pitch Workshop - 14 days</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span>📊 Quilt Study Group - 13 days</span>
-                    </p>
-                  </div>
+            {/* Community Live Meetings - 50% height */}
+            <div className="h-[50%] bg-slate-800 rounded-2xl p-4 border border-slate-700">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">🔴</span>
+                </div>
+                <span className="text-white font-medium text-sm">Live Community</span>
+              </div>
+
+              <h3 className="text-white font-medium mb-2 text-sm">Join Finance AI Meetups</h3>
+              <p className="text-slate-400 text-xs mb-3">Connect with startups & finance experts. Create avatars, no login required.</p>
+
+              {/* Live Meeting Indicators */}
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-slate-300 text-xs">AI Trading Discussion - 12 live</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                  <span className="text-slate-300 text-xs">Startup Pitch Night - 8 live</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-slate-300 text-xs">DeFi Study Group - 15 live</span>
                 </div>
               </div>
-              <Button className="w-full bg-white text-blue-600 hover:bg-white/90 rounded-full">
+
+              <div className="flex -space-x-2 mb-3">
+                <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-slate-800"></div>
+                <div className="w-6 h-6 bg-green-500 rounded-full border-2 border-slate-800"></div>
+                <div className="w-6 h-6 bg-orange-500 rounded-full border-2 border-slate-800"></div>
+                <div className="w-6 h-6 bg-purple-500 rounded-full border-2 border-slate-800"></div>
+                <div className="w-6 h-6 bg-slate-600 rounded-full border-2 border-slate-800 flex items-center justify-center">
+                  <span className="text-white text-xs">+</span>
+                </div>
+              </div>
+
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2">
                 Explore Now
               </Button>
             </div>
+
+            {/* Podcast Scroller - 20% height */}
+            <div className="h-[20%] bg-slate-800/80 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50">
+              <div className="flex items-center gap-3 h-full">
+                {/* Profile Image */}
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-white text-sm font-medium truncate">{selectedPodcast ? selectedPodcast.title : `AI in ${selectedSector === 'FINANCE' ? 'Finance' : selectedSector === 'IT' ? 'Tech' : selectedSector === 'COMMODITY' ? 'Commodity' : selectedSector === 'GLOBAL' ? 'Global' : selectedSector === 'BANKS' ? 'Banking' : selectedSector === 'AUTOMOBILE' ? 'Auto' : 'Finance'}`}</h4>
+                    <Mic className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                  </div>
+                  <p className="text-slate-400 text-xs mb-2">19 minutes</p>
+
+                  {/* Progress Bar */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-slate-400 text-xs">14:07</span>
+                    <div className="flex-1 bg-slate-600 rounded-full h-1">
+                      <div className="bg-purple-400 h-1 rounded-full w-3/4"></div>
+                    </div>
+                    <span className="text-slate-400 text-xs">-5:04</span>
+                  </div>
+
+                  {/* Controls */}
+                  <div className="flex items-center justify-center gap-3">
+                    <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white w-6 h-6 p-0">
+                      <SkipBack className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-white w-6 h-6 p-0">
+                      <Pause className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white w-6 h-6 p-0">
+                      <SkipForward className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
     );
   }
