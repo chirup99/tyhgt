@@ -544,7 +544,7 @@ function SwipeableCardStack({
   // Voice functionality is now only triggered by manual clicks
 
   return (
-    <div className="relative w-52 h-72">
+    <div className="relative w-40 h-44">
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
@@ -5673,15 +5673,15 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: Desktop 30% with transparent container, Mobile unchanged */}
-                  <div className="h-1/4 md:h-[30vh] w-full flex items-center justify-center md:px-4 md:py-4 px-8 pt-1 pb-1">
+                  {/* World Map Section: Desktop smaller with transparent container, Mobile unchanged */}
+                  <div className="h-1/4 md:h-[18vh] w-full flex items-center justify-center md:px-4 md:py-3 px-8 pt-1 pb-1">
                     {/* Transparent container for WorldMap - Desktop only */}
                     <div className="w-full max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-6 flex items-center justify-center">
                       <WorldMap />
                     </div>
                   </div>
-                  {/* Blue Section: Desktop 70%, Mobile 75vh */}
-                  <div className="h-[75vh] md:h-[70vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
+                  {/* Blue Section: Desktop larger, Mobile 75vh */}
+                  <div className="h-[75vh] md:h-[82vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">
