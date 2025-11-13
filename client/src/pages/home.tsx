@@ -5673,13 +5673,13 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: Takes 25% of the total height */}
-                  <div className="px-8 pt-1 pb-1 flex items-center justify-center h-1/4">
+                  {/* World Map Section: Tiny on desktop, normal on mobile */}
+                  <div className="px-8 pt-3 pb-3 flex items-center justify-center h-1/4 md:h-[12vh] md:max-h-40">
                     {/* World Map */}
                     <WorldMap />
                   </div>
-                  {/* Blue Section: Takes 75% of the total height - Fixed height, not expanding */}
-                  <div className="md:h-3/4 h-[75vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-4 py-0 md:px-4 px-0 relative">
+                  {/* Blue Section: Extends to bottom of screen */}
+                  <div className="flex-1 w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative min-h-[60vh]">
                     <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">
@@ -6049,8 +6049,8 @@ ${
                         </h1>
                       </div>
 
-                      {/* Trading Tools Section - White container moved up with all rounded corners */}
-                      <div className="bg-white md:pt-1 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 md:flex-1 mt-0">
+                      {/* Trading Tools Section - White container with centered cards */}
+                      <div className="bg-white md:pt-1 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 md:flex-1 mt-0 flex flex-col items-center">
                         {/* Mobile Search Bar - Fully visible at top */}
                         <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
                           <div className="relative">
@@ -6155,8 +6155,8 @@ ${
                             </div>
                           )}
                         </div>
-                        {/* Trading Tools Grid - Desktop: 4 columns, Mobile: 3 horizontal cards + swipeable below */}
-                        <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden">
+                        {/* Trading Tools Grid - Desktop: 4 columns centered, Mobile: 3 horizontal cards + swipeable below */}
+                        <div className="mx-auto max-w-5xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden place-items-center justify-items-center">
                           {/* Social Feed Card */}
                           <div
                             className="bg-blue-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
