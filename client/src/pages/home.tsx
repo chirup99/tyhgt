@@ -544,7 +544,7 @@ function SwipeableCardStack({
   // Voice functionality is now only triggered by manual clicks
 
   return (
-    <div className="relative w-80 h-64">
+    <div className="relative w-52 h-72">
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
@@ -5673,15 +5673,15 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: 30% of screen with transparent container */}
-                  <div className="h-1/4 md:h-[30vh] w-full flex items-center justify-center px-4 py-4">
-                    {/* Transparent container for WorldMap */}
-                    <div className="w-full max-w-6xl bg-transparent/10 backdrop-blur-sm rounded-2xl p-6 flex items-center justify-center">
+                  {/* World Map Section: Desktop 30% with transparent container, Mobile unchanged */}
+                  <div className="h-1/4 md:h-[30vh] w-full flex items-center justify-center md:px-4 md:py-4 px-8 pt-1 pb-1">
+                    {/* Transparent container for WorldMap - Desktop only */}
+                    <div className="w-full max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-6 flex items-center justify-center">
                       <WorldMap />
                     </div>
                   </div>
-                  {/* Blue Section: 70% of screen */}
-                  <div className="h-3/4 md:h-[70vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative overflow-y-auto">
+                  {/* Blue Section: Desktop 70%, Mobile 75vh */}
+                  <div className="h-[75vh] md:h-[70vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">
@@ -6210,16 +6210,14 @@ ${
                             </div>
                           </div>
 
-                          {/* Tutor Daily News Swipeable Cards - Smaller size */}
-                          <div className="relative h-36 w-full flex items-center justify-center">
-                            <div className="scale-75 origin-center">
-                              <SwipeableCardStack
-                                onSectorChange={handleSectorChange}
-                                selectedSector={selectedSector}
-                                onCardIndexChange={setCurrentCardIndex}
-                                currentCardIndex={currentCardIndex}
-                              />
-                            </div>
+                          {/* Tutor Daily News Swipeable Cards - Portrait orientation with proper spacing */}
+                          <div className="relative h-full w-full flex items-center justify-center">
+                            <SwipeableCardStack
+                              onSectorChange={handleSectorChange}
+                              selectedSector={selectedSector}
+                              onCardIndexChange={setCurrentCardIndex}
+                              currentCardIndex={currentCardIndex}
+                            />
                           </div>
                         </div>
                         {/* Mobile Layout: 3 horizontal cards + swipeable below */}
