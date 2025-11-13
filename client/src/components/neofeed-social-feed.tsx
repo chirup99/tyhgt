@@ -55,7 +55,8 @@ interface FeedPost {
   hasImages?: boolean;  // Support for future multi-image feature
   imageUrls?: string[];  // Support for future multi-image feature
   isAudioPost?: boolean; // Audio minicast post flag
-  selectedPostIds?: number[]; // Selected posts for audio minicast
+  selectedPostIds?: (string | number)[]; // Selected posts for audio minicast
+  selectedPosts?: Array<{ id: string | number; content: string }>; // Selected posts content for audio minicast
   createdAt?: string | Date;
   updatedAt?: string | Date;
   ticker?: string;
@@ -1713,34 +1714,39 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
 
   // If this is an audio minicast post, render the special card
   if (post.isAudioPost) {
-    // Get all posts from cache to find selected posts content
-    const allPosts = queryClient.getQueryData<any[]>(['/api/social-posts']) || [];
-    
     console.log('🎙️ Audio Minicast Post Detected:', {
       postId: post.id,
       selectedPostIds: post.selectedPostIds,
-      totalPostsInCache: allPosts.length
+      hasSavedSelectedPosts: !!post.selectedPosts && post.selectedPosts.length > 0
     });
     
-    // Filter to get only the selected posts with their content
-    const selectedPosts = (post.selectedPostIds || [])
-      .map(selectedId => {
-        const selectedPost = allPosts.find(p => p.id === selectedId || p.id?.toString() === selectedId?.toString());
-        if (selectedPost) {
-          console.log('✅ Found selected post:', {
-            id: selectedId,
-            content: selectedPost.content?.substring(0, 100) + '...'
-          });
-          return {
-            id: selectedPost.id,
-            content: selectedPost.content || ''
-          };
-        } else {
-          console.warn('❌ Could not find post with ID:', selectedId);
-        }
-        return null;
-      })
-      .filter((p): p is { id: string | number; content: string } => p !== null);
+    // Use the saved selectedPosts if available, otherwise try to find them from cache
+    let selectedPosts: Array<{ id: string | number; content: string }> = [];
+    
+    if (post.selectedPosts && post.selectedPosts.length > 0) {
+      // Use the saved selected posts content (preferred method)
+      console.log('✅ Using saved selectedPosts from post data');
+      selectedPosts = post.selectedPosts.map(sp => ({
+        id: sp.id,
+        content: sp.content
+      }));
+    } else if (post.selectedPostIds && post.selectedPostIds.length > 0) {
+      // Fallback: Try to find posts in cache (backward compatibility)
+      console.log('⚠️ Falling back to cache lookup for selectedPosts');
+      const allPosts = queryClient.getQueryData<any[]>(['/api/social-posts']) || [];
+      selectedPosts = (post.selectedPostIds || [])
+        .map(selectedId => {
+          const selectedPost = allPosts.find(p => p.id === selectedId || p.id?.toString() === selectedId?.toString());
+          if (selectedPost) {
+            return {
+              id: selectedPost.id,
+              content: selectedPost.content || ''
+            };
+          }
+          return null;
+        })
+        .filter((p): p is { id: string | number; content: string } => p !== null);
+    }
     
     console.log('📊 Final selectedPosts array:', {
       count: selectedPosts.length,
