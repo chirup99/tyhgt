@@ -5222,6 +5222,13 @@ ${
     );
   }
 
+  // Redirect tutor tab to trading-home (they show the same MiniCast content)
+  useEffect(() => {
+    if (activeTab === "tutor") {
+      setActiveTab("trading-home");
+    }
+  }, [activeTab]);
+
   return (
     <div className="min-h-screen bg-background overscroll-none touch-pan-y">
       {/* Vertical Sidebar - Fixed Position */}
