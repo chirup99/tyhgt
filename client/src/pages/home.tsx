@@ -6052,7 +6052,7 @@ ${
                       </div>
 
                       {/* Trading Tools Section - White container with centered cards */}
-                      <div className="bg-white md:pt-4 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
+                      <div className="bg-white md:pt-6 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
                         {/* Mobile Search Bar - Fully visible at top */}
                         <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
                           <div className="relative">
@@ -6161,41 +6161,41 @@ ${
                         <div className="mx-auto max-w-6xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:pb-0 hidden">
                           {/* Social Feed Card */}
                           <div
-                            className="bg-blue-500 rounded-2xl overflow-hidden h-28 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-blue-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("voice")}
                           >
-                            <div className="absolute top-2 left-2">
+                            <div className="absolute top-3 left-3">
                               <span className="bg-white bg-opacity-90 text-blue-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Social Feed
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <MessageCircle className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <MessageCircle className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Master Card */}
                           <div
-                            className="bg-indigo-500 rounded-2xl overflow-hidden h-28 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-indigo-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("trading-master")}
                           >
-                            <div className="absolute top-2 left-2">
+                            <div className="absolute top-3 left-3">
                               <span className="bg-white bg-opacity-90 text-indigo-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Trading Master
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <Activity className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <Activity className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Charts Card */}
                           <div
-                            className="bg-emerald-500 rounded-2xl overflow-hidden h-28 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-emerald-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("journal")}
                           >
                             <div className="absolute top-3 left-3">
