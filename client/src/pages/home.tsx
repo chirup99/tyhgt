@@ -546,7 +546,7 @@ function SwipeableCardStack({
   // Voice functionality is now only triggered by manual clicks
 
   return (
-    <div className="relative w-56 h-64 md:w-60 md:h-72">
+    <div className="relative w-56 h-64 md:w-60 md:h-68">
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
