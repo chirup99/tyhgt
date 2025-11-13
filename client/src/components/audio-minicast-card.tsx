@@ -45,13 +45,25 @@ export function AudioMinicastCard({
   const [likeCount, setLikeCount] = useState(likes);
 
   const [cards, setCards] = useState<AudioCard[]>(() => {
+    console.log('🎧 AudioMinicastCard Initializing:', {
+      selectedPostsCount: selectedPosts.length,
+      selectedPostIdsCount: selectedPostIds.length,
+      hasPosts: selectedPosts.length > 0
+    });
+    
     const allCards: AudioCard[] = [
       { id: 'main', type: 'main', content, colorIndex: 0 }
     ];
     
     // Use selectedPosts if available, otherwise fall back to selectedPostIds
     if (selectedPosts.length > 0) {
+      console.log('✅ Using selectedPosts with actual content');
       selectedPosts.forEach((post, idx) => {
+        console.log(`  Card ${idx + 1}:`, {
+          id: post.id,
+          contentLength: post.content?.length || 0,
+          contentPreview: post.content?.substring(0, 50) + '...'
+        });
         allCards.push({
           id: `post-${post.id}`,
           type: 'post',
@@ -61,6 +73,7 @@ export function AudioMinicastCard({
         });
       });
     } else {
+      console.warn('⚠️ No selectedPosts, falling back to placeholder content');
       // Fallback for backward compatibility
       selectedPostIds.forEach((postId, idx) => {
         allCards.push({
@@ -73,6 +86,7 @@ export function AudioMinicastCard({
       });
     }
     
+    console.log('📋 Total cards created:', allCards.length);
     return allCards;
   });
 
@@ -120,6 +134,13 @@ export function AudioMinicastCard({
       // Only read the currently visible (top) card's content
       const currentCard = cards[0];
       const textToSpeak = currentCard ? currentCard.content : content;
+      
+      console.log('🔊 Playing audio:', {
+        currentCardId: currentCard?.id,
+        currentCardType: currentCard?.type,
+        textLength: textToSpeak?.length || 0,
+        textPreview: textToSpeak?.substring(0, 100) + '...'
+      });
       
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
       utterance.rate = 1.0;

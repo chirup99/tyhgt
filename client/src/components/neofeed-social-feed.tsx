@@ -1716,19 +1716,36 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
     // Get all posts from cache to find selected posts content
     const allPosts = queryClient.getQueryData<any[]>(['/api/social-posts']) || [];
     
+    console.log('🎙️ Audio Minicast Post Detected:', {
+      postId: post.id,
+      selectedPostIds: post.selectedPostIds,
+      totalPostsInCache: allPosts.length
+    });
+    
     // Filter to get only the selected posts with their content
     const selectedPosts = (post.selectedPostIds || [])
       .map(selectedId => {
         const selectedPost = allPosts.find(p => p.id === selectedId || p.id?.toString() === selectedId?.toString());
         if (selectedPost) {
+          console.log('✅ Found selected post:', {
+            id: selectedId,
+            content: selectedPost.content?.substring(0, 100) + '...'
+          });
           return {
             id: typeof selectedPost.id === 'string' ? parseInt(selectedPost.id, 10) : Number(selectedPost.id),
             content: selectedPost.content || ''
           };
+        } else {
+          console.warn('❌ Could not find post with ID:', selectedId);
         }
         return null;
       })
       .filter((p): p is { id: number; content: string } => p !== null);
+    
+    console.log('📊 Final selectedPosts array:', {
+      count: selectedPosts.length,
+      posts: selectedPosts.map(p => ({ id: p.id, contentLength: p.content.length }))
+    });
     
     return (
       <AudioMinicastCard
