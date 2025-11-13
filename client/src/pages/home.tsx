@@ -6158,7 +6158,7 @@ ${
                           )}
                         </div>
                         {/* Trading Tools Grid - Desktop: 4 columns centered, Mobile: 3 horizontal cards + swipeable below */}
-                        <div className="mx-auto max-w-6xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:pb-0 hidden">
+                        <div className="mx-auto max-w-6xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:items-center hidden">
                           {/* Social Feed Card */}
                           <div
                             className="bg-blue-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
@@ -6211,7 +6211,7 @@ ${
                           </div>
 
                           {/* Tutor Daily News Swipeable Cards - Portrait orientation with proper spacing */}
-                          <div className="relative h-full w-full flex items-start justify-center pt-2">
+                          <div className="relative h-36 w-full flex items-center justify-center">
                             <SwipeableCardStack
                               onSectorChange={handleSectorChange}
                               selectedSector={selectedSector}
