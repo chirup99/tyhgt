@@ -544,7 +544,7 @@ function SwipeableCardStack({
   // Voice functionality is now only triggered by manual clicks
 
   return (
-    <div className="relative w-36 h-40 md:w-32 md:h-36">
+    <div className="relative w-40 h-48 md:w-44 md:h-52">
       {cards.map((card, index) => {
         const isTop = index === 0;
         const isSecond = index === 1;
@@ -770,25 +770,25 @@ function SwipeableCardStack({
             }}
           >
             <div
-              className={`bg-gradient-to-br ${card.gradient} rounded-xl md:p-3 p-4 h-full relative overflow-hidden shadow-xl border-2 border-white/10`}
+              className={`bg-gradient-to-br ${card.gradient} rounded-2xl p-5 md:p-6 h-full relative overflow-hidden shadow-xl border-2 border-white/10 flex flex-col`}
             >
               {/* Character illustration area */}
-              <div className="absolute bottom-0 right-0 w-20 h-20 md:w-16 md:h-16 opacity-30">
+              <div className="absolute bottom-0 right-0 w-20 h-20 md:w-24 md:h-24 opacity-20">
                 <div className="w-full h-full bg-gradient-to-br from-white/20 to-white/10 rounded-full"></div>
               </div>
 
               {/* Card content */}
-              <div className="relative z-10">
-                <div className="text-[10px] md:text-[9px] text-white/80 mb-1 uppercase tracking-wide font-medium">
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="text-[11px] md:text-xs text-white/90 mb-2 uppercase tracking-wider font-semibold">
                   {card.title}
                 </div>
-                <h3 className="text-lg md:text-base font-bold text-white mb-2 md:mb-1.5 leading-tight">
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-5 leading-tight flex-grow">
                   {card.subtitle.split("\n").map((line, i) => (
-                    <div key={i}>{line}</div>
+                    <div key={i} className="block">{line}</div>
                   ))}
                 </h3>
                 <Button
-                  className={`bg-white ${card.buttonColor} hover:bg-gray-100 md:px-3 md:py-1 px-4 py-1.5 rounded-full text-xs md:text-[10px] font-medium shadow-lg`}
+                  className={`bg-white ${card.buttonColor} hover:bg-gray-100 px-4 py-2 md:px-5 md:py-2.5 rounded-full text-sm md:text-base font-semibold shadow-lg w-fit`}
                   onClick={() => {
                     if (isTop) {
                       if (isPlaying) {
