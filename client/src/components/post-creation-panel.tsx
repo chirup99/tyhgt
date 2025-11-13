@@ -228,7 +228,11 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
         JSON.stringify(uploadedImages.map(img => img.url)) : 
         (uploadedImages.length === 1 ? uploadedImages[0].url : undefined),
       isAudioPost: viewMode === 'audio',
-      selectedPostIds: viewMode === 'audio' ? selectedTextSnippets.map(s => s.postId) : undefined
+      selectedPostIds: viewMode === 'audio' ? 
+        selectedTextSnippets
+          .filter(s => typeof s.postId === 'string' && s.postId.length > 10)
+          .map(s => s.postId.toString()) 
+        : undefined
     };
 
     createPostMutation.mutate(postData);

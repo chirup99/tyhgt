@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface SelectedTextSnippet {
   id: string;
-  postId: number;
+  postId: string | number;
   text: string;
   authorUsername: string;
   authorDisplayName: string;
