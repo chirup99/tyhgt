@@ -899,7 +899,9 @@ function ProfileHeader() {
             <div>
               <h1 className="text-gray-900 dark:text-white font-bold text-2xl flex items-center gap-2">
                 {displayName || username}
-                <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-current" />
+                {profileData?.verified && (
+                  <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-current" />
+                )}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">@{username}</p>
             </div>
@@ -2541,7 +2543,7 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
           
           <div className="space-y-3 xl:space-y-6">
             {feedData.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} currentUserUsername={currentUserUsername} />
             ))}
           </div>
         </div>
