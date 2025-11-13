@@ -2154,6 +2154,11 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
+      // Pause YouTube video when scrolling
+      if (typeof (window as any).pauseBannerYouTube === 'function') {
+        (window as any).pauseBannerYouTube();
+      }
+      
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         // Scrolling down and past 100px - hide app bar and bottom nav
         setShowAppBar(false);

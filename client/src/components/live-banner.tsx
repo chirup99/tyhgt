@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -35,7 +35,7 @@ const sampleBannerContent: BannerContent[] = [
     type: 'live_stream',
     title: 'Live Trading Stream',
     description: 'Watch live market analysis and trading strategies',
-    youtubeEmbedUrl: 'https://www.youtube.com/embed/6pMBUfHhXtQ',
+    youtubeEmbedUrl: 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1',
     isLive: true,
     priority: 'high'
   },
@@ -67,20 +67,59 @@ export function LiveBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
+  const [youtubePlayerState, setYoutubePlayerState] = useState<'playing' | 'paused' | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   
   const currentContent = sampleBannerContent[currentIndex];
 
-  // Auto-rotate content every 5 seconds when playing, but NOT for YouTube videos
   useEffect(() => {
-    // Don't auto-rotate if current content is a YouTube video
-    if (!isPlaying || currentContent.youtubeEmbedUrl) return;
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    script.async = true;
+    document.body.appendChild(script);
+
+    (window as any).onYouTubeIframeAPIReady = () => {
+      if (iframeRef.current && currentContent.youtubeEmbedUrl) {
+        const player = new (window as any).YT.Player(iframeRef.current, {
+          events: {
+            onStateChange: (event: any) => {
+              if (event.data === (window as any).YT.PlayerState.PLAYING) {
+                setYoutubePlayerState('playing');
+              } else if (event.data === (window as any).YT.PlayerState.PAUSED) {
+                setYoutubePlayerState('paused');
+              }
+            }
+          }
+        });
+      }
+    };
+
+    return () => {
+      delete (window as any).onYouTubeIframeAPIReady;
+    };
+  }, [currentContent.youtubeEmbedUrl]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    
+    if (currentContent.youtubeEmbedUrl && youtubePlayerState === 'playing') {
+      return;
+    }
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % sampleBannerContent.length);
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [isPlaying, currentContent.youtubeEmbedUrl]);
+  }, [isPlaying, currentContent.youtubeEmbedUrl, youtubePlayerState]);
+
+  const pauseYouTube = () => {
+    if (iframeRef.current && currentContent.youtubeEmbedUrl) {
+      iframeRef.current.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    }
+  };
+
+  (window as any).pauseBannerYouTube = pauseYouTube;
 
   const navigateLeft = () => {
     setCurrentIndex((prev) => prev > 0 ? prev - 1 : sampleBannerContent.length - 1);
@@ -117,11 +156,11 @@ export function LiveBanner() {
   };
 
   return (
-    <Card className="w-full h-48 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
-      {/* Background Image/Content */}
+    <Card className="w-full h-32 md:h-48 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
       <div className="absolute inset-0">
         {currentContent.youtubeEmbedUrl ? (
           <iframe
+            ref={iframeRef}
             src={currentContent.youtubeEmbedUrl}
             title={currentContent.title}
             className="w-full h-full"
@@ -140,33 +179,29 @@ export function LiveBanner() {
           <div className="w-full h-full bg-gradient-to-br from-indigo-600/20 via-purple-600/20 to-blue-600/20" />
         )}
         
-        {/* Overlay - Only show for non-YouTube content */}
         {!currentContent.youtubeEmbedUrl && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
         )}
       </div>
 
-      {/* Content Overlay - Hide for YouTube videos */}
       {!currentContent.youtubeEmbedUrl && (
-        <div className="relative z-10 h-full flex flex-col justify-between p-6">
-          {/* Top Bar with Type Badge and Controls */}
+        <div className="relative z-10 h-full flex flex-col justify-between p-3 md:p-6">
           <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <Badge className={`flex items-center gap-1 ${getBadgeStyle(currentContent.type, currentContent.priority)}`}>
+          <div className="flex items-center gap-2 md:gap-3">
+            <Badge className={`flex items-center gap-1 text-xs ${getBadgeStyle(currentContent.type, currentContent.priority)}`}>
               {getTypeIcon(currentContent.type)}
               {currentContent.type === 'live_stream' && currentContent.isLive ? 'LIVE' : 
                currentContent.type.toUpperCase().replace('_', ' ')}
             </Badge>
             
             {currentContent.isLive && (
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                 <span className="text-white text-sm">Live Stream Active</span>
               </div>
             )}
           </div>
 
-          {/* Media Controls */}
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -175,7 +210,7 @@ export function LiveBanner() {
               onClick={() => setIsPlaying(!isPlaying)}
               data-testid="button-banner-play-pause"
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isPlaying ? <Pause className="w-3 h-3 md:w-4 md:h-4" /> : <Play className="w-3 h-3 md:w-4 md:h-4" />}
             </Button>
             
             <Button
@@ -185,7 +220,7 @@ export function LiveBanner() {
               onClick={() => setIsMuted(!isMuted)}
               data-testid="button-banner-mute"
             >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              {isMuted ? <VolumeX className="w-3 h-3 md:w-4 md:h-4" /> : <Volume2 className="w-3 h-3 md:w-4 md:h-4" />}
             </Button>
             
             <Button
@@ -194,60 +229,55 @@ export function LiveBanner() {
               className="text-white hover:bg-white/20 h-8 w-8 p-0"
               data-testid="button-banner-fullscreen"
             >
-              <Maximize2 className="w-4 h-4" />
+              <Maximize2 className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 flex items-center justify-between">
-          {/* Navigation Left */}
           <Button
             size="sm"
             variant="ghost"
-            className="text-white hover:bg-white/20 h-10 w-10 p-0"
+            className="text-white hover:bg-white/20 h-8 w-8 md:h-10 md:w-10 p-0"
             onClick={navigateLeft}
             data-testid="button-banner-nav-left"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
 
-          {/* Content Info */}
-          <div className="text-center text-white max-w-2xl">
-            <h2 className="text-2xl font-bold mb-2" data-testid="banner-title">
+          <div className="text-center text-white max-w-2xl px-2">
+            <h2 className="text-sm md:text-2xl font-bold mb-1 md:mb-2" data-testid="banner-title">
               {currentContent.title}
             </h2>
-            <p className="text-white/80 text-sm mb-3" data-testid="banner-description">
+            <p className="text-white/80 text-xs md:text-sm mb-1 md:mb-3" data-testid="banner-description">
               {currentContent.description}
             </p>
             
             {currentContent.date && (
-              <div className="flex items-center justify-center gap-2 text-white/70 text-xs">
+              <div className="flex items-center justify-center gap-1 md:gap-2 text-white/70 text-xs">
                 <Calendar className="w-3 h-3" />
                 <span data-testid="banner-date">{currentContent.date}</span>
               </div>
             )}
           </div>
 
-          {/* Navigation Right */}
           <Button
             size="sm"
             variant="ghost"
-            className="text-white hover:bg-white/20 h-10 w-10 p-0"
+            className="text-white hover:bg-white/20 h-8 w-8 md:h-10 md:w-10 p-0"
             onClick={navigateRight}
             data-testid="button-banner-nav-right"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
         </div>
 
-        {/* Bottom Progress Indicators */}
         <div className="flex items-center justify-center gap-2">
           {sampleBannerContent.map((_, index) => (
             <button
               key={index}
               className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex ? 'bg-white w-6' : 'bg-white/40'
+                index === currentIndex ? 'bg-white w-4 md:w-6' : 'bg-white/40'
               }`}
               onClick={() => setCurrentIndex(index)}
               data-testid={`banner-indicator-${index}`}
@@ -257,9 +287,8 @@ export function LiveBanner() {
       </div>
       )}
 
-      {/* Live Streaming Indicator */}
-      {currentContent.isLive && (
-        <div className="absolute top-4 right-20 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold animate-pulse">
+      {currentContent.isLive && !currentContent.youtubeEmbedUrl && (
+        <div className="absolute top-2 md:top-4 right-12 md:right-20 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold animate-pulse">
           ● LIVE
         </div>
       )}
