@@ -70,16 +70,17 @@ export function LiveBanner() {
   
   const currentContent = sampleBannerContent[currentIndex];
 
-  // Auto-rotate content every 5 seconds when playing
+  // Auto-rotate content every 5 seconds when playing, but NOT for YouTube videos
   useEffect(() => {
-    if (!isPlaying) return;
+    // Don't auto-rotate if current content is a YouTube video
+    if (!isPlaying || currentContent.youtubeEmbedUrl) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % sampleBannerContent.length);
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, currentContent.youtubeEmbedUrl]);
 
   const navigateLeft = () => {
     setCurrentIndex((prev) => prev > 0 ? prev - 1 : sampleBannerContent.length - 1);
@@ -116,7 +117,7 @@ export function LiveBanner() {
   };
 
   return (
-    <Card className="w-full h-64 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
+    <Card className="w-full h-48 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
       {/* Background Image/Content */}
       <div className="absolute inset-0">
         {currentContent.youtubeEmbedUrl ? (
