@@ -5673,15 +5673,15 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: Desktop 25% grey background with tiny centered map, Mobile unchanged */}
-                  <div className="h-1/4 md:h-[25vh] w-full flex items-center justify-center md:bg-gray-800 md:px-4 md:py-3 px-8 pt-1 pb-1">
-                    {/* Transparent container for WorldMap - Desktop extra tiny centered */}
-                    <div className="w-full md:max-w-md max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-2 flex items-center justify-center">
+                  {/* World Map Section: Desktop 28% dark background with extra tiny centered map, Mobile unchanged */}
+                  <div className="h-1/4 md:h-[28vh] w-full flex items-center justify-center md:bg-gray-900 md:px-4 md:py-3 px-8 pt-1 pb-1">
+                    {/* Transparent container for WorldMap - Desktop super tiny centered */}
+                    <div className="w-full md:max-w-sm max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-2 flex items-center justify-center">
                       <WorldMap />
                     </div>
                   </div>
-                  {/* Blue Section: Desktop 70vh, Mobile 75vh */}
-                  <div className="h-[75vh] md:h-[70vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
+                  {/* Blue Section: Desktop 72vh, Mobile 75vh */}
+                  <div className="h-[75vh] md:h-[72vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">
