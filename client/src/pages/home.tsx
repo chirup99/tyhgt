@@ -779,16 +779,16 @@ function SwipeableCardStack({
 
               {/* Card content */}
               <div className="relative z-10 flex flex-col h-full">
-                <div className="text-[11px] md:text-xs text-white/90 mb-2 uppercase tracking-wider font-semibold">
+                <div className="text-[10px] md:text-[9px] text-white/90 mb-1 md:mb-1.5 uppercase tracking-wider font-semibold">
                   {card.title}
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-5 leading-tight flex-grow">
+                <h3 className="text-lg md:text-base font-bold text-white mb-3 md:mb-3 leading-snug flex-grow">
                   {card.subtitle.split("\n").map((line, i) => (
                     <div key={i} className="block">{line}</div>
                   ))}
                 </h3>
                 <Button
-                  className={`bg-white ${card.buttonColor} hover:bg-gray-100 px-4 py-2 md:px-5 md:py-2.5 rounded-full text-sm md:text-base font-semibold shadow-lg w-fit`}
+                  className={`bg-white ${card.buttonColor} hover:bg-gray-100 px-3 py-1.5 md:px-3 md:py-1 rounded-full text-xs md:text-[11px] font-semibold shadow-lg w-fit`}
                   onClick={() => {
                     if (isTop) {
                       if (isPlaying) {
