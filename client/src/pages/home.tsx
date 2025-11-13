@@ -6158,66 +6158,89 @@ ${
                           )}
                         </div>
                         {/* Trading Tools Grid - Desktop: 4 columns centered, Mobile: 3 horizontal cards + swipeable below */}
-                        <div className="mx-auto max-w-6xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:pb-0 hidden">
-                          {/* Social Feed Card */}
-                          <div
-                            className="bg-blue-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => checkAuthAndNavigate("voice")}
-                          >
-                            <div className="absolute top-3 left-3">
-                              <span className="bg-white bg-opacity-90 text-blue-600 px-2.5 py-1 rounded-full text-xs font-medium">
-                                Social Feed
-                              </span>
-                            </div>
-                            <div className="absolute bottom-3 right-3">
-                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <MessageCircle className="h-6 w-6 text-white" />
+                        <div className="mx-auto max-w-6xl md:block hidden">
+                          <div className="md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:pb-0">
+                            {/* Social Feed Card */}
+                            <div
+                              className="bg-blue-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                              onClick={() => checkAuthAndNavigate("voice")}
+                            >
+                              <div className="absolute top-3 left-3">
+                                <span className="bg-white bg-opacity-90 text-blue-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                                  Social Feed
+                                </span>
+                              </div>
+                              <div className="absolute bottom-3 right-3">
+                                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                  <MessageCircle className="h-6 w-6 text-white" />
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Trading Master Card */}
-                          <div
-                            className="bg-indigo-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => checkAuthAndNavigate("trading-master")}
-                          >
-                            <div className="absolute top-3 left-3">
-                              <span className="bg-white bg-opacity-90 text-indigo-600 px-2.5 py-1 rounded-full text-xs font-medium">
-                                Trading Master
-                              </span>
-                            </div>
-                            <div className="absolute bottom-3 right-3">
-                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <Activity className="h-6 w-6 text-white" />
+                            {/* Trading Master Card */}
+                            <div
+                              className="bg-indigo-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                              onClick={() => checkAuthAndNavigate("trading-master")}
+                            >
+                              <div className="absolute top-3 left-3">
+                                <span className="bg-white bg-opacity-90 text-indigo-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                                  Trading Master
+                                </span>
+                              </div>
+                              <div className="absolute bottom-3 right-3">
+                                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                  <Activity className="h-6 w-6 text-white" />
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Trading Charts Card */}
-                          <div
-                            className="bg-emerald-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => checkAuthAndNavigate("journal")}
-                          >
-                            <div className="absolute top-3 left-3">
-                              <span className="bg-white bg-opacity-90 text-emerald-600 px-2.5 py-1 rounded-full text-xs font-medium">
-                                Journal
-                              </span>
-                            </div>
-                            <div className="absolute bottom-3 right-3">
-                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <BarChart3 className="h-6 w-6 text-white" />
+                            {/* Trading Charts Card */}
+                            <div
+                              className="bg-emerald-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                              onClick={() => checkAuthAndNavigate("journal")}
+                            >
+                              <div className="absolute top-3 left-3">
+                                <span className="bg-white bg-opacity-90 text-emerald-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                                  Journal
+                                </span>
+                              </div>
+                              <div className="absolute bottom-3 right-3">
+                                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                  <BarChart3 className="h-6 w-6 text-white" />
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Tutor Daily News Swipeable Cards - Portrait orientation with proper spacing */}
-                          <div className="relative h-full w-full flex items-center justify-center">
-                            <SwipeableCardStack
-                              onSectorChange={handleSectorChange}
-                              selectedSector={selectedSector}
-                              onCardIndexChange={setCurrentCardIndex}
-                              currentCardIndex={currentCardIndex}
-                            />
+                            {/* Tutor Daily News Swipeable Cards - Portrait orientation with proper spacing */}
+                            <div className="relative h-full w-full flex items-center justify-center">
+                              <SwipeableCardStack
+                                onSectorChange={handleSectorChange}
+                                selectedSector={selectedSector}
+                                onCardIndexChange={setCurrentCardIndex}
+                                currentCardIndex={currentCardIndex}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Daily News Label and Navigation Dots - Desktop */}
+                          <div className="flex flex-col items-center gap-2 mt-4 px-6">
+                            <p className="text-gray-800 dark:text-gray-300 text-sm font-medium">daily news</p>
+                            <div className="flex gap-2 justify-center">
+                              {[0, 1, 2, 3, 4, 5].map((index) => (
+                                <button
+                                  key={index}
+                                  data-testid={`desktop-nav-dot-${index}`}
+                                  onClick={() => {
+                                    setCurrentCardIndex(index);
+                                  }}
+                                  className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
+                                    index === currentCardIndex
+                                      ? "bg-gray-800 dark:bg-gray-300 scale-125"
+                                      : "bg-gray-400 dark:bg-gray-600"
+                                  }`}
+                                ></button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                         {/* Mobile Layout: 3 horizontal cards + swipeable below */}
