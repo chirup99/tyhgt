@@ -1646,15 +1646,23 @@ function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: bo
   );
 }
 
-function PostCard({ post }: { post: FeedPost }) {
+function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUsername?: string }) {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [liked, setLiked] = useState(false);
   const [reposted, setReposted] = useState(false);
   const [showCommentSection, setShowCommentSection] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const currentUser = auth.currentUser;
+  
+  // Check if this post belongs to the current user
+  const isOwnPost = currentUserUsername && (post.authorUsername === currentUserUsername || post.user?.handle === currentUserUsername);
   
   // Audio mode text selection
   const { isAudioMode, selectedTextSnippets, addTextSnippet } = useAudioMode();
@@ -1789,6 +1797,58 @@ function PostCard({ post }: { post: FeedPost }) {
     }
   });
 
+  // Edit mutation
+  const editMutation = useMutation({
+    mutationFn: async (content: string) => {
+      if (!currentUser) throw new Error('Not authenticated');
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch(`/api/social-posts/${post.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ content })
+      });
+      if (!response.ok) throw new Error('Failed to update post');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      setShowEditDialog(false);
+      setShowOptionsMenu(false);
+      toast({ description: "Post updated successfully!" });
+    },
+    onError: () => {
+      toast({ description: "Failed to update post", variant: "destructive" });
+    }
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser) throw new Error('Not authenticated');
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch(`/api/social-posts/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to delete post');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      setShowDeleteDialog(false);
+      setShowOptionsMenu(false);
+      toast({ description: "Post deleted successfully!" });
+    },
+    onError: () => {
+      toast({ description: "Failed to delete post", variant: "destructive" });
+    }
+  });
+
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'bullish': return 'text-green-400 bg-green-500/10 border-green-500/30';
@@ -1870,9 +1930,49 @@ function PostCard({ post }: { post: FeedPost }) {
                 <span>Select text</span>
               </div>
             )}
-            <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <MoreHorizontal className="h-5 w-5" />
-            </Button>
+            {/* 3-dot menu - only show for user's own posts */}
+            {isOwnPost && (
+              <div className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                  data-testid={`button-options-${post.id}`}
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </Button>
+                
+                {/* Dropdown menu */}
+                {showOptionsMenu && (
+                  <div className="absolute right-0 top-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
+                    <button
+                      onClick={() => {
+                        setEditContent(post.content);
+                        setShowEditDialog(true);
+                        setShowOptionsMenu(false);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left transition-colors"
+                      data-testid={`button-edit-${post.id}`}
+                    >
+                      <PenTool className="h-4 w-4" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDeleteDialog(true);
+                        setShowOptionsMenu(false);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left transition-colors"
+                      data-testid={`button-delete-${post.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -2068,6 +2168,67 @@ function PostCard({ post }: { post: FeedPost }) {
           onClose={() => setShowShareModal(false)}
           post={post}
         />
+
+        {/* Edit Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Post</DialogTitle>
+            </DialogHeader>
+            <Textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={4}
+              className="resize-none"
+              data-testid="textarea-edit-content"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowEditDialog(false)}
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => editMutation.mutate(editContent)}
+                disabled={editMutation.isPending || !editContent.trim()}
+                data-testid="button-save-edit"
+              >
+                {editMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Post</DialogTitle>
+            </DialogHeader>
+            <p className="text-gray-600 dark:text-gray-400">
+              Are you sure you want to delete this post? This action cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteDialog(false)}
+                data-testid="button-cancel-delete"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
