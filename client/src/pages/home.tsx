@@ -5924,7 +5924,7 @@ ${
                       )}
 
                       {/* Enhanced AI Suggestion Buttons - Desktop only */}
-                      <div className="md:flex hidden flex-wrap items-center justify-center gap-3 max-w-6xl mx-auto">
+                      <div className="md:flex hidden flex-wrap items-center justify-center gap-3 max-w-6xl mx-auto md:mt-6">
                         {/* <Button
                         variant="secondary"
                         className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
