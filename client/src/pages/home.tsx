@@ -6052,7 +6052,7 @@ ${
                       </div>
 
                       {/* Trading Tools Section - White container with centered cards */}
-                      <div className="bg-white md:pt-6 pt-4 md:pb-6 pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
+                      <div className="bg-white md:pt-4 pt-4 md:pb-4 pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
                         {/* Mobile Search Bar - Fully visible at top */}
                         <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
                           <div className="relative">
@@ -6211,7 +6211,7 @@ ${
                           </div>
 
                           {/* Tutor Daily News Swipeable Cards - Portrait orientation with proper spacing */}
-                          <div className="relative h-full w-full flex items-center justify-center">
+                          <div className="relative h-full w-full flex items-start justify-center pt-2">
                             <SwipeableCardStack
                               onSectorChange={handleSectorChange}
                               selectedSector={selectedSector}
