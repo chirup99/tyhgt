@@ -6319,8 +6319,9 @@ ${
 
                         {/* Main clickable button */}
                         <Button
-                          onClick={() => setActiveTab("tutor")}
+                          onClick={() => checkAuthAndNavigate("tutor")}
                           className="relative w-16 h-16 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-2xl hover:animate-none transition-all duration-300 border-4 border-white/20 pointer-events-auto animate-bounce hover:scale-110"
+                          data-testid="button-tutor-floating"
                         >
                           <ChevronUp className="h-8 w-8 text-gray-400 pointer-events-none" />
                         </Button>
@@ -6486,6 +6487,130 @@ ${
                     }
                   }
                 `}</style>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "tutor" && (
+              <div className="h-full relative bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+                {/* Back Button */}
+                <Button
+                  onClick={() => setActiveTab("trading-home")}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                  data-testid="button-back-to-home-tutor"
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </Button>
+
+                {/* Tutor Content */}
+                <div className="container mx-auto p-6 max-w-6xl">
+                  <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center">
+                        <GraduationCap className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                      AI Trading Tutor
+                    </h1>
+                    <p className="text-lg text-gray-600 dark:text-gray-400">
+                      Learn & Master Trading with Personalized AI Guidance
+                    </p>
+                  </div>
+
+                  {/* Learning Modules Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center mb-4">
+                        <BookOpen className="h-7 w-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        Trading Basics
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Learn fundamental concepts, market mechanics, and essential trading terminology
+                      </p>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center mb-4">
+                        <BarChart3 className="h-7 w-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        Technical Analysis
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Master chart patterns, indicators, and price action strategies
+                      </p>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="w-14 h-14 bg-purple-500 rounded-xl flex items-center justify-center mb-4">
+                        <Target className="h-7 w-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        Risk Management
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Protect your capital with proven risk management techniques
+                      </p>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mb-4">
+                        <Lightbulb className="h-7 w-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        Trading Psychology
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Develop mental discipline and emotional control for consistent trading
+                      </p>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="w-14 h-14 bg-red-500 rounded-xl flex items-center justify-center mb-4">
+                        <AlertCircle className="h-7 w-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        Market Alerts
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Stay updated with real-time market alerts and important events
+                      </p>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="w-14 h-14 bg-teal-500 rounded-xl flex items-center justify-center mb-4">
+                        <TrendingUp className="h-7 w-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        Performance Tracking
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Analyze your trading performance and identify improvement areas
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Interactive Learning Section */}
+                  <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-8 text-white text-center">
+                    <h2 className="text-2xl font-bold mb-4">
+                      Start Your Learning Journey Today
+                    </h2>
+                    <p className="text-lg mb-6 opacity-90">
+                      Personalized AI-powered lessons adapted to your skill level and goals
+                    </p>
+                    <Button
+                      size="lg"
+                      className="bg-white text-violet-600 hover:bg-gray-100 font-semibold px-8"
+                      data-testid="button-start-learning"
+                    >
+                      Begin Learning Now
+                    </Button>
                   </div>
                 </div>
               </div>
