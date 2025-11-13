@@ -1538,11 +1538,11 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
     
     if (!fullText || fullText.trim().length === 0) return;
     
-    // Convert post.id to number
-    const postIdNumber = typeof post.id === 'string' ? parseInt(post.id, 10) : Number(post.id);
+    // Keep post.id as string (Firebase IDs are strings)
+    const postIdValue = typeof post.id === 'string' ? post.id : String(post.id);
     
     addTextSnippet({
-      postId: postIdNumber,
+      postId: postIdValue,
       text: fullText,
       authorUsername: post.user?.handle || post.authorUsername || 'Unknown',
       authorDisplayName: post.user?.username || post.authorDisplayName || 'Unknown User'

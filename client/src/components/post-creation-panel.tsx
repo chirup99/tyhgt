@@ -230,8 +230,8 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
       isAudioPost: viewMode === 'audio',
       selectedPostIds: viewMode === 'audio' ? 
         selectedTextSnippets
-          .filter(s => typeof s.postId === 'string' && s.postId.length > 10)
-          .map(s => s.postId.toString()) 
+          .map(s => String(s.postId))
+          .filter(id => id && id !== 'undefined' && id !== 'null' && id.length > 0)
         : undefined
     };
 
