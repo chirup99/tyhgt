@@ -5673,13 +5673,15 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: Tiny on desktop, normal on mobile */}
-                  <div className="px-8 pt-3 pb-3 flex items-center justify-center h-1/4 md:h-[12vh] md:max-h-40">
-                    {/* World Map */}
-                    <WorldMap />
+                  {/* World Map Section: 30% of screen with transparent container */}
+                  <div className="h-1/4 md:h-[30vh] w-full flex items-center justify-center px-4 py-4">
+                    {/* Transparent container for WorldMap */}
+                    <div className="w-full max-w-6xl bg-transparent/10 backdrop-blur-sm rounded-2xl p-6 flex items-center justify-center">
+                      <WorldMap />
+                    </div>
                   </div>
-                  {/* Blue Section: Extends to bottom of screen */}
-                  <div className="flex-1 w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative min-h-[60vh]">
+                  {/* Blue Section: 70% of screen */}
+                  <div className="h-3/4 md:h-[70vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">
@@ -6050,7 +6052,7 @@ ${
                       </div>
 
                       {/* Trading Tools Section - White container with centered cards */}
-                      <div className="bg-white md:pt-1 pt-4 pb-4 md:pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y md:min-h-[250px] flex-shrink-0 md:flex-1 mt-0 flex flex-col items-center">
+                      <div className="bg-white md:pt-6 pt-4 pb-4 md:pb-6 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
                         {/* Mobile Search Bar - Fully visible at top */}
                         <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
                           <div className="relative">
@@ -6156,66 +6158,68 @@ ${
                           )}
                         </div>
                         {/* Trading Tools Grid - Desktop: 4 columns centered, Mobile: 3 horizontal cards + swipeable below */}
-                        <div className="mx-auto max-w-5xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:px-8 md:pb-0 hidden place-items-center justify-items-center">
+                        <div className="mx-auto max-w-6xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:pb-0 hidden">
                           {/* Social Feed Card */}
                           <div
-                            className="bg-blue-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-blue-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("voice")}
                           >
-                            <div className="absolute top-4 left-4">
-                              <span className="bg-white bg-opacity-90 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-white bg-opacity-90 text-blue-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Social Feed
                               </span>
                             </div>
-                            <div className="absolute bottom-4 right-4">
-                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <MessageCircle className="h-8 w-8 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <MessageCircle className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Master Card */}
                           <div
-                            className="bg-indigo-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-indigo-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("trading-master")}
                           >
-                            <div className="absolute top-4 left-4">
-                              <span className="bg-white bg-opacity-90 text-indigo-600 px-3 py-1 rounded-full text-sm font-medium">
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-white bg-opacity-90 text-indigo-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Trading Master
                               </span>
                             </div>
-                            <div className="absolute bottom-4 right-4">
-                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <Activity className="h-8 w-8 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <Activity className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Charts Card */}
                           <div
-                            className="bg-emerald-500 rounded-2xl overflow-hidden h-48 relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-emerald-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("journal")}
                           >
-                            <div className="absolute top-4 left-4">
-                              <span className="bg-white bg-opacity-90 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-white bg-opacity-90 text-emerald-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Journal
                               </span>
                             </div>
-                            <div className="absolute bottom-4 right-4">
-                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <BarChart3 className="h-8 w-8 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <BarChart3 className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
-                          {/* Tutor Daily News Swipeable Cards - No Container */}
-                          <div className="relative h-48 flex items-center justify-center">
-                            <SwipeableCardStack
-                              onSectorChange={handleSectorChange}
-                              selectedSector={selectedSector}
-                              onCardIndexChange={setCurrentCardIndex}
-                              currentCardIndex={currentCardIndex}
-                            />
+                          {/* Tutor Daily News Swipeable Cards - Smaller size */}
+                          <div className="relative h-36 w-full flex items-center justify-center">
+                            <div className="scale-75 origin-center">
+                              <SwipeableCardStack
+                                onSectorChange={handleSectorChange}
+                                selectedSector={selectedSector}
+                                onCardIndexChange={setCurrentCardIndex}
+                                currentCardIndex={currentCardIndex}
+                              />
+                            </div>
                           </div>
                         </div>
                         {/* Mobile Layout: 3 horizontal cards + swipeable below */}

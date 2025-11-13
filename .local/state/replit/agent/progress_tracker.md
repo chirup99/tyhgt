@@ -1307,3 +1307,18 @@
 [x] 1076. Restarted workflow - all layout changes applied successfully
 [x] 1077. Verified desktop layout - WorldMap is compact, blue extends to bottom, cards centered
 [x] 1078. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ DESKTOP LAYOUT OPTIMIZATION COMPLETED!
+
+## 🎨 Desktop Home Page Layout Refinement (November 13, 2025 - 10:05 AM)
+[x] 1079. User requested 30% screen for world map, 70% for blue section
+[x] 1080. Changed world map section to h-[30vh] for desktop (30% viewport height)
+[x] 1081. Changed blue section to h-[70vh] for desktop (70% viewport height)
+[x] 1082. Added transparent container with backdrop-blur for world map display
+[x] 1083. Added padding and max-width to world map transparent container
+[x] 1084. Ensured all cards are visible: Social Feed, Trading Master, Journal
+[x] 1085. Reduced card sizes from h-48 to h-36 for more compact display
+[x] 1086. Scaled down swipeable news cards using scale-75 transform
+[x] 1087. Reduced icon sizes and spacing for more compact card design
+[x] 1088. Added overflow-y-auto to blue section for scrollable content
+[x] 1089. Restarted workflow - all layout refinements applied successfully
+[x] 1090. Verified layout - 30/70 split perfect, world map in transparent container, all cards visible
+[x] 1091. ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ DESKTOP LAYOUT REFINEMENT COMPLETED!
