@@ -1713,6 +1713,23 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
 
   // If this is an audio minicast post, render the special card
   if (post.isAudioPost) {
+    // Get all posts from cache to find selected posts content
+    const allPosts = queryClient.getQueryData<any[]>(['/api/social-posts']) || [];
+    
+    // Filter to get only the selected posts with their content
+    const selectedPosts = (post.selectedPostIds || [])
+      .map(selectedId => {
+        const selectedPost = allPosts.find(p => p.id === selectedId || p.id?.toString() === selectedId?.toString());
+        if (selectedPost) {
+          return {
+            id: typeof selectedPost.id === 'string' ? parseInt(selectedPost.id, 10) : Number(selectedPost.id),
+            content: selectedPost.content || ''
+          };
+        }
+        return null;
+      })
+      .filter((p): p is { id: number; content: string } => p !== null);
+    
     return (
       <AudioMinicastCard
         content={post.content}
@@ -1721,6 +1738,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
           username: post.user?.handle || post.authorUsername || 'user'
         }}
         selectedPostIds={post.selectedPostIds}
+        selectedPosts={selectedPosts}
         timestamp={post.createdAt ? new Date(post.createdAt) : new Date()}
         likes={post.likes || post.metrics?.likes || 0}
         comments={post.comments || post.metrics?.comments || 0}

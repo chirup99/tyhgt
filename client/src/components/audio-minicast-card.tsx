@@ -3,6 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Radio, Play, Heart, MessageCircle, Share } from 'lucide-react';
 
+interface SelectedPost {
+  id: number;
+  content: string;
+}
+
 interface AudioMinicastCardProps {
   content: string;
   author: {
@@ -10,6 +15,7 @@ interface AudioMinicastCardProps {
     username: string;
   };
   selectedPostIds?: number[];
+  selectedPosts?: SelectedPost[];
   timestamp: Date;
   likes?: number;
   comments?: number;
@@ -28,6 +34,7 @@ export function AudioMinicastCard({
   content,
   author,
   selectedPostIds = [],
+  selectedPosts = [],
   timestamp,
   likes = 0,
   comments = 0,
@@ -41,15 +48,31 @@ export function AudioMinicastCard({
     const allCards: AudioCard[] = [
       { id: 'main', type: 'main', content, colorIndex: 0 }
     ];
-    selectedPostIds.forEach((postId, idx) => {
-      allCards.push({
-        id: `post-${postId}`,
-        type: 'post',
-        content: `Selected Post ${idx + 1}`,
-        postId,
-        colorIndex: (idx + 1) % 5
+    
+    // Use selectedPosts if available, otherwise fall back to selectedPostIds
+    if (selectedPosts.length > 0) {
+      selectedPosts.forEach((post, idx) => {
+        allCards.push({
+          id: `post-${post.id}`,
+          type: 'post',
+          content: post.content,
+          postId: post.id,
+          colorIndex: (idx + 1) % 5
+        });
       });
-    });
+    } else {
+      // Fallback for backward compatibility
+      selectedPostIds.forEach((postId, idx) => {
+        allCards.push({
+          id: `post-${postId}`,
+          type: 'post',
+          content: `Selected Post ${idx + 1}`,
+          postId,
+          colorIndex: (idx + 1) % 5
+        });
+      });
+    }
+    
     return allCards;
   });
 
@@ -94,10 +117,9 @@ export function AudioMinicastCard({
       window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
-      const textToSpeak = [
-        content,
-        ...selectedPostIds.map((_, idx) => `Post ${idx + 1}`)
-      ].join('. ');
+      // Only read the currently visible (top) card's content
+      const currentCard = cards[0];
+      const textToSpeak = currentCard ? currentCard.content : content;
       
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
       utterance.rate = 1.0;
