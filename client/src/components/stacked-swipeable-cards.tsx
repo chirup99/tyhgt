@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Play } from 'lucide-react';
+import { X, Play, Pause } from 'lucide-react';
 import type { SelectedTextSnippet } from '@/contexts/AudioModeContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface StackedSwipeableCardsProps {
   snippets: SelectedTextSnippet[];
@@ -15,6 +16,8 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
   const [cards, setCards] = useState<CardWithColor[]>([]);
   const [nextColorIndex, setNextColorIndex] = useState(0);
   const [isAnimatingIn, setIsAnimatingIn] = useState(false);
+  const [playingCardId, setPlayingCardId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Update cards when snippets change - new cards added to TOP with different colors
   useEffect(() => {
@@ -77,6 +80,59 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
       { from: 'from-cyan-500', to: 'to-cyan-600', label: 'INSIGHT', icon: '🎯' },
     ];
     return gradients[idx % gradients.length];
+  };
+
+  const handleReadNow = (card: CardWithColor, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (playingCardId === card.id) {
+      window.speechSynthesis.cancel();
+      setPlayingCardId(null);
+      return;
+    }
+
+    if (!card.text || card.text.trim().length === 0) {
+      toast({
+        description: "No content to read",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(card.text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      utterance.onstart = () => {
+        setPlayingCardId(card.id);
+      };
+      
+      utterance.onend = () => {
+        setPlayingCardId(null);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setPlayingCardId(null);
+        toast({
+          description: "Failed to play audio. Please try again.",
+          variant: "destructive"
+        });
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setPlayingCardId(null);
+      toast({
+        description: "Audio playback not supported in this browser",
+        variant: "destructive"
+      });
+    }
   };
 
   if (cards.length === 0) return null;
@@ -340,17 +396,26 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
                 </h3>
                 <button
                   type="button"
-                  className="bg-white text-gray-800 hover:bg-gray-100 px-2 py-1 rounded-full text-[10px] font-medium shadow-lg"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isTop) {
-                      console.log('Read Now clicked for:', card.text);
-                    }
-                  }}
+                  className={`bg-white px-2 py-1 rounded-full text-[10px] font-medium shadow-lg transition-colors ${
+                    playingCardId === card.id
+                      ? 'text-blue-600 hover:bg-gray-100'
+                      : 'text-gray-800 hover:bg-gray-100'
+                  }`}
+                  onClick={(e) => handleReadNow(card, e)}
+                  data-testid={`button-read-now-card-${card.id}`}
                 >
                   <div className="flex items-center gap-1">
-                    <Play className="w-2 h-2" />
-                    <span>Read Now</span>
+                    {playingCardId === card.id ? (
+                      <>
+                        <Pause className="w-2 h-2 fill-current" />
+                        <span>Stop</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-2 h-2" />
+                        <span>Read Now</span>
+                      </>
+                    )}
                   </div>
                 </button>
               </div>
