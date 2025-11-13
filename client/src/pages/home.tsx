@@ -5675,8 +5675,8 @@ ${
 
                   {/* World Map Section: Desktop 25% grey background with tiny centered map, Mobile unchanged */}
                   <div className="h-1/4 md:h-[25vh] w-full flex items-center justify-center md:bg-gray-800 md:px-4 md:py-3 px-8 pt-1 pb-1">
-                    {/* Transparent container for WorldMap - Desktop tiny centered */}
-                    <div className="w-full md:max-w-xl max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-3 flex items-center justify-center">
+                    {/* Transparent container for WorldMap - Desktop extra tiny centered */}
+                    <div className="w-full md:max-w-md max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-2 flex items-center justify-center">
                       <WorldMap />
                     </div>
                   </div>
