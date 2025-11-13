@@ -23,6 +23,7 @@ interface BannerContent {
   title: string;
   description: string;
   imageUrl?: string;
+  youtubeEmbedUrl?: string;
   date?: string;
   isLive?: boolean;
   priority?: 'high' | 'medium' | 'low';
@@ -30,20 +31,21 @@ interface BannerContent {
 
 const sampleBannerContent: BannerContent[] = [
   {
-    id: '1',
+    id: '1', 
+    type: 'live_stream',
+    title: 'Live Trading Stream',
+    description: 'Watch live market analysis and trading strategies',
+    youtubeEmbedUrl: 'https://www.youtube.com/embed/6pMBUfHhXtQ',
+    isLive: true,
+    priority: 'high'
+  },
+  {
+    id: '2',
     type: 'content',
     title: 'Market Analysis Update',
     description: 'Latest market trends and analysis',
     imageUrl: bannerImage,
     date: '9 Sep 2024'
-  },
-  {
-    id: '2', 
-    type: 'live_stream',
-    title: 'Live Market Analysis',
-    description: 'Real-time market discussion with experts',
-    isLive: true,
-    priority: 'high'
   },
   {
     id: '3',
@@ -114,10 +116,19 @@ export function LiveBanner() {
   };
 
   return (
-    <Card className="w-full h-48 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
+    <Card className="w-full h-64 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
       {/* Background Image/Content */}
       <div className="absolute inset-0">
-        {currentContent.imageUrl ? (
+        {currentContent.youtubeEmbedUrl ? (
+          <iframe
+            src={currentContent.youtubeEmbedUrl}
+            title={currentContent.title}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            data-testid="banner-youtube-iframe"
+          />
+        ) : currentContent.imageUrl ? (
           <img
             src={currentContent.imageUrl}
             alt={currentContent.title}
@@ -128,14 +139,17 @@ export function LiveBanner() {
           <div className="w-full h-full bg-gradient-to-br from-indigo-600/20 via-purple-600/20 to-blue-600/20" />
         )}
         
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        {/* Overlay - Only show for non-YouTube content */}
+        {!currentContent.youtubeEmbedUrl && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        )}
       </div>
 
-      {/* Content Overlay */}
-      <div className="relative z-10 h-full flex flex-col justify-between p-6">
-        {/* Top Bar with Type Badge and Controls */}
-        <div className="flex justify-between items-start">
+      {/* Content Overlay - Hide for YouTube videos */}
+      {!currentContent.youtubeEmbedUrl && (
+        <div className="relative z-10 h-full flex flex-col justify-between p-6">
+          {/* Top Bar with Type Badge and Controls */}
+          <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             <Badge className={`flex items-center gap-1 ${getBadgeStyle(currentContent.type, currentContent.priority)}`}>
               {getTypeIcon(currentContent.type)}
@@ -240,6 +254,7 @@ export function LiveBanner() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Live Streaming Indicator */}
       {currentContent.isLive && (
