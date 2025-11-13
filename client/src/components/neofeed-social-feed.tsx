@@ -1012,6 +1012,17 @@ function EditProfileDialog({ isOpen, onClose, profileData, onSuccess }: {
   const { toast } = useToast();
   const currentUser = auth.currentUser;
 
+  // Update state when profileData changes
+  useEffect(() => {
+    if (profileData) {
+      setUsername(profileData.username || '');
+      setDisplayName(profileData.displayName || '');
+      setBio(profileData.bio || '');
+      setProfilePicUrl(profileData.profilePicUrl || '');
+      setCoverPicUrl(profileData.coverPicUrl || '');
+    }
+  }, [profileData]);
+
   const handleFileUpload = async (file: File, type: 'profile' | 'cover') => {
     if (!file) return;
     
@@ -1512,12 +1523,38 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
+  const [isFollowing, setIsFollowing] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const currentUser = auth.currentUser;
   
   // Check if this post belongs to the current user
   const isOwnPost = currentUserUsername && (post.authorUsername === currentUserUsername || post.user?.handle === currentUserUsername);
+  
+  // Get the author username for follow functionality
+  const authorUsername = post.user?.handle || post.authorUsername || 'user';
+  
+  // Fetch follow status for this author
+  const { data: followStatus } = useQuery({
+    queryKey: [`/api/users/${authorUsername}/follow-status`],
+    queryFn: async () => {
+      if (!currentUser || isOwnPost) return { isFollowing: false };
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch(`/api/users/${authorUsername}/follow-status`, {
+        headers: { 'Authorization': `Bearer ${idToken}` }
+      });
+      if (!response.ok) return { isFollowing: false };
+      return response.json();
+    },
+    enabled: !!currentUser && !isOwnPost
+  });
+  
+  // Update local state when query data changes
+  useEffect(() => {
+    if (followStatus) {
+      setIsFollowing(followStatus.isFollowing || false);
+    }
+  }, [followStatus]);
   
   // Audio mode text selection
   const { isAudioMode, selectedTextSnippets, addTextSnippet } = useAudioMode();
@@ -1704,6 +1741,43 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
     }
   });
 
+  // Follow/Unfollow mutation
+  const followMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser) throw new Error('Not authenticated');
+      const idToken = await currentUser.getIdToken();
+      const method = isFollowing ? 'DELETE' : 'POST';
+      const response = await fetch(`/api/users/${authorUsername}/follow`, {
+        method,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+      if (!response.ok) throw new Error(`Failed to ${isFollowing ? 'unfollow' : 'follow'}`);
+      return response.json();
+    },
+    onMutate: async () => {
+      // Optimistic update
+      setIsFollowing(!isFollowing);
+      // Invalidate follow status query
+      await queryClient.cancelQueries({ queryKey: [`/api/users/${authorUsername}/follow-status`] });
+      return { previousFollowing: isFollowing };
+    },
+    onSuccess: () => {
+      // Invalidate related queries to update counts
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${authorUsername}/follow-status`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      toast({ description: isFollowing ? "Unfollowed successfully!" : "Following!" });
+    },
+    onError: (err, variables, context) => {
+      // Revert on error
+      setIsFollowing(context?.previousFollowing || false);
+      toast({ description: `Failed to ${isFollowing ? 'unfollow' : 'follow'}`, variant: "destructive" });
+    }
+  });
+
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'bullish': return 'text-green-400 bg-green-500/10 border-green-500/30';
@@ -1818,6 +1892,23 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Follow button - only show for other users' posts */}
+            {!isOwnPost && currentUser && (
+              <Button
+                variant={isFollowing ? "ghost" : "default"}
+                size="sm"
+                onClick={() => followMutation.mutate()}
+                disabled={followMutation.isPending}
+                className={`rounded-full px-4 text-xs font-semibold ${
+                  isFollowing 
+                    ? 'border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+                data-testid={`button-follow-${post.id}`}
+              >
+                {followMutation.isPending ? '...' : isFollowing ? 'Following' : 'Follow'}
+              </Button>
+            )}
             {/* Audio mode indicator */}
             {isAudioMode && (
               <div className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
