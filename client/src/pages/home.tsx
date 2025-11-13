@@ -7218,7 +7218,7 @@ ${
                           </div>
 
                           {/* Swipeable News Cards Below - Properly Centered */}
-                          <div className="flex items-center justify-center px-4 pb-2">
+                          <div className="flex items-center justify-center px-4 pb-0">
                             <SwipeableCardStack
                               onSectorChange={handleSectorChange}
                               selectedSector={selectedSector}
@@ -7229,7 +7229,7 @@ ${
                         </div>
 
                         {/* Navigation Dots - Outside white container, in blue area */}
-                        <div className="md:hidden absolute -bottom-14 left-1/2 transform -translate-x-1/2 flex gap-2 justify-center z-40">
+                        <div className="md:hidden absolute -bottom-28 left-1/2 transform -translate-x-1/2 flex gap-2 justify-center z-40">
                           {[0, 1, 2, 3, 4, 5].map((index) => (
                             <button
                               key={index}
