@@ -1,5 +1,7 @@
-import { X, Play } from 'lucide-react';
+import { useState } from 'react';
+import { X, Play, Pause } from 'lucide-react';
 import { Button } from './ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface SelectedPostMiniCardProps {
   post: {
@@ -13,6 +15,9 @@ interface SelectedPostMiniCardProps {
 }
 
 export function SelectedPostMiniCard({ post, onRemove, index }: SelectedPostMiniCardProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const { toast } = useToast();
+
   const truncateText = (text: string, maxLength: number = 100) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -31,6 +36,57 @@ export function SelectedPostMiniCard({ post, onRemove, index }: SelectedPostMini
 
   const gradient = getGradient(index);
   const authorName = post.authorDisplayName || post.authorUsername || 'Trading Insight';
+
+  const handleReadNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
+
+    if (!post.content || post.content.trim().length === 0) {
+      toast({
+        description: "No content to read",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(post.content);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      utterance.onstart = () => {
+        setIsPlaying(true);
+      };
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setIsPlaying(false);
+        toast({
+          description: "Failed to play audio. Please try again.",
+          variant: "destructive"
+        });
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setIsPlaying(false);
+      toast({
+        description: "Audio playback not supported in this browser",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div 
@@ -70,14 +126,25 @@ export function SelectedPostMiniCard({ post, onRemove, index }: SelectedPostMini
         {/* Action Button */}
         <button 
           type="button"
-          className="inline-flex items-center justify-center gap-2 bg-white text-gray-800 px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors w-fit shadow-md"
-          onClick={(e) => {
-            e.stopPropagation();
-            // Preview action could go here
-          }}
+          className={`inline-flex items-center justify-center gap-2 bg-white px-4 py-2.5 rounded-lg font-medium text-sm transition-colors w-fit shadow-md ${
+            isPlaying 
+              ? 'text-blue-600 hover:bg-gray-100' 
+              : 'text-gray-800 hover:bg-gray-100'
+          }`}
+          onClick={handleReadNow}
+          data-testid={`button-read-now-${post.id}`}
         >
-          <Play className="w-4 h-4 fill-current" />
-          Read Now
+          {isPlaying ? (
+            <>
+              <Pause className="w-4 h-4 fill-current" />
+              <span>Stop</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-4 h-4 fill-current" />
+              <span>Read Now</span>
+            </>
+          )}
         </button>
       </div>
     </div>
