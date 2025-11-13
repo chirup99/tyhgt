@@ -793,10 +793,7 @@ function ProfileHeader() {
   const [postCount, setPostCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [editingPost, setEditingPost] = useState<any>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch real user profile data from Firebase
   useEffect(() => {
@@ -851,56 +848,6 @@ function ProfileHeader() {
       setPostCount(userPosts.length);
     }
   }, [userPosts.length, profileData]);
-
-  // Delete post mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (postId: string) => {
-      const idToken = await currentUser?.getIdToken();
-      const response = await fetch(`/api/social-posts/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to delete post');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
-      refetchPosts();
-      toast({ description: "Post deleted successfully!" });
-      setShowDeleteConfirm(null);
-    },
-    onError: () => {
-      toast({ description: "Failed to delete post", variant: "destructive" });
-    }
-  });
-
-  // Edit post mutation
-  const editMutation = useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      const idToken = await currentUser?.getIdToken();
-      const response = await fetch(`/api/social-posts/${postId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ content })
-      });
-      if (!response.ok) throw new Error('Failed to update post');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
-      refetchPosts();
-      toast({ description: "Post updated successfully!" });
-      setEditingPost(null);
-    },
-    onError: () => {
-      toast({ description: "Failed to update post", variant: "destructive" });
-    }
-  });
 
   const displayName = profileData?.displayName || currentUser?.displayName || '';
   const username = profileData?.username || currentUser?.email?.split('@')[0] || '';
@@ -1023,47 +970,11 @@ function ProfileHeader() {
             </Card>
           ) : (
             userPosts.map((post) => (
-              <Card key={post.id} className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-10 h-10">
-                      {profilePicUrl ? (
-                        <AvatarImage src={profilePicUrl} />
-                      ) : (
-                        <AvatarFallback>{initials}</AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">{displayName || username}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">@{username}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setEditingPost(post)}
-                      data-testid={`button-edit-post-${post.id}`}
-                    >
-                      <PenTool className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setShowDeleteConfirm(String(post.id))}
-                      data-testid={`button-delete-post-${post.id}`}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-                <CardContent className="p-0">
-                  <p className="text-gray-900 dark:text-white mb-2">{post.content}</p>
-                  {post.imageUrl && (
-                    <img src={post.imageUrl} alt="Post" className="rounded-lg w-full max-h-96 object-cover" />
-                  )}
-                </CardContent>
-              </Card>
+              <PostCard 
+                key={post.id} 
+                post={post}
+                currentUserUsername={username}
+              />
             ))
           )}
         </div>
@@ -1079,65 +990,6 @@ function ProfileHeader() {
           window.location.reload();
         }}
       />
-
-      {/* Edit Post Dialog */}
-      {editingPost && (
-        <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Post</DialogTitle>
-            </DialogHeader>
-            <Textarea
-              defaultValue={editingPost.content}
-              id="edit-content"
-              rows={4}
-              data-testid="textarea-edit-post"
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setEditingPost(null)} data-testid="button-cancel-edit">
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  const content = (document.getElementById('edit-content') as HTMLTextAreaElement)?.value;
-                  if (content) {
-                    editMutation.mutate({ postId: editingPost.id, content });
-                  }
-                }}
-                disabled={editMutation.isPending}
-                data-testid="button-save-edit"
-              >
-                {editMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && (
-        <Dialog open={!!showDeleteConfirm} onOpenChange={() => setShowDeleteConfirm(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Post</DialogTitle>
-            </DialogHeader>
-            <p className="text-gray-600 dark:text-gray-400">Are you sure you want to delete this post? This action cannot be undone.</p>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowDeleteConfirm(null)} data-testid="button-cancel-delete">
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => deleteMutation.mutate(showDeleteConfirm)}
-                disabled={deleteMutation.isPending}
-                data-testid="button-confirm-delete"
-              >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </>
   );
 }
