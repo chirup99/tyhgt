@@ -5359,161 +5359,321 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Like a post
+  // Like a post - Firebase synced with SQL backup
   app.post('/api/social-posts/:id/like', async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      
-      if (storage.db?.update) {
-        const result = await storage.db
-          .update(socialPosts)
-          .set({ likes: sql`${socialPosts.likes} + 1` })
-          .where(eq(socialPosts.id, postId))
-          .returning();
-        
-        if (result.length > 0) {
-          console.log(`✅ Liked post ${postId}`);
-          res.json({ success: true, likes: result[0].likes });
-        } else {
-          res.status(404).json({ error: 'Post not found' });
-        }
-      } else {
-        res.json({ success: true, likes: 1 });
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
       }
-    } catch (error) {
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.id;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      try {
+        // Verify token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+        
+        // Get user's username
+        const userDoc = await db.collection('users').doc(userId).get();
+        const username = userDoc.data()?.username || 'anonymous';
+        
+        // Create like record in Firebase (primary storage)
+        await db.collection('likes').doc(`${userId}_${postId}`).set({
+          userId,
+          username,
+          postId,
+          createdAt: new Date()
+        });
+        
+        // Get total likes for this post from Firebase
+        const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+        const likesCount = likesSnapshot.size;
+        
+        // ALSO update SQL counter for backward compatibility (dual write - MANDATORY)
+        if (storage.db?.update) {
+          const sqlResult = await storage.db
+            .update(socialPosts)
+            .set({ likes: likesCount })
+            .where(eq(socialPosts.id, parseInt(postId)))
+            .returning();
+          
+          if (!sqlResult || sqlResult.length === 0) {
+            // SQL update failed or affected 0 rows - this is critical for data consistency
+            throw new Error(`SQL sync failed: Post ${postId} not found in database`);
+          }
+        }
+        
+        console.log(`✅ ${username} liked post ${postId} (Firebase + SQL synced, count: ${likesCount})`);
+        res.json({ success: true, liked: true, likes: likesCount });
+      } catch (authError: any) {
+        // Authentication errors should return 401 (check for any auth/ error code)
+        if (authError.code && authError.code.startsWith('auth/')) {
+          return res.status(401).json({ error: 'Authentication failed: Invalid or expired token' });
+        }
+        throw authError;
+      }
+    } catch (error: any) {
       console.error('Error liking post:', error);
-      res.status(500).json({ error: 'Failed to like post' });
+      res.status(500).json({ error: error.message || 'Failed to like post' });
     }
   });
 
-  // Unlike a post
+  // Unlike a post - Firebase synced with SQL backup
   app.delete('/api/social-posts/:id/like', async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      
-      if (storage.db?.update) {
-        const result = await storage.db
-          .update(socialPosts)
-          .set({ likes: sql`GREATEST(${socialPosts.likes} - 1, 0)` })
-          .where(eq(socialPosts.id, postId))
-          .returning();
-        
-        if (result.length > 0) {
-          console.log(`✅ Unliked post ${postId}`);
-          res.json({ success: true, likes: result[0].likes });
-        } else {
-          res.status(404).json({ error: 'Post not found' });
-        }
-      } else {
-        res.json({ success: true, likes: 0 });
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
       }
-    } catch (error) {
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.id;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      try {
+        // Verify token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+        
+        // Delete like record from Firebase (primary storage)
+        await db.collection('likes').doc(`${userId}_${postId}`).delete();
+        
+        // Get updated total likes from Firebase
+        const likesSnapshot = await db.collection('likes').where('postId', '==', postId).get();
+        const likesCount = likesSnapshot.size;
+        
+        // ALSO update SQL counter for backward compatibility (dual write - MANDATORY)
+        if (storage.db?.update) {
+          const sqlResult = await storage.db
+            .update(socialPosts)
+            .set({ likes: likesCount })
+            .where(eq(socialPosts.id, parseInt(postId)))
+            .returning();
+          
+          if (!sqlResult || sqlResult.length === 0) {
+            // SQL update failed or affected 0 rows - this is critical for data consistency
+            throw new Error(`SQL sync failed: Post ${postId} not found in database`);
+          }
+        }
+        
+        console.log(`✅ Unliked post ${postId} (Firebase + SQL synced, count: ${likesCount})`);
+        res.json({ success: true, liked: false, likes: likesCount });
+      } catch (authError: any) {
+        // Authentication errors should return 401 (check for any auth/ error code)
+        if (authError.code && authError.code.startsWith('auth/')) {
+          return res.status(401).json({ error: 'Authentication failed: Invalid or expired token' });
+        }
+        throw authError;
+      }
+    } catch (error: any) {
       console.error('Error unliking post:', error);
-      res.status(500).json({ error: 'Failed to unlike post' });
+      res.status(500).json({ error: error.message || 'Failed to unlike post' });
     }
   });
 
-  // Repost a post
+  // Repost a post - Firebase synced with SQL backup
   app.post('/api/social-posts/:id/repost', async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      
-      if (storage.db?.update) {
-        const result = await storage.db
-          .update(socialPosts)
-          .set({ reposts: sql`${socialPosts.reposts} + 1` })
-          .where(eq(socialPosts.id, postId))
-          .returning();
-        
-        if (result.length > 0) {
-          console.log(`✅ Reposted post ${postId}`);
-          res.json({ success: true, reposts: result[0].reposts });
-        } else {
-          res.status(404).json({ error: 'Post not found' });
-        }
-      } else {
-        res.json({ success: true, reposts: 1 });
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
       }
-    } catch (error) {
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.id;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      try {
+        // Verify token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+        
+        // Get user's username
+        const userDoc = await db.collection('users').doc(userId).get();
+        const username = userDoc.data()?.username || 'anonymous';
+        
+        // Create repost record in Firebase (primary storage)
+        await db.collection('retweets').doc(`${userId}_${postId}`).set({
+          userId,
+          username,
+          postId,
+          createdAt: new Date()
+        });
+        
+        // Get total reposts for this post from Firebase
+        const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+        const retweetsCount = retweetsSnapshot.size;
+        
+        // ALSO update SQL counter for backward compatibility (dual write - MANDATORY)
+        if (storage.db?.update) {
+          const sqlResult = await storage.db
+            .update(socialPosts)
+            .set({ reposts: retweetsCount })
+            .where(eq(socialPosts.id, parseInt(postId)))
+            .returning();
+          
+          if (!sqlResult || sqlResult.length === 0) {
+            // SQL update failed or affected 0 rows - this is critical for data consistency
+            throw new Error(`SQL sync failed: Post ${postId} not found in database`);
+          }
+        }
+        
+        console.log(`✅ ${username} reposted post ${postId} (Firebase + SQL synced, count: ${retweetsCount})`);
+        res.json({ success: true, retweeted: true, reposts: retweetsCount });
+      } catch (authError: any) {
+        // Authentication errors should return 401 (check for any auth/ error code)
+        if (authError.code && authError.code.startsWith('auth/')) {
+          return res.status(401).json({ error: 'Authentication failed: Invalid or expired token' });
+        }
+        throw authError;
+      }
+    } catch (error: any) {
       console.error('Error reposting post:', error);
-      res.status(500).json({ error: 'Failed to repost' });
+      res.status(500).json({ error: error.message || 'Failed to repost' });
     }
   });
 
-  // Unrepost a post
+  // Unrepost a post - Firebase synced with SQL backup
   app.delete('/api/social-posts/:id/repost', async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
-      
-      if (storage.db?.update) {
-        const result = await storage.db
-          .update(socialPosts)
-          .set({ reposts: sql`GREATEST(${socialPosts.reposts} - 1, 0)` })
-          .where(eq(socialPosts.id, postId))
-          .returning();
-        
-        if (result.length > 0) {
-          console.log(`✅ Unreposted post ${postId}`);
-          res.json({ success: true, reposts: result[0].reposts });
-        } else {
-          res.status(404).json({ error: 'Post not found' });
-        }
-      } else {
-        res.json({ success: true, reposts: 0 });
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
       }
-    } catch (error) {
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.id;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      try {
+        // Verify token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+        
+        // Delete repost record from Firebase (primary storage)
+        await db.collection('retweets').doc(`${userId}_${postId}`).delete();
+        
+        // Get updated total reposts from Firebase
+        const retweetsSnapshot = await db.collection('retweets').where('postId', '==', postId).get();
+        const retweetsCount = retweetsSnapshot.size;
+        
+        // ALSO update SQL counter for backward compatibility (dual write - MANDATORY)
+        if (storage.db?.update) {
+          const sqlResult = await storage.db
+            .update(socialPosts)
+            .set({ reposts: retweetsCount })
+            .where(eq(socialPosts.id, parseInt(postId)))
+            .returning();
+          
+          if (!sqlResult || sqlResult.length === 0) {
+            // SQL update failed or affected 0 rows - this is critical for data consistency
+            throw new Error(`SQL sync failed: Post ${postId} not found in database`);
+          }
+        }
+        
+        console.log(`✅ Unreposted post ${postId} (Firebase + SQL synced, count: ${retweetsCount})`);
+        res.json({ success: true, retweeted: false, reposts: retweetsCount });
+      } catch (authError: any) {
+        // Authentication errors should return 401 (check for any auth/ error code)
+        if (authError.code && authError.code.startsWith('auth/')) {
+          return res.status(401).json({ error: 'Authentication failed: Invalid or expired token' });
+        }
+        throw authError;
+      }
+    } catch (error: any) {
       console.error('Error unreposting post:', error);
-      res.status(500).json({ error: 'Failed to unrepost' });
+      res.status(500).json({ error: error.message || 'Failed to unrepost' });
     }
   });
 
-  // Add a comment to a post
+  // Add a comment to a post - Firebase synced with SQL backup
   app.post('/api/social-posts/:id/comment', async (req, res) => {
     try {
-      const postId = parseInt(req.params.id);
+      if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const idToken = req.headers.authorization.split('Bearer ')[1];
+      const postId = req.params.id;
       const { comment } = req.body;
       
       if (!comment || comment.trim().length === 0) {
         return res.status(400).json({ error: 'Comment cannot be empty' });
       }
       
-      if (storage.db?.update) {
-        const result = await storage.db
-          .update(socialPosts)
-          .set({ comments: sql`${socialPosts.comments} + 1` })
-          .where(eq(socialPosts.id, postId))
-          .returning();
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      const admin = await import('firebase-admin');
+      
+      try {
+        // Verify token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const userId = decodedToken.uid;
         
-        if (result.length > 0) {
-          console.log(`✅ Added comment to post ${postId}: "${comment.substring(0, 50)}..."`);
-          res.json({ 
-            success: true, 
-            comments: result[0].comments,
-            comment: {
-              id: Date.now(),
-              content: comment,
-              author: 'anonymous_user',
-              createdAt: new Date()
-            }
-          });
-        } else {
-          res.status(404).json({ error: 'Post not found' });
+        // Get user's username
+        const userDoc = await db.collection('users').doc(userId).get();
+        const username = userDoc.data()?.displayName || userDoc.data()?.username || 'anonymous';
+        
+        // Create comment record in Firebase (primary storage)
+        const commentId = `${userId}_${postId}_${Date.now()}`;
+        await db.collection('comments').doc(commentId).set({
+          userId,
+          username,
+          postId,
+          content: comment,
+          createdAt: new Date()
+        });
+        
+        // Get total comments for this post from Firebase
+        const commentsSnapshot = await db.collection('comments').where('postId', '==', postId).get();
+        const commentsCount = commentsSnapshot.size;
+        
+        // ALSO update SQL counter for backward compatibility (dual write - MANDATORY)
+        if (storage.db?.update) {
+          const sqlResult = await storage.db
+            .update(socialPosts)
+            .set({ comments: commentsCount })
+            .where(eq(socialPosts.id, parseInt(postId)))
+            .returning();
+          
+          if (!sqlResult || sqlResult.length === 0) {
+            // SQL update failed or affected 0 rows - this is critical for data consistency
+            throw new Error(`SQL sync failed: Post ${postId} not found in database`);
+          }
         }
-      } else {
+        
+        console.log(`✅ ${username} commented on post ${postId}: "${comment.substring(0, 50)}..." (Firebase + SQL synced, count: ${commentsCount})`);
         res.json({ 
           success: true, 
-          comments: 1,
+          comments: commentsCount,
           comment: {
-            id: Date.now(),
+            id: commentId,
             content: comment,
-            author: 'anonymous_user',
+            author: username,
             createdAt: new Date()
           }
         });
+      } catch (authError: any) {
+        // Authentication errors should return 401 (check for any auth/ error code)
+        if (authError.code && authError.code.startsWith('auth/')) {
+          return res.status(401).json({ error: 'Authentication failed: Invalid or expired token' });
+        }
+        throw authError;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding comment:', error);
-      res.status(500).json({ error: 'Failed to add comment' });
+      res.status(500).json({ error: error.message || 'Failed to add comment' });
     }
   });
 
