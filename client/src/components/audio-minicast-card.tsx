@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Radio, Play, Heart, MessageCircle, Share } from 'lucide-react';
 
 interface SelectedPost {
-  id: number;
+  id: string | number;
   content: string;
 }
 
@@ -14,7 +14,7 @@ interface AudioMinicastCardProps {
     displayName: string;
     username: string;
   };
-  selectedPostIds?: number[];
+  selectedPostIds?: (string | number)[];
   selectedPosts?: SelectedPost[];
   timestamp: Date;
   likes?: number;
@@ -26,7 +26,7 @@ interface AudioCard {
   id: string;
   type: 'main' | 'post';
   content: string;
-  postId?: number;
+  postId?: string | number;
   colorIndex: number;
 }
 

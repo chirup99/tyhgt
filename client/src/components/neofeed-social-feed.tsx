@@ -1732,7 +1732,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
             content: selectedPost.content?.substring(0, 100) + '...'
           });
           return {
-            id: typeof selectedPost.id === 'string' ? parseInt(selectedPost.id, 10) : Number(selectedPost.id),
+            id: selectedPost.id,
             content: selectedPost.content || ''
           };
         } else {
@@ -1740,7 +1740,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
         }
         return null;
       })
-      .filter((p): p is { id: number; content: string } => p !== null);
+      .filter((p): p is { id: string | number; content: string } => p !== null);
     
     console.log('📊 Final selectedPosts array:', {
       count: selectedPosts.length,
