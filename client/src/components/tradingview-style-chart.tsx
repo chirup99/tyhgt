@@ -139,7 +139,7 @@ export function TradingViewStyleChart({
   });
 
   // Fetch live market data for real-time price
-  const { data: liveQuotes } = useQuery({
+  const { data: liveQuotes } = useQuery<any[]>({
     queryKey: ['/api/market-data'],
     refetchInterval: 5000,
     enabled: true,
