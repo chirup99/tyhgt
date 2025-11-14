@@ -8,6 +8,24 @@ interface SearchResult {
   snippet: string;
 }
 
+/**
+ * Strip all HTML tags and decode HTML entities from text
+ */
+function stripHtml(html: string): string {
+  if (!html) return '';
+  // Remove all HTML tags
+  let text = html.replace(/<[^>]*>/g, '');
+  // Decode common HTML entities
+  text = text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+  return text.trim();
+}
+
 interface QueryAnalysis {
   intent: 'stock_analysis' | 'market_overview' | 'news' | 'ipo' | 'journal' | 'general' | 'technical';
   stockSymbols: string[];
@@ -224,7 +242,10 @@ export class AdvancedQueryProcessor {
       answer += `Based on current market research:\n\n`;
       
       searchResults.slice(0, 3).forEach((result, index) => {
-        answer += `• ${result.snippet}\n\n`;
+        const cleanSnippet = stripHtml(result.snippet);
+        if (cleanSnippet) {
+          answer += `• ${cleanSnippet}\n\n`;
+        }
       });
     }
     
@@ -232,8 +253,12 @@ export class AdvancedQueryProcessor {
     if (additionalData?.news && additionalData.news.length > 0) {
       answer += `## 📰 Latest Updates\n\n`;
       additionalData.news.slice(0, 3).forEach((item, index) => {
-        answer += `• ${item.title}\n`;
-        answer += `  _via ${item.source}_\n\n`;
+        const cleanTitle = stripHtml(item.title);
+        const cleanSource = stripHtml(item.source);
+        if (cleanTitle) {
+          answer += `• ${cleanTitle}\n`;
+          answer += `  _via ${cleanSource}_\n\n`;
+        }
       });
     }
     
