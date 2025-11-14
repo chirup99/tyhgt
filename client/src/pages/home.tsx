@@ -2033,14 +2033,6 @@ export default function Home() {
 
           let result = data.answer;
 
-          // Add web sources if available
-          if (data.sources && data.sources.length > 0) {
-            result += `\n\n## 🔗 Web Sources\n\n`;
-            data.sources.forEach((source: any, index: number) => {
-              result += `${index + 1}. [${source.title}](${source.url})\n`;
-            });
-          }
-
           setSearchResults(result);
           console.log("✅ [FRONTEND] Advanced query processing complete!");
           setIsSearchLoading(false);
