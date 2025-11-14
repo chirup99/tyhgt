@@ -24,25 +24,34 @@ export function AuthButton() {
     mutationFn: async (token: string) => {
       return await apiRequest("POST", "/api/auth/token", { accessToken: token });
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activity-logs"] });
 
-      // Hide authentication form after successful login
+      // Hide authentication form after successful token save
       setShowTokenInput(false);
       setShowCodeInput(false);
 
-      toast({
-        title: "Authentication Successful",
-        description: "Connected to Fyers API successfully.",
-      });
+      // Show different message based on verification status
+      if (data.verificationPending) {
+        toast({
+          title: "Token Saved Successfully",
+          description: "Connection verification in progress. The dashboard will update automatically once verified.",
+        });
+      } else {
+        toast({
+          title: "Authentication Successful",
+          description: "Connected to Fyers API successfully.",
+        });
+      }
       setAccessToken("");
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Invalid access token. Please check and try again.";
       toast({
         title: "Authentication Failed",
-        description: "Invalid access token. Please check and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -116,9 +125,46 @@ export function AuthButton() {
 
   // Show authentication options when: no token, disconnected, force show, or token null/missing
   const hasValidToken = apiStatus?.accessToken && apiStatus?.accessToken !== null;
-  const shouldShowAuth = !hasValidToken || !apiStatus?.connected || showTokenInput;
+  const isAuthenticated = apiStatus?.authenticated;
+  const isConnected = apiStatus?.connected;
+  const shouldShowAuth = !hasValidToken || showTokenInput;
 
-  if (!shouldShowAuth) {
+  // Token saved but verification pending or failed (authenticated but not connected)
+  if (hasValidToken && isAuthenticated && !isConnected && !showTokenInput) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Key className="text-yellow-600 h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-yellow-900">
+                Token Saved - Verification Pending
+              </h3>
+              <p className="text-xs text-yellow-700">
+                Your token is saved. Connection verification is in progress or temporarily rate-limited. The dashboard will update automatically.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => {
+              setShowTokenInput(true);
+              setShowCodeInput(false);
+            }}
+            variant="outline"
+            size="sm"
+            className="border-yellow-600 text-yellow-600 hover:bg-yellow-50"
+          >
+            Update Token
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Fully connected
+  if (hasValidToken && isAuthenticated && isConnected && !showTokenInput) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
