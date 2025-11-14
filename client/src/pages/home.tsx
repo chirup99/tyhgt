@@ -7115,6 +7115,39 @@ ${
                               </Button>
                             </div>
                           )}
+
+                          {/* Mobile AI Search Results - Extends to bottom */}
+                          {isSearchActive && searchResults && (
+                            <div className="md:hidden fixed inset-x-0 top-0 bottom-0 bg-gray-900/95 backdrop-blur-sm z-[60] overflow-y-auto">
+                              <div className="p-4 space-y-4">
+                                <div className="flex items-center justify-between pb-3 border-b border-gray-700">
+                                  <div className="flex items-center gap-2">
+                                    <Bot className="h-5 w-5 text-blue-400" />
+                                    <h3 className="text-base font-medium text-gray-100">
+                                      AI Assistant
+                                    </h3>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSearchQuery("");
+                                      setIsSearchActive(false);
+                                      setSearchResults("");
+                                    }}
+                                    className="text-gray-400 hover:text-gray-200"
+                                  >
+                                    <X className="h-5 w-5" />
+                                  </Button>
+                                </div>
+                                <div className="prose prose-invert max-w-none">
+                                  <div className="text-gray-300 whitespace-pre-wrap leading-relaxed text-sm">
+                                    {searchResults}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         {/* Trading Tools Grid - Desktop: 4 columns centered, Mobile: 3 horizontal cards + swipeable below */}
                         <div className="mx-auto max-w-6xl md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:items-center hidden">
