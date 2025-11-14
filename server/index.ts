@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
@@ -13,18 +14,18 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
-  
+
   // Additional headers for Replit domain compatibility
   res.header('X-Frame-Options', 'SAMEORIGIN');
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
-  
+
   next();
 });
 
@@ -103,7 +104,7 @@ if (process.platform !== 'win32') {
 
 server.listen(listenOptions, () => {
     log(`serving on port ${port}`);
-    
+
     // Start the live WebSocket price streaming system
     console.log('🚀 Initializing live WebSocket price streaming system...');
     liveWebSocketStreamer.startStreaming().then(() => {
@@ -111,7 +112,7 @@ server.listen(listenOptions, () => {
     }).catch((error) => {
       console.error('❌ Failed to start live WebSocket price streaming system:', error);
     });
-    
+
     // Auto-post finance news every hour from Google News
     const postHourlyFinanceNews = async () => {
       try {
@@ -126,7 +127,7 @@ server.listen(listenOptions, () => {
         console.error('📰 Hourly finance news error:', error);
       }
     };
-    
+
     // Post finance news immediately on startup, then every hour
     // Check if Google Cloud is properly configured before starting
     setTimeout(() => {
