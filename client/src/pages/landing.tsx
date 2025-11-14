@@ -242,7 +242,7 @@ export default function Landing() {
             )}
           </Button>
         </div>
-        <div className="text-left space-y-3 text-sm text-gray-400">
+        <div className="flex flex-col items-center space-y-3 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
             <span>Instant strategy generation</span>
