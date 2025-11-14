@@ -6761,6 +6761,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`🔌 Auto-reconnection result: ${reconnected ? 'SUCCESS' : 'FAILED'}`);
   }, 2000); // Wait 2 seconds for storage to initialize
 
+  // Daily cleanup job - runs at midnight to delete expired tokens
+  const scheduleDailyCleanup = () => {
+    const now = new Date();
+    const night = new Date();
+    night.setHours(24, 0, 0, 0); // Next midnight
+    const msUntilMidnight = night.getTime() - now.getTime();
+
+    setTimeout(async () => {
+      console.log('🌙 Midnight cleanup job starting...');
+      try {
+        const result = await googleCloudService.deleteOldFyersTokens();
+        console.log(`✅ Daily cleanup completed: ${result.deletedCount || 0} expired tokens removed`);
+        await storage.addActivityLog({
+          type: "info",
+          message: `Daily cleanup: ${result.deletedCount || 0} expired Fyers tokens deleted`
+        });
+      } catch (error) {
+        console.error('❌ Daily cleanup failed:', error);
+      }
+      // Schedule next cleanup
+      scheduleDailyCleanup();
+    }, msUntilMidnight);
+
+    console.log(`⏰ Daily token cleanup scheduled for midnight (in ${Math.floor(msUntilMidnight / 1000 / 60 / 60)} hours)`);
+  };
+  
+  // Start the cleanup scheduler
+  scheduleDailyCleanup();
+
   // Set access token manually
   app.post("/api/auth/token", async (req, res) => {
     try {

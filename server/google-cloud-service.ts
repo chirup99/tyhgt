@@ -951,9 +951,54 @@ export class GoogleCloudService {
   }
 
   // Fyers Token Management Methods
+  
+  /**
+   * Delete old/expired Fyers tokens from Firebase
+   * This ensures only one active token exists per day
+   */
+  async deleteOldFyersTokens() {
+    try {
+      const snapshot = await this.firestore.collection('fyers-tokens').get();
+      const deletedCount = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const data = doc.data();
+          const expiryDate = data.expiryDate?.toDate?.() || new Date(data.expiryDate);
+          
+          // Delete if expired OR if it's not from today (old tokens)
+          const isExpired = expiryDate && expiryDate < new Date();
+          const isOld = data.dateKey !== new Date().toISOString().split('T')[0];
+          
+          if (isExpired || isOld) {
+            await doc.ref.delete();
+            console.log(`🗑️ Deleted old/expired token: ${data.dateKey}`);
+            return 1;
+          }
+          return 0;
+        })
+      );
+      
+      const totalDeleted = deletedCount.reduce((a, b) => a + b, 0);
+      console.log(`🧹 Cleaned up ${totalDeleted} old/expired tokens from Firebase`);
+      return { success: true, deletedCount: totalDeleted };
+    } catch (error) {
+      console.error('❌ Error deleting old Fyers tokens:', error);
+      return { success: false, error };
+    }
+  }
+
+  /**
+   * Save Fyers token to Firebase
+   * Automatically deletes old tokens before saving new one
+   */
   async saveFyersToken(accessToken: string, expiryDate: Date) {
     try {
       const dateKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // STEP 1: Delete old tokens before saving new one (prevents duplicates)
+      console.log('🧹 Cleaning up old tokens before saving new one...');
+      await this.deleteOldFyersTokens();
+      
+      // STEP 2: Save new token
       const tokenData = {
         accessToken,
         createdAt: new Date(),
@@ -964,7 +1009,7 @@ export class GoogleCloudService {
       };
 
       await this.storeData('fyers-tokens', dateKey, tokenData);
-      console.log(`🔑 Saved Fyers token to Firebase for date: ${dateKey}`);
+      console.log(`✅ Saved new Fyers token to Firebase for date: ${dateKey}`);
       return { success: true, dateKey };
     } catch (error) {
       console.error('❌ Error saving Fyers token to Firebase:', error);
