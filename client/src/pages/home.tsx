@@ -1866,6 +1866,9 @@ export default function Home() {
     setPendingTab("");
   };
 
+  // Trading Master Coming Soon Modal State
+  const [showTradingMasterComingSoon, setShowTradingMasterComingSoon] = useState(false);
+
   // Check if user is logged in, redirect to login if not
   const checkAuthAndNavigate = (tabName: string) => {
     const userId = localStorage.getItem('currentUserId');
@@ -1880,6 +1883,27 @@ export default function Home() {
     // User is logged in, set active tab
     setActiveTab(tabName);
     return true;
+  };
+
+  // Handle Trading Master access - only for chiranjeevi.perala99@gmail.com
+  const handleTradingMasterAccess = () => {
+    const userId = localStorage.getItem('currentUserId');
+    const userEmail = localStorage.getItem('currentUserEmail');
+    
+    if (!userId || !userEmail) {
+      // User not logged in, redirect to login page
+      setLocation('/login');
+      return;
+    }
+    
+    // Check if user is authorized for Trading Master
+    if (userEmail === 'chiranjeevi.perala99@gmail.com') {
+      // Authorized user - navigate to trading-master tab
+      setActiveTab('trading-master');
+    } else {
+      // Unauthorized user - show coming soon modal
+      setShowTradingMasterComingSoon(true);
+    }
   };
 
   // AI Finance Assistant Logic - Real data fetching and analysis
@@ -6255,7 +6279,7 @@ ${
             </button>
 
             <button
-              onClick={() => checkAuthAndNavigate("trading-master")}
+              onClick={handleTradingMasterAccess}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "trading-master"
                   ? "bg-primary text-primary-foreground"
@@ -7122,7 +7146,7 @@ ${
                           {/* Trading Master Card */}
                           <div
                             className="bg-indigo-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => checkAuthAndNavigate("trading-master")}
+                            onClick={handleTradingMasterAccess}
                           >
                             <div className="absolute top-3 left-3">
                               <span className="bg-white bg-opacity-90 text-indigo-600 px-2.5 py-1 rounded-full text-xs font-medium">
@@ -7187,7 +7211,7 @@ ${
                             {/* Trading Master Card */}
                             <div
                               className="bg-purple-500 rounded-xl overflow-hidden h-20 relative cursor-pointer active:scale-95 transition-transform"
-                              onClick={() => checkAuthAndNavigate("trading-master")}
+                              onClick={handleTradingMasterAccess}
                             >
                               <div className="absolute top-2 left-2">
                                 <span className="bg-white bg-opacity-90 text-purple-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
@@ -10883,6 +10907,39 @@ ${
                   data-testid="button-submit-passcode"
                 >
                   Submit
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Trading Master Coming Soon Modal */}
+        <Dialog open={showTradingMasterComingSoon} onOpenChange={setShowTradingMasterComingSoon}>
+          <DialogContent className="max-w-md">
+            <div className="space-y-6 py-6">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
+                  <Activity className="h-10 w-10 text-white" />
+                </div>
+                <DialogHeader className="space-y-2">
+                  <DialogTitle className="text-center text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-bold">
+                    Advanced Trading Master
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="text-center space-y-2">
+                  <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                    We're working on bringing you advanced trading features and analytics.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setShowTradingMasterComingSoon(false)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  data-testid="button-close-trading-master-coming-soon"
+                >
+                  Got It
                 </Button>
               </div>
             </div>
