@@ -977,7 +977,7 @@ export class GoogleCloudService {
         })
       );
       
-      const totalDeleted = deletedCount.reduce((a, b) => a + b, 0);
+      const totalDeleted: number = deletedCount.reduce((a: number, b: number) => a + b, 0 as number);
       console.log(`🧹 Cleaned up ${totalDeleted} old/expired tokens from Firebase`);
       return { success: true, deletedCount: totalDeleted };
     } catch (error) {
