@@ -265,3 +265,12 @@
 [x] 248. Verified Fyers API real-time streaming operational - live stock data updating
 [x] 249. Screenshot captured - all UI elements rendering perfectly
 [x] 250. ✅ ALL IMPORT MIGRATION TASKS COMPLETED - PROJECT 100% OPERATIONAL AND READY FOR DEVELOPMENT! ✅
+[x] 251. SIGNIN DATA WINDOW UI UPDATE - Split window layout implemented
+[x] 252. Reduced user list height from max-h-64 to max-h-32 (split in half)
+[x] 253. Added Livestream Ads card below Sign In Data window
+[x] 254. Implemented Radio icon for Livestream Ads section
+[x] 255. Added Stream Link input field with placeholder "https://example.com/livestream"
+[x] 256. Added green Connect button (non-functional, UI only as requested)
+[x] 257. Added proper data-testid attributes for testing
+[x] 258. Wrapped both cards in space-y-4 container for proper spacing
+[x] 259. ✅ SIGNIN DATA WINDOW SPLIT + LIVESTREAM ADS SECTION COMPLETED!
