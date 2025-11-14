@@ -3524,42 +3524,65 @@ async function attemptAutoReconnection() {
     const firebaseToken = await googleCloudService.getTodaysFyersToken();
     
     if (firebaseToken && firebaseToken.accessToken) {
-      console.log('🔑 [FIREBASE] Found token in Firebase, attempting reconnection...');
+      console.log('🔑 [FIREBASE] Found token in Firebase - connecting immediately!');
       
       // Set the stored access token from Firebase
       fyersApi.setAccessToken(firebaseToken.accessToken);
       
-      // Test the connection
-      const isConnected = await fyersApi.testConnection();
+      // IMMEDIATELY mark as connected (optimistic) - verification happens in background
+      console.log('⚡ [INSTANT] Setting status to CONNECTED immediately (optimistic)');
+      await storage.updateApiStatus({
+        connected: true,
+        authenticated: true,
+        accessToken: firebaseToken.accessToken,
+        tokenExpiry: firebaseToken.expiryDate,
+        websocketActive: true,
+        responseTime: 45,
+        successRate: 99.8,
+        throughput: "2.3 MB/s",
+        activeSymbols: 250,
+        updatesPerSec: 1200,
+        uptime: 99.97,
+        latency: 12,
+      });
       
-      if (isConnected) {
-        console.log('✅ [FIREBASE] Auto-reconnection successful with Firebase token');
-        
-        // Update PostgreSQL storage for consistency
-        await storage.updateApiStatus({
-          connected: true,
-          authenticated: true,
-          accessToken: firebaseToken.accessToken,
-          tokenExpiry: firebaseToken.expiryDate,
-          websocketActive: true,
-          responseTime: 45,
-          successRate: 99.8,
-          throughput: "2.3 MB/s",
-          activeSymbols: 250,
-          updatesPerSec: 1200,
-          uptime: 99.97,
-          latency: 12,
-        });
-        
-        await storage.addActivityLog({
-          type: "success",
-          message: "🎉 Auto-reconnected successfully using Firebase stored token"
-        });
-        
-        return true;
-      } else {
-        console.log('❌ [FIREBASE] Token found but failed validation');
-      }
+      await storage.addActivityLog({
+        type: "success",
+        message: "✅ Connected instantly using saved Firebase token"
+      });
+      
+      console.log('✅ [INSTANT] Status set to CONNECTED - verification starting in background...');
+      
+      // Verify connection in background (non-blocking)
+      setImmediate(async () => {
+        try {
+          console.log('🔍 [BACKGROUND] Starting token verification...');
+          const isConnected = await fyersApi.testConnection();
+          
+          if (isConnected) {
+            console.log('✅ [BACKGROUND] Token verification successful');
+            await storage.addActivityLog({
+              type: "success",
+              message: "Token verified successfully in background"
+            });
+          } else {
+            console.log('⚠️  [BACKGROUND] Token verification failed - updating status');
+            await storage.updateApiStatus({
+              connected: false,
+              authenticated: false,
+              websocketActive: false,
+            });
+            await storage.addActivityLog({
+              type: "warning",
+              message: "Token verification failed. Please re-authenticate."
+            });
+          }
+        } catch (error) {
+          console.error('❌ [BACKGROUND] Verification error:', error);
+        }
+      });
+      
+      return true;
     } else {
       console.log('📭 [FIREBASE] No valid token found in Firebase for today');
     }
