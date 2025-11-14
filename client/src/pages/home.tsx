@@ -7029,7 +7029,7 @@ ${
                                   await handleSearch();
                                 }
                               }}
-                              className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-sm rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                              className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-xs rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
                             />
                             <Button
                               size="sm"
