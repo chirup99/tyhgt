@@ -56,26 +56,22 @@ export function AuthButton() {
       return await apiRequest("POST", "/api/auth/token", { accessToken: token });
     },
     onSuccess: (data: any) => {
+      // Immediately invalidate queries to show token as authenticated
       queryClient.invalidateQueries({ queryKey: ["/api/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activity-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/token/firebase/count"] });
 
       // Hide authentication form after successful token save
       setShowTokenInput(false);
       setShowCodeInput(false);
 
-      // Show different message based on verification status
-      if (data.verificationPending) {
-        toast({
-          title: "Token Saved Successfully",
-          description: "Connection verification in progress. The dashboard will update automatically once verified.",
-        });
-      } else {
-        toast({
-          title: "Authentication Successful",
-          description: "Connected to Fyers API successfully.",
-        });
-      }
+      // Show success message - token is saved and verification is in progress
+      toast({
+        title: "Token Saved Successfully!",
+        description: "Your token has been saved. Connection verification is running in the background.",
+      });
+
       setAccessToken("");
     },
     onError: (error: any) => {

@@ -411,3 +411,13 @@
 ✅ Works even when Fyers API is rate-limited or temporarily unavailable
 ✅ Auto-reconnection system handles connection verification
 ✅ **USER CAN PASTE TOKEN AND SEE IMMEDIATE FEEDBACK**
+
+[x] 354. FRONTEND FIX - Immediate Success Toast Message (November 14, 2025 11:35)
+[x] 355. Updated tokenMutation onSuccess to show immediate "Token Saved Successfully!" message
+[x] 356. Removed conditional check for verificationPending (no longer needed)
+[x] 357. Added queryClient.invalidateQueries for firebase count to refresh Delete button
+[x] 358. Toast now shows: "Your token has been saved. Connection verification is running in the background."
+[x] 359. Button returns to "Connect" state immediately after click (no more stuck "Connecting...")
+[x] 360. Delete button refreshes token count automatically after deletion
+[x] 361. Restarted workflow - frontend fix now live
+[x] 362. ✅ FRONTEND IMMEDIATE FEEDBACK FIX COMPLETED!
