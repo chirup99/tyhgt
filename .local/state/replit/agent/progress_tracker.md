@@ -402,13 +402,6 @@
 [x] 362. Added data-testid="button-back-to-home-neofeed" for testing
 [x] 363. Restarted workflow - back button now visible in Neo Feed tab
 [x] 364. ✅ NEO FEED BACK BUTTON COMPLETED - SAME IMPLEMENTATION AS TRADING MASTER! ✅
-[x] 365. REMOVED DUPLICATE BACK BUTTONS FROM NEO FEED - November 14, 2025 18:55
-[x] 366. Removed back button beside notification icon in app header (lines 688-698)
-[x] 367. Removed back button from filter tabs section (lines 777-787)
-[x] 368. Kept only the absolutely positioned back button in top-right corner (z-50)
-[x] 369. This matches Trading Master implementation exactly
-[x] 370. Restarted workflow - clean single back button now visible
-[x] 371. ✅ DUPLICATE BACK BUTTONS REMOVED - CLEAN UI WITH SINGLE BACK BUTTON! ✅
 [x] 343. Back icon now remains visible on mobile screens
 [x] 344. Restarted workflow - server running successfully on port 5000
 [x] 345. ✅ MOBILE BACK ICON FIX COMPLETED - NEOFEED BACK BUTTON NOW VISIBLE ON MOBILE! ✅

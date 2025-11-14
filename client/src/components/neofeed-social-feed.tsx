@@ -685,6 +685,17 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {onBackClick && (
+                <Button 
+                  onClick={onBackClick}
+                  variant="ghost" 
+                  size="icon"
+                  className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  data-testid="button-back-to-home"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
               <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Bell className="h-5 w-5" />
               </Button>
@@ -738,28 +749,42 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
           </div>
 
         {/* Filter Tabs */}
+        <div className="flex items-center justify-between gap-2 pb-2">
+          <div className="flex gap-2 overflow-x-auto">
+            {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
+              <Button
+                key={filter}
+                onClick={filter === 'All' ? onAllClick : () => onFilterChange(filter)}
+                variant={selectedFilter === filter ? "default" : "ghost"}
+                disabled={filter === 'All' && isRefreshing}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  selectedFilter === filter
+                    ? `bg-blue-600 hover:bg-blue-700 text-white ${filter === 'All' && isRefreshing ? 'opacity-80' : ''}` 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {index === 0 && isRefreshing && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                  {filter}
+                </div>
+              </Button>
+            ))}
+          </div>
           
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
+          {/* Back Button - Right Corner */}
+          {onBackClick && (
             <Button
-              key={filter}
-              onClick={filter === 'All' ? onAllClick : () => onFilterChange(filter)}
-              variant={selectedFilter === filter ? "default" : "ghost"}
-              disabled={filter === 'All' && isRefreshing}
-              className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                selectedFilter === filter
-                  ? `bg-blue-600 hover:bg-blue-700 text-white ${filter === 'All' && isRefreshing ? 'opacity-80' : ''}` 
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
+              onClick={onBackClick}
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              data-testid="button-back-to-home"
             >
-              <div className="flex items-center gap-2">
-                {index === 0 && isRefreshing && (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                )}
-                {filter}
-              </div>
+              <ArrowLeft className="h-5 w-5" />
             </Button>
-          ))}
+          )}
         </div>
       </div>
       </div>
