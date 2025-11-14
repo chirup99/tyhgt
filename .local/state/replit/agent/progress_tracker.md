@@ -421,3 +421,14 @@
 [x] 360. Delete button refreshes token count automatically after deletion
 [x] 361. Restarted workflow - frontend fix now live
 [x] 362. ✅ FRONTEND IMMEDIATE FEEDBACK FIX COMPLETED!
+
+[x] 363. BACKEND FIX - Instant Server Response (November 14, 2025 11:38)
+[x] 364. Identified root cause: Server waiting for Firebase save before responding
+[x] 365. Firebase save (googleCloudService.saveFyersToken) was blocking response
+[x] 366. Moved Firebase backup to background (setImmediate) - no more blocking!
+[x] 367. Moved activity log to background as well
+[x] 368. Server now responds INSTANTLY after PostgreSQL save only
+[x] 369. Firebase backup + connection test happen in background (non-blocking)
+[x] 370. Button will now show "Connect" immediately after click (no "Connecting..." stuck state)
+[x] 371. Restarted workflow - server fix now live
+[x] 372. ✅ INSTANT SERVER RESPONSE FIX COMPLETED!

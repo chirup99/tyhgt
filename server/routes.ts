@@ -6822,14 +6822,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid token format. Token appears to be incomplete." });
       }
 
-      // STEP 1: SAVE TOKEN IMMEDIATELY (don't wait for validation)
-      console.log('💾 [TOKEN-AUTH] Saving token IMMEDIATELY to databases...');
+      // STEP 1: SAVE TOKEN INSTANTLY (PostgreSQL only - no waiting!)
+      console.log('⚡ [TOKEN-AUTH] INSTANT save to PostgreSQL - no blocking!');
       fyersApi.setAccessToken(cleanedToken);
       
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 24);
       
-      // Save to PostgreSQL first
+      // Save to PostgreSQL ONLY (super fast!)
       await storage.updateApiStatus({
         connected: false,
         authenticated: true,
@@ -6847,42 +6847,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         accessToken: cleanedToken,
         tokenExpiry: tokenExpiry,
       });
-      console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL');
+      console.log('✅ [TOKEN-AUTH] PostgreSQL saved - responding IMMEDIATELY!');
       
-      // Save to Firebase
-      let firebaseSuccess = false;
-      try {
-        const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
-        if (firebaseResult.success) {
-          console.log('✅ [TOKEN-AUTH] Token saved to Firebase successfully');
-          firebaseSuccess = true;
-        }
-      } catch (firebaseError) {
-        console.error('❌ [TOKEN-AUTH] Failed to save token to Firebase:', firebaseError);
-      }
-
-      await storage.addActivityLog({
-        type: "success",
-        message: `Token saved successfully (Firebase: ${firebaseSuccess ? 'Yes' : 'No'}). Connection verification in progress...`
-      });
-      
-      // STEP 2: Return success immediately - don't wait for validation
+      // STEP 2: Return success INSTANTLY (no waiting for Firebase!)
       res.json({ 
         success: true, 
-        message: "Token saved successfully! Connection verification in progress...",
+        message: "Token saved! Firebase backup and connection verification in progress...",
         connected: false,
-        authenticated: true,
-        savedToFirebase: firebaseSuccess
+        authenticated: true
       });
 
-      // STEP 3: Test connection in background (non-blocking)
+      // STEP 3: Firebase backup + connection test in background (non-blocking)
       setImmediate(async () => {
         try {
-          console.log('🔍 [TOKEN-AUTH] Testing connection in background...');
+          // Save to Firebase in background (don't block user!)
+          console.log('📦 [TOKEN-AUTH] Starting Firebase backup in background...');
+          let firebaseSuccess = false;
+          try {
+            const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
+            if (firebaseResult.success) {
+              console.log('✅ [TOKEN-AUTH] Firebase backup completed');
+              firebaseSuccess = true;
+            }
+          } catch (firebaseError) {
+            console.error('❌ [TOKEN-AUTH] Firebase backup failed:', firebaseError);
+          }
+
+          // Log token save completion
+          await storage.addActivityLog({
+            type: "success",
+            message: `Token saved successfully (Firebase: ${firebaseSuccess ? 'Yes' : 'No'}). Testing connection...`
+          });
+
+          // Test connection in background
+          console.log('🔍 [TOKEN-AUTH] Testing Fyers API connection...');
           const isConnected = await fyersApi.testConnection();
           
           if (isConnected) {
-            console.log('✅ [TOKEN-AUTH] Background validation successful - updating status');
+            console.log('✅ [TOKEN-AUTH] Connection successful!');
             await storage.updateApiStatus({
               connected: true,
               authenticated: true,
@@ -6890,17 +6892,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             await storage.addActivityLog({
               type: "success",
-              message: "Token validated - Fyers API connection established"
+              message: "Fyers API connection established and verified"
             });
           } else {
-            console.log('⚠️ [TOKEN-AUTH] Background validation failed - token saved but connection pending');
+            console.log('⚠️ [TOKEN-AUTH] Connection pending - will retry automatically');
             await storage.addActivityLog({
               type: "info",
-              message: "Token saved. Connection will retry automatically when API becomes available."
+              message: "Token saved. Connection will retry when API becomes available."
             });
           }
         } catch (bgError) {
-          console.error('❌ [TOKEN-AUTH] Background validation error:', bgError);
+          console.error('❌ [TOKEN-AUTH] Background process error:', bgError);
         }
       });
 
