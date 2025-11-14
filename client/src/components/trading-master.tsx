@@ -7802,18 +7802,180 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               {/* 20% - Vertical Panel (Right Side) */}
               <div className="flex-[20] bg-muted/30">
                 <div className="h-full flex flex-col">
-                  {/* Panel Header */}
-                  <div className="border-b border-border px-4 py-4">
-                    <h3 className="text-sm font-semibold">Side Panel</h3>
+                  {/* Top 50% - Watchlist */}
+                  <div className="flex-1 border-b border-border p-3 overflow-hidden">
+                    <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
+                      <CardContent className="p-4 h-full flex flex-col">
+                        <h3 className="text-base font-semibold mb-3 text-white">Watchlist</h3>
+                        <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                          {watchlistStocks.map((stock, index) => {
+                            const liveData = watchlistPrices[stock];
+                            const lastTradedData = lastTradedPrices[stock];
+                            const dataSource = liveData || lastTradedData;
+                            const stockData = dataSource ? {
+                              price: dataSource.price,
+                              change: dataSource.change,
+                              changePercent: dataSource.changePercent,
+                              isPositive: dataSource.isPositive,
+                              volume: dataSource.volume,
+                              isLastTraded: dataSource.isLastTraded || false
+                            } : {
+                              price: 0,
+                              change: 0,
+                              changePercent: 0,
+                              isPositive: true,
+                              volume: 0,
+                              isLastTraded: false
+                            };
+
+                            return (
+                              <div key={index} className="flex items-center justify-between p-2 bg-slate-800/50 rounded hover-elevate">
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-medium text-slate-200">{stock}</span>
+                                  <span className="text-[10px] text-slate-400">NSE</span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  {dataSource ? (
+                                    <>
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs font-mono text-white">₹{stockData.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                        {stockData.isLastTraded ? (
+                                          <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
+                                        ) : (
+                                          <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <span className={`text-[10px] ${stockData.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                                          {stockData.isPositive ? '+' : ''}{stockData.changePercent.toFixed(2)}%
+                                        </span>
+                                        {stockData.isPositive ? 
+                                          <TrendingUp className="w-2 h-2 text-green-400" /> : 
+                                          <TrendingDown className="w-2 h-2 text-red-400" />
+                                        }
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="flex flex-col items-end">
+                                      <div className="animate-pulse bg-slate-600 h-3 w-12 rounded mb-1"></div>
+                                      <span className="text-[10px] text-slate-500">Loading...</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                  
-                  {/* Panel Content */}
-                  <div className="flex-1 p-4 space-y-4">
-                    <Card className="bg-background">
-                      <CardContent className="p-4">
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Tools & Controls</p>
-                          <p className="text-xs text-muted-foreground/70">Panel area for additional features</p>
+
+                  {/* Bottom 50% - Notes AI */}
+                  <div className="flex-1 p-3 overflow-hidden">
+                    <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
+                      <CardContent className="p-4 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-semibold text-white">
+                              {isVisualAIMode ? '📊 Visual AI' : (isAIMode ? 'AI' : 'Notes')}
+                            </h3>
+                            {isAIMode && !isVisualAIMode && (
+                              <Badge variant="secondary" className="text-[10px] bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                AI
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant={isAIMode ? "default" : "ghost"}
+                              onClick={() => setIsAIMode(!isAIMode)}
+                              className={`text-[10px] h-6 px-1.5 ${
+                                isAIMode 
+                                  ? "bg-purple-600 hover:bg-purple-700 text-white" 
+                                  : "text-gray-400 hover:text-white hover:bg-slate-800"
+                              }`}
+                              data-testid="button-toggle-ai-sidebar"
+                            >
+                              <img 
+                                src={aiIconImage} 
+                                alt="AI" 
+                                className="w-4 h-4 object-cover rounded-full"
+                              />
+                            </Button>
+                            {!isAIMode && (
+                              isEditingNotes ? (
+                                <Button
+                                  size="sm"
+                                  onClick={handleSaveNotes}
+                                  className="text-[10px] bg-green-600 hover:bg-green-700 text-white h-6 px-1.5"
+                                  data-testid="button-save-notes-sidebar"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={handleEditNotes}
+                                  className="text-[10px] text-gray-400 hover:text-white hover:bg-slate-800 h-6 px-1.5"
+                                  data-testid="button-edit-notes-sidebar"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 overflow-hidden">
+                          {isAIMode ? (
+                            <div className="h-full flex flex-col bg-slate-800/30 rounded-lg p-2">
+                              <div className="flex-1 overflow-y-auto space-y-2 mb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                                {chatMessages.map((msg, idx) => (
+                                  <div key={idx} className={`p-2 rounded text-xs ${
+                                    msg.role === 'user' 
+                                      ? 'bg-blue-600 text-white ml-4' 
+                                      : 'bg-slate-700 text-slate-200 mr-4'
+                                  }`}>
+                                    {msg.content}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex gap-1">
+                                <Input
+                                  placeholder="Ask AI..."
+                                  value={chatInput}
+                                  onChange={(e) => setChatInput(e.target.value)}
+                                  className="text-xs h-7 bg-slate-700 border-slate-600 text-white"
+                                  data-testid="input-ai-chat-sidebar"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="h-7 px-2 bg-purple-600 hover:bg-purple-700"
+                                  data-testid="button-send-ai-sidebar"
+                                >
+                                  <Send className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="h-full">
+                              {isEditingNotes ? (
+                                <textarea
+                                  value={tempNotesContent}
+                                  onChange={(e) => setTempNotesContent(e.target.value)}
+                                  className="w-full h-full p-2 bg-slate-800 text-white text-xs rounded border border-slate-600 resize-none focus:outline-none focus:border-blue-500"
+                                  placeholder="Write your trading notes..."
+                                  data-testid="textarea-notes-sidebar"
+                                />
+                              ) : (
+                                <div className="h-full overflow-y-auto p-2 bg-slate-800/30 rounded text-xs text-slate-300 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                                  {notesContent || 'Click Edit to add notes...'}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
