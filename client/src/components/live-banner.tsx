@@ -29,48 +29,75 @@ interface BannerContent {
   priority?: 'high' | 'medium' | 'low';
 }
 
-const sampleBannerContent: BannerContent[] = [
-  {
-    id: '1', 
-    type: 'live_stream',
-    title: 'Live Trading Stream',
-    description: 'Watch live market analysis and trading strategies',
-    youtubeEmbedUrl: 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1',
-    isLive: true,
-    priority: 'high'
-  },
-  {
-    id: '2',
-    type: 'content',
-    title: 'Market Analysis Update',
-    description: 'Latest market trends and analysis',
-    imageUrl: bannerImage,
-    date: '9 Sep 2024'
-  },
-  {
-    id: '3',
-    type: 'update',
-    title: 'Important Trading Update',
-    description: 'New features and market alerts now available',
-    priority: 'high'
-  },
-  {
-    id: '4',
-    type: 'ad',
-    title: 'Premium Trading Tools',
-    description: 'Upgrade to access advanced analytics and insights',
-    priority: 'medium'
-  }
-];
+const getDefaultBannerContent = (): BannerContent[] => {
+  const savedUrl = typeof window !== 'undefined' 
+    ? localStorage.getItem('livestream_banner_url') 
+    : null;
+  
+  return [
+    {
+      id: '1', 
+      type: 'live_stream',
+      title: 'Live Trading Stream',
+      description: 'Watch live market analysis and trading strategies',
+      youtubeEmbedUrl: savedUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1',
+      isLive: true,
+      priority: 'high'
+    },
+    {
+      id: '2',
+      type: 'content',
+      title: 'Market Analysis Update',
+      description: 'Latest market trends and analysis',
+      imageUrl: bannerImage,
+      date: '9 Sep 2024'
+    },
+    {
+      id: '3',
+      type: 'update',
+      title: 'Important Trading Update',
+      description: 'New features and market alerts now available',
+      priority: 'high'
+    },
+    {
+      id: '4',
+      type: 'ad',
+      title: 'Premium Trading Tools',
+      description: 'Upgrade to access advanced analytics and insights',
+      priority: 'medium'
+    }
+  ];
+};
 
 export function LiveBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [youtubePlayerState, setYoutubePlayerState] = useState<'playing' | 'paused' | null>(null);
+  const [bannerContent, setBannerContent] = useState<BannerContent[]>(getDefaultBannerContent());
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
-  const currentContent = sampleBannerContent[currentIndex];
+  const currentContent = bannerContent[currentIndex];
+
+  useEffect(() => {
+    const handleUrlUpdate = (event: CustomEvent) => {
+      const newUrl = event.detail.url;
+      setBannerContent(prevContent => {
+        const newContent = [...prevContent];
+        newContent[0] = {
+          ...newContent[0],
+          youtubeEmbedUrl: newUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1'
+        };
+        return newContent;
+      });
+      setCurrentIndex(0);
+    };
+
+    window.addEventListener('livestream-url-updated', handleUrlUpdate as EventListener);
+    return () => {
+      window.removeEventListener('livestream-url-updated', handleUrlUpdate as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -107,7 +134,7 @@ export function LiveBanner() {
     }
     
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % sampleBannerContent.length);
+      setCurrentIndex((prev) => (prev + 1) % bannerContent.length);
     }, 5000);
     
     return () => clearInterval(interval);
@@ -122,11 +149,11 @@ export function LiveBanner() {
   (window as any).pauseBannerYouTube = pauseYouTube;
 
   const navigateLeft = () => {
-    setCurrentIndex((prev) => prev > 0 ? prev - 1 : sampleBannerContent.length - 1);
+    setCurrentIndex((prev) => prev > 0 ? prev - 1 : bannerContent.length - 1);
   };
 
   const navigateRight = () => {
-    setCurrentIndex((prev) => (prev + 1) % sampleBannerContent.length);
+    setCurrentIndex((prev) => (prev + 1) % bannerContent.length);
   };
 
   const getBadgeStyle = (type: string, priority?: string) => {
@@ -273,7 +300,7 @@ export function LiveBanner() {
         </div>
 
         <div className="flex items-center justify-center gap-2">
-          {sampleBannerContent.map((_, index) => (
+          {bannerContent.map((_, index) => (
             <button
               key={index}
               className={`w-2 h-2 rounded-full transition-all ${
