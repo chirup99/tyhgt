@@ -7676,32 +7676,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get API status
   app.get("/api/status", async (req, res) => {
     try {
-      // Check if we're rate limited
-      const isRateLimited = fyersApi.isRateLimited && fyersApi.isRateLimited();
-      
-      // Check real Fyers API connection (skip test if rate limited to avoid more failures)
-      let isConnected = false;
-      let isAuthenticated = fyersApi.isAuthenticated();
-      
-      if (!isRateLimited) {
-        isConnected = await fyersApi.testConnection();
-      }
+      // Just check authentication status without making API calls
+      const isAuthenticated = fyersApi.isAuthenticated();
       
       let status = await storage.getApiStatus();
       
-      // Update status with real API connection info
+      // Update status with authentication info (don't test connection to avoid hanging)
       if (status) {
         status = await storage.updateApiStatus({
           ...status,
-          connected: isConnected && isAuthenticated,
+          connected: isAuthenticated,
           authenticated: isAuthenticated,
           lastUpdate: new Date(),
         });
       } else {
-        // If no status exists, create a default disconnected state
+        // If no status exists, create a default state
         status = await storage.updateApiStatus({
-          connected: false,
-          authenticated: false,
+          connected: isAuthenticated,
+          authenticated: isAuthenticated,
           websocketActive: false,
           responseTime: 0,
           successRate: 0,
