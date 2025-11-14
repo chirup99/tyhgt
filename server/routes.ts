@@ -6790,61 +6790,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
-      console.log('💾 [TOKEN-AUTH] Saving token immediately (verification will happen async)');
+      console.log('⚡ [TOKEN-AUTH] Token set in memory - responding immediately');
       
-      let postgresSuccess = false;
-      let firebaseSuccess = false;
-
-      // Save to PostgreSQL with pending verification status
-      try {
-        await storage.updateApiStatus({
-          connected: false,
-          authenticated: true,
-          websocketActive: false,
-          responseTime: 0,
-          successRate: 0,
-          throughput: "0 MB/s",
-          activeSymbols: 0,
-          updatesPerSec: 0,
-          uptime: 0,
-          latency: 0,
-          requestsUsed: 0,
-          version: "v3.0.0",
-          dailyLimit: 100000,
-          accessToken: cleanedToken,
-          tokenExpiry: tokenExpiry,
-        });
-
-        console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL successfully');
-        postgresSuccess = true;
-      } catch (dbError) {
-        console.error('❌ [TOKEN-AUTH] Failed to save token to PostgreSQL:', dbError);
-      }
-
-      // Save to Firebase
-      try {
-        const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
-        if (firebaseResult.success) {
-          console.log('✅ [TOKEN-AUTH] Token saved to Firebase successfully');
-          firebaseSuccess = true;
-        }
-      } catch (firebaseError) {
-        console.error('❌ [TOKEN-AUTH] Failed to save token to Firebase:', firebaseError);
-      }
-
-      // Add log for token save
-      await storage.addActivityLog({
-        type: "info",
-        message: `Token saved successfully (PostgreSQL: ${postgresSuccess ? 'Yes' : 'No'}, Firebase: ${firebaseSuccess ? 'Yes' : 'No'}). Connection verification in progress...`
-      });
-
-      // Return success immediately - verification happens async
+      // Return success IMMEDIATELY - all saves happen async
       res.json({ 
         success: true, 
-        message: "Token saved successfully. Connection verification in progress...",
-        savedToPostgres: postgresSuccess,
-        savedToFirebase: firebaseSuccess,
+        message: "Token received. Saving and verification in progress...",
         verificationPending: true
+      });
+
+      // Save to PostgreSQL and Firebase asynchronously (NON-BLOCKING)
+      setImmediate(async () => {
+        let postgresSuccess = false;
+        let firebaseSuccess = false;
+
+        console.log('💾 [TOKEN-AUTH] Starting async database saves...');
+
+        // Save to PostgreSQL with pending verification status
+        try {
+          await storage.updateApiStatus({
+            connected: false,
+            authenticated: true,
+            websocketActive: false,
+            responseTime: 0,
+            successRate: 0,
+            throughput: "0 MB/s",
+            activeSymbols: 0,
+            updatesPerSec: 0,
+            uptime: 0,
+            latency: 0,
+            requestsUsed: 0,
+            version: "v3.0.0",
+            dailyLimit: 100000,
+            accessToken: cleanedToken,
+            tokenExpiry: tokenExpiry,
+          });
+
+          console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL successfully');
+          postgresSuccess = true;
+        } catch (dbError) {
+          console.error('❌ [TOKEN-AUTH] Failed to save token to PostgreSQL:', dbError);
+        }
+
+        // Save to Firebase
+        try {
+          const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
+          if (firebaseResult.success) {
+            console.log('✅ [TOKEN-AUTH] Token saved to Firebase successfully');
+            firebaseSuccess = true;
+          }
+        } catch (firebaseError) {
+          console.error('❌ [TOKEN-AUTH] Failed to save token to Firebase:', firebaseError);
+        }
+
+        // Add log for token save
+        await storage.addActivityLog({
+          type: "info",
+          message: `Token saved to storage (PostgreSQL: ${postgresSuccess ? 'Yes' : 'No'}, Firebase: ${firebaseSuccess ? 'Yes' : 'No'})`
+        });
       });
 
       // Test connection asynchronously (non-blocking)
