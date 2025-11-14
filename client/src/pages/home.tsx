@@ -6462,19 +6462,18 @@ ${
           >
             {/* Render content based on active tab */}
 
-            {activeTab === "dashboard" && (
+            {activeTab === 'dashboard' && (
               <div className="space-y-8">
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center gap-3">
                     <Star className="h-6 w-6 text-yellow-400" />
-                    <h2 className="text-2xl font-bold text-green-400">
-                      Market Dashboard
-                    </h2>
+                    <h2 className="text-2xl font-bold text-green-400">Market Dashboard</h2>
                   </div>
-                  <p className="text-green-300">
-                    Real-time market data and connection status
-                  </p>
+                  <p className="text-green-300">Real-time market data and connection status</p>
                 </div>
+
+                {/* Fyers API Authentication Required Notice */}
+
 
                 {/* Authentication Status Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -6491,6 +6490,7 @@ ${
 
                 {/* Error Panel and Recent Activity - Bottom */}
                 <ErrorPanel />
+
               </div>
             )}
 
