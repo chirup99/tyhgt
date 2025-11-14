@@ -7029,8 +7029,23 @@ ${
                                   await handleSearch();
                                 }
                               }}
-                              className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-xs rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                              className="w-full h-12 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-24 text-xs rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
                             />
+                            {searchQuery && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 h-8 w-8 p-0"
+                                onClick={() => {
+                                  setSearchQuery("");
+                                  setIsSearchActive(false);
+                                  setSearchResults("");
+                                }}
+                                data-testid="button-clear-search"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               className="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300"
@@ -7111,6 +7126,18 @@ ${
                                 <div className="flex items-center gap-1.5">
                                   <BarChart3 className="h-3 w-3" />
                                   <span>Fundamentals</span>
+                                </div>
+                              </Button>
+
+                              <Button
+                                variant="secondary"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 h-7 px-3 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                                onClick={() => checkAuthAndNavigate("journal")}
+                                data-testid="button-quick-journal"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <BookOpen className="h-3 w-3" />
+                                  <span>Journal</span>
                                 </div>
                               </Button>
                             </div>
