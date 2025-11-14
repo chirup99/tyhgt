@@ -4094,55 +4094,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log('✅ Username available, proceeding to save...');
+      console.log('✅ Username available, responding immediately and saving in background...');
 
-      // First, fetch existing profile to preserve displayName and other fields
-      console.log('📖 Fetching existing profile...');
-      const existingProfile = await withTimeout(
-        db.collection('users').doc(userId).get(),
-        5000,
-        'Fetch existing profile'
-      );
-      
-      const existingData = existingProfile.exists ? existingProfile.data() : {};
-      console.log('📄 Existing profile data:', {
-        hasDisplayName: !!existingData?.displayName,
-        displayName: existingData?.displayName
-      });
-
-      // Save user profile - merge with existing data to preserve displayName
-      const userProfile = {
-        ...existingData, // Preserve all existing fields
-        username: username.toLowerCase(),
-        dob: dob,
-        email: decodedToken.email || '',
-        userId: userId,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      };
-
-      // Save user profile with timeout protection
-      console.log('💾 Saving user profile to Firestore (preserving displayName)...');
-      await withTimeout(
-        db.collection('users').doc(userId).set(userProfile, { merge: true }),
-        10000,
-        'User profile save'
-      );
-      console.log('✅ User profile saved to Firestore with displayName:', userProfile.displayName);
-      
-      // Also save username mapping with timeout protection
-      console.log('💾 Saving username mapping...');
-      await withTimeout(
-        db.collection('usernames').doc(username.toLowerCase()).set({
-          userId: userId,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }),
-        8000,
-        'Username mapping save'
-      );
-      console.log('✅ Username mapping saved');
-      
-      console.log('✅✅ Profile save completed successfully!');
-
+      // Respond immediately to the user
       res.json({ 
         success: true,
         message: 'Profile saved successfully',
@@ -4152,6 +4106,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: decodedToken.email
         }
       });
+
+      // Save profile data in background (non-blocking)
+      (async () => {
+        try {
+          // First, fetch existing profile to preserve displayName and other fields
+          console.log('📖 Fetching existing profile (background)...');
+          const existingProfile = await withTimeout(
+            db.collection('users').doc(userId).get(),
+            5000,
+            'Fetch existing profile'
+          );
+          
+          const existingData = existingProfile.exists ? existingProfile.data() : {};
+          console.log('📄 Existing profile data:', {
+            hasDisplayName: !!existingData?.displayName,
+            displayName: existingData?.displayName
+          });
+
+          // Save user profile - merge with existing data to preserve displayName
+          const userProfile = {
+            ...existingData, // Preserve all existing fields
+            username: username.toLowerCase(),
+            dob: dob,
+            email: decodedToken.email || '',
+            userId: userId,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          };
+
+          // Save user profile with timeout protection
+          console.log('💾 Saving user profile to Firestore (background)...');
+          await withTimeout(
+            db.collection('users').doc(userId).set(userProfile, { merge: true }),
+            10000,
+            'User profile save'
+          );
+          console.log('✅ User profile saved to Firestore with displayName:', userProfile.displayName);
+          
+          // Also save username mapping with timeout protection
+          console.log('💾 Saving username mapping (background)...');
+          await withTimeout(
+            db.collection('usernames').doc(username.toLowerCase()).set({
+              userId: userId,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }),
+            8000,
+            'Username mapping save'
+          );
+          console.log('✅ Username mapping saved');
+          console.log('✅✅ Profile save completed successfully in background!');
+        } catch (bgError) {
+          console.error('⚠️ Background profile save failed (non-critical):', bgError);
+        }
+      })();
     } catch (error: any) {
       console.error('❌ Save profile error:', error);
       console.error('Error details:', {
