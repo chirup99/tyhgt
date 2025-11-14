@@ -5,8 +5,7 @@ import { getAuth } from 'firebase/auth';
 // Get these values from https://console.firebase.google.com/
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  
-  apiKey: "AIzaSyAUhGSu40qB3SJObxfbtWO1jSZtTfFCm7Y"
+  apiKey: "AIzaSyAUhGSu40qB3SJObxfbtWO1jSZtTfFCm7Y",
   authDomain: "perala-39d04.firebaseapp.com",
   projectId: "perala-39d04",
   storageBucket: "perala-39d04.firebasestorage.app",
