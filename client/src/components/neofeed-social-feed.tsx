@@ -1594,7 +1594,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
       if (!user) throw new Error('Not authenticated');
       
       const idToken = await user.getIdToken();
-      const method = liked ? 'DELETE' : 'PUT';
+      const method = liked ? 'DELETE' : 'POST';
       const response = await fetch(`/api/social-posts/${post.id}/like`, {
         method,
         headers: { 
