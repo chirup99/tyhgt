@@ -221,12 +221,11 @@ export class AdvancedQueryProcessor {
     // Add web search insights
     if (searchResults.length > 0) {
       answer += `## 🌐 Web Search Insights\n\n`;
-      answer += `I searched the web and found the following information:\n\n`;
+      answer += `I found relevant information from recent sources:\n\n`;
       
       searchResults.slice(0, 3).forEach((result, index) => {
         answer += `**${index + 1}. ${result.title}**\n`;
-        answer += `${result.snippet}\n`;
-        answer += `[Read more](${result.url})\n\n`;
+        answer += `${result.snippet}\n\n`;
       });
     }
     
@@ -235,8 +234,7 @@ export class AdvancedQueryProcessor {
       answer += `## 📰 Latest Market News\n\n`;
       additionalData.news.slice(0, 3).forEach((item, index) => {
         answer += `${index + 1}. **${item.title}**\n`;
-        answer += `   Source: ${item.source}\n`;
-        answer += `   [Read more](${item.link})\n\n`;
+        answer += `   Source: ${item.source}\n\n`;
       });
     }
     
