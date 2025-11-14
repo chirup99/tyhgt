@@ -685,6 +685,17 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {onBackClick && (
+                <Button 
+                  onClick={onBackClick}
+                  variant="ghost" 
+                  size="icon"
+                  className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  data-testid="button-back-to-home"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
               <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Bell className="h-5 w-5" />
               </Button>
@@ -738,8 +749,8 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
           </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center justify-between gap-2 pb-2">
-          <div className="flex gap-2 overflow-x-auto flex-1 min-w-0">
+        <div className="flex items-center gap-2 pb-2">
+          <div className="flex gap-2 overflow-x-auto">
             {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
               <Button
                 key={filter}
@@ -761,19 +772,6 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               </Button>
             ))}
           </div>
-          
-          {/* Back Button */}
-          {onBackClick && (
-            <Button
-              onClick={onBackClick}
-              variant="ghost"
-              size="icon"
-              className="flex-shrink-0 min-h-10 min-w-10 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-              data-testid="button-back-to-home"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-          )}
         </div>
       </div>
       </div>

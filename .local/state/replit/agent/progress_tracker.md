@@ -383,3 +383,9 @@
 [x] 343. Back icon now remains visible on mobile screens
 [x] 344. Restarted workflow - server running successfully on port 5000
 [x] 345. ✅ MOBILE BACK ICON FIX COMPLETED - NEOFEED BACK BUTTON NOW VISIBLE ON MOBILE! ✅
+[x] 346. NOVEMBER 14, 2025 17:00 SESSION - Relocated back icon to app bar for permanent visibility
+[x] 347. Removed back icon from filter tabs section (was getting hidden by posts)
+[x] 348. Added back icon to app bar header (lines 691-701) - now always visible
+[x] 349. Back icon positioned at start of button group in app bar
+[x] 350. Restarted workflow - server running successfully on port 5000
+[x] 351. ✅ BACK ICON RELOCATED TO APP BAR - NOW PERMANENTLY VISIBLE ON ALL SCREEN SIZES! ✅
