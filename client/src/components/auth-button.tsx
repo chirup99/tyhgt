@@ -257,19 +257,20 @@ export function AuthButton() {
           <h3 className="text-sm font-medium text-blue-900">
             Fyers API Authentication Required
           </h3>
-          {tokenCountData && tokenCountData.count > 0 && (
-            <Button
-              onClick={() => deleteTokenMutation.mutate()}
-              disabled={deleteTokenMutation.isPending}
-              variant="outline"
-              size="sm"
-              className="border-red-600 text-red-600 hover:bg-red-50"
-              data-testid="button-delete-firebase-token"
-            >
-              <Trash2 className="mr-2 h-3 w-3" />
-              {deleteTokenMutation.isPending ? 'Deleting...' : `Delete Firebase Token (${tokenCountData.count})`}
-            </Button>
-          )}
+          <Button
+            onClick={() => deleteTokenMutation.mutate()}
+            disabled={deleteTokenMutation.isPending || (tokenCountData && tokenCountData.count === 0)}
+            variant="outline"
+            size="sm"
+            className="border-red-600 text-red-600 hover:bg-red-50"
+            data-testid="button-delete-firebase-token"
+          >
+            <Trash2 className="mr-2 h-3 w-3" />
+            {deleteTokenMutation.isPending 
+              ? 'Deleting...' 
+              : `Delete Firebase Token (${tokenCountData?.count || 0})`
+            }
+          </Button>
         </div>
         <p className="text-xs text-blue-700">
           Enter your Fyers access token from your Python code or authenticate through Fyers.

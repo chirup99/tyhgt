@@ -3524,65 +3524,52 @@ async function attemptAutoReconnection() {
     const firebaseToken = await googleCloudService.getTodaysFyersToken();
     
     if (firebaseToken && firebaseToken.accessToken) {
-      console.log('🔑 [FIREBASE] Found token in Firebase - connecting immediately!');
+      console.log('🔑 [FIREBASE] Found token in Firebase - testing BEFORE connecting...');
       
       // Set the stored access token from Firebase
       fyersApi.setAccessToken(firebaseToken.accessToken);
       
-      // IMMEDIATELY mark as connected (optimistic) - verification happens in background
-      console.log('⚡ [INSTANT] Setting status to CONNECTED immediately (optimistic)');
-      await storage.updateApiStatus({
-        connected: true,
-        authenticated: true,
-        accessToken: firebaseToken.accessToken,
-        tokenExpiry: firebaseToken.expiryDate,
-        websocketActive: true,
-        responseTime: 45,
-        successRate: 99.8,
-        throughput: "2.3 MB/s",
-        activeSymbols: 250,
-        updatesPerSec: 1200,
-        uptime: 99.97,
-        latency: 12,
-      });
+      // TEST FIRST before marking as connected
+      console.log('🔍 [FIREBASE] Testing token with Fyers API before connecting...');
+      const isConnected = await fyersApi.testConnection();
       
-      await storage.addActivityLog({
-        type: "success",
-        message: "✅ Connected instantly using saved Firebase token"
-      });
-      
-      console.log('✅ [INSTANT] Status set to CONNECTED - verification starting in background...');
-      
-      // Verify connection in background (non-blocking)
-      setImmediate(async () => {
-        try {
-          console.log('🔍 [BACKGROUND] Starting token verification...');
-          const isConnected = await fyersApi.testConnection();
-          
-          if (isConnected) {
-            console.log('✅ [BACKGROUND] Token verification successful');
-            await storage.addActivityLog({
-              type: "success",
-              message: "Token verified successfully in background"
-            });
-          } else {
-            console.log('⚠️  [BACKGROUND] Token verification failed - updating status');
-            await storage.updateApiStatus({
-              connected: false,
-              authenticated: false,
-              websocketActive: false,
-            });
-            await storage.addActivityLog({
-              type: "warning",
-              message: "Token verification failed. Please re-authenticate."
-            });
-          }
-        } catch (error) {
-          console.error('❌ [BACKGROUND] Verification error:', error);
-        }
-      });
-      
-      return true;
+      if (isConnected) {
+        console.log('✅ [FIREBASE] Token VALIDATED - marking as connected');
+        await storage.updateApiStatus({
+          connected: true,
+          authenticated: true,
+          accessToken: firebaseToken.accessToken,
+          tokenExpiry: firebaseToken.expiryDate,
+          websocketActive: true,
+          responseTime: 45,
+          successRate: 99.8,
+          throughput: "2.3 MB/s",
+          activeSymbols: 250,
+          updatesPerSec: 1200,
+          uptime: 99.97,
+          latency: 12,
+        });
+        
+        await storage.addActivityLog({
+          type: "success",
+          message: "✅ Auto-reconnected using validated Firebase token"
+        });
+        
+        console.log('✅ [FIREBASE] Auto-reconnection successful!');
+        return true;
+      } else {
+        console.log('❌ [FIREBASE] Token validation FAILED - not connecting');
+        await storage.updateApiStatus({
+          connected: false,
+          authenticated: false,
+          websocketActive: false,
+        });
+        await storage.addActivityLog({
+          type: "warning",
+          message: "Firebase token validation failed. Please re-authenticate."
+        });
+        console.log('⚠️  [FIREBASE] Firebase token is invalid or expired');
+      }
     } else {
       console.log('📭 [FIREBASE] No valid token found in Firebase for today');
     }
@@ -6813,7 +6800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start the cleanup scheduler
   scheduleDailyCleanup();
 
-  // Set access token manually
+  // Set access token manually - NEW FLOW: TEST FIRST, THEN SAVE
   app.post("/api/auth/token", async (req, res) => {
     try {
       const { accessToken } = req.body;
@@ -6835,162 +6822,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid token format. Token appears to be incomplete." });
       }
 
-      // Set the access token immediately
+      // STEP 1: Set the access token and TEST FIRST
+      console.log('🔍 [TOKEN-AUTH] Testing token with Fyers API BEFORE saving...');
       fyersApi.setAccessToken(cleanedToken);
       
-      // Calculate token expiry (24 hours from now for Fyers tokens)
+      const isConnected = await fyersApi.testConnection();
+      
+      if (!isConnected) {
+        console.log('❌ [TOKEN-AUTH] Token FAILED validation - NOT saving to Firebase');
+        await storage.addActivityLog({
+          type: "error",
+          message: "Token validation failed - token is invalid or Fyers API is temporarily unavailable"
+        });
+        return res.status(401).json({ 
+          success: false,
+          message: "Token validation failed. Please check your token or try again if Fyers API is rate-limited." 
+        });
+      }
+      
+      // STEP 2: Token is VALID - Now save to databases
+      console.log('✅ [TOKEN-AUTH] Token VALIDATED successfully - now saving to databases...');
+      
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 24);
-
-      console.log('⚡ [TOKEN-AUTH] Token set in memory - responding immediately');
       
-      // Return success IMMEDIATELY - all saves happen async
+      // Save to PostgreSQL
+      await storage.updateApiStatus({
+        connected: true,
+        authenticated: true,
+        websocketActive: true,
+        responseTime: 45,
+        successRate: 99.8,
+        throughput: "2.3 MB/s",
+        activeSymbols: 250,
+        updatesPerSec: 1200,
+        uptime: 99.97,
+        latency: 12,
+        requestsUsed: 1500,
+        version: "v3.0.0",
+        dailyLimit: 100000,
+        accessToken: cleanedToken,
+        tokenExpiry: tokenExpiry,
+      });
+      console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL');
+      
+      // STEP 3: Save to Firebase ONLY after successful validation
+      let firebaseSuccess = false;
+      try {
+        const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
+        if (firebaseResult.success) {
+          console.log('✅ [TOKEN-AUTH] Token saved to Firebase successfully');
+          firebaseSuccess = true;
+        }
+      } catch (firebaseError) {
+        console.error('❌ [TOKEN-AUTH] Failed to save token to Firebase:', firebaseError);
+      }
+
+      await storage.addActivityLog({
+        type: "success",
+        message: `Token validated and connected successfully (Saved to Firebase: ${firebaseSuccess ? 'Yes' : 'No'})`
+      });
+      
+      // Return success - token is validated and saved
       res.json({ 
         success: true, 
-        message: "Token received. Saving and verification in progress...",
-        verificationPending: true
-      });
-
-      // Save to PostgreSQL and Firebase asynchronously (NON-BLOCKING)
-      setImmediate(async () => {
-        let postgresSuccess = false;
-        let firebaseSuccess = false;
-
-        console.log('💾 [TOKEN-AUTH] Starting async database saves...');
-
-        // Save to PostgreSQL with pending verification status
-        try {
-          await storage.updateApiStatus({
-            connected: false,
-            authenticated: true,
-            websocketActive: false,
-            responseTime: 0,
-            successRate: 0,
-            throughput: "0 MB/s",
-            activeSymbols: 0,
-            updatesPerSec: 0,
-            uptime: 0,
-            latency: 0,
-            requestsUsed: 0,
-            version: "v3.0.0",
-            dailyLimit: 100000,
-            accessToken: cleanedToken,
-            tokenExpiry: tokenExpiry,
-          });
-
-          console.log('✅ [TOKEN-AUTH] Token saved to PostgreSQL successfully');
-          postgresSuccess = true;
-        } catch (dbError) {
-          console.error('❌ [TOKEN-AUTH] Failed to save token to PostgreSQL:', dbError);
-        }
-
-        // Save to Firebase
-        try {
-          const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
-          if (firebaseResult.success) {
-            console.log('✅ [TOKEN-AUTH] Token saved to Firebase successfully');
-            firebaseSuccess = true;
-          }
-        } catch (firebaseError) {
-          console.error('❌ [TOKEN-AUTH] Failed to save token to Firebase:', firebaseError);
-        }
-
-        // Add log for token save
-        await storage.addActivityLog({
-          type: "info",
-          message: `Token saved to storage (PostgreSQL: ${postgresSuccess ? 'Yes' : 'No'}, Firebase: ${firebaseSuccess ? 'Yes' : 'No'})`
-        });
-      });
-
-      // Test connection asynchronously (non-blocking)
-      setImmediate(async () => {
-        try {
-          console.log('🔍 [TOKEN-AUTH] Testing connection asynchronously...');
-          const isConnected = await fyersApi.testConnection();
-          
-          if (isConnected) {
-            // Update status to connected - verification successful
-            await storage.updateApiStatus({
-              connected: true,
-              authenticated: true,
-              websocketActive: true,
-              responseTime: 45,
-              successRate: 99.8,
-              throughput: "2.3 MB/s",
-              activeSymbols: 250,
-              updatesPerSec: 1200,
-              uptime: 99.97,
-              latency: 12,
-              requestsUsed: 1500,
-              version: "v3.0.0",
-              dailyLimit: 100000,
-              accessToken: cleanedToken,
-              tokenExpiry: tokenExpiry,
-            });
-
-            await storage.addActivityLog({
-              type: "success",
-              message: "Token verified successfully - API connection active"
-            });
-            console.log('✅ [TOKEN-AUTH] Async verification completed successfully');
-          } else {
-            // Verification failed - keep token but mark as disconnected
-            // User can see "pending" status and token will auto-verify when rate limit clears
-            await storage.updateApiStatus({
-              connected: false,
-              authenticated: true,
-              websocketActive: false,
-              responseTime: 0,
-              successRate: 0,
-              throughput: "0 MB/s",
-              activeSymbols: 0,
-              updatesPerSec: 0,
-              uptime: 0,
-              latency: 0,
-              requestsUsed: 0,
-              version: "v3.0.0",
-              dailyLimit: 100000,
-              accessToken: cleanedToken,
-              tokenExpiry: tokenExpiry,
-            });
-
-            await storage.addActivityLog({
-              type: "warning",
-              message: "Token verification failed - API may be rate limited. Token is saved and will auto-verify when rate limit clears."
-            });
-            console.log('⚠️ [TOKEN-AUTH] Async verification failed - keeping token for auto-retry');
-          }
-        } catch (asyncError) {
-          console.error('❌ [TOKEN-AUTH] Async verification error:', asyncError);
-          
-          // On error, keep token but mark as disconnected
-          try {
-            await storage.updateApiStatus({
-              connected: false,
-              authenticated: true,
-              websocketActive: false,
-              responseTime: 0,
-              successRate: 0,
-              throughput: "0 MB/s",
-              activeSymbols: 0,
-              updatesPerSec: 0,
-              uptime: 0,
-              latency: 0,
-              requestsUsed: 0,
-              version: "v3.0.0",
-              dailyLimit: 100000,
-              accessToken: cleanedToken,
-              tokenExpiry: tokenExpiry,
-            });
-          } catch (updateError) {
-            console.error('❌ Failed to update status after verification error:', updateError);
-          }
-
-          await storage.addActivityLog({
-            type: "error",
-            message: `Token verification error: ${asyncError instanceof Error ? asyncError.message : 'Unknown error'}. Token is saved for retry.`
-          });
-        }
+        message: "Token validated and connected successfully!",
+        connected: true,
+        savedToFirebase: firebaseSuccess
       });
 
     } catch (error) {
