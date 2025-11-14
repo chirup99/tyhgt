@@ -5664,7 +5664,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   ) : (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-slate-400 text-sm">
-                        📈 Real chart data from Fyers API
+                        📈 Real chart
                       </div>
                     </div>
                   )}
