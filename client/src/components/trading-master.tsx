@@ -7872,29 +7872,41 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   </div>
                   )}
 
-                  {/* Bottom 50% - Notes AI (Expands to 100% when AI mode active) */}
-                  <div className={`${isAIMode ? 'h-full' : 'flex-1'} p-3 overflow-hidden`}>
+                  {/* Bottom 50% - Notes AI (Expands to 100% when AI/Visual AI mode active) */}
+                  <div className={`${isAIMode || isVisualAIMode ? 'h-full' : 'flex-1'} p-3 overflow-hidden`}>
                     <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
                       <CardContent className="p-4 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <h3 className="text-base font-semibold text-white">
-                              {isAIMode ? 'AI' : 'Notes AI'}
+                              {isVisualAIMode ? '📊 Visual AI' : (isAIMode ? 'AI' : 'Notes AI')}
                             </h3>
-                            {isAIMode && (
+                            {isAIMode && !isVisualAIMode && (
                               <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                 Trading AI
                               </Badge>
                             )}
+                            {isVisualAIMode && (
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                Chart Analysis
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex gap-1">
+                            {/* 🎯 SLIDE TOGGLE - Switch between Notes AI and Visual AI */}
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-xs h-8 px-2 py-0 text-gray-400 hover:text-white hover:bg-slate-800"
-                              data-testid="button-toggle-sidebar"
+                              onClick={() => setIsVisualAIMode(!isVisualAIMode)}
+                              className={`text-xs h-8 px-2 py-0 ${
+                                isVisualAIMode 
+                                  ? "text-blue-400 hover:text-blue-300 hover:bg-blue-950" 
+                                  : "text-gray-400 hover:text-white hover:bg-slate-800"
+                              }`}
+                              data-testid="button-toggle-visual-ai-sidebar"
+                              title={isVisualAIMode ? "Switch to Notes AI" : "Switch to Visual AI"}
                             >
-                              <ToggleLeft className="w-4 h-4" />
+                              {isVisualAIMode ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                             </Button>
                             <Button
                               size="sm"
@@ -7914,7 +7926,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                               />
                               AI
                             </Button>
-                            {!isAIMode && (
+                            {!isAIMode && !isVisualAIMode && (
                               isEditingNotes ? (
                                 <>
                                   <Button
@@ -7954,7 +7966,89 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                         </div>
                         
                         <div className="flex-1 overflow-hidden">
-                          {isAIMode ? (
+                          {isVisualAIMode ? (
+                            // 🎯 VISUAL AI BLACKBOARD - Full Canvas Drawing Interface
+                            <div className="h-full overflow-y-auto relative">
+                              <div className="flex flex-col min-h-full">
+                                {/* Compact Blackboard Canvas */}
+                                <div className="h-48 flex-shrink-0">
+                                  <BlackboardDrawing 
+                                    height={192}
+                                    selectedPoints={visualAISelectedPoints || []}
+                                    onPointsChange={(points) => {
+                                      setVisualAISelectedPoints(points);
+                                      console.log('🎯 Blackboard points updated:', points);
+                                    }} 
+                                    onReset={() => setVisualAISelectedPoints([])}
+                                    isExpanded={false}
+                                  />
+                                </div>
+                                
+                                {/* Horizontal Separation Line */}
+                                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-500 to-transparent my-2"></div>
+                                
+                                {/* 🎯 COMPACT POINT MANAGEMENT */}
+                                {visualAISelectedPoints && visualAISelectedPoints.length > 0 && (
+                                  <div className="px-2 py-2 bg-slate-800/30 border border-slate-600/20 rounded-lg mb-2">
+                                    <div className="text-xs font-medium text-orange-400 mb-2 flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                                      Points ({visualAISelectedPoints.length})
+                                    </div>
+                                    
+                                    {/* Compact Point List - Max 2 visible */}
+                                    <div className="max-h-16 overflow-y-auto space-y-1">
+                                      {visualAISelectedPoints.slice(0, 3).map((point: any, index: number) => (
+                                        <div key={index} className="flex items-center gap-1 text-xs bg-slate-700/50 p-1 rounded">
+                                          <span className="text-yellow-400 min-w-[15px] font-medium">#{point.pointNumber}</span>
+                                          <span className="text-white text-[10px]">₹{point.price.toFixed(2)}</span>
+                                        </div>
+                                      ))}
+                                      {visualAISelectedPoints.length > 3 && (
+                                        <div className="text-[10px] text-slate-400 text-center">
+                                          +{visualAISelectedPoints.length - 3} more
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Compact AI Analysis */}
+                                <div className="px-2 py-2 bg-slate-800/50 border border-slate-600/30 rounded-lg">
+                                  <div className="text-xs font-medium text-blue-400 mb-1 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                                      AI Analysis
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-slate-300 leading-relaxed space-y-1">
+                                    <div>
+                                      <span className="text-slate-400">Period:</span> {' '}
+                                      <span className="text-white font-medium text-[10px]">
+                                        {(() => {
+                                          const timeframeName = (() => {
+                                            switch(selectedTimeframe) {
+                                              case '1': return '1min';
+                                              case '5': return '5min';
+                                              case '15': return '15min';
+                                              case '30': return '30min';
+                                              case '60': return '1hr';
+                                              case '240': return '4hr';
+                                              case '1440': return '1d';
+                                              default: return selectedTimeframe;
+                                            }
+                                          })();
+                                          return `${timeframeName}`;
+                                        })()}
+                                      </span>
+                                      <span className="ml-1 text-slate-400 text-[10px]">
+                                        ({displayOhlcData?.candles?.length || 0} candles)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : isAIMode ? (
                             <div className="h-full flex flex-col">
                               <div className="flex-1 overflow-y-auto p-3 custom-thin-scrollbar">
                                 {chatMessages.length === 0 ? (
