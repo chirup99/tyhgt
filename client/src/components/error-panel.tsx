@@ -15,13 +15,21 @@ export function ErrorPanel() {
   });
 
   const formatTime = (timestamp: string | Date) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-      timeZone: 'Asia/Kolkata'
-    });
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return 'Invalid time';
+      }
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata'
+      });
+    } catch (error) {
+      return 'Invalid time';
+    }
   };
 
   const getStatusColor = (type: string) => {
@@ -40,13 +48,22 @@ export function ErrorPanel() {
   };
 
   const getRelativeTime = (timestamp: string | Date) => {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diff = Math.floor((now.getTime() - time.getTime()) / 60000); // minutes
+    try {
+      const now = new Date();
+      const time = new Date(timestamp);
+      
+      if (isNaN(time.getTime())) {
+        return 'unknown';
+      }
+      
+      const diff = Math.floor((now.getTime() - time.getTime()) / 60000); // minutes
 
-    if (diff < 1) return 'just now';
-    if (diff < 60) return `${diff} min ago`;
-    return `${Math.floor(diff / 60)} hr ago`;
+      if (diff < 1) return 'just now';
+      if (diff < 60) return `${diff} min ago`;
+      return `${Math.floor(diff / 60)} hr ago`;
+    } catch (error) {
+      return 'unknown';
+    }
   };
 
   return (

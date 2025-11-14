@@ -7818,7 +7818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...status,
           connected: isAuthenticated,
           authenticated: isAuthenticated,
-          lastUpdate: new Date(),
+          lastUpdate: new Date().toISOString(),
         });
       } else {
         // If no status exists, create a default state
@@ -7833,7 +7833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatesPerSec: 0,
           uptime: 0,
           latency: 0,
-          lastUpdate: new Date(),
+          lastUpdate: new Date().toISOString(),
         });
       }
       
