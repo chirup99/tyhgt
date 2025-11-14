@@ -352,21 +352,21 @@ export function MonthlyProgressTracker() {
             </div>
           </div>
 
-          {/* Real-time Google Cloud Status */}
-          <div className="pt-3 border-t border-blue-200 dark:border-blue-700">
+          {/* Storage Status - Firebase Disabled */}
+          <div className="pt-3 border-t border-amber-200 dark:border-amber-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                  Live Google Cloud Connection
+                <Database className="h-4 w-4 text-blue-500" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  Local PostgreSQL Storage
                 </span>
               </div>
-              <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 rounded">
-                {backupStatus?.storageSize || '420 MB'} stored
+              <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 rounded">
+                Firebase Disabled
               </span>
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              📡 Real-time data from Firestore | Last updated: {new Date().toLocaleTimeString()}
+              💾 Historical data stored locally to reduce cloud costs | Last updated: {new Date().toLocaleTimeString()}
             </div>
           </div>
         </div>
@@ -398,19 +398,19 @@ export function MonthlyProgressTracker() {
             {error ? (
               <>
                 <Clock className="h-4 w-4 text-orange-500" />
-                <span className="text-sm text-orange-600">Connecting to Google Cloud...</span>
+                <span className="text-sm text-orange-600">Loading local database...</span>
               </>
             ) : (
               <>
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600">
-                  Active Collection | Last: {backupStatus?.lastUpdated ? new Date(backupStatus.lastUpdated).toLocaleTimeString() : 'Now'}
+                  Local Storage Active | Last: {backupStatus?.lastUpdated ? new Date(backupStatus.lastUpdated).toLocaleTimeString() : 'Now'}
                 </span>
               </>
             )}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            ☁️ Google Cloud Firestore Storage | Target: Full year data
+            💾 Local PostgreSQL Database | Firebase backup disabled to reduce storage costs
           </div>
         </div>
       </CardContent>

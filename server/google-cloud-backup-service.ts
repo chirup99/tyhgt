@@ -92,6 +92,8 @@ export class GoogleCloudBackupService {
 
   /**
    * Store historical data in Google Cloud Firestore
+   * DISABLED: Feature flag to prevent excessive Firebase storage costs
+   * Historical data is now stored only in local PostgreSQL database
    */
   async storeHistoricalData(records: BackupDataRecord[]): Promise<{
     success: boolean;
@@ -99,6 +101,20 @@ export class GoogleCloudBackupService {
     skipped: number;
     errors: string[];
   }> {
+    // Feature flag: Disable Firebase historical data storage to reduce costs
+    const GOOGLE_CLOUD_BACKUP_ENABLED = process.env.GOOGLE_CLOUD_BACKUP_ENABLED === 'true';
+    
+    if (!GOOGLE_CLOUD_BACKUP_ENABLED) {
+      console.log(`🚫 Google Cloud historical backup disabled (using local PostgreSQL only) - ${records.length} records skipped`);
+      console.log(`💾 Historical data is being stored in local database as fallback`);
+      return { 
+        success: true, 
+        stored: 0, 
+        skipped: records.length, 
+        errors: [] 
+      };
+    }
+
     if (!this.initialized) {
       await this.initialize();
       if (!this.initialized) {
@@ -346,6 +362,14 @@ export class GoogleCloudBackupService {
    * Create sync operation record
    */
   async createSyncOperation(type: 'full_sync' | 'incremental_update' | 'single_stock', totalSymbols: number): Promise<string> {
+    // Feature flag: Skip sync operations when Firebase backup is disabled
+    const GOOGLE_CLOUD_BACKUP_ENABLED = process.env.GOOGLE_CLOUD_BACKUP_ENABLED === 'true';
+    
+    if (!GOOGLE_CLOUD_BACKUP_ENABLED) {
+      console.log(`🚫 Google Cloud sync operation skipped (backup disabled) - ${type} for ${totalSymbols} symbols`);
+      return `disabled_sync_${Date.now()}`;
+    }
+
     if (!this.initialized) {
       await this.initialize();
       if (!this.initialized) {
