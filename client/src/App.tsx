@@ -247,6 +247,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     restoreScrollPosition(newPath);
   };
 
+  const currentUserEmail = localStorage.getItem('currentUserEmail');
+  
   const navigation = [
     {
       name: "Home",
@@ -261,12 +263,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       current: false,
       isSignIn: true,
     },
-    {
+    ...(currentUserEmail === 'chiranjeevi.perala99@gmail.com' ? [{
       name: "Dashboard", 
       href: "/dashboard", 
       icon: Sparkles,
       current: location === "/dashboard",
-    },
+    }] : []),
     {
       name: "Theme",
       href: "#",
