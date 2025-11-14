@@ -739,7 +739,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
 
         {/* Filter Tabs */}
         <div className="flex items-center justify-between gap-2 pb-2">
-          <div className="flex gap-2 overflow-x-auto flex-1">
+          <div className="flex gap-2 overflow-x-auto flex-1 min-w-0">
             {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
               <Button
                 key={filter}
