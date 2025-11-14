@@ -19,6 +19,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { MinimalChart } from './minimal-chart';
 import BlackboardDrawing from './blackboard-drawing';
+import { TradingViewStyleChart } from './tradingview-style-chart';
 import { format } from 'date-fns';
 import type { 
   PatternPoint, 
@@ -7785,30 +7786,15 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           <TabsContent value="trade" className="p-0 h-[calc(100vh-200px)]">
             <div className="flex h-full gap-0">
               {/* 80% - Visual Chart Screen (Left Side) */}
-              <div className="flex-[80] border-r border-border bg-background">
+              <div className="flex-[80] border-r border-border bg-[#131722]">
                 <div className="h-full flex flex-col">
-                  {/* Chart Header */}
-                  <div className="border-b border-border px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <h2 className="text-xl font-semibold">Chart View</h2>
-                        <p className="text-sm text-muted-foreground">Advanced trading chart interface</p>
-                      </div>
-                      <Badge variant="outline" className="text-xs">Live Trading</Badge>
-                    </div>
-                  </div>
-                  
-                  {/* Chart Area */}
-                  <div className="flex-1 p-6">
-                    <Card className="h-full bg-muted/10">
-                      <CardContent className="p-6 h-full flex items-center justify-center">
-                        <div className="text-center space-y-3">
-                          <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground/50" />
-                          <h3 className="text-lg font-medium text-muted-foreground">Chart Canvas</h3>
-                          <p className="text-sm text-muted-foreground/70">Visual chart screen ready for integration</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {/* TradingView Chart */}
+                  <div className="flex-1 p-0">
+                    <TradingViewStyleChart 
+                      height={typeof window !== 'undefined' ? window.innerHeight - 200 : 600}
+                      defaultSymbol="NSE:NIFTY50-INDEX"
+                      interval="15"
+                    />
                   </div>
                 </div>
               </div>
