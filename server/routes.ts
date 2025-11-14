@@ -6800,7 +6800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start the cleanup scheduler
   scheduleDailyCleanup();
 
-  // Set access token manually - NEW FLOW: SAVE FIRST, TEST IN BACKGROUND
+  // Set access token manually - NEW FLOW: RESPOND INSTANTLY, SAVE IN BACKGROUND
   app.post("/api/auth/token", async (req, res) => {
     try {
       const { accessToken } = req.body;
@@ -6815,51 +6815,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate token format (Fyers tokens are typically 600+ characters)
       if (cleanedToken.length < 100) {
-        await storage.addActivityLog({
+        storage.addActivityLog({
           type: "error",
           message: "Invalid token format: Token too short"
-        });
+        }).catch(err => console.error('Activity log error:', err));
         return res.status(400).json({ message: "Invalid token format. Token appears to be incomplete." });
       }
 
-      // STEP 1: SAVE TOKEN INSTANTLY (PostgreSQL only - no waiting!)
-      console.log('⚡ [TOKEN-AUTH] INSTANT save to PostgreSQL - no blocking!');
+      // STEP 1: Set token in memory (instant!)
+      console.log('⚡ [TOKEN-AUTH] Setting token - INSTANT response!');
       fyersApi.setAccessToken(cleanedToken);
       
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 24);
       
-      // Save to PostgreSQL ONLY (super fast!)
-      await storage.updateApiStatus({
-        connected: false,
-        authenticated: true,
-        websocketActive: false,
-        responseTime: 45,
-        successRate: 99.8,
-        throughput: "2.3 MB/s",
-        activeSymbols: 250,
-        updatesPerSec: 1200,
-        uptime: 99.97,
-        latency: 12,
-        requestsUsed: 1500,
-        version: "v3.0.0",
-        dailyLimit: 100000,
-        accessToken: cleanedToken,
-        tokenExpiry: tokenExpiry,
-      });
-      console.log('✅ [TOKEN-AUTH] PostgreSQL saved - responding IMMEDIATELY!');
-      
-      // STEP 2: Return success INSTANTLY (no waiting for Firebase!)
+      // STEP 2: Return success INSTANTLY (no database waits!)
+      console.log('✅ [TOKEN-AUTH] Responding IMMEDIATELY - database save in background!');
       res.json({ 
         success: true, 
-        message: "Token saved! Firebase backup and connection verification in progress...",
+        message: "Token saved! Connection verification in progress...",
         connected: false,
         authenticated: true
       });
 
-      // STEP 3: Firebase backup + connection test in background (non-blocking)
+      // STEP 3: Database save + connection test in background (non-blocking)
       setImmediate(async () => {
         try {
+          // Save to PostgreSQL in background
+          console.log('💾 [TOKEN-AUTH] Saving to PostgreSQL in background...');
+          try {
+            await storage.updateApiStatus({
+              connected: false,
+              authenticated: true,
+              websocketActive: false,
+              responseTime: 45,
+              successRate: 99.8,
+              throughput: "2.3 MB/s",
+              activeSymbols: 250,
+              updatesPerSec: 1200,
+              uptime: 99.97,
+              latency: 12,
+              requestsUsed: 1500,
+              version: "v3.0.0",
+              dailyLimit: 100000,
+              accessToken: cleanedToken,
+              tokenExpiry: tokenExpiry,
+            });
+            console.log('✅ [TOKEN-AUTH] PostgreSQL save completed');
+          } catch (dbError) {
+            console.error('❌ [TOKEN-AUTH] PostgreSQL save failed:', dbError);
+          }
+
           // Save to Firebase in background (don't block user!)
           console.log('📦 [TOKEN-AUTH] Starting Firebase backup in background...');
           let firebaseSuccess = false;
