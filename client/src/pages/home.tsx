@@ -6462,7 +6462,7 @@ ${
           >
             {/* Render content based on active tab */}
 
-            {activeTab === 'dashboard' && (
+            {activeTab === 'dashboard' && localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
               <div className="space-y-8">
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center gap-3">
@@ -6536,17 +6536,19 @@ ${
                       >
                         saved
                       </button>
-                      <button
-                        onClick={() => {
-                          setActiveTab("dashboard");
-                          setIsNavOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
-                        data-testid="nav-dashboard"
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                        <span>dashboard</span>
-                      </button>
+                      {localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
+                        <button
+                          onClick={() => {
+                            setActiveTab("dashboard");
+                            setIsNavOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
+                          data-testid="nav-dashboard"
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                          <span>dashboard</span>
+                        </button>
+                      )}
                       <button
                         className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors"
                         data-testid="nav-settings"

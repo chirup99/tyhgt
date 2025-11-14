@@ -154,7 +154,7 @@ export default function Landing() {
           <h2 className="text-4xl font-bold text-white mb-4">Get Early Access</h2>
           <p className="text-gray-400 text-lg mb-2">Type a prompt, get a trading strategy</p>
           <p className="text-gray-400 text-lg mb-6">instantly.</p>
-          <p className="text-gray-500 text-sm">No coding required.</p>
+          <p className="text-gray-500 text-sm">AI-powered trading insights.</p>
         </div>
         <div className="w-full max-w-md mx-auto space-y-4">
           <div className="flex gap-2 p-1 bg-gray-800 rounded-lg">
@@ -245,15 +245,12 @@ export default function Landing() {
         <div className="flex flex-col items-center space-y-3 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-            <span>Instant strategy generation</span>
+            <span>AI Social feed </span>
           </div>
+         
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-            <span>No coding experience needed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-            <span>AI-powered trading insights</span>
+            <span>AI-Journal tracking</span>
           </div>
         </div>
       </div>
