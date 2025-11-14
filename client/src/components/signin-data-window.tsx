@@ -325,6 +325,42 @@ function LivestreamAdsControl() {
             onChange={(e) => setStreamLink(e.target.value)}
             data-testid="input-stream-link"
           />
+          <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
+            <p className="text-xs text-yellow-700 dark:text-yellow-400 font-medium mb-1">
+              ⚠️ Important: Not all YouTube videos can be embedded
+            </p>
+            <ul className="text-xs text-yellow-600 dark:text-yellow-500 space-y-1">
+              <li>• Videos must have "Allow embedding" enabled by creator</li>
+              <li>• Age-restricted or private videos won't work</li>
+              <li>• If you see "refused to connect", try a different video</li>
+            </ul>
+          </div>
+          <details className="text-xs">
+            <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline mb-2">
+              💡 Test with embeddable videos (click to expand)
+            </summary>
+            <div className="space-y-1 pl-4 text-muted-foreground">
+              <p className="font-medium">Try these working examples:</p>
+              <button 
+                onClick={() => setStreamLink('https://www.youtube.com/watch?v=jNQXAC9IVRw')}
+                className="text-left hover:text-blue-600 dark:hover:text-blue-400 block w-full"
+              >
+                • "Me at the zoo" (First YouTube video ever)
+              </button>
+              <button 
+                onClick={() => setStreamLink('https://www.youtube.com/watch?v=dQw4w9WgXcQ')}
+                className="text-left hover:text-blue-600 dark:hover:text-blue-400 block w-full"
+              >
+                • Popular music video (embedding enabled)
+              </button>
+              <button 
+                onClick={() => setStreamLink('https://www.youtube.com/watch?v=9bZkp7q19f0')}
+                className="text-left hover:text-blue-600 dark:hover:text-blue-400 block w-full"
+              >
+                • PSY - Gangnam Style
+              </button>
+            </div>
+          </details>
           <p className="text-xs text-muted-foreground">
             Paste any YouTube URL (watch, embed, or short link)
           </p>
