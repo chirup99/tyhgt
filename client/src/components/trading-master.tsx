@@ -7802,7 +7802,8 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               {/* 20% - Vertical Panel (Right Side) */}
               <div className="flex-[20] bg-muted/30">
                 <div className="h-full flex flex-col">
-                  {/* Top 50% - Watchlist */}
+                  {/* Top 50% - Watchlist (Hidden when AI mode is active) */}
+                  {!isAIMode && (
                   <div className="flex-1 border-b border-border p-3 overflow-hidden">
                     <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
                       <CardContent className="p-4 h-full flex flex-col">
@@ -7869,38 +7870,35 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                       </CardContent>
                     </Card>
                   </div>
+                  )}
 
-                  {/* Bottom 50% - Notes AI */}
-                  <div className="flex-1 p-3 overflow-hidden">
-                    <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
-                      <CardContent className="p-4 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-3">
+                  {/* Bottom 50% - Notes AI (Expands to 100% when AI mode active) */}
+                  <div className={`${isAIMode ? 'h-full' : 'flex-1'} p-3 overflow-hidden`}>
+                    <Card className="h-full bg-[#1E1E1E] dark:bg-[#1E1E1E] border-slate-700">
+                      <CardContent className="p-0 h-full flex flex-col">
+                        {/* AI Chat Header (VS Code style) */}
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-[#252526]">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-base font-semibold text-white">
-                              {isVisualAIMode ? '📊 Visual AI' : (isAIMode ? 'AI' : 'Notes')}
+                            <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
+                              {isAIMode ? 'CHAT' : 'NOTES'}
                             </h3>
-                            {isAIMode && !isVisualAIMode && (
-                              <Badge variant="secondary" className="text-[10px] bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                AI
-                              </Badge>
-                            )}
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex gap-2">
                             <Button
                               size="sm"
-                              variant={isAIMode ? "default" : "ghost"}
+                              variant="ghost"
                               onClick={() => setIsAIMode(!isAIMode)}
-                              className={`text-[10px] h-6 px-1.5 ${
+                              className={`h-7 w-7 p-0 ${
                                 isAIMode 
-                                  ? "bg-purple-600 hover:bg-purple-700 text-white" 
-                                  : "text-gray-400 hover:text-white hover:bg-slate-800"
+                                  ? "bg-[#0E639C] hover:bg-[#1177BB] text-white" 
+                                  : "text-gray-400 hover:text-white hover:bg-slate-700"
                               }`}
                               data-testid="button-toggle-ai-sidebar"
                             >
                               <img 
                                 src={aiIconImage} 
                                 alt="AI" 
-                                className="w-4 h-4 object-cover rounded-full"
+                                className="w-5 h-5 object-cover rounded-full"
                               />
                             </Button>
                             {!isAIMode && (
@@ -7928,35 +7926,73 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           </div>
                         </div>
                         
-                        <div className="flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-hidden flex flex-col">
                           {isAIMode ? (
-                            <div className="h-full flex flex-col bg-slate-800/30 rounded-lg p-2">
-                              <div className="flex-1 overflow-y-auto space-y-2 mb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                                {chatMessages.map((msg, idx) => (
-                                  <div key={idx} className={`p-2 rounded text-xs ${
-                                    msg.role === 'user' 
-                                      ? 'bg-blue-600 text-white ml-4' 
-                                      : 'bg-slate-700 text-slate-200 mr-4'
-                                  }`}>
-                                    {msg.content}
+                            <div className="h-full flex flex-col bg-[#1E1E1E]">
+                              {/* AI Chat Messages Area */}
+                              <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                                {chatMessages.length === 0 ? (
+                                  <div className="flex flex-col items-center justify-center h-full text-center">
+                                    <div className="mb-6">
+                                      <MessageSquare className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+                                      <h3 className="text-lg font-medium text-white mb-2">Ask about your trades</h3>
+                                      <p className="text-sm text-slate-400 max-w-xs mx-auto">
+                                        AI responses may be inaccurate.
+                                      </p>
+                                      <button className="text-sm text-blue-400 hover:text-blue-300 mt-2 underline">
+                                        Generate Agent Instructions
+                                      </button>
+                                      <span className="text-sm text-slate-500"> to onboard AI onto your trading strategy.</span>
+                                    </div>
                                   </div>
-                                ))}
+                                ) : (
+                                  <div className="space-y-4">
+                                    {chatMessages.map((msg, idx) => (
+                                      <div key={idx} className={`${
+                                        msg.role === 'user' 
+                                          ? 'flex justify-end' 
+                                          : 'flex justify-start'
+                                      }`}>
+                                        <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                                          msg.role === 'user' 
+                                            ? 'bg-[#0E639C] text-white' 
+                                            : 'bg-[#2D2D30] text-slate-200'
+                                        }`}>
+                                          {msg.content}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                              <div className="flex gap-1">
-                                <Input
-                                  placeholder="Ask AI..."
-                                  value={chatInput}
-                                  onChange={(e) => setChatInput(e.target.value)}
-                                  className="text-xs h-7 bg-slate-700 border-slate-600 text-white"
-                                  data-testid="input-ai-chat-sidebar"
-                                />
-                                <Button
-                                  size="sm"
-                                  className="h-7 px-2 bg-purple-600 hover:bg-purple-700"
-                                  data-testid="button-send-ai-sidebar"
-                                >
-                                  <Send className="w-3 h-3" />
-                                </Button>
+                              
+                              {/* AI Input Area (VS Code style) */}
+                              <div className="border-t border-slate-700 bg-[#252526] p-3">
+                                <div className="flex items-end gap-2">
+                                  <div className="flex-1 bg-[#3C3C3C] border border-slate-600 rounded-md overflow-hidden">
+                                    <textarea
+                                      placeholder="Add context (#), extensions (@), commands"
+                                      value={chatInput}
+                                      onChange={(e) => setChatInput(e.target.value)}
+                                      className="w-full px-3 py-2 bg-transparent text-white text-sm resize-none focus:outline-none min-h-[60px] max-h-[120px]"
+                                      data-testid="input-ai-chat-sidebar"
+                                      rows={2}
+                                    />
+                                    <div className="flex items-center justify-between px-3 py-2 border-t border-slate-600">
+                                      <div className="flex items-center gap-2">
+                                        <button className="text-xs text-slate-400 hover:text-white">Ask</button>
+                                        <button className="text-xs text-slate-400 hover:text-white">Auto</button>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        className="h-6 px-3 bg-[#0E639C] hover:bg-[#1177BB] text-white text-xs"
+                                        data-testid="button-send-ai-sidebar"
+                                      >
+                                        <Send className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           ) : (
