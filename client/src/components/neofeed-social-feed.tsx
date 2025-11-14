@@ -749,7 +749,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
           </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-2 pb-2">
+        <div className="flex items-center justify-between gap-2 pb-2">
           <div className="flex gap-2 overflow-x-auto">
             {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
               <Button
@@ -772,6 +772,19 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               </Button>
             ))}
           </div>
+          
+          {/* Back Button - Right Corner */}
+          {onBackClick && (
+            <Button
+              onClick={onBackClick}
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              data-testid="button-back-to-home"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
       </div>
