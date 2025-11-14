@@ -3,36 +3,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ApiStatus } from "@shared/schema";
 
 export function ApiStatistics() {
-  const { data: apiStatus, isLoading } = useQuery<ApiStatus>({
+  const { data: apiStatus } = useQuery<ApiStatus>({
     queryKey: ["/api/status"],
     refetchInterval: 5000,
   });
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="animate-pulse space-y-2">
-            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="flex justify-between mb-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-16"></div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2"></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const responseTimePercentage = Math.min((apiStatus?.responseTime || 0) / 100 * 100, 100);
   const successRatePercentage = apiStatus?.successRate || 0;
