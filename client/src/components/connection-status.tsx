@@ -8,7 +8,7 @@ import type { ApiStatus } from "@shared/schema";
 
 export function ConnectionStatus() {
   const { toast } = useToast();
-  
+
   const { data: apiStatus, isLoading } = useQuery<ApiStatus>({
     queryKey: ["/api/status"],
     refetchInterval: 5000,
@@ -36,7 +36,7 @@ export function ConnectionStatus() {
     const now = new Date();
     const update = new Date(date);
     const diff = Math.floor((now.getTime() - update.getTime()) / 1000);
-    
+
     if (diff < 60) return `${diff} seconds ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
     return `${Math.floor(diff / 3600)} hours ago`;
@@ -89,7 +89,7 @@ export function ConnectionStatus() {
               </Button>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Connection Status */}
             <div className="flex items-center space-x-3">

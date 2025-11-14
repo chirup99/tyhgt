@@ -12,11 +12,9 @@ export function AuthButton() {
   const { toast } = useToast();
   const [accessToken, setAccessToken] = useState("");
   const [authCode, setAuthCode] = useState("");
-  const [redirectUrl, setRedirectUrl] = useState("");
-  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [showTokenInput, setShowTokenInput] = useState(true);
   const [showCodeInput, setShowCodeInput] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(true);
-  
+
   const { data: apiStatus } = useQuery<ApiStatus>({
     queryKey: ["/api/status"],
     refetchInterval: 5000,
@@ -30,11 +28,11 @@ export function AuthButton() {
       queryClient.invalidateQueries({ queryKey: ["/api/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activity-logs"] });
-      
+
       // Hide authentication form after successful login
       setShowTokenInput(false);
       setShowCodeInput(false);
-      
+
       toast({
         title: "Authentication Successful",
         description: "Connected to Fyers API successfully.",
@@ -58,11 +56,11 @@ export function AuthButton() {
       queryClient.invalidateQueries({ queryKey: ["/api/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activity-logs"] });
-      
+
       // Hide authentication form after successful OAuth login
       setShowTokenInput(false);
       setShowCodeInput(false);
-      
+
       toast({
         title: "Authentication Successful",
         description: "Connected to Fyers API using authorization code.",
@@ -86,16 +84,11 @@ export function AuthButton() {
     },
     onSuccess: (authUrl) => {
       // Open Fyers authentication in new window
-      window.open(authUrl, 'FyersAuth', 'width=600,height=700');
-      
-      // Auto-show the URL input after opening popup
-      setShowUrlInput(true);
-      setShowTokenInput(false);
-      setShowCodeInput(false);
-      
+      window.open(authUrl, '_blank', 'width=600,height=700');
+
       toast({
-        title: "Step 1: Sign in to Fyers",
-        description: "Complete the login, then paste the redirect URL below.",
+        title: "Authentication Started",
+        description: "Please complete authentication in the popup window.",
       });
     },
     onError: (error) => {
@@ -118,93 +111,6 @@ export function AuthButton() {
     e.preventDefault();
     if (authCode.trim()) {
       codeMutation.mutate(authCode.trim());
-    }
-  };
-
-  const urlMutation = useMutation({
-    mutationFn: async (url: string) => {
-      const extractedCode = extractAuthCodeFromUrl(url);
-      if (!extractedCode) {
-        throw new Error("Could not extract auth_code from URL. Make sure the URL contains 'auth_code=' parameter.");
-      }
-      
-      // Show what was extracted for debugging
-      console.log("✅ Extracted auth_code:", extractedCode.substring(0, 50) + "...");
-      
-      return await apiRequest("POST", "/api/auth/exchange", { authCode: extractedCode });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/status"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/activity-logs"] });
-      
-      setShowTokenInput(false);
-      setShowCodeInput(false);
-      setShowUrlInput(false);
-      
-      toast({
-        title: "✅ Connected Successfully!",
-        description: "Fyers API authentication completed.",
-      });
-      setRedirectUrl("");
-    },
-    onError: (error) => {
-      console.error("❌ Authentication error:", error);
-      toast({
-        title: "Authentication Failed",
-        description: error instanceof Error ? error.message : "Could not extract auth code from URL. Please check the URL format.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const extractAuthCodeFromUrl = (url: string): string | null => {
-    try {
-      // Decode URL first in case it's URL-encoded
-      const decodedUrl = decodeURIComponent(url);
-      
-      // Extract auth_code - it's between auth_code= and &state (or end of string)
-      const codeMatch = decodedUrl.match(/auth_code=([^&]+)/);
-      if (codeMatch && codeMatch[1]) {
-        const authCode = codeMatch[1];
-        // Remove any trailing &state or other parameters
-        return authCode.split('&')[0];
-      }
-      return null;
-    } catch (error) {
-      // If decoding fails, try with original URL
-      try {
-        const codeMatch = url.match(/auth_code=([^&]+)/);
-        if (codeMatch && codeMatch[1]) {
-          return codeMatch[1].split('&')[0];
-        }
-      } catch {
-        return null;
-      }
-      return null;
-    }
-  };
-
-  const handleUrlSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (redirectUrl.trim()) {
-      urlMutation.mutate(redirectUrl.trim());
-    }
-  };
-
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    setRedirectUrl(url);
-    
-    // Auto-submit if valid Fyers redirect URL is detected
-    if (url.includes('auth_code=') && url.includes('google.com')) {
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        const extractedCode = extractAuthCodeFromUrl(url);
-        if (extractedCode) {
-          urlMutation.mutate(url.trim());
-        }
-      }, 100);
     }
   };
 
@@ -233,19 +139,17 @@ export function AuthButton() {
             onClick={async () => {
               try {
                 await apiRequest("POST", "/api/auth/disconnect");
-                
-                // Force authentication form to show - default to URL paste (easiest)
-                setShowUrlInput(true);
-                setShowTokenInput(false);
+
+                // Force authentication form to show
+                setShowTokenInput(true);
                 setShowCodeInput(false);
                 setAccessToken("");
                 setAuthCode("");
-                setRedirectUrl("");
-                
+
                 // Refresh data after disconnect
                 queryClient.invalidateQueries({ queryKey: ["/api/status"] });
                 queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
-                
+
                 toast({
                   title: "Disconnected",
                   description: "Authentication cleared. Enter your access token below.",
@@ -273,15 +177,11 @@ export function AuthButton() {
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <div className="mb-4">
         <h3 className="text-sm font-medium text-blue-900 mb-1">
-          🔐 Fyers API Login
+          Fyers API Authentication Required
         </h3>
         <p className="text-xs text-blue-700">
-          <strong>Quick 2-Step Login:</strong>
+          Enter your Fyers access token from your Python code or authenticate through Fyers.
         </p>
-        <ol className="text-xs text-blue-600 mt-1 ml-4 space-y-0.5">
-          <li>1️⃣ Click "Sign in with Fyers" button below</li>
-          <li>2️⃣ After signing in, paste the redirect URL - it will auto-connect!</li>
-        </ol>
       </div>
 
       <div className="space-y-4">
@@ -344,96 +244,44 @@ export function AuthButton() {
             </div>
           </form>
         )}
-
-        {/* Redirect URL Input - AUTO-CONNECT */}
-        {showUrlInput && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-center">
-              <Button
-                onClick={() => authMutation.mutate()}
-                disabled={authMutation.isPending}
-                className="bg-[hsl(207,90%,54%)] hover:bg-[hsl(207,90%,44%)] text-white"
-                size="lg"
-                data-testid="button-fyers-signin"
-              >
-                <LogIn className="mr-2 h-5 w-5" />
-                {authMutation.isPending ? 'Opening Fyers...' : 'Step 1: Sign in with Fyers'}
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div>
-              <Label htmlFor="redirectUrl" className="text-xs text-blue-900 font-semibold">
-                Step 2: Paste the redirect URL here (auto-connects!)
-              </Label>
-              <Input
-                id="redirectUrl"
-                type="text"
-                placeholder="Paste: https://www.google.com/?s=ok&code=200&auth_code=eyJ...&state=None"
-                value={redirectUrl}
-                onChange={handleUrlChange}
-                className="mt-1 text-sm font-mono"
-                data-testid="input-redirect-url"
-                autoFocus={showUrlInput}
-              />
-              {urlMutation.isPending && (
-                <p className="text-xs text-blue-600 mt-1 font-medium animate-pulse">
-                  🔄 Connecting to Fyers API...
-                </p>
-              )}
-              {!urlMutation.isPending && (
-                <p className="text-xs text-green-600 mt-1 font-medium">
-                  ✨ Just paste the URL - it will connect automatically!
-                </p>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="pt-3 border-t border-blue-200">
-        <p className="text-xs text-blue-500 mb-2">Alternative login methods:</p>
-        <div className="flex flex-wrap gap-2">
+      <div className="flex items-center justify-between pt-4 border-t border-blue-200">
+        <div className="flex space-x-2">
           <Button
             onClick={() => {
-              setShowUrlInput(true);
-              setShowTokenInput(false);
+              setShowTokenInput(!showTokenInput);
               setShowCodeInput(false);
-            }}
-            variant="ghost"
-            size="sm"
-            className={`text-xs ${showUrlInput ? 'bg-blue-100 text-blue-900' : 'text-blue-600'}`}
-            data-testid="button-toggle-url"
-          >
-            📋 Auto Login (Paste URL)
-          </Button>
-          <Button
-            onClick={() => {
-              setShowTokenInput(true);
-              setShowCodeInput(false);
-              setShowUrlInput(false);
             }}
             variant="ghost"
             size="sm"
             className={`text-xs ${showTokenInput ? 'bg-blue-100 text-blue-900' : 'text-blue-600'}`}
-            data-testid="button-toggle-token"
           >
-            🔑 Access Token
+            Access Token
           </Button>
           <Button
             onClick={() => {
-              setShowCodeInput(true);
+              setShowCodeInput(!showCodeInput);
               setShowTokenInput(false);
-              setShowUrlInput(false);
             }}
             variant="ghost"
             size="sm"
             className={`text-xs ${showCodeInput ? 'bg-blue-100 text-blue-900' : 'text-blue-600'}`}
-            data-testid="button-toggle-code"
           >
-            🔐 Auth Code
+            Auth Code
           </Button>
         </div>
+        <Button
+          onClick={() => authMutation.mutate()}
+          disabled={authMutation.isPending}
+          variant="outline"
+          className="border-[hsl(207,90%,54%)] text-[hsl(207,90%,54%)] hover:bg-[hsl(207,90%,54%)]/10"
+          size="sm"
+        >
+          <LogIn className="mr-2 h-4 w-4" />
+          {authMutation.isPending ? 'Opening...' : 'OAuth Login'}
+          <ExternalLink className="ml-2 h-3 w-3" />
+        </Button>
       </div>
     </div>
   );
