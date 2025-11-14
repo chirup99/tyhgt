@@ -76,6 +76,7 @@ export function LiveBanner() {
   const [youtubePlayerState, setYoutubePlayerState] = useState<'playing' | 'paused' | null>(null);
   const [bannerContent, setBannerContent] = useState<BannerContent[]>(getDefaultBannerContent());
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<any>(null);
   
   const currentContent = bannerContent[currentIndex];
 
@@ -117,31 +118,66 @@ export function LiveBanner() {
   }, []);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    script.async = true;
-    document.body.appendChild(script);
+    if (!currentContent.youtubeEmbedUrl) {
+      setYoutubePlayerState(null);
+      return;
+    }
 
-    (window as any).onYouTubeIframeAPIReady = () => {
-      if (iframeRef.current && currentContent.youtubeEmbedUrl) {
-        const player = new (window as any).YT.Player(iframeRef.current, {
-          events: {
-            onStateChange: (event: any) => {
-              if (event.data === (window as any).YT.PlayerState.PLAYING) {
-                setYoutubePlayerState('playing');
-              } else if (event.data === (window as any).YT.PlayerState.PAUSED) {
-                setYoutubePlayerState('paused');
+    if (!(window as any).YT) {
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
+    const initPlayer = () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+
+      if ((window as any).YT && (window as any).YT.Player) {
+        try {
+          playerRef.current = new (window as any).YT.Player('youtube-player-iframe', {
+            events: {
+              onStateChange: (event: any) => {
+                console.log('🎥 YouTube Player State Changed:', event.data);
+                if (event.data === (window as any).YT.PlayerState.PLAYING) {
+                  console.log('▶️ YouTube video is PLAYING - pausing carousel');
+                  setYoutubePlayerState('playing');
+                } else if (event.data === (window as any).YT.PlayerState.PAUSED || 
+                           event.data === (window as any).YT.PlayerState.ENDED) {
+                  console.log('⏸️ YouTube video is PAUSED - resuming carousel');
+                  setYoutubePlayerState('paused');
+                }
+              },
+              onReady: () => {
+                console.log('✅ YouTube Player API Ready');
               }
             }
-          }
-        });
+          });
+        } catch (error) {
+          console.error('❌ Error initializing YouTube Player:', error);
+        }
       }
     };
 
+    if ((window as any).YT && (window as any).YT.Player) {
+      initPlayer();
+    } else {
+      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    }
+
     return () => {
-      delete (window as any).onYouTubeIframeAPIReady;
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.log('Error destroying player:', e);
+        }
+        playerRef.current = null;
+      }
     };
-  }, [currentContent.youtubeEmbedUrl]);
+  }, [currentContent.youtubeEmbedUrl, currentIndex]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -204,6 +240,7 @@ export function LiveBanner() {
       <div className="absolute inset-0">
         {currentContent.youtubeEmbedUrl ? (
           <iframe
+            id="youtube-player-iframe"
             ref={iframeRef}
             src={currentContent.youtubeEmbedUrl}
             title={currentContent.title}

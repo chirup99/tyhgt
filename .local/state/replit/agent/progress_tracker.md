@@ -319,3 +319,15 @@
 [x] 302. Made test video links clickable - auto-fills input when clicked
 [x] 303. Restarted workflow - improved error messaging now live
 [x] 304. ✅ YOUTUBE EMBEDDING GUIDANCE COMPLETED - USERS CAN NOW USE TEST VIDEOS!
+[x] 305. AUTO-PAUSE CAROUSEL FEATURE - YouTube video controls carousel rotation
+[x] 306. Added playerRef to track YouTube Player API instance
+[x] 307. Rewrote YouTube Player API initialization for proper event detection
+[x] 308. Added onStateChange event listener to detect PLAYING/PAUSED/ENDED states
+[x] 309. Carousel auto-pauses when YouTube video starts PLAYING
+[x] 310. Carousel auto-resumes when YouTube video is PAUSED or ENDED
+[x] 311. Added console logging for debugging YouTube player state changes
+[x] 312. Fixed iframe ID to 'youtube-player-iframe' for proper API attachment
+[x] 313. Ensured enablejsapi=1 parameter is included in all YouTube URLs
+[x] 314. Added player cleanup on component unmount to prevent memory leaks
+[x] 315. Restarted workflow - auto-pause carousel feature now live
+[x] 316. ✅ AUTO-PAUSE CAROUSEL COMPLETED - CAROUSEL STOPS WHEN VIDEO PLAYS!
