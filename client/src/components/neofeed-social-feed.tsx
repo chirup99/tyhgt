@@ -738,6 +738,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
           </div>
 
         {/* Filter Tabs */}
+          
         <div className="flex gap-2 overflow-x-auto pb-2">
           {['All', 'Bullish', 'Bearish', 'Profile'].map((filter, index) => (
             <Button
