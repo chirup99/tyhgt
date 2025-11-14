@@ -7119,11 +7119,11 @@ ${
                           {/* Mobile AI Search Results - Extends to bottom */}
                           {isSearchActive && searchResults && (
                             <div className="md:hidden fixed inset-x-0 top-0 bottom-0 bg-gray-900/95 backdrop-blur-sm z-[60] overflow-y-auto">
-                              <div className="p-4 space-y-4">
-                                <div className="flex items-center justify-between pb-3 border-b border-gray-700">
-                                  <div className="flex items-center gap-2">
-                                    <Bot className="h-5 w-5 text-blue-400" />
-                                    <h3 className="text-base font-medium text-gray-100">
+                              <div className="p-3 space-y-3">
+                                <div className="flex items-center justify-between pb-2 border-b border-gray-700">
+                                  <div className="flex items-center gap-1.5">
+                                    <Bot className="h-4 w-4 text-blue-400" />
+                                    <h3 className="text-xs font-medium text-gray-100">
                                       AI Assistant
                                     </h3>
                                   </div>
@@ -7135,13 +7135,13 @@ ${
                                       setIsSearchActive(false);
                                       setSearchResults("");
                                     }}
-                                    className="text-gray-400 hover:text-gray-200"
+                                    className="text-gray-400 hover:text-gray-200 h-6 w-6 p-0"
                                   >
-                                    <X className="h-5 w-5" />
+                                    <X className="h-4 w-4" />
                                   </Button>
                                 </div>
                                 <div className="prose prose-invert max-w-none">
-                                  <div className="text-gray-300 whitespace-pre-wrap leading-relaxed text-sm">
+                                  <div className="text-gray-300 whitespace-pre-wrap leading-tight text-xs">
                                     {searchResults}
                                   </div>
                                 </div>
