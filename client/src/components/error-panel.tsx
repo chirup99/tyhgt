@@ -43,7 +43,7 @@ export function ErrorPanel() {
     const now = new Date();
     const time = new Date(timestamp);
     const diff = Math.floor((now.getTime() - time.getTime()) / 60000); // minutes
-    
+
     if (diff < 1) return 'just now';
     if (diff < 60) return `${diff} min ago`;
     return `${Math.floor(diff / 60)} hr ago`;
