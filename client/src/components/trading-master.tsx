@@ -7874,91 +7874,113 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
                   {/* Bottom 50% - Notes AI (Expands to 100% when AI mode active) */}
                   <div className={`${isAIMode ? 'h-full' : 'flex-1'} p-3 overflow-hidden`}>
-                    <Card className="h-full bg-[#1E1E1E] dark:bg-[#1E1E1E] border-slate-700">
-                      <CardContent className="p-0 h-full flex flex-col">
-                        {/* AI Chat Header (VS Code style) */}
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-[#252526]">
+                    <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
+                      <CardContent className="p-4 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
-                              {isAIMode ? 'CHAT' : 'NOTES'}
+                            <h3 className="text-base font-semibold text-white">
+                              {isAIMode ? 'AI' : 'Notes AI'}
                             </h3>
+                            {isAIMode && (
+                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                Trading AI
+                              </Badge>
+                            )}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="text-xs h-8 px-2 py-0 text-gray-400 hover:text-white hover:bg-slate-800"
+                              data-testid="button-toggle-sidebar"
+                            >
+                              <ToggleLeft className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={isAIMode ? "default" : "ghost"}
                               onClick={() => setIsAIMode(!isAIMode)}
-                              className={`h-7 w-7 p-0 ${
+                              className={`text-xs h-8 px-2 py-0 ${
                                 isAIMode 
-                                  ? "bg-[#0E639C] hover:bg-[#1177BB] text-white" 
-                                  : "text-gray-400 hover:text-white hover:bg-slate-700"
+                                  ? "bg-purple-600 hover:bg-purple-700 text-white" 
+                                  : "text-gray-400 hover:text-white hover:bg-slate-800"
                               }`}
                               data-testid="button-toggle-ai-sidebar"
                             >
                               <img 
                                 src={aiIconImage} 
                                 alt="AI" 
-                                className="w-5 h-5 object-cover rounded-full"
+                                className="w-6 h-6 mr-1 object-cover rounded-full"
                               />
+                              AI
                             </Button>
                             {!isAIMode && (
                               isEditingNotes ? (
-                                <Button
-                                  size="sm"
-                                  onClick={handleSaveNotes}
-                                  className="text-[10px] bg-green-600 hover:bg-green-700 text-white h-6 px-1.5"
-                                  data-testid="button-save-notes-sidebar"
-                                >
-                                  <Check className="w-3 h-3" />
-                                </Button>
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleCancelNotes}
+                                    className="text-xs text-red-400 hover:text-red-300 hover:bg-red-950 h-6 px-2"
+                                    data-testid="button-cancel-notes-sidebar"
+                                  >
+                                    <X className="w-3 h-3 mr-1" />
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={handleSaveNotes}
+                                    className="text-xs bg-green-600 hover:bg-green-700 text-white h-6 px-2"
+                                    data-testid="button-save-notes-sidebar"
+                                  >
+                                    <Check className="w-3 h-3 mr-1" />
+                                    Save
+                                  </Button>
+                                </>
                               ) : (
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   onClick={handleEditNotes}
-                                  className="text-[10px] text-gray-400 hover:text-white hover:bg-slate-800 h-6 px-1.5"
+                                  className="text-xs text-gray-400 hover:text-white hover:bg-slate-800 h-6 px-2"
                                   data-testid="button-edit-notes-sidebar"
                                 >
-                                  <Edit className="w-3 h-3" />
+                                  <Edit className="w-3 h-3 mr-1" />
+                                  Edit
                                 </Button>
                               )
                             )}
                           </div>
                         </div>
                         
-                        <div className="flex-1 overflow-hidden flex flex-col">
+                        <div className="flex-1 overflow-hidden">
                           {isAIMode ? (
-                            <div className="h-full flex flex-col bg-[#1E1E1E]">
-                              {/* AI Chat Messages Area */}
-                              <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+                            <div className="h-full flex flex-col">
+                              <div className="flex-1 overflow-y-auto p-3 custom-thin-scrollbar">
                                 {chatMessages.length === 0 ? (
-                                  <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <div className="mb-6">
-                                      <MessageSquare className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-                                      <h3 className="text-lg font-medium text-white mb-2">Ask about your trades</h3>
-                                      <p className="text-sm text-slate-400 max-w-xs mx-auto">
-                                        AI responses may be inaccurate.
-                                      </p>
-                                      <button className="text-sm text-blue-400 hover:text-blue-300 mt-2 underline">
-                                        Generate Agent Instructions
-                                      </button>
-                                      <span className="text-sm text-slate-500"> to onboard AI onto your trading strategy.</span>
+                                  <div className="h-full flex items-center justify-center">
+                                    <div className="text-center text-slate-400 text-sm">
+                                      <div>No AI conversation yet</div>
+                                      <div className="text-xs mt-1">Start chatting to get trading insights</div>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="space-y-4">
+                                  <div className="space-y-3">
                                     {chatMessages.map((msg, idx) => (
-                                      <div key={idx} className={`${
-                                        msg.role === 'user' 
-                                          ? 'flex justify-end' 
-                                          : 'flex justify-start'
-                                      }`}>
-                                        <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
-                                          msg.role === 'user' 
-                                            ? 'bg-[#0E639C] text-white' 
-                                            : 'bg-[#2D2D30] text-slate-200'
-                                        }`}>
-                                          {msg.content}
+                                      <div
+                                        key={idx}
+                                        className={`relative ${
+                                          msg.role === 'user' ? 'ml-8' : 'mr-8'
+                                        }`}
+                                      >
+                                        <div
+                                          className={`text-xs p-3 rounded-lg ${
+                                            msg.role === 'user'
+                                              ? 'bg-blue-600 text-white'
+                                              : 'bg-slate-700 text-gray-200'
+                                          }`}
+                                        >
+                                          <div className="mb-1 pr-12">{msg.content}</div>
                                         </div>
                                       </div>
                                     ))}
@@ -7966,51 +7988,61 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                 )}
                               </div>
                               
-                              {/* AI Input Area (VS Code style) */}
-                              <div className="border-t border-slate-700 bg-[#252526] p-3">
-                                <div className="flex items-end gap-2">
-                                  <div className="flex-1 bg-[#3C3C3C] border border-slate-600 rounded-md overflow-hidden">
-                                    <textarea
-                                      placeholder="Add context (#), extensions (@), commands"
-                                      value={chatInput}
-                                      onChange={(e) => setChatInput(e.target.value)}
-                                      className="w-full px-3 py-2 bg-transparent text-white text-sm resize-none focus:outline-none min-h-[60px] max-h-[120px]"
-                                      data-testid="input-ai-chat-sidebar"
-                                      rows={2}
-                                    />
-                                    <div className="flex items-center justify-between px-3 py-2 border-t border-slate-600">
-                                      <div className="flex items-center gap-2">
-                                        <button className="text-xs text-slate-400 hover:text-white">Ask</button>
-                                        <button className="text-xs text-slate-400 hover:text-white">Auto</button>
-                                      </div>
-                                      <Button
-                                        size="sm"
-                                        className="h-6 px-3 bg-[#0E639C] hover:bg-[#1177BB] text-white text-xs"
-                                        data-testid="button-send-ai-sidebar"
-                                      >
-                                        <Send className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
+                              <div className="mt-2 flex gap-2">
+                                <input
+                                  value={chatInput}
+                                  onChange={(e) => setChatInput(e.target.value)}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && !isChatLoading) {
+                                      if (chatInput.trim()) {
+                                        setChatMessages(prev => [...prev, { role: 'user', content: chatInput }]);
+                                        setIsChatLoading(true);
+                                        handleGeminiAIResponse(chatInput);
+                                        setChatInput('');
+                                      }
+                                    }
+                                  }}
+                                  placeholder="Ask about trades, strategies, or market insights..."
+                                  className="flex-1 px-3 py-2 text-xs border border-slate-600 rounded-lg bg-slate-800 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  disabled={isChatLoading}
+                                  data-testid="input-ai-chat-sidebar"
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    if (chatInput.trim() && !isChatLoading) {
+                                      setChatMessages(prev => [...prev, { role: 'user', content: chatInput }]);
+                                      setIsChatLoading(true);
+                                      handleGeminiAIResponse(chatInput);
+                                      setChatInput('');
+                                    }
+                                  }}
+                                  disabled={isChatLoading || !chatInput.trim()}
+                                  className="h-8 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                                  data-testid="button-send-ai-sidebar"
+                                >
+                                  Send
+                                </Button>
                               </div>
                             </div>
                           ) : (
-                            <div className="h-full">
-                              {isEditingNotes ? (
-                                <textarea
-                                  value={tempNotesContent}
-                                  onChange={(e) => setTempNotesContent(e.target.value)}
-                                  className="w-full h-full p-2 bg-slate-800 text-white text-xs rounded border border-slate-600 resize-none focus:outline-none focus:border-blue-500"
-                                  placeholder="Write your trading notes..."
-                                  data-testid="textarea-notes-sidebar"
-                                />
-                              ) : (
-                                <div className="h-full overflow-y-auto p-2 bg-slate-800/30 rounded text-xs text-slate-300 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                                  {notesContent || 'Click Edit to add notes...'}
-                                </div>
-                              )}
-                            </div>
+                            isEditingNotes ? (
+                              <textarea
+                                value={tempNotesContent}
+                                onChange={(e) => setTempNotesContent(e.target.value)}
+                                placeholder="Write your trading notes, strategies, observations..."
+                                className="w-full h-full p-3 text-sm border border-slate-600 rounded-lg bg-slate-800 text-white placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                data-testid="textarea-notes-sidebar"
+                              />
+                            ) : (
+                              <div className="h-full p-3 text-sm border border-slate-700 rounded-lg bg-slate-800 text-white overflow-y-auto">
+                                {notesContent ? (
+                                  <pre className="whitespace-pre-wrap font-sans">{notesContent}</pre>
+                                ) : (
+                                  <p className="text-slate-400 italic">No trading notes yet. Click Edit to add your first note.</p>
+                                )}
+                              </div>
+                            )
                           )}
                         </div>
                       </CardContent>
