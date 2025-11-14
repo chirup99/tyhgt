@@ -7874,16 +7874,16 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
                   {/* Bottom 50% - Notes AI (Expands to 100% when AI/Visual AI mode active) */}
                   <div className={`${isAIMode || isVisualAIMode ? 'h-full' : 'flex-1'} p-3 overflow-hidden`}>
-                    <Card className="h-full bg-slate-900 dark:bg-slate-900 border-slate-700">
+                    <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700 h-full">
                       <CardContent className="p-4 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-base font-semibold text-white">
+                            <h3 className="text-lg font-semibold text-white">
                               {isVisualAIMode ? '📊 Visual AI' : (isAIMode ? 'AI' : 'Notes AI')}
                             </h3>
                             {isAIMode && !isVisualAIMode && (
                               <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                Trading AI
+                                Social Feed AI
                               </Badge>
                             )}
                             {isVisualAIMode && (
@@ -7903,7 +7903,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                   ? "text-blue-400 hover:text-blue-300 hover:bg-blue-950" 
                                   : "text-gray-400 hover:text-white hover:bg-slate-800"
                               }`}
-                              data-testid="button-toggle-visual-ai-sidebar"
+                              data-testid="button-toggle-visual-ai"
                               title={isVisualAIMode ? "Switch to Notes AI" : "Switch to Visual AI"}
                             >
                               {isVisualAIMode ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
@@ -7917,7 +7917,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                   ? "bg-purple-600 hover:bg-purple-700 text-white" 
                                   : "text-gray-400 hover:text-white hover:bg-slate-800"
                               }`}
-                              data-testid="button-toggle-ai-sidebar"
+                              data-testid="button-toggle-ai"
                             >
                               <img 
                                 src={aiIconImage} 
@@ -7934,7 +7934,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                     variant="ghost"
                                     onClick={handleCancelNotes}
                                     className="text-xs text-red-400 hover:text-red-300 hover:bg-red-950 h-6 px-2"
-                                    data-testid="button-cancel-notes-sidebar"
+                                    data-testid="button-cancel-notes"
                                   >
                                     <X className="w-3 h-3 mr-1" />
                                     Cancel
@@ -7943,7 +7943,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                     size="sm"
                                     onClick={handleSaveNotes}
                                     className="text-xs bg-green-600 hover:bg-green-700 text-white h-6 px-2"
-                                    data-testid="button-save-notes-sidebar"
+                                    data-testid="button-save-notes"
                                   >
                                     <Check className="w-3 h-3 mr-1" />
                                     Save
@@ -7955,7 +7955,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                   variant="ghost"
                                   onClick={handleEditNotes}
                                   className="text-xs text-gray-400 hover:text-white hover:bg-slate-800 h-6 px-2"
-                                  data-testid="button-edit-notes-sidebar"
+                                  data-testid="button-edit-notes"
                                 >
                                   <Edit className="w-3 h-3 mr-1" />
                                   Edit
@@ -7964,252 +7964,825 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                             )}
                           </div>
                         </div>
-                        
-                        <div className="flex-1 overflow-hidden">
+
+                        <div className="h-96">
                           {isVisualAIMode ? (
                             // 🎯 VISUAL AI BLACKBOARD - Full Canvas Drawing Interface
                             <div className="h-full overflow-y-auto relative">
                               <div className="flex flex-col min-h-full">
-                                {/* Compact Blackboard Canvas */}
-                                <div className="h-48 flex-shrink-0">
-                                  <BlackboardDrawing 
-                                    height={192}
-                                    selectedPoints={visualAISelectedPoints || []}
-                                    onPointsChange={(points) => {
-                                      setVisualAISelectedPoints(points);
-                                      console.log('🎯 Blackboard points updated:', points);
-                                    }} 
-                                    onReset={() => setVisualAISelectedPoints([])}
-                                    isExpanded={false}
-                                  />
+                              {/* Full-Size Blackboard Canvas */}
+                              <div className="h-80 flex-shrink-0">
+                                <BlackboardDrawing 
+                                  height={320}
+                                  selectedPoints={visualAISelectedPoints || []}
+                                  onPointsChange={(points) => {
+                                    setVisualAISelectedPoints(points);
+                                    console.log('🎯 Blackboard points updated:', points);
+                                  }} 
+                                  onReset={() => setVisualAISelectedPoints([])}
+                                  isExpanded={true}
+                                />
+                              </div>
+
+                              {/* Horizontal Separation Line */}
+                              <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-500 to-transparent my-4"></div>
+
+                              {/* 🎯 POINT MANAGEMENT - Relocated from chart overlay */}
+                              <div className="px-4 py-3 bg-slate-800/30 border border-slate-600/20 rounded-lg mb-4">
+                                <div className="text-xs font-medium text-orange-400 mb-3 flex items-center gap-2">
+                                  <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                                  Point Management
                                 </div>
-                                
-                                {/* Horizontal Separation Line */}
-                                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-500 to-transparent my-2"></div>
-                                
-                                {/* 🎯 COMPACT POINT MANAGEMENT */}
-                                {visualAISelectedPoints && visualAISelectedPoints.length > 0 && (
-                                  <div className="px-2 py-2 bg-slate-800/30 border border-slate-600/20 rounded-lg mb-2">
-                                    <div className="text-xs font-medium text-orange-400 mb-2 flex items-center gap-2">
-                                      <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
-                                      Points ({visualAISelectedPoints.length})
-                                    </div>
-                                    
-                                    {/* Compact Point List - Max 2 visible */}
-                                    <div className="max-h-16 overflow-y-auto space-y-1">
-                                      {visualAISelectedPoints.slice(0, 3).map((point: any, index: number) => (
-                                        <div key={index} className="flex items-center gap-1 text-xs bg-slate-700/50 p-1 rounded">
-                                          <span className="text-yellow-400 min-w-[15px] font-medium">#{point.pointNumber}</span>
-                                          <span className="text-white text-[10px]">₹{point.price.toFixed(2)}</span>
+
+                                {visualAISelectedPoints && visualAISelectedPoints.length > 0 ? (
+                                  <div className="space-y-3">
+                                    {/* Point List with Labels */}
+                                    <div className="max-h-32 overflow-y-auto space-y-2">
+                                      {visualAISelectedPoints.map((point: any, index: number) => (
+                                        <div key={index} className="flex items-center gap-2 text-xs bg-slate-700/50 p-2 rounded">
+                                          <span className="text-yellow-400 min-w-[20px] font-medium">#{point.pointNumber}</span>
+                                          <span className="text-white min-w-[60px]">₹{point.price.toFixed(2)}</span>
+                                          <select
+                                            value={point.label || ''}
+                                            onChange={(e) => {
+                                              if ((window as any).labelPoint) {
+                                                (window as any).labelPoint(point.pointNumber, e.target.value as any || null);
+                                              }
+                                            }}
+                                            className="bg-slate-600 text-white px-2 py-1 rounded text-xs border-none flex-1"
+                                            data-testid={`select-point-label-${point.pointNumber}`}
+                                          >
+                                            <option value="none">Select Label</option>
+                                            <option value="Entry">📍 Entry</option>
+                                            <option value="SL">🛑 Stop Loss</option>
+                                            <option value="Target">🎯 Target</option>
+                                            <option value="Breakout">💥 Breakout</option>
+                                          </select>
+
+                                          {point.label && (
+                                            <button
+                                              onClick={() => {
+                                                if ((window as any).addHorizontalRay) {
+                                                  (window as any).addHorizontalRay(point.price, point.label as any, point.pointNumber);
+                                                }
+                                              }}
+                                              className="bg-orange-600 hover:bg-orange-500 text-white px-2 py-1 rounded text-xs"
+                                              data-testid={`button-add-ray-${point.pointNumber}`}
+                                            >
+                                              ➡️
+                                            </button>
+                                          )}
                                         </div>
                                       ))}
-                                      {visualAISelectedPoints.length > 3 && (
-                                        <div className="text-[10px] text-slate-400 text-center">
-                                          +{visualAISelectedPoints.length - 3} more
-                                        </div>
-                                      )}
                                     </div>
+
+                                    {/* Horizontal Ray Controls */}
+                                    <div className="border-t border-slate-600/50 pt-3">
+                                      <div className="text-white text-xs font-medium mb-2">Quick Ray Add:</div>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => {
+                                            if ((window as any).setIsAddingRay) {
+                                              (window as any).setIsAddingRay('SL');
+                                            }
+                                          }}
+                                          className="px-3 py-1 rounded text-xs bg-red-700 hover:bg-red-600 text-white"
+                                          data-testid="button-add-sl-ray"
+                                        >
+                                          🛑 SL
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            if ((window as any).setIsAddingRay) {
+                                              (window as any).setIsAddingRay('Target');
+                                            }
+                                          }}
+                                          className="px-3 py-1 rounded text-xs bg-green-700 hover:bg-green-600 text-white"
+                                          data-testid="button-add-target-ray"
+                                        >
+                                          🎯 Target
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            if ((window as any).setIsAddingRay) {
+                                              (window as any).setIsAddingRay('Breakout');
+                                            }
+                                          }}
+                                          className="px-3 py-1 rounded text-xs bg-orange-700 hover:bg-orange-600 text-white"
+                                          data-testid="button-add-breakout-ray"
+                                        >
+                                          💥 Breakout
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    {/* Active Rays List */}
+                                    {visualAIHorizontalRays && visualAIHorizontalRays.length > 0 && (
+                                      <div className="border-t border-slate-600/50 pt-3">
+                                        <div className="text-white text-xs font-medium mb-2">Active Rays:</div>
+                                        <div className="max-h-20 overflow-y-auto space-y-1">
+                                          {(() => {
+                                            // Remove duplicates by creating a unique set based on label + price
+                                            const uniqueRays = visualAIHorizontalRays.reduce((acc: any[], ray: any) => {
+                                              const exists = acc.find(existing => 
+                                                existing.label === ray.label && Math.abs(existing.price - ray.price) < 0.01
+                                              );
+                                              if (!exists) {
+                                                acc.push(ray);
+                                              }
+                                              return acc;
+                                            }, []);
+
+                                            return uniqueRays.map((ray: any) => (
+                                              <div key={ray.id} className="flex items-center gap-2 text-xs bg-slate-700/30 p-2 rounded">
+                                                <span style={{color: ray.color}} className="min-w-[50px] font-medium">{ray.label}</span>
+                                                <span className="text-white">₹{ray.price.toFixed(2)}</span>
+                                                {ray.pointNumber && (
+                                                  <span className="text-yellow-400">#{ray.pointNumber}</span>
+                                                )}
+                                                <button
+                                                  onClick={() => {
+                                                    if ((window as any).removeHorizontalRay) {
+                                                      (window as any).removeHorizontalRay(ray.id);
+                                                    }
+                                                  }}
+                                                  className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-xs ml-auto"
+                                                  data-testid={`button-remove-ray-${ray.id}`}
+                                                >
+                                                  ✕
+                                                </button>
+                                              </div>
+                                            ));
+                                          })()}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-slate-400 text-center py-4">
+                                    Click on the chart below to add manual points for pattern analysis
                                   </div>
                                 )}
+                              </div>
 
-                                {/* Compact AI Analysis */}
-                                <div className="px-2 py-2 bg-slate-800/50 border border-slate-600/30 rounded-lg">
-                                  <div className="text-xs font-medium text-blue-400 mb-1 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                                      AI Analysis
+                              {/* 📊 SMART PATTERN ANALYSIS - Below Point Management */}
+                              {visualAISelectedPoints && visualAISelectedPoints.length >= 2 && (
+                                <div className="px-4 py-3 bg-slate-900/40 border border-blue-600/20 rounded-lg mb-4">
+                                  <div className="text-xs font-medium text-blue-400 mb-3 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                    Smart Pattern Analysis
+                                  </div>
+
+                                  {/* Point Value Relationships */}
+                                  <div className="mb-4">
+                                    <div className="text-xs text-slate-300 mb-2">Point Relationships:</div>
+                                    <div className="bg-slate-800/50 p-3 rounded text-xs font-mono">
+                                      {(() => {
+                                        const points = [...visualAISelectedPoints].sort((a, b) => a.pointNumber - b.pointNumber);
+                                        const relationships = [];
+
+                                        for (let i = 0; i < points.length; i++) {
+                                          const current = points[i];
+                                          const next = points[i + 1];
+
+                                          if (next) {
+                                            const operator = current.price > next.price ? '>' : '<';
+                                            const color = operator === '>' ? 'text-red-400' : 'text-green-400';
+                                            relationships.push(
+                                              <span key={`${current.pointNumber}-${next.pointNumber}`} className={color}>
+                                                {current.pointNumber}{operator}{next.pointNumber}
+                                              </span>
+                                            );
+                                          }
+                                        }
+
+                                        // Add cycle back to first point if more than 2 points
+                                        if (points.length > 2) {
+                                          const last = points[points.length - 1];
+                                          const first = points[0];
+                                          const operator = last.price > first.price ? '>' : '<';
+                                          const color = operator === '>' ? 'text-red-400' : 'text-green-400';
+                                          relationships.push(
+                                            <span key={`${last.pointNumber}-${first.pointNumber}`} className={color}>
+                                              {last.pointNumber}{operator}{first.pointNumber}
+                                            </span>
+                                          );
+                                        }
+
+                                        return relationships.map((rel, index) => (
+                                          <span key={index}>
+                                            {rel}
+                                            {index < relationships.length - 1 && <span className="text-slate-500">, </span>}
+                                          </span>
+                                        ));
+                                      })()}
                                     </div>
                                   </div>
-                                  <div className="text-xs text-slate-300 leading-relaxed space-y-1">
-                                    <div>
-                                      <span className="text-slate-400">Period:</span> {' '}
-                                      <span className="text-white font-medium text-[10px]">
-                                        {(() => {
-                                          const timeframeName = (() => {
-                                            switch(selectedTimeframe) {
-                                              case '1': return '1min';
-                                              case '5': return '5min';
-                                              case '15': return '15min';
-                                              case '30': return '30min';
-                                              case '60': return '1hr';
-                                              case '240': return '4hr';
-                                              case '1440': return '1d';
-                                              default: return selectedTimeframe;
-                                            }
-                                          })();
-                                          return `${timeframeName}`;
-                                        })()}
-                                      </span>
-                                      <span className="ml-1 text-slate-400 text-[10px]">
-                                        ({displayOhlcData?.candles?.length || 0} candles)
-                                      </span>
+
+                                  {/* Active Pattern Structure - Based on User Assignments */}
+                                  <div className="mb-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="text-xs text-slate-300">Active Pattern Structure:</div>
+                                      {/* Pattern Control Buttons */}
+                                      <div className="flex gap-2">
+                                        {/* Delete Last Point Button - Hidden when patterns are selected */}
+                                        {!selectedPattern && visualAISelectedPoints.length > 0 && (
+                                          <button
+                                            onClick={() => {
+                                              // Remove last point from Visual AI
+                                              const updatedPoints = visualAISelectedPoints.slice(0, -1);
+                                              setVisualAISelectedPoints(updatedPoints);
+
+                                              // Update global window state for chart sync
+                                              (window as any).selectedPoints = updatedPoints;
+
+                                              // Dispatch event to update chart
+                                              window.dispatchEvent(new CustomEvent('visualAIPointsUpdated', {
+                                                detail: { 
+                                                  selectedPoints: updatedPoints, 
+                                                  horizontalRays: visualAIHorizontalRays 
+                                                }
+                                              }));
+
+                                              console.log(`🗑️ Deleted last point. Remaining: ${updatedPoints.length} points`);
+                                            }}
+                                            className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-xs font-medium"
+                                            data-testid="button-delete-point"
+                                          >
+                                            ❌ Delete
+                                          </button>
+                                        )}
+
+                                        {/* Save Pattern Button */}
+                                        {visualAIHorizontalRays && visualAIHorizontalRays.length > 0 && visualAISelectedPoints.length >= 3 && (
+                                          <button
+                                            onClick={() => {
+                                              const patternName = prompt('Enter pattern name:');
+                                              if (patternName && patternName.trim()) {
+                                                saveCurrentPattern(patternName.trim());
+                                              }
+                                            }}
+                                            className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-medium"
+                                            data-testid="button-save-pattern"
+                                          >
+                                            💾 Save
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
+                                    <div className="bg-slate-800/50 p-3 rounded">
+                                      {(() => {
+                                        if (!visualAIHorizontalRays || visualAIHorizontalRays.length === 0) {
+                                          return (
+                                            <div className="text-xs text-slate-400 italic">
+                                              Use Quick Ray buttons or label points to create your pattern structure
+                                            </div>
+                                          );
+                                        }
+
+                                        // Group rays by label to avoid duplicates
+                                        const raysByLabel = visualAIHorizontalRays.reduce((acc: any, ray: any) => {
+                                          if (!acc[ray.label]) {
+                                            acc[ray.label] = ray;
+                                          }
+                                          return acc;
+                                        }, {});
+
+                                        const sl = raysByLabel['SL'];
+                                        const breakout = raysByLabel['Breakout'];
+                                        const target = raysByLabel['Target'];
+
+                                        return (
+                                          <div className="space-y-2">
+                                            {sl && (
+                                              <div className="flex items-center gap-2 text-xs">
+                                                <span className="text-red-400 font-medium">🛑 SL-{sl.pointNumber || 'Ray'}</span>
+                                                <span className="text-slate-400">₹{sl.price.toFixed(2)}</span>
+                                              </div>
+                                            )}
+                                            {breakout && (
+                                              <div className="flex items-center gap-2 text-xs">
+                                                <span className="text-orange-400 font-medium">💥 Breakout-{breakout.pointNumber || 'Ray'}</span>
+                                                <span className="text-slate-400">₹{breakout.price.toFixed(2)}</span>
+                                              </div>
+                                            )}
+                                            {target && (
+                                              <div className="flex items-center gap-2 text-xs">
+                                                <span className="text-green-400 font-medium">🎯 Target-{target.pointNumber || 'Ray'}</span>
+                                                <span className="text-slate-400">₹{target.price.toFixed(2)}</span>
+                                              </div>
+                                            )}
+                                            {!sl && !breakout && !target && (
+                                              <div className="text-xs text-slate-400 italic">
+                                                No SL, Breakout, or Target rays assigned yet
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  </div>
+
+                                  {/* Pattern Strength & Risk Analysis */}
+                                  {visualAISelectedPoints.length >= 3 && (
+                                    <div>
+                                      <div className="text-xs text-slate-300 mb-2">Pattern Metrics:</div>
+                                      <div className="grid grid-cols-2 gap-2 text-xs">
+                                        {(() => {
+                                          const points = [...visualAISelectedPoints].sort((a, b) => a.pointNumber - b.pointNumber);
+                                          const prices = points.map(p => p.price);
+                                          const range = Math.max(...prices) - Math.min(...prices);
+                                          const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+                                          const volatility = ((range / avgPrice) * 100).toFixed(1);
+                                          const riskReward = (range * 0.6 / (range * 0.3)).toFixed(1); // Simplified calculation
+
+                                          return (
+                                            <>
+                                              <div className="bg-slate-700/30 p-2 rounded">
+                                                <span className="text-slate-400">Range:</span>
+                                                <span className="text-white ml-1">₹{range.toFixed(2)}</span>
+                                              </div>
+                                              <div className="bg-slate-700/30 p-2 rounded">
+                                                <span className="text-slate-400">Volatility:</span>
+                                                <span className={`ml-1 ${parseFloat(volatility) > 2 ? 'text-red-400' : 'text-green-400'}`}>
+                                                  {volatility}%
+                                                </span>
+                                              </div>
+                                              <div className="bg-slate-700/30 p-2 rounded">
+                                                <span className="text-slate-400">R:R Ratio:</span>
+                                                <span className="text-blue-400 ml-1">1:{riskReward}</span>
+                                              </div>
+                                              <div className="bg-slate-700/30 p-2 rounded">
+                                                <span className="text-slate-400">Points:</span>
+                                                <span className="text-yellow-400 ml-1">{points.length}</span>
+                                              </div>
+                                            </>
+                                          );
+                                        })()}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* AI Chart Analysis Text */}
+                              <div className="px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg">
+                                <div className="text-xs font-medium text-blue-400 mb-2 flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                                    AI Chart Analysis
+                                  </div>
+                                  {/* Chart Type Fixed to Candles */}
+                                  <div className="flex items-center gap-1 bg-slate-700 rounded p-1">
+                                    <span className="h-5 px-2 text-[10px] bg-blue-600 text-white rounded text-center flex items-center">
+                                      📊 Candles
+                                    </span>
                                   </div>
                                 </div>
+                                <div className="text-xs text-slate-300 leading-relaxed space-y-2">
+                                  <div>
+                                    <span className="text-slate-400">Period:</span> {' '}
+                                    <span className="text-white font-medium">
+                                      {(() => {
+                                        // Sync with main chart timeframe instead of using timeRange
+                                        const timeframeName = (() => {
+                                          switch(selectedTimeframe) {
+                                            case '1': return '1min';
+                                            case '5': return '5min';
+                                            case '15': return '15min';
+                                            case '30': return '30min';
+                                            case '60': return '1hr';
+                                            case '240': return '4hr';
+                                            case '1440': return '1d';
+                                            default: return selectedTimeframe;
+                                          }
+                                        })();
+                                        return `${timeframeName} Timeframe`;
+                                      })()}
+                                    </span>
+                                    <span className="ml-2 text-slate-400">
+                                      ({displayOhlcData?.candles?.length || 0} candles)
+                                    </span>
+                                  </div>
+
+                                  <div>
+                                    <span className="text-slate-400">Price Movement:</span> {' '}
+                                    {(() => {
+                                      if (!timeRange || !displayOhlcData?.candles?.length) {
+                                        const candles = displayOhlcData?.candles || [];
+                                        if (candles.length === 0) return <span className="text-slate-500">No data available</span>;
+                                        const firstPrice = candles[0]?.close || candles[0]?.price || 0;
+                                        const lastPrice = candles[candles.length - 1]?.close || candles[candles.length - 1]?.price || 0;
+                                        const change = lastPrice - firstPrice;
+                                        const changePercent = firstPrice ? (change / firstPrice * 100).toFixed(2) : '0.00';
+                                        return (
+                                          <span className={change >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
+                                            ₹{firstPrice.toFixed(2)} → ₹{lastPrice.toFixed(2)} ({change >= 0 ? '+' : ''}{changePercent}%)
+                                          </span>
+                                        );
+                                      }
+
+                                      const filteredCandles = getFilteredCandles(displayOhlcData.candles, timeRange as [number, number]);
+                                      if (filteredCandles.length === 0) return <span className="text-slate-500">No data in range</span>;
+                                      const firstPrice = filteredCandles[0]?.close || filteredCandles[0]?.price || 0;
+                                      const lastPrice = filteredCandles[filteredCandles.length - 1]?.close || filteredCandles[filteredCandles.length - 1]?.price || 0;
+                                      const change = lastPrice - firstPrice;
+                                      const changePercent = firstPrice ? (change / firstPrice * 100).toFixed(2) : '0.00';
+                                      return (
+                                        <span className={change >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
+                                          ₹{firstPrice.toFixed(2)} → ₹{lastPrice.toFixed(2)} ({change >= 0 ? '+' : ''}{changePercent}%)
+                                        </span>
+                                      );
+                                    })()}
+                                  </div>
+
+                                  <div>
+                                    <span className="text-slate-400">Active Indicators:</span> {' '}
+                                    {Object.keys(indicators).length > 0 ? (
+                                      <span className="text-purple-400 font-medium">
+                                        {Object.entries(indicators).map(([key, configs]) => 
+                                          `${key.toUpperCase()}(${configs.length})`
+                                        ).join(', ')}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-500">None applied</span>
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    <span className="text-slate-400">Trend Analysis:</span> {' '}
+                                    {(() => {
+                                      const candles = timeRange ? getFilteredCandles(displayOhlcData?.candles || [], timeRange as [number, number]) : (displayOhlcData?.candles || []);
+                                      if (candles.length < 3) return <span className="text-slate-500">Insufficient data</span>;
+
+                                      const recentCandles = candles.slice(-3);
+                                      const prices = recentCandles.map((c: any) => c.close || c.price || 0);
+                                      const trend = prices[2] > prices[1] && prices[1] > prices[0] ? 'Bullish' : 
+                                                   prices[2] < prices[1] && prices[1] < prices[0] ? 'Bearish' : 'Sideways';
+
+                                      const trendColor = trend === 'Bullish' ? 'text-green-400' : trend === 'Bearish' ? 'text-red-400' : 'text-yellow-400';
+                                      return <span className={`${trendColor} font-medium`}>{trend} momentum detected</span>;
+                                    })()}
+                                  </div>
+                                </div>
+                              </div>
+
+
                               </div>
                             </div>
                           ) : isAIMode ? (
                             <div className="h-full flex flex-col">
-                              <div className="flex-1 overflow-y-auto p-3 custom-thin-scrollbar">
+                              {/* AI Chat Messages */}
+                              <div className="flex-1 max-h-80 overflow-y-auto p-3 space-y-3 bg-slate-800 rounded-lg border border-slate-700">
                                 {chatMessages.length === 0 ? (
-                                  <div className="h-full flex items-center justify-center">
-                                    <div className="text-center text-slate-400 text-sm">
-                                      <div>No AI conversation yet</div>
-                                      <div className="text-xs mt-1">Start chatting to get trading insights</div>
+                                  <div className="text-center text-gray-500 dark:text-gray-400 mt-2">
+                                    <div className="mb-3">
+                                      <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">📈 Social Feed Stocks</h4>
+                                      <div className="flex flex-wrap gap-1 justify-center mb-3">
+                                        {feedStocks.map(stock => (
+                                          <Badge key={stock} variant="outline" className="text-[10px] px-2 py-1 bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
+                                            {stock}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mb-3">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setChatInput('generate strategy code')}
+                                        className="text-[10px] h-6 px-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 dark:text-purple-300 dark:border-purple-700 rounded-lg"
+                                      >
+                                        🤖 Generate strategy code
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setChatInput('emi code')}
+                                        className="text-[10px] h-6 px-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:hover:bg-green-800 dark:text-green-300 dark:border-green-700 rounded-lg"
+                                      >
+                                        📊 EMI code
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setChatInput('rsi,ema code')}
+                                        className="text-[10px] h-6 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-300 dark:border-blue-700 rounded-lg"
+                                      >
+                                        📈 RSI,EMA code
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setChatInput('show performance')}
+                                        className="text-[10px] h-6 px-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800 dark:text-orange-300 dark:border-orange-700 rounded-lg"
+                                      >
+                                        📊 Show performance
+                                      </Button>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="space-y-3">
-                                    {chatMessages.map((message, messageIndex) => (
-                                      <div
-                                        key={messageIndex}
-                                        className={`relative ${
-                                          message.role === 'user' ? 'ml-8' : 'mr-8'
-                                        }`}
-                                      >
-                                        <div
-                                          className={`text-xs p-3 rounded-lg ${
-                                            message.role === 'user'
-                                              ? 'bg-blue-600 text-white'
-                                              : 'bg-slate-700 text-gray-200'
-                                          }`}
-                                        >
-                                          {message.role === 'assistant' && (message as any).isTyping ? (
-                                            <div className="flex items-center gap-2">
-                                              <div className="flex gap-1">
-                                                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                              </div>
-                                              <span className="text-purple-300 text-xs">AI is thinking...</span>
+                                  chatMessages.map((message: any, index) => (
+                                    <div key={index} className={`flex ${
+                                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                                    }`}>
+                                      <div className={`max-w-[80%] p-2 rounded-lg text-xs relative ${
+                                        message.role === 'user' 
+                                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' 
+                                          : 'bg-gradient-to-r from-slate-700 to-slate-800 text-slate-100 border border-indigo-600/20'
+                                      }`}>
+                                        {message.isLoading ? (
+                                          <div className="flex items-center gap-3 py-2 px-4 bg-gradient-to-r from-slate-800 to-slate-700 border border-purple-500/30 rounded-lg animate-pulse">
+                                            <div className="flex gap-1">
+                                              <div className="w-2.5 h-2.5 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full animate-pulse"></div>
+                                              <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full animate-pulse" style={{animationDelay: '200ms'}}></div>
+                                              <div className="w-2.5 h-2.5 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-pulse" style={{animationDelay: '400ms'}}></div>
                                             </div>
-                                          ) : (
-                                            <div className="mb-2 pr-16">{message.content}</div>
-                                          )}
-                                          
-                                          {/* NEWS STOCKS DISPLAY - Show individual stock cards with add buttons */}
-                                          {message.role === 'assistant' && (message as any).newsData && (message as any).newsData.stocks && (
-                                            <div className="mt-4 space-y-2">
-                                              {(message as any).newsData.stocks.map((stock: any, stockIndex: number) => {
-                                                const changeColor = (stock.change && stock.change >= 0) ? 'text-green-400' : 'text-red-400';
-                                                const changeIcon = (stock.change && stock.change >= 0) ? '🟢' : '🔴';
-                                                
-                                                return (
-                                                  <div key={stockIndex} className="bg-slate-800 border border-slate-600 rounded-lg p-3 flex items-center justify-between">
-                                                    <div className="flex-1">
-                                                      <div className="flex items-center gap-2">
-                                                        <span className="font-semibold text-white">{stock.symbol}</span>
-                                                        <span className="text-xs text-slate-400">{stock.exchange || 'NSE'}</span>
-                                                      </div>
-                                                      <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-lg font-bold text-white">₹{stock.price}</span>
-                                                        <span className={`text-sm ${changeColor} flex items-center gap-1`}>
-                                                          {changeIcon}
-                                                          {stock.change >= 0 ? '+' : ''}{stock.change || 0} {stock.changePercent >= 0 ? '+' : ''}{(stock.changePercent || 0).toFixed(2)}%
-                                                        </span>
-                                                      </div>
-                                                    </div>
-                                                    <Button
-                                                      size="sm"
-                                                      onClick={() => addStockToFeed(stock.symbol)}
-                                                      className="h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white p-0 flex items-center justify-center"
-                                                    >
-                                                      <span className="text-lg font-bold">+</span>
-                                                    </Button>
+                                            <span className="text-xs text-slate-300 font-medium animate-pulse">BATTU AI is thinking...</span>
+                                          </div>
+                                        ) : message.isStockMessage && message.stocks ? (
+                                          <div className="space-y-2">
+                                            <div className="text-xs text-slate-200 mb-3">{message.content}</div>
+                                            {message.stocks.map((stock: any, stockIndex: number) => (
+                                              <div key={stockIndex} className="flex items-center justify-between p-2 bg-slate-800 rounded border border-slate-600 text-xs">
+                                                <div className="flex-1">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-white">{stock.symbol}</span>
+                                                    <span className="text-[10px] text-slate-400">{stock.exchange}</span>
                                                   </div>
-                                                );
-                                              })}
-                                              
-                                              {/* ADD ALL BUTTON - Very important for BATTU AI */}
-                                              <div className="mt-2 pt-2 border-t border-slate-600">
+                                                  <div className="flex items-center gap-2 mt-1">
+                                                    <span className="font-bold text-white">₹{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                                    <span className={`text-[10px] font-medium ${stock.changePercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                      {stock.changePercentage >= 0 ? '+' : ''}{stock.change.toFixed(2)} {stock.changePercentage >= 0 ? '+' : ''}{stock.changePercentage.toFixed(2)}%
+                                                    </span>
+                                                  </div>
+                                                </div>
                                                 <Button
-                                                  onClick={() => {
-                                                    // Add all stocks to feed at once - Fixed logic for ONE CLICK
-                                                    const stockSymbols = (message as any).newsData.stocks.map((stock: any) => stock.symbol);
-                                                    addAllStocksToFeed(stockSymbols);
-                                                  }}
-                                                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded text-sm flex items-center justify-center gap-1"
+                                                  size="sm"
+                                                  variant="outline"
+                                                  onClick={() => addStockToFeed(stock.symbol)}
+                                                  disabled={feedStocks.includes(stock.symbol)}
+                                                  className="text-[10px] h-6 px-2 ml-2 text-orange-600 border-orange-600 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-400 dark:hover:bg-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                  data-testid={`button-add-${stock.symbol}`}
                                                 >
-                                                  <span className="text-sm font-bold">+</span>
-                                                  Add All ({(message as any).newsData.stocks.filter((stock: any) => !feedStocks.includes(stock.symbol)).length})
+                                                  {feedStocks.includes(stock.symbol) ? '✓' : '+'}
                                                 </Button>
                                               </div>
-                                            </div>
-                                          )}
-                                          
-                                          {/* Copy and Like icons in bottom right */}
-                                          {message.role === 'assistant' && !(message as any).isTyping && (
-                                            <div className="absolute bottom-2 right-2 flex gap-2">
+                                            ))}
+                                            <div className="mt-3 pt-2 border-t border-slate-600">
                                               <Button
-                                                variant="ghost"
                                                 size="sm"
-                                                onClick={() => navigator.clipboard.writeText(message.content)}
-                                                className="h-5 w-5 p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
+                                                variant="outline"
+                                                onClick={() => addAllStocksToFeed(message.stocks.map((s: any) => s.symbol))}
+                                                className="text-[10px] h-6 px-3 w-full text-orange-600 border-orange-600 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-400 dark:hover:bg-orange-900"
+                                                data-testid="button-add-all-stocks"
                                               >
-                                                <Copy className="w-2.5 h-2.5" />
-                                              </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 w-5 p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
-                                              >
-                                                <ThumbsUp className="w-2.5 h-2.5" />
+                                                + Add All Stocks to Feed
                                               </Button>
                                             </div>
-                                          )}
-                                          
-                                          {/* Enhanced suggestion buttons for strategy AI */}
-                                          {message.role === 'assistant' && !(message as any).isTyping && (
-                                            <div className="flex flex-wrap gap-1 mt-3 pt-2 border-t border-slate-600">
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setChatInput('generate strategy code')}
-                                                className="text-[9px] h-5 px-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 dark:text-purple-300 dark:border-purple-700 rounded-md"
-                                              >
-                                                🤖 Generate strategy code
-                                              </Button>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setChatInput('emi code')}
-                                                className="text-[9px] h-5 px-1.5 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:hover:bg-green-800 dark:text-green-300 dark:border-green-700 rounded-md"
-                                              >
-                                                📊 EMI code
-                                              </Button>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setChatInput('rsi+ema code')}
-                                                className="text-[9px] h-5 px-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-300 dark:border-blue-700 rounded-md"
-                                              >
-                                                📈 RSI+EMA code
-                                              </Button>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setChatInput('show performance')}
-                                                className="text-[9px] h-5 px-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800 dark:text-orange-300 dark:border-orange-700 rounded-md"
-                                              >
-                                                📊 Show performance
-                                              </Button>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setChatInput('optimize my strategy')}
-                                                className="text-[9px] h-5 px-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 dark:text-indigo-300 dark:border-indigo-700 rounded-md"
-                                              >
-                                                🔧 Optimize strategy
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </div>
+
+                                            {/* Copy and Like icons in bottom right for stock messages */}
+                                            {message.role === 'assistant' && (
+                                              <div className="absolute bottom-2 right-2 flex gap-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    const textToCopy = message.content + '\n\n' + message.stocks.map((s: any) => `${s.symbol}: ₹${s.price} (${s.changePercentage >= 0 ? '+' : ''}${s.changePercentage.toFixed(2)}%)`).join('\n');
+                                                    navigator.clipboard.writeText(textToCopy);
+                                                  }}
+                                                  className="h-5 w-5 p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
+                                                >
+                                                  <Copy className="w-2.5 h-2.5" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 w-5 p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
+                                                >
+                                                  <ThumbsUp className="w-2.5 h-2.5" />
+                                                </Button>
+                                              </div>
+                                            )}
+
+                                            {/* Suggestion buttons below stock messages */}
+                                            {message.role === 'assistant' && (
+                                              <div className="flex flex-wrap gap-1 mt-3 pt-2 border-t border-slate-600">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('Analyze RELIANCE stock')}
+                                                  className="text-[9px] h-5 px-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-300 dark:border-blue-700 rounded-md"
+                                                >
+                                                  📈 Analyze RELIANCE stock
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('Market news today')}
+                                                  className="text-[9px] h-5 px-1.5 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:hover:bg-green-800 dark:text-green-300 dark:border-green-700 rounded-md"
+                                                >
+                                                  📰 Market news today
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('Best stocks to buy')}
+                                                  className="text-[9px] h-5 px-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 dark:text-purple-300 dark:border-purple-700 rounded-md"
+                                                >
+                                                  🔥 Best stocks to buy
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('Upcoming IPOs')}
+                                                  className="text-[9px] h-5 px-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800 dark:text-orange-300 dark:border-orange-700 rounded-md"
+                                                >
+                                                  🚀 Upcoming IPOs
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('Bond market trends')}
+                                                  className="text-[9px] h-5 px-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 dark:text-indigo-300 dark:border-indigo-700 rounded-md"
+                                                >
+                                                  📊 Bond market trends
+                                                </Button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <div>
+                                            {/* Parse and display AI messages with code blocks */}
+                                            {message.role === 'assistant' ? (
+                                              <div className="space-y-2">
+                                                {parseAIMessage(message.content).map((part, partIndex) => (
+                                                  <div key={partIndex}>
+                                                    {part.type === 'text' ? (
+                                                      <div className="bg-slate-700 text-gray-200 px-3 py-2 rounded-lg text-sm whitespace-pre-wrap">
+                                                        {part.content}
+                                                      </div>
+                                                    ) : (
+                                                      <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden">
+                                                        <div className="flex items-center justify-between bg-slate-800 px-3 py-2 border-b border-slate-600">
+                                                          <span className="text-xs text-gray-400 font-mono">Strategy Code</span>
+                                                          <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => copyToClipboard(part.content, index * 100 + partIndex)}
+                                                            className="h-6 px-2 text-xs text-gray-400 hover:text-white hover:bg-slate-700"
+                                                          >
+                                                            {copiedCodeIndex === index * 100 + partIndex ? (
+                                                              <>
+                                                                <Check className="w-3 h-3 mr-1" />
+                                                                Copied!
+                                                              </>
+                                                            ) : (
+                                                              <>
+                                                                <Copy className="w-3 h-3 mr-1" />
+                                                                Copy
+                                                              </>
+                                                            )}
+                                                          </Button>
+                                                        </div>
+                                                        <div className="p-4 h-32 overflow-y-auto">
+                                                          <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap leading-relaxed tracking-wide break-all">
+                                                            {part.content}
+                                                          </pre>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            ) : (
+                                              <div className="mb-2 pr-16">{message.content}</div>
+                                            )}
+
+                                            {/* NEWS STOCKS DISPLAY - Show individual stock cards with add buttons */}
+                                            {message.role === 'assistant' && (message as any).newsData && (message as any).newsData.stocks && (
+                                              <div className="mt-4 space-y-2">
+                                                {(message as any).newsData.stocks.map((stock: any, stockIndex: number) => {
+                                                  const changeColor = (stock.change && stock.change >= 0) ? 'text-green-400' : 'text-red-400';
+                                                  const changeIcon = (stock.change && stock.change >= 0) ? '🟢' : '🔴';
+
+                                                  return (
+                                                    <div key={stockIndex} className="bg-slate-800 border border-slate-600 rounded-lg p-3 flex items-center justify-between">
+                                                      <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                          <span className="font-semibold text-white">{stock.symbol}</span>
+                                                          <span className="text-xs text-slate-400">{stock.exchange || 'NSE'}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                          <span className="text-lg font-bold text-white">₹{stock.price}</span>
+                                                          <span className={`text-sm ${changeColor} flex items-center gap-1`}>
+                                                            {changeIcon}
+                                                            {stock.change >= 0 ? '+' : ''}{stock.change || 0} {stock.changePercent >= 0 ? '+' : ''}{(stock.changePercent || 0).toFixed(2)}%
+                                                          </span>
+                                                        </div>
+                                                      </div>
+                                                      <Button
+                                                        size="sm"
+                                                        onClick={() => addStockToFeed(stock.symbol)}
+                                                        className="h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white p-0 flex items-center justify-center"
+                                                      >
+                                                        <span className="text-lg font-bold">+</span>
+                                                      </Button>
+                                                    </div>
+                                                  );
+                                                })}
+
+                                                {/* ADD ALL BUTTON - Very important for BATTU AI */}
+                                                <div className="mt-2 pt-2 border-t border-slate-600">
+                                                  <Button
+                                                    onClick={() => {
+                                                      // Add all stocks to feed at once - Fixed logic for ONE CLICK
+                                                      const stockSymbols = (message as any).newsData.stocks.map((stock: any) => stock.symbol);
+                                                      addAllStocksToFeed(stockSymbols);
+                                                    }}
+                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded text-sm flex items-center justify-center gap-1"
+                                                  >
+                                                    <span className="text-sm font-bold">+</span>
+                                                    Add All ({(message as any).newsData.stocks.filter((stock: any) => !feedStocks.includes(stock.symbol)).length})
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Copy and Like icons in bottom right */}
+                                            {message.role === 'assistant' && (
+                                              <div className="absolute bottom-2 right-2 flex gap-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => navigator.clipboard.writeText(message.content)}
+                                                  className="h-5 w-5 p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
+                                                >
+                                                  <Copy className="w-2.5 h-2.5" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 w-5 p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
+                                                >
+                                                  <ThumbsUp className="w-2.5 h-2.5" />
+                                                </Button>
+                                              </div>
+                                            )}
+
+                                            {/* Enhanced suggestion buttons for strategy AI */}
+                                            {message.role === 'assistant' && (
+                                              <div className="flex flex-wrap gap-1 mt-3 pt-2 border-t border-slate-600">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('generate strategy code')}
+                                                  className="text-[9px] h-5 px-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 dark:text-purple-300 dark:border-purple-700 rounded-md"
+                                                >
+                                                  🤖 Generate strategy code
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('emi code')}
+                                                  className="text-[9px] h-5 px-1.5 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:hover:bg-green-800 dark:text-green-300 dark:border-green-700 rounded-md"
+                                                >
+                                                  📊 EMI code
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('rsi+ema code')}
+                                                  className="text-[9px] h-5 px-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-300 dark:border-blue-700 rounded-md"
+                                                >
+                                                  📈 RSI+EMA code
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('show performance')}
+                                                  className="text-[9px] h-5 px-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800 dark:text-orange-300 dark:border-orange-700 rounded-md"
+                                                >
+                                                  📊 Show performance
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setChatInput('optimize my strategy')}
+                                                  className="text-[9px] h-5 px-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 dark:text-indigo-300 dark:border-indigo-700 rounded-md"
+                                                >
+                                                  🔧 Optimize strategy
+                                                </Button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
-                                    ))}
-                                  </div>
+                                    </div>
+                                  ))
                                 )}
                               </div>
-                              
+
                               {/* AI Chat Input */}
                               <div className="mt-2 flex gap-2">
                                 <input
@@ -8230,7 +8803,6 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                   placeholder="Ask strategy AI: generate strategy code, show performance..."
                                   className="flex-1 px-3 py-2 text-xs border border-slate-600 rounded-lg bg-slate-800 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                                   disabled={isChatLoading}
-                                  data-testid="input-ai-chat-sidebar"
                                 />
                                 <Button
                                   size="sm"
@@ -8244,7 +8816,6 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                   }}
                                   disabled={isChatLoading || !chatInput.trim()}
                                   className="h-8 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs"
-                                  data-testid="button-send-ai-sidebar"
                                 >
                                   Send
                                 </Button>
@@ -8257,7 +8828,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                 onChange={(e) => setTempNotesContent(e.target.value)}
                                 placeholder="Write your trading notes, strategies, observations..."
                                 className="w-full h-full p-3 text-sm border border-slate-600 rounded-lg bg-slate-800 text-white placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                data-testid="textarea-notes-sidebar"
+                                data-testid="textarea-notes"
                               />
                             ) : (
                               <div className="h-full p-3 text-sm border border-slate-700 rounded-lg bg-slate-800 text-white overflow-y-auto">
