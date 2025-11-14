@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Dashboard from "@/pages/home";
+import DashboardPage from "@/pages/dashboard";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
@@ -372,9 +373,7 @@ function Router() {
         </MainLayout>
       </Route>
       <Route path="/dashboard">
-        <MainLayout>
-          <Dashboard />
-        </MainLayout>
+        <DashboardPage />
       </Route>
       <Route path="/trading">
         <MainLayout>

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { AuthButton } from "@/components/auth-button";
 import { ConnectionStatus } from "@/components/connection-status";
 import { ApiStatistics } from "@/components/api-statistics";
+import { LivestreamAds } from "@/components/livestream-ads";
 import { ErrorPanel } from "@/components/error-panel";
 import { TradingViewWidget } from "@/components/tradingview-widget";
 import { AdvancedCandlestickChart } from "@/components/advanced-candlestick-chart";
@@ -192,6 +193,11 @@ export default function Dashboard() {
           <ApiStatistics />
           <NiftyIndex />
           <HistoricalDataStatus />
+        </div>
+
+        {/* Livestream Ads Section */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <LivestreamAds />
         </div>
         
         {/* Portfolio and Additional Cards */}
