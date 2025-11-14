@@ -7783,7 +7783,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </TabsContent>
           
           {/* Trade Tab Content - 75/25 Split Layout */}
-          <TabsContent value="trade" className="p-0 h-[calc(100vh-120px)]">
+          <TabsContent value="trade" className="p-0 -mx-6 h-[calc(100vh-120px)]">
             <div className="flex h-full gap-0">
               {/* 75% - Visual Chart Screen (Left Side) */}
               <div className="flex-[75] border-r border-border bg-[#131722]">
