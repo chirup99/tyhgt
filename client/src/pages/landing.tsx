@@ -41,7 +41,7 @@ export default function Landing() {
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
         
-        // Let user explore the app - profile will be requested when they access social feed
+        // Immediately redirect to app
         console.log('✅ Google sign-in successful, redirecting to app...');
         window.location.href = "/";
       } else {
@@ -118,11 +118,7 @@ export default function Landing() {
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
         
-        // Let user explore the app - profile will be requested when they access social feed
-        toast({
-          title: "Success!",
-          description: isLogin ? "Welcome back!" : "Account created successfully!",
-        });
+        // Immediately redirect without waiting for toast
         console.log('✅ Authentication successful, redirecting to app...');
         window.location.href = "/";
       } else {
