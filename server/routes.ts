@@ -3847,23 +3847,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Email mismatch' });
       }
 
-      // Save the displayName to Firestore during registration
+      // Save the displayName to Firestore in background (non-blocking)
       if (name) {
-        const { getFirestore } = await import('firebase-admin/firestore');
-        const db = getFirestore();
-        
-        console.log('💾 Saving displayName during registration:', { userId: decodedToken.uid, displayName: name });
-        
-        await db.collection('users').doc(decodedToken.uid).set({
-          displayName: name,
-          email: decodedToken.email,
-          userId: decodedToken.uid,
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        
-        console.log('✅ DisplayName saved to Firestore during registration');
+        (async () => {
+          try {
+            const { getFirestore } = await import('firebase-admin/firestore');
+            const db = getFirestore();
+            
+            console.log('💾 Saving displayName during registration (background):', { userId: decodedToken.uid, displayName: name });
+            
+            await db.collection('users').doc(decodedToken.uid).set({
+              displayName: name,
+              email: decodedToken.email,
+              userId: decodedToken.uid,
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            console.log('✅ DisplayName saved to Firestore during registration');
+          } catch (error) {
+            console.error('⚠️ Background save failed (non-critical):', error);
+          }
+        })();
       }
 
+      // Respond immediately without waiting for Firestore
       res.json({ 
         success: true, 
         message: 'Registration successful',
@@ -3891,32 +3898,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const admin = await import('firebase-admin');
       const decodedToken = await admin.auth().verifyIdToken(idToken);
 
-      // Save the displayName from Google to Firestore
+      // Save the displayName from Google to Firestore in background (non-blocking)
       if (decodedToken.name) {
-        const { getFirestore } = await import('firebase-admin/firestore');
-        const db = getFirestore();
-        
-        // Check if user profile already exists
-        const userDoc = await db.collection('users').doc(decodedToken.uid).get();
-        
-        // Only save displayName if it doesn't already exist (don't overwrite existing profile)
-        if (!userDoc.exists || !userDoc.data()?.displayName) {
-          console.log('💾 Saving displayName from Google sign-in:', { userId: decodedToken.uid, displayName: decodedToken.name });
-          
-          await db.collection('users').doc(decodedToken.uid).set({
-            displayName: decodedToken.name,
-            email: decodedToken.email,
-            userId: decodedToken.uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-          
-          console.log('✅ DisplayName saved to Firestore from Google sign-in');
-        } else {
-          console.log('ℹ️ User profile already exists, keeping existing displayName');
-        }
+        (async () => {
+          try {
+            const { getFirestore } = await import('firebase-admin/firestore');
+            const db = getFirestore();
+            
+            // Check if user profile already exists
+            const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+            
+            // Only save displayName if it doesn't already exist (don't overwrite existing profile)
+            if (!userDoc.exists || !userDoc.data()?.displayName) {
+              console.log('💾 Saving displayName from Google sign-in (background):', { userId: decodedToken.uid, displayName: decodedToken.name });
+              
+              await db.collection('users').doc(decodedToken.uid).set({
+                displayName: decodedToken.name,
+                email: decodedToken.email,
+                userId: decodedToken.uid,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+              }, { merge: true });
+              
+              console.log('✅ DisplayName saved to Firestore from Google sign-in');
+            } else {
+              console.log('ℹ️ User profile already exists, keeping existing displayName');
+            }
+          } catch (error) {
+            console.error('⚠️ Background save failed (non-critical):', error);
+          }
+        })();
       }
 
-      // Store user session
+      // Respond immediately without waiting for Firestore
       res.json({ 
         success: true, 
         message: 'Google sign-in successful',
