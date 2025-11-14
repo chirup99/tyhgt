@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { LogIn, ExternalLink, Key } from "lucide-react";
+import { LogIn, ExternalLink, Key, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,37 @@ export function AuthButton() {
   const { data: apiStatus } = useQuery<ApiStatus>({
     queryKey: ["/api/status"],
     refetchInterval: 5000,
+  });
+
+  // Query to fetch Firebase token count
+  const { data: tokenCountData } = useQuery<{ success: boolean; count: number }>({
+    queryKey: ["/api/auth/token/firebase/count"],
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+
+  // Mutation to delete Firebase tokens
+  const deleteTokenMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("DELETE", "/api/auth/token/firebase");
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/token/firebase/count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
+      
+      toast({
+        title: "Firebase Tokens Deleted",
+        description: `Successfully deleted ${data.count} token(s) from Firebase. You can now add a new token.`,
+      });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to delete Firebase tokens.";
+      toast({
+        title: "Delete Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
 
   const tokenMutation = useMutation({
@@ -222,12 +253,32 @@ export function AuthButton() {
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <div className="mb-4">
-        <h3 className="text-sm font-medium text-blue-900 mb-1">
-          Fyers API Authentication Required
-        </h3>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-sm font-medium text-blue-900">
+            Fyers API Authentication Required
+          </h3>
+          {tokenCountData && tokenCountData.count > 0 && (
+            <Button
+              onClick={() => deleteTokenMutation.mutate()}
+              disabled={deleteTokenMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="border-red-600 text-red-600 hover:bg-red-50"
+              data-testid="button-delete-firebase-token"
+            >
+              <Trash2 className="mr-2 h-3 w-3" />
+              {deleteTokenMutation.isPending ? 'Deleting...' : `Delete Firebase Token (${tokenCountData.count})`}
+            </Button>
+          )}
+        </div>
         <p className="text-xs text-blue-700">
           Enter your Fyers access token from your Python code or authenticate through Fyers.
         </p>
+        {tokenCountData && tokenCountData.count > 0 && (
+          <p className="text-xs text-orange-600 mt-1">
+            ⚠️ Found {tokenCountData.count} old token(s) in Firebase. Delete them to add a new token.
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">

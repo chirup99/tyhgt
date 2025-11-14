@@ -7166,6 +7166,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get Firebase token count
+  app.get("/api/auth/token/firebase/count", async (req, res) => {
+    try {
+      console.log('🔍 [FIREBASE] Fetching Fyers token count from Firebase...');
+      const tokens = await googleCloudService.getAllFyersTokens();
+      
+      res.json({
+        success: true,
+        count: tokens.length,
+        tokens: tokens.map(t => ({
+          dateKey: t.dateKey,
+          expiryDate: t.expiryDate,
+          createdAt: t.createdAt
+        }))
+      });
+    } catch (error) {
+      console.error('❌ [FIREBASE] Error fetching token count:', error);
+      res.status(500).json({
+        success: false,
+        count: 0,
+        message: "Failed to fetch token count"
+      });
+    }
+  });
+
+  // Delete all Firebase tokens
+  app.delete("/api/auth/token/firebase", async (req, res) => {
+    try {
+      console.log('🗑️ [FIREBASE] Deleting all Fyers tokens from Firebase...');
+      
+      // Get all tokens first to count them
+      const tokens = await googleCloudService.getAllFyersTokens();
+      const count = tokens.length;
+      
+      if (count === 0) {
+        return res.json({
+          success: true,
+          count: 0,
+          message: "No tokens found in Firebase"
+        });
+      }
+      
+      // Delete all tokens
+      const snapshot = await googleCloudService.firestore.collection('fyers-tokens').get();
+      await Promise.all(snapshot.docs.map(doc => doc.ref.delete()));
+      
+      console.log(`✅ [FIREBASE] Deleted ${count} Fyers token(s) from Firebase`);
+      
+      // Also clear the PostgreSQL token
+      await storage.updateApiStatus({
+        connected: false,
+        authenticated: false,
+        accessToken: '',
+        tokenExpiry: null,
+        websocketActive: false,
+      });
+      
+      res.json({
+        success: true,
+        count: count,
+        message: `Deleted ${count} token(s) from Firebase`
+      });
+    } catch (error) {
+      console.error('❌ [FIREBASE] Error deleting tokens:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete tokens from Firebase"
+      });
+    }
+  });
+
   // ============================================================================
   // BROKER INTEGRATIONS
   // ============================================================================

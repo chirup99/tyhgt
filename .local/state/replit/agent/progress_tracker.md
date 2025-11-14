@@ -337,6 +337,19 @@
 [x] 320. Screenshot captured - all UI elements rendering perfectly
 [x] 321. Updated progress tracker with all completed migration tasks
 [x] 322. ✅ ALL IMPORT MIGRATION TASKS COMPLETED - PROJECT 100% OPERATIONAL AND READY FOR DEVELOPMENT! ✅
+[x] 323. FIREBASE TOKEN DELETE FEATURE - Added DELETE button with count display (November 14, 2025 11:00)
+[x] 324. Created backend endpoint: GET /api/auth/token/firebase/count - returns Firebase token count
+[x] 325. Created backend endpoint: DELETE /api/auth/token/firebase - deletes all Firebase tokens
+[x] 326. Added Firebase token count query in auth-button.tsx (refetches every 10 seconds)
+[x] 327. Added delete mutation with success/error handling
+[x] 328. Implemented DELETE button showing token count: "Delete Firebase Token (X)"
+[x] 329. Button displays only when Firebase has tokens (count > 0)
+[x] 330. Added warning message: "Found X old token(s) in Firebase. Delete them to add a new token."
+[x] 331. Delete operation clears both Firebase AND PostgreSQL tokens
+[x] 332. After deletion, user can add new token without old token blocking
+[x] 333. Added Trash2 icon to DELETE button for clear visual indication
+[x] 334. Restarted workflow - Firebase token delete feature fully operational
+[x] 335. ✅ FIREBASE TOKEN DELETE COMPLETED - OLD TOKENS NO LONGER BLOCK NEW CONNECTIONS! ✅
 [x] 309. INSTANT CONNECTION FIX - When Firebase has token, connect IMMEDIATELY (November 14, 2025 10:50)
 [x] 310. Updated auto-reconnection to set "Connected" status instantly when Firebase token exists
 [x] 311. Moved token verification to background using setImmediate (non-blocking)
