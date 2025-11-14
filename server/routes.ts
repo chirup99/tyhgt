@@ -3627,6 +3627,23 @@ async function attemptAutoReconnection() {
       const now = new Date();
       const expiry = new Date(apiStatus.tokenExpiry);
       
+      // Check if expiry date is valid
+      if (isNaN(expiry.getTime())) {
+        console.log('❌ Invalid token expiry date in database, clearing...');
+        await storage.updateApiStatus({
+          accessToken: null,
+          tokenExpiry: null,
+          connected: false,
+          authenticated: false,
+        });
+        
+        await storage.addActivityLog({
+          type: "error",
+          message: "Invalid token expiry date detected, cleared from storage. Please re-authenticate."
+        });
+        return false;
+      }
+      
       console.log('⏳ Database token expiry check:', {
         now: now.toISOString(),
         expiry: expiry.toISOString(),
