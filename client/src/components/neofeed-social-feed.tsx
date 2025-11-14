@@ -2664,6 +2664,19 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" ref={containerRef}>
+      {/* Back Button - Absolute positioned in top-right corner (same as Trading Master) */}
+      {onBackClick && (
+        <Button
+          onClick={onBackClick}
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+          data-testid="button-back-to-home-neofeed"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+      )}
+      
       <FeedHeader 
         onAllClick={handleAllClick} 
         isRefreshing={isFetching} 
@@ -2673,6 +2686,7 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
         showAppBar={showAppBar}
+        onBackClick={onBackClick}
       />
       
       {/* Live Banner - Spans full width (Hidden in Profile view) */}
