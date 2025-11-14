@@ -5430,10 +5430,14 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
         {/* Window Switches */}
         <div className="bg-muted/30 border-b border-border px-6 pt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
             <TabsTrigger value="main" className="flex items-center gap-2" data-testid="button-tab-main">
               <BarChart3 className="h-4 w-4" />
               Main
+            </TabsTrigger>
+            <TabsTrigger value="trade" className="flex items-center gap-2" data-testid="button-tab-trade">
+              <TrendingUp className="h-4 w-4" />
+              Trade
             </TabsTrigger>
             <TabsTrigger value="backtest" className="flex items-center gap-2" data-testid="button-tab-backtest">
               <Target className="h-4 w-4" />
@@ -7775,6 +7779,62 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </div>
         </DialogContent>
       </Dialog>
+          </TabsContent>
+          
+          {/* Trade Tab Content - 80/20 Split Layout */}
+          <TabsContent value="trade" className="p-0 h-[calc(100vh-200px)]">
+            <div className="flex h-full gap-0">
+              {/* 80% - Visual Chart Screen (Left Side) */}
+              <div className="flex-[80] border-r border-border bg-background">
+                <div className="h-full flex flex-col">
+                  {/* Chart Header */}
+                  <div className="border-b border-border px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h2 className="text-xl font-semibold">Chart View</h2>
+                        <p className="text-sm text-muted-foreground">Advanced trading chart interface</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">Live Trading</Badge>
+                    </div>
+                  </div>
+                  
+                  {/* Chart Area */}
+                  <div className="flex-1 p-6">
+                    <Card className="h-full bg-muted/10">
+                      <CardContent className="p-6 h-full flex items-center justify-center">
+                        <div className="text-center space-y-3">
+                          <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground/50" />
+                          <h3 className="text-lg font-medium text-muted-foreground">Chart Canvas</h3>
+                          <p className="text-sm text-muted-foreground/70">Visual chart screen ready for integration</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 20% - Vertical Panel (Right Side) */}
+              <div className="flex-[20] bg-muted/30">
+                <div className="h-full flex flex-col">
+                  {/* Panel Header */}
+                  <div className="border-b border-border px-4 py-4">
+                    <h3 className="text-sm font-semibold">Side Panel</h3>
+                  </div>
+                  
+                  {/* Panel Content */}
+                  <div className="flex-1 p-4 space-y-4">
+                    <Card className="bg-background">
+                      <CardContent className="p-4">
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Tools & Controls</p>
+                          <p className="text-xs text-muted-foreground/70">Panel area for additional features</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
           
           {/* Backtest Tab Content */}
