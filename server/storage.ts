@@ -1,4 +1,4 @@
-import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults } from "@shared/schema";
+import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, livestreamSettings, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults, type LivestreamSettings, type InsertLivestreamSettings } from "@shared/schema";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { eq, desc as descOrder, and } from "drizzle-orm";
@@ -30,6 +30,10 @@ export interface IStorage {
   getAnalysisResults(instructionId?: number, limit?: number): Promise<AnalysisResults[]>;
   createAnalysisResult(result: InsertAnalysisResults): Promise<AnalysisResults>;
   deleteAnalysisResults(instructionId: number): Promise<void>;
+  
+  // Livestream Settings methods
+  getLivestreamSettings(): Promise<LivestreamSettings | undefined>;
+  updateLivestreamSettings(settings: InsertLivestreamSettings): Promise<LivestreamSettings>;
 }
 
 export class MemStorage implements IStorage {
@@ -44,6 +48,7 @@ export class MemStorage implements IStorage {
   private analysisResultsList: AnalysisResults[];  
   private currentAnalysisInstructionId: number;
   private currentAnalysisResultId: number;
+  private livestreamSettingsData: LivestreamSettings | undefined;
 
   constructor() {
     this.users = new Map();
@@ -294,6 +299,20 @@ export class MemStorage implements IStorage {
       (result) => result.instructionId !== instructionId
     );
   }
+
+  async getLivestreamSettings(): Promise<LivestreamSettings | undefined> {
+    return this.livestreamSettingsData;
+  }
+
+  async updateLivestreamSettings(settings: InsertLivestreamSettings): Promise<LivestreamSettings> {
+    const livestreamSettings: LivestreamSettings = {
+      id: 1,
+      youtubeUrl: settings.youtubeUrl ?? null,
+      updatedAt: new Date(),
+    };
+    this.livestreamSettingsData = livestreamSettings;
+    return livestreamSettings;
+  }
 }
 
 // PostgreSQL Storage Implementation
@@ -496,6 +515,29 @@ export class PgStorage implements IStorage {
 
   async deleteAnalysisResults(instructionId: number): Promise<void> {
     await this.db.delete(analysisResults).where(eq(analysisResults.instructionId, instructionId));
+  }
+
+  async getLivestreamSettings(): Promise<LivestreamSettings | undefined> {
+    const settings = await this.db.select().from(livestreamSettings).where(eq(livestreamSettings.id, 1));
+    return settings[0];
+  }
+
+  async updateLivestreamSettings(settings: InsertLivestreamSettings): Promise<LivestreamSettings> {
+    const existing = await this.getLivestreamSettings();
+    const updatedAt = new Date();
+    
+    if (existing) {
+      const updated = await this.db.update(livestreamSettings)
+        .set({ youtubeUrl: settings.youtubeUrl, updatedAt })
+        .where(eq(livestreamSettings.id, 1))
+        .returning();
+      return updated[0];
+    } else {
+      const created = await this.db.insert(livestreamSettings)
+        .values({ youtubeUrl: settings.youtubeUrl, updatedAt })
+        .returning();
+      return created[0];
+    }
   }
 }
 

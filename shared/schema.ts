@@ -172,7 +172,12 @@ export const backupSyncStatus = pgTable("backup_sync_status", {
   estimatedCompletion: timestamp("estimated_completion"),
 });
 
-
+// Livestream Settings - Singleton document for YouTube banner URL
+export const livestreamSettings = pgTable("livestream_settings", {
+  id: serial("id").primaryKey(),
+  youtubeUrl: text("youtube_url"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
 
 // Define analysis step types
 export interface AnalysisStep {
@@ -247,10 +252,17 @@ export const insertBackupSyncStatusSchema = createInsertSchema(backupSyncStatus)
   startedAt: true,
 });
 
+export const insertLivestreamSettingsSchema = createInsertSchema(livestreamSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertHistoricalBackupData = z.infer<typeof insertHistoricalBackupDataSchema>;
 export type InsertHistoricalBackupIndex = z.infer<typeof insertHistoricalBackupIndexSchema>;
 export type InsertBackupSyncStatus = z.infer<typeof insertBackupSyncStatusSchema>;
+export type LivestreamSettings = typeof livestreamSettings.$inferSelect;
+export type InsertLivestreamSettings = z.infer<typeof insertLivestreamSettingsSchema>;
 
 // ==========================================
 // BATTU SCANNER SCHEMA - Integrated for DB Migration

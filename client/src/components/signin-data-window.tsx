@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, RefreshCw, Mail, Clock, Database, Radio } from "lucide-react";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -243,20 +243,40 @@ export function SigninDataWindow() {
   );
 }
 
+interface LivestreamSettings {
+  id: number;
+  youtubeUrl: string | null;
+  updatedAt: Date;
+}
+
 function LivestreamAdsControl() {
   const [streamLink, setStreamLink] = useState('');
-  const [currentLink, setCurrentLink] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    const savedLink = localStorage.getItem('livestream_banner_url');
-    if (savedLink) {
-      setCurrentLink(savedLink);
-      setStreamLink(savedLink);
-    }
-  }, []);
+  // Fetch current livestream settings from Firebase
+  const { data: settings } = useQuery<LivestreamSettings>({
+    queryKey: ['/api/livestream-settings'],
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
 
-  const handleConnect = () => {
+  // Update livestream settings mutation
+  const updateSettings = useMutation({
+    mutationFn: async (youtubeUrl: string | null) => {
+      return await apiRequest<LivestreamSettings>('/api/livestream-settings', 'POST', { youtubeUrl });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/livestream-settings'] });
+    },
+  });
+
+  // Initialize streamLink from fetched settings
+  useEffect(() => {
+    if (settings?.youtubeUrl) {
+      setStreamLink(settings.youtubeUrl);
+    }
+  }, [settings]);
+
+  const handleConnect = async () => {
     if (!streamLink.trim()) {
       toast({
         title: "Error",
@@ -277,32 +297,46 @@ function LivestreamAdsControl() {
       embedUrl = `${streamLink}${streamLink.includes('?') ? '&' : '?'}enablejsapi=1`;
     }
 
-    localStorage.setItem('livestream_banner_url', embedUrl);
-    setCurrentLink(embedUrl);
+    try {
+      await updateSettings.mutateAsync(embedUrl);
+      
+      window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
+        detail: { url: embedUrl } 
+      }));
 
-    window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
-      detail: { url: embedUrl } 
-    }));
-
-    toast({
-      title: "Success",
-      description: "Banner updated! Check the Social Feed tab to see your new video.",
-    });
+      toast({
+        title: "Success",
+        description: "Banner updated! Check the Social Feed tab to see your new video.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update banner. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleClear = () => {
-    localStorage.removeItem('livestream_banner_url');
-    setCurrentLink('');
-    setStreamLink('');
-    
-    window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
-      detail: { url: '' } 
-    }));
+  const handleClear = async () => {
+    try {
+      await updateSettings.mutateAsync(null);
+      setStreamLink('');
+      
+      window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
+        detail: { url: '' } 
+      }));
 
-    toast({
-      title: "Cleared",
-      description: "Banner reset to default",
-    });
+      toast({
+        title: "Cleared",
+        description: "Banner reset to default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear banner. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -366,13 +400,13 @@ function LivestreamAdsControl() {
           </p>
         </div>
 
-        {currentLink && (
+        {settings?.youtubeUrl && (
           <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
             <p className="text-xs text-green-700 dark:text-green-400 font-medium">
               ✓ Active Banner URL
             </p>
             <p className="text-xs text-green-600 dark:text-green-500 truncate mt-1">
-              {currentLink}
+              {settings.youtubeUrl}
             </p>
           </div>
         )}
@@ -381,14 +415,16 @@ function LivestreamAdsControl() {
           <Button 
             className="flex-1 bg-green-500 hover:bg-green-600 text-white"
             onClick={handleConnect}
+            disabled={updateSettings.isPending}
             data-testid="button-connect-stream"
           >
-            Connect
+            {updateSettings.isPending ? "Connecting..." : "Connect"}
           </Button>
-          {currentLink && (
+          {settings?.youtubeUrl && (
             <Button 
               variant="outline"
               onClick={handleClear}
+              disabled={updateSettings.isPending}
               data-testid="button-clear-stream"
             >
               Clear

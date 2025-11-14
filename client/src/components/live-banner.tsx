@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -17,6 +19,12 @@ import {
 } from 'lucide-react';
 import bannerImage from '@assets/image_1757245857707.png';
 
+interface LivestreamSettings {
+  id: number;
+  youtubeUrl: string | null;
+  updatedAt: Date;
+}
+
 interface BannerContent {
   id: string;
   type: 'live_stream' | 'ad' | 'update' | 'content';
@@ -29,18 +37,14 @@ interface BannerContent {
   priority?: 'high' | 'medium' | 'low';
 }
 
-const getDefaultBannerContent = (): BannerContent[] => {
-  const savedUrl = typeof window !== 'undefined' 
-    ? localStorage.getItem('livestream_banner_url') 
-    : null;
-  
+const getDefaultBannerContent = (youtubeUrl?: string | null): BannerContent[] => {
   return [
     {
       id: '1', 
       type: 'live_stream',
       title: 'Live Trading Stream',
       description: 'Watch live market analysis and trading strategies',
-      youtubeEmbedUrl: savedUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1',
+      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1',
       isLive: true,
       priority: 'high'
     },
@@ -74,40 +78,31 @@ export function LiveBanner() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [youtubePlayerState, setYoutubePlayerState] = useState<'playing' | 'paused' | null>(null);
-  const [bannerContent, setBannerContent] = useState<BannerContent[]>(getDefaultBannerContent());
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
+
+  // Fetch livestream settings from Firebase
+  const { data: settings } = useQuery<LivestreamSettings>({
+    queryKey: ['/api/livestream-settings'],
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+
+  // Derive banner content dynamically from settings (reacts to both updates and clears)
+  const bannerContent = useMemo(() => {
+    const youtubeUrl = settings?.youtubeUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1';
+    console.log('📺 Deriving banner content with YouTube URL:', youtubeUrl);
+    return getDefaultBannerContent(youtubeUrl);
+  }, [settings]);
   
   const currentContent = bannerContent[currentIndex];
 
-  useEffect(() => {
-    const savedUrl = localStorage.getItem('livestream_banner_url');
-    if (savedUrl) {
-      console.log('📺 Loading saved YouTube URL from localStorage:', savedUrl);
-      setBannerContent(prevContent => {
-        const newContent = [...prevContent];
-        newContent[0] = {
-          ...newContent[0],
-          youtubeEmbedUrl: savedUrl
-        };
-        return newContent;
-      });
-      setCurrentIndex(0);
-    }
-  }, []);
-
+  // Listen for CustomEvent updates and invalidate query to refetch
   useEffect(() => {
     const handleUrlUpdate = (event: CustomEvent) => {
       const newUrl = event.detail.url;
       console.log('📺 Received livestream URL update event:', newUrl);
-      setBannerContent(prevContent => {
-        const newContent = [...prevContent];
-        newContent[0] = {
-          ...newContent[0],
-          youtubeEmbedUrl: newUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1'
-        };
-        return newContent;
-      });
+      // Invalidate query to trigger refetch from Firebase
+      queryClient.invalidateQueries({ queryKey: ['/api/livestream-settings'] });
       setCurrentIndex(0);
     };
 

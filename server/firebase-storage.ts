@@ -5,7 +5,8 @@ import type {
   MarketData, InsertMarketData,
   ActivityLog, InsertActivityLog,
   AnalysisInstructions, InsertAnalysisInstructions,
-  AnalysisResults, InsertAnalysisResults
+  AnalysisResults, InsertAnalysisResults,
+  LivestreamSettings, InsertLivestreamSettings
 } from "@shared/schema";
 import type { IStorage } from './storage';
 
@@ -270,6 +271,31 @@ export class FirebaseStorage implements IStorage {
     const batch = this.db.batch();
     snapshot.docs.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
+  }
+
+  async getLivestreamSettings(): Promise<LivestreamSettings | undefined> {
+    const doc = await this.db.collection('global').doc('livestream_settings').get();
+    if (!doc.exists) return undefined;
+    
+    const data = doc.data();
+    // Convert Firestore Timestamp to Date
+    return {
+      id: data?.id || 1,
+      youtubeUrl: data?.youtubeUrl ?? null,
+      updatedAt: data?.updatedAt?.toDate?.() || new Date(),
+    };
+  }
+
+  async updateLivestreamSettings(settings: InsertLivestreamSettings): Promise<LivestreamSettings> {
+    const now = new Date();
+    const livestreamSettings: LivestreamSettings = {
+      id: 1,
+      youtubeUrl: settings.youtubeUrl ?? null,
+      updatedAt: now,
+    };
+    
+    await this.db.collection('global').doc('livestream_settings').set(livestreamSettings);
+    return livestreamSettings;
   }
 
   async initializeDefaultData(): Promise<void> {

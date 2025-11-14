@@ -5395,6 +5395,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get livestream settings (YouTube banner URL)
+  app.get('/api/livestream-settings', async (req, res) => {
+    try {
+      const settings = await storage.getLivestreamSettings();
+      res.json(settings || { id: 1, youtubeUrl: null, updatedAt: new Date() });
+    } catch (error: any) {
+      console.error('❌ Error fetching livestream settings:', error.message);
+      res.status(500).json({ error: 'Failed to fetch livestream settings' });
+    }
+  });
+
+  // Update livestream settings (YouTube banner URL)
+  app.post('/api/livestream-settings', async (req, res) => {
+    try {
+      const { insertLivestreamSettingsSchema } = await import("@shared/schema");
+      
+      // Validate request body with Zod
+      const validationResult = insertLivestreamSettingsSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: 'Invalid request body', details: validationResult.error.errors });
+      }
+      
+      const settings = await storage.updateLivestreamSettings(validationResult.data);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('❌ Error updating livestream settings:', error.message);
+      res.status(500).json({ error: 'Failed to update livestream settings' });
+    }
+  });
+
   app.post('/api/upload-media', async (req, res) => {
     try {
       // Generate a presigned URL for media upload
