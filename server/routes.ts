@@ -83,6 +83,27 @@ const googleCloudSigninBackupService = createGoogleCloudSigninBackupService();
 // Initialize backup data service
 const backupDataService = createBackupDataService();
 
+// Safe activity logging wrapper - silently fails if Firebase is unavailable
+async function safeAddActivityLog(log: { type: string; message: string }): Promise<void> {
+  try {
+    await safeAddActivityLog(log);
+  } catch (error) {
+    // Silently ignore Firebase errors - logging should never crash the server
+    // Firebase may be intentionally disabled to save costs
+  }
+}
+
+// Safe API status update wrapper - silently fails if Firebase is unavailable
+async function safeUpdateApiStatus(status: any): Promise<any> {
+  try {
+    return await safeUpdateApiStatus(status);
+  } catch (error) {
+    // Silently ignore Firebase errors - status updates should never crash the server
+    console.log('⚠️ Firebase unavailable, skipping API status update');
+    return null;
+  }
+}
+
 // Helper functions for stock data - prioritizing Google Finance for accuracy
 async function getStockFundamentalData(symbol: string) {
   console.log(`🔥🔥🔥 [DEBUG] getStockFundamentalData ENTRY for ${symbol}`);
@@ -3535,7 +3556,7 @@ async function attemptAutoReconnection() {
       
       if (isConnected) {
         console.log('✅ [FIREBASE] Token VALIDATED - marking as connected');
-        await storage.updateApiStatus({
+        await safeUpdateApiStatus({
           connected: true,
           authenticated: true,
           accessToken: firebaseToken.accessToken,
@@ -3550,7 +3571,7 @@ async function attemptAutoReconnection() {
           latency: 12,
         });
         
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "success",
           message: "✅ Auto-reconnected using validated Firebase token"
         });
@@ -3559,12 +3580,12 @@ async function attemptAutoReconnection() {
         return true;
       } else {
         console.log('❌ [FIREBASE] Token validation FAILED - not connecting');
-        await storage.updateApiStatus({
+        await safeUpdateApiStatus({
           connected: false,
           authenticated: false,
           websocketActive: false,
         });
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "warning",
           message: "Firebase token validation failed. Please re-authenticate."
         });
@@ -3595,7 +3616,7 @@ async function attemptAutoReconnection() {
             const tokenExpiry = new Date();
             tokenExpiry.setHours(tokenExpiry.getHours() + 24);
             
-            await storage.updateApiStatus({
+            await safeUpdateApiStatus({
               connected: true,
               authenticated: true,
               accessToken: envToken,
@@ -3610,7 +3631,7 @@ async function attemptAutoReconnection() {
               latency: 12,
             });
 
-            await storage.addActivityLog({
+            await safeAddActivityLog({
               type: "success",
               message: "Environment token validated and saved to database for persistent storage"
             });
@@ -3640,14 +3661,14 @@ async function attemptAutoReconnection() {
       // Check if expiry date is valid
       if (isNaN(expiry.getTime())) {
         console.log('❌ Invalid token expiry date in database, clearing...');
-        await storage.updateApiStatus({
+        await safeUpdateApiStatus({
           accessToken: null,
           tokenExpiry: null,
           connected: false,
           authenticated: false,
         });
         
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "error",
           message: "Invalid token expiry date detected, cleared from storage. Please re-authenticate."
         });
@@ -3675,7 +3696,7 @@ async function attemptAutoReconnection() {
         
         if (isConnected) {
           // Update status to connected
-          await storage.updateApiStatus({
+          await safeUpdateApiStatus({
             connected: true,
             authenticated: true,
             websocketActive: true,
@@ -3688,7 +3709,7 @@ async function attemptAutoReconnection() {
             latency: 12,
           });
 
-          await storage.addActivityLog({
+          await safeAddActivityLog({
             type: "success",
             message: "🎉 Auto-reconnected to Fyers API using database token"
           });
@@ -3698,14 +3719,14 @@ async function attemptAutoReconnection() {
         } else {
           console.log('❌ Database token connection test failed - token invalid');
           // Database token is invalid, clear it
-          await storage.updateApiStatus({
+          await safeUpdateApiStatus({
             accessToken: null,
             tokenExpiry: null,
             connected: false,
             authenticated: false,
           });
           
-          await storage.addActivityLog({
+          await safeAddActivityLog({
             type: "warning",
             message: "Database access token is invalid, cleared from storage"
           });
@@ -3713,21 +3734,21 @@ async function attemptAutoReconnection() {
       } else {
         console.log('⏰ Database token has expired');
         // Database token has expired, clear it
-        await storage.updateApiStatus({
+        await safeUpdateApiStatus({
           accessToken: null,
           tokenExpiry: null,
           connected: false,
           authenticated: false,
         });
         
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "info",
           message: "Database access token has expired, please re-authenticate"
         });
       }
     } else {
       console.log('❌ No database token found - authentication required');
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "info", 
         message: "No saved access token found. Please authenticate using /api/auth/token endpoint."
       });
@@ -3735,7 +3756,7 @@ async function attemptAutoReconnection() {
     } 
   } catch (error) {
     console.error('💥 Auto-reconnection failed:', error);
-    await storage.addActivityLog({
+    await safeAddActivityLog({
       type: "error",
       message: `Auto-reconnection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
     });
@@ -6783,7 +6804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const result = await googleCloudService.deleteOldFyersTokens();
         console.log(`✅ Daily cleanup completed: ${result.deletedCount || 0} expired tokens removed`);
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "info",
           message: `Daily cleanup: ${result.deletedCount || 0} expired Fyers tokens deleted`
         });
@@ -6815,7 +6836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate token format (Fyers tokens are typically 600+ characters)
       if (cleanedToken.length < 100) {
-        storage.addActivityLog({
+        safeAddActivityLog({
           type: "error",
           message: "Invalid token format: Token too short"
         }).catch(err => console.error('Activity log error:', err));
@@ -6844,7 +6865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Save to PostgreSQL in background
           console.log('💾 [TOKEN-AUTH] Saving to PostgreSQL in background...');
           try {
-            await storage.updateApiStatus({
+            await safeUpdateApiStatus({
               connected: false,
               authenticated: true,
               websocketActive: false,
@@ -6880,7 +6901,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Log token save completion
-          await storage.addActivityLog({
+          await safeAddActivityLog({
             type: "success",
             message: `Token saved successfully (Firebase: ${firebaseSuccess ? 'Yes' : 'No'}). Testing connection...`
           });
@@ -6891,18 +6912,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (isConnected) {
             console.log('✅ [TOKEN-AUTH] Connection successful!');
-            await storage.updateApiStatus({
+            await safeUpdateApiStatus({
               connected: true,
               authenticated: true,
               websocketActive: true,
             });
-            await storage.addActivityLog({
+            await safeAddActivityLog({
               type: "success",
               message: "Fyers API connection established and verified"
             });
           } else {
             console.log('⚠️ [TOKEN-AUTH] Connection pending - will retry automatically');
-            await storage.addActivityLog({
+            await safeAddActivityLog({
               type: "info",
               message: "Token saved. Connection will retry when API becomes available."
             });
@@ -6915,7 +6936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Token auth error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Token authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -6956,7 +6977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Save to PostgreSQL
           try {
-            await storage.updateApiStatus({
+            await safeUpdateApiStatus({
               connected: true,
               authenticated: true,
               websocketActive: true,
@@ -6992,7 +7013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Add success log
-          await storage.addActivityLog({
+          await safeAddActivityLog({
             type: "success",
             message: `Successfully authenticated with Fyers API via auth code exchange (PostgreSQL: ${postgresSuccess ? 'Yes' : 'No'}, Firebase: ${firebaseSuccess ? 'Yes' : 'No'})`
           });
@@ -7004,14 +7025,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             savedToFirebase: firebaseSuccess
           });
         } else {
-          await storage.addActivityLog({
+          await safeAddActivityLog({
             type: "error",
             message: "Auth code exchanged but token validation failed"
           });
           res.status(401).json({ message: "Token generated but validation failed. Please try again." });
         }
       } else {
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "error",
           message: "Failed to exchange auth code for access token"
         });
@@ -7020,7 +7041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [AUTH-EXCHANGE] Auth code exchange error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Auth code exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -7044,7 +7065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('✅ [FIREBASE] Found valid token for today');
           
           // Update PostgreSQL for consistency
-          await storage.updateApiStatus({
+          await safeUpdateApiStatus({
             connected: true,
             authenticated: true,
             accessToken: tokenData.accessToken,
@@ -7134,7 +7155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [FIREBASE] Deleted ${count} Fyers token(s) from Firebase`);
       
       // Also clear the PostgreSQL token
-      await storage.updateApiStatus({
+      await safeUpdateApiStatus({
         connected: false,
         authenticated: false,
         accessToken: '',
@@ -7236,7 +7257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('💾 [OAUTH-AUTH] Saving token to PostgreSQL database after OAuth exchange');
         
         // Update API status with token persistence
-        await storage.updateApiStatus({
+        await safeUpdateApiStatus({
           connected: true,
           authenticated: true,
           websocketActive: true,
@@ -7255,7 +7276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Add success log
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "success",
           message: "Successfully authenticated with Fyers API using authorization code and saved to PostgreSQL"
         });
@@ -7269,7 +7290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         console.error('❌ [AUTH-EXCHANGE] Connection test failed with new token');
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "error",
           message: "Generated access token is invalid"
         });
@@ -7279,7 +7300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('❌ [AUTH-EXCHANGE] Auth code exchange error:', error);
       console.error('❌ [AUTH-EXCHANGE] Error details:', error instanceof Error ? error.message : JSON.stringify(error));
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Authorization code exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -7295,14 +7316,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/disconnect", async (req, res) => {
     try {
       // Clear tokens from storage
-      await storage.updateApiStatus({
+      await safeUpdateApiStatus({
         accessToken: null,
         tokenExpiry: null,
         connected: false,
         authenticated: false,
       });
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: "Successfully disconnected from Fyers API"
       });
@@ -7356,7 +7377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       liveScanner = new BattuLiveScanner(scanConfig);
       await liveScanner.startLiveScanning();
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[LIVE-SCANNER] Started with ${scanConfig.symbols.length} symbols, ${scanConfig.timeframes.length} timeframes`
       });
@@ -7371,7 +7392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [LIVE-SCANNER] Start failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[LIVE-SCANNER] Failed to start: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -7653,7 +7674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timeframe
       );
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[T-RULE] T-rule analysis completed for ${symbol} with ${tRuleResult.confidence}% confidence`
       });
@@ -7667,7 +7688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [T-RULE] T-rule analysis failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[T-RULE] T-rule analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -7708,7 +7729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timeframe
       );
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[MINI-4-RULE] C3a prediction from C2 block completed for ${symbol} with ${c3aResult.confidence}% confidence`
       });
@@ -7723,7 +7744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [MINI-4-RULE] C3a prediction from C2 block failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[MINI-4-RULE] C3a prediction from C2 block failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -7750,7 +7771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { c3a, c3b } = tRuleProcessor.splitC3Block(c3BlockCandles);
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[T-RULE] C3 block split: ${c3BlockCandles.length} candles → C3a(${c3a.length}) + C3b(${c3b.length})`
       });
@@ -7820,7 +7841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update status with authentication info (don't test connection to avoid hanging)
       if (status) {
-        status = await storage.updateApiStatus({
+        status = await safeUpdateApiStatus({
           ...status,
           connected: isAuthenticated,
           authenticated: isAuthenticated,
@@ -7828,7 +7849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // If no status exists, create a default state
-        status = await storage.updateApiStatus({
+        status = await safeUpdateApiStatus({
           connected: isAuthenticated,
           authenticated: isAuthenticated,
           websocketActive: false,
@@ -7854,7 +7875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/status/refresh", async (req, res) => {
     try {
       if (!fyersApi.isAuthenticated()) {
-        const updatedStatus = await storage.updateApiStatus({
+        const updatedStatus = await safeUpdateApiStatus({
           connected: false,
           authenticated: false,
           websocketActive: false,
@@ -7870,7 +7891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dailyLimit: 100000,
         });
 
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "warning",
           message: "Not authenticated with Fyers API. Please authenticate first."
         });
@@ -7882,7 +7903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const connected = await fyersApi.testConnection();
       const profile = connected ? await fyersApi.getProfile() : null;
       
-      const updatedStatus = await storage.updateApiStatus({
+      const updatedStatus = await safeUpdateApiStatus({
         connected,
         authenticated: fyersApi.isAuthenticated(),
         websocketActive: connected,
@@ -7899,7 +7920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Add activity log
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: connected ? "success" : "error",
         message: connected 
           ? `API connection refreshed successfully${profile ? ` - User: ${profile.name}` : ''}` 
@@ -7909,7 +7930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedStatus);
     } catch (error) {
       console.error('Refresh API status error:', error);
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `API refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -7951,7 +7972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!fyersApi.isAuthenticated()) {
         // Return error if not authenticated - no fake data allowed
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "error",
           message: "Cannot fetch live market data: Not authenticated with Fyers API"
         });
@@ -7973,7 +7994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quotes = await fyersApi.getQuotes(symbols);
       
       if (quotes.length === 0) {
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "error",
           message: "No live market data received from Fyers API"
         });
@@ -8011,7 +8032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await googleCloudService.cacheData(cacheKey, liveMarketData, 1);
       
       // Log successful live data fetch
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Live streaming: ${quotes.length} symbols updated at ${new Date().toLocaleTimeString('en-US', {
           hour: 'numeric',
@@ -8043,7 +8064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               rateLimitMessage: error.message
             }));
             
-            await storage.addActivityLog({
+            await safeAddActivityLog({
               type: "warning",
               message: `Rate limited - serving cached data: ${error.message}`
             });
@@ -8056,7 +8077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log error - no fallback to fake data
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Live market data failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -8204,7 +8225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Flexible NIFTY data: ${dynamicCandleCount} 1-min candles (1 + ${simulatedMinutesElapsed} min elapsed) → 4 five-min blocks`
       });
@@ -8239,7 +8260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Flexible NIFTY candles fetch error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Flexible NIFTY candles failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -8348,7 +8369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`✅ HISTORICAL-FETCH COMPLETED: ${totalSuccess}/${top50Symbols.length} stocks successful (${((totalSuccess/top50Symbols.length)*100).toFixed(1)}%)`);
     
     // Log summary to activity logs
-    await storage.addActivityLog({
+    await safeAddActivityLog({
       type: totalSuccess >= 40 ? "success" : "warning", 
       message: `Historical fetch (${fromDate} to ${toDate}) completed: ${totalSuccess}/${top50Symbols.length} stocks stored in Google Cloud`
     });
@@ -8452,7 +8473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ MONTH ${monthsBack-1} COMPLETED: ${monthSuccess}/${top50Symbols.length} stocks successful (${((monthSuccess/top50Symbols.length)*100).toFixed(1)}%)`);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: monthSuccess >= 40 ? "success" : "warning",
         message: `Month ${monthsBack-1} fetch (${fromDate} to ${toDate}) completed: ${monthSuccess}/${top50Symbols.length} stocks stored`
       });
@@ -8462,7 +8483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     console.log('🎉 ALL HISTORICAL DATA FETCH COMPLETED!');
-    await storage.addActivityLog({
+    await safeAddActivityLog({
       type: "success",
       message: `All 12 months historical data fetch completed for ${top50Symbols.length} stocks`
     });
@@ -8571,7 +8592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (candleData && candleData.length > 0) {
             console.log(`✅ Fyers API success: ${candleData.length} candles for ${symbol}`);
             
-            await storage.addActivityLog({
+            await safeAddActivityLog({
               type: "success",
               message: `Historical data fetched from Fyers: ${candleData.length} candles for ${symbol} (${resolution})`
             });
@@ -8620,7 +8641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           volume: candle.volume || 0
         }));
 
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "success",
           message: `Historical data fetched from backup: ${formattedCandles.length} candles for ${symbol} (${resolution})`
         });
@@ -8642,7 +8663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Both Fyers API and backup failed
       console.error(`❌ Both Fyers API and backup failed for ${symbol}`);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Historical data failed: No data available from Fyers API or backup for ${symbol}`
       });
@@ -8656,7 +8677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ Historical data endpoint error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Historical data endpoint failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -8799,7 +8820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[STEP 1] Market open detected and first candle (C1A) collected for ${symbol}`
       });
@@ -8809,7 +8830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [STEP 1] Market open detection failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[STEP 1] Failed to detect market open: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -8886,7 +8907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Log successful data refresh
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "success",
           message: `Refreshed live market data for ${quotes.length} symbols`
         });
@@ -8897,7 +8918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Market data refresh error:', error);
       
       // Log error
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Failed to refresh market data: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -8960,7 +8981,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const instruction = await storage.createAnalysisInstruction(validatedData);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Created Battu Scan instruction: ${instruction.name}`
       });
@@ -8969,7 +8990,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Create Battu Scan instruction error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Failed to create Battu Scan instruction: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -8986,7 +9007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const instruction = await storage.updateAnalysisInstruction(id, updates);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Updated Battu Scan instruction: ${instruction.name}`
       });
@@ -8995,7 +9016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Update Battu Scan instruction error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Failed to update Battu Scan instruction: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9015,7 +9036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.deleteAnalysisInstruction(id);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Deleted Battu Scan instruction: ${instructionName}`
       });
@@ -9024,7 +9045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete Battu Scan instruction error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Failed to delete Battu Scan instruction: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9100,7 +9121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: metadata
       });
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Analysis executed: ${instruction.name} on ${symbol} (${candleData.length} candles processed in ${metadata.executionTime}ms)`
       });
@@ -9117,7 +9138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Analysis execution error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Analysis execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9150,7 +9171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.deleteAnalysisResults(instructionId);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Deleted Battu Scan results for instruction ID ${instructionId}`
       });
@@ -9230,7 +9251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Log successful analysis
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[STEP 1] ${marketStatus.marketConfig.name} analysis: ${intradayCandles.length} session candles processed for ${symbol} (${marketStatus.marketConfig.openHour.toString().padStart(2, '0')}:${marketStatus.marketConfig.openMinute.toString().padStart(2, '0')}-${marketStatus.marketConfig.closeHour.toString().padStart(2, '0')}:${marketStatus.marketConfig.closeMinute.toString().padStart(2, '0')})`
       });
@@ -9261,7 +9282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[STEP 1] Intraday analysis error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[STEP 1] Intraday analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9289,7 +9310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await correctedSlopeCalculator.calculateCorrectedSlope(symbol, date, timeframe);
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[CORRECTED-6-CANDLE] Analysis completed for ${symbol}: C1 BLOCK (4 candles) + C2 BLOCK (2 candles) methodology with trendlines`
       });
@@ -9313,7 +9334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[CORRECTED-6-CANDLE] Analysis error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[CORRECTED-6-CANDLE] Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9342,7 +9363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await correctedSlopeCalculator.calculateCorrectedSlope(symbol, date, timeframeNum);
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[CORRECTED-GET] Slope calculation completed for ${symbol}: ${result.slopes?.length || 0} patterns detected`
       });
@@ -9359,7 +9380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[CORRECTED-GET] Analysis error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[CORRECTED-GET] Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9407,7 +9428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           date
         );
 
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "success",
           message: `[DYNAMIC-ROTATION] Block rotation applied for ${symbol}: NEW C1(${rotationResult.currentBlocks.C1.count}) = old(C1+C2), NEW C2(${rotationResult.currentBlocks.C2.count}) = old(C3)`
         });
@@ -9430,7 +9451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.log(`❌ [DYNAMIC-ROTATION] No rotation applied: ${rotationResult.rotationReason}`);
 
-        await storage.addActivityLog({
+        await safeAddActivityLog({
           type: "info",
           message: `[DYNAMIC-ROTATION] No rotation for ${symbol}: ${rotationResult.rotationReason}`
         });
@@ -9448,7 +9469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DYNAMIC-ROTATION] Block rotation error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[DYNAMIC-ROTATION] Block rotation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9551,7 +9572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get market status for context
       const marketStatus = intradayAnalyzer.getCurrentSessionStatus(fyersSymbol);
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[STEP 2] 4-candle rule analysis completed for ${symbol} - ${fourCandleResults.length} sessions analyzed`
       });
@@ -9593,7 +9614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[STEP 2] 4-candle rule analysis error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[STEP 2] 4-candle rule analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -9928,7 +9949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return deepest;
       };
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[FRACTAL] Fractal 4-candle rule analysis completed for ${symbol}: ${countAnalysisLevels(results)} levels analyzed`
       });
@@ -9956,7 +9977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [FRACTAL] Error in fractal 4-candle rule analysis:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[FRACTAL] Fractal 4-candle rule analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -10002,7 +10023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [EXTENDED] Extended analysis completed, results:`, !!result);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[EXTENDED] Extended 4-candle rule analysis completed for ${body.symbol} - C3 block analysis with 6th candle prediction`
       });
@@ -10012,7 +10033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [EXTENDED] Extended 4-candle rule failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[EXTENDED] Extended 4-candle rule analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -10071,7 +10092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [T-RULE] T-rule analysis completed, results:`, !!result);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[T-RULE] T-rule analysis completed for ${body.symbol} - 10min minimum with ${fractalDepth} fractal levels and smart progression ${result.fractalAnalysis?.progressionPath?.join('→') || 'N/A'} minutes`
       });
@@ -10081,7 +10102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [T-RULE] T-rule analysis failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[T-RULE] T-rule analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -10137,7 +10158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [STEP-3] Step 3 timeframe doubling completed, results:`, !!result);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[STEP-3] Step 3 timeframe doubling completed for ${body.symbol} - ${body.currentTimeframe}min → ${body.currentTimeframe * 2}min, 6 candles → 3 consolidated candles`
       });
@@ -10147,7 +10168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [STEP-3] Step 3 timeframe doubling failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[STEP-3] Step 3 timeframe doubling failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -10206,7 +10227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [BATTU-BASE] Successfully fetched ${baseData.candlesCount} 1-minute candles`);
       console.log(`📊 [BATTU-BASE] Session stats: Volume=${sessionStats.totalVolume}, High=${sessionStats.sessionHigh}, Low=${sessionStats.sessionLow}`);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[BATTU-BASE] Fetched ${baseData.candlesCount} 1-minute candles for ${body.symbol} on ${body.analysisDate}`
       });
@@ -10227,7 +10248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [BATTU-BASE] Failed to fetch 1-minute base data:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[BATTU-BASE] Failed to fetch 1-minute base data: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -10284,7 +10305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🎯 [ENHANCED] Found ${result.exactLowTimestamps.length} exact low timestamps`);
       console.log(`📈 [ENHANCED] Calculated ${result.preciseSlopes.length} precise slopes`);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[ENHANCED] Enhanced 4-candle analysis completed for ${body.symbol} - ${result.oneMinuteCandles.length} 1-min candles, ${result.preciseSlopes.length} precise slopes calculated`
       });
@@ -10304,7 +10325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [ENHANCED] Enhanced 4-candle rule failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[ENHANCED] Enhanced 4-candle rule failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -10617,7 +10638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Created ${createdInstructions.length} sample Battu Scan instructions`
       });
@@ -10917,7 +10938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sixthCandle
       );
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Breakout monitoring completed for ${symbol}: ${tradingSignals.length} trading signals generated`
       });
@@ -10939,7 +10960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Breakout monitoring error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Breakout monitoring failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11043,7 +11064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [AUTO-SL] SL LIMIT order simulated successfully:`, simulatedOrderResult);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[AUTO-SL] SL LIMIT order placed: ${orderDetails.action} ${orderDetails.quantity} ${body.symbol} at ₹${orderDetails.entryPrice} (SL: ₹${orderDetails.stopLoss}) - ${body.triggerCandle} candle ${body.trendType} breakout`
       });
@@ -11057,7 +11078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [AUTO-SL] Auto SL order placement failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[AUTO-SL] Auto SL order placement failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11078,7 +11099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const activeTrades = breakoutTradingEngine.getActiveTrades();
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Stop losses updated for ${activeTrades.length} active trades`
       });
@@ -11090,7 +11111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Update stop losses error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Failed to update stop losses: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11141,7 +11162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         formattedOneMinuteData
       );
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `Advanced pattern analysis completed for ${symbol}: ${analysis.trend} trend detected with ${analysis.strongestTimeframe}min optimal timeframe`
       });
@@ -11180,7 +11201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [ADVANCED-PATTERN] Analysis failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `Advanced pattern analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11340,7 +11361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [PROGRESSIVE] Analysis completed: ${results.length} levels processed`);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[PROGRESSIVE] Progressive timeframe doubling completed for ${symbol}: ${results.length} levels analyzed`
       });
@@ -11364,7 +11385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [PROGRESSIVE] Progressive timeframe doubling failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[PROGRESSIVE] Progressive timeframe doubling failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11630,7 +11651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const results = await progressiveThreeStepProcessor.executeProgressive(symbol, date);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[PROGRESSIVE] Completed ${results.length}-step progressive analysis for ${symbol} on ${date}`
       });
@@ -11647,7 +11668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [PROGRESSIVE COMPLETE] Failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[PROGRESSIVE] Failed complete analysis: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11689,7 +11710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Start continuous execution (this will run until market close)
       const results = await progressiveThreeStepProcessor.executeContinuousProgressive(symbol, date);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[CONTINUOUS] Completed continuous progressive analysis for ${symbol} - ${results.totalIterations} iterations, ${results.allResults.length} total steps`
       });
@@ -11705,7 +11726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [CONTINUOUS] Continuous progressive methodology failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[CONTINUOUS] Failed continuous analysis: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -11774,7 +11795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const analysis = await advancedRulesEngine.getAdvancedAnalysis(symbol, date, timeframe);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[ADVANCED-RULES] Analysis completed for ${symbol}: ${analysis.summary.activeRules} rules triggered, confidence ${analysis.summary.confidence}%`
       });
@@ -11922,7 +11943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const scanResults = await marketScanner.performFullMarketScan(scanConfig);
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[MARKET-SCANNER] Scan completed: ${scanResults.length} opportunities found from ${symbols.length} symbols`
       });
@@ -12061,7 +12082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await finalBacktest.runContinuousBacktest(symbol, date, timeframe);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[FINAL-CORRECTED] Continuous backtest completed for ${symbol}: ${result.totalCycles} cycles processed with proper count-based merging`
       });
@@ -12078,7 +12099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ Final corrected continuous backtest error:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[FINAL-CORRECTED] Continuous backtest failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -12132,7 +12153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxTimeframe
       );
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[FLEXIBLE] Flexible timeframe analysis completed for ${symbol}: ${result.progressions.length} timeframe levels analyzed`
       });
@@ -12156,7 +12177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [FLEXIBLE] Flexible timeframe analysis failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[FLEXIBLE] Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -12198,7 +12219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         candleData
       );
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[FLEXIBLE-HYBRID] Hybrid analysis completed for ${symbol}: ${result.prediction ? 'C2B predicted' : 'Used existing 4 candles'}, pattern: ${result.patternAnalysis?.pattern || 'N/A'}`
       });
@@ -12221,7 +12242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [FLEXIBLE-HYBRID] Hybrid analysis failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[FLEXIBLE-HYBRID] Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -12312,7 +12333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Start the system
       await correctedFlexibleSystem.startSystem();
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "success",
         message: `[FLEXIBLE-TIMEFRAME] Complete system started for ${symbol} - Base: ${baseTimeframe}min, Risk: ₹${riskAmount}, Trading: ${enableTrading ? 'ON' : 'OFF'}`
       });
@@ -12328,7 +12349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [FLEXIBLE-TIMEFRAME] System start failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[FLEXIBLE-TIMEFRAME] System start failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -12418,7 +12439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await correctedFlexibleSystem.stopSystem();
       correctedFlexibleSystem = null;
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "info",
         message: "[FLEXIBLE-TIMEFRAME] Complete system stopped by user request"
       });
@@ -12431,7 +12452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [FLEXIBLE-TIMEFRAME] System stop failed:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[FLEXIBLE-TIMEFRAME] System stop failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
@@ -14156,7 +14177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allArticles.push(...financialNews);
       }
 
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "info",
         message: `[NEWS] Successfully aggregated ${allArticles.length} news articles for ${query} from multiple sources`
       });
@@ -14172,7 +14193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ [NEWS] Failed to fetch news:', error);
       
-      await storage.addActivityLog({
+      await safeAddActivityLog({
         type: "error",
         message: `[NEWS] Failed to fetch news: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
