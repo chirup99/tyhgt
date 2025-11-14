@@ -80,8 +80,25 @@ export function LiveBanner() {
   const currentContent = bannerContent[currentIndex];
 
   useEffect(() => {
+    const savedUrl = localStorage.getItem('livestream_banner_url');
+    if (savedUrl) {
+      console.log('📺 Loading saved YouTube URL from localStorage:', savedUrl);
+      setBannerContent(prevContent => {
+        const newContent = [...prevContent];
+        newContent[0] = {
+          ...newContent[0],
+          youtubeEmbedUrl: savedUrl
+        };
+        return newContent;
+      });
+      setCurrentIndex(0);
+    }
+  }, []);
+
+  useEffect(() => {
     const handleUrlUpdate = (event: CustomEvent) => {
       const newUrl = event.detail.url;
+      console.log('📺 Received livestream URL update event:', newUrl);
       setBannerContent(prevContent => {
         const newContent = [...prevContent];
         newContent[0] = {
