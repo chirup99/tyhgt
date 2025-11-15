@@ -348,6 +348,23 @@
 [x] 402. Created bash script template for automated Cloud Run configuration
 [x] 403. Explained difference between Replit development and Cloud Run production servers
 [x] 404. ✅ CLOUD RUN CONFIGURATION GUIDE COMPLETED - USER CAN NOW CONFIGURE DEPLOYMENT! ✅
+
+[x] 405. FIREBASE + CLOUD RUN INTEGRATION - November 15, 2025 12:10 PM
+[x] 406. User reported frontend successfully deployed to Firebase Hosting
+[x] 407. User reported backend deployed to Cloud Run but not connected to frontend
+[x] 408. Identified issue: Frontend doesn't know where Cloud Run backend is located
+[x] 409. Updated firebase.json to proxy /api/** requests to Cloud Run service "perala"
+[x] 410. Added Firebase Hosting domain rewrite rules for Cloud Run integration
+[x] 411. Created .env.production file for production environment configuration
+[x] 412. Updated CORS configuration in server/index.ts to allow Firebase domains
+[x] 413. Added allowedOrigins for: fast-planet-470408-f1.web.app and firebaseapp.com
+[x] 414. Improved CORS security by restricting to specific domains in production
+[x] 415. Created automated deployment script: deploy-to-production.sh
+[x] 416. Created comprehensive deployment guide: DEPLOYMENT-GUIDE.md
+[x] 417. Documented complete request flow: Browser → Firebase → Cloud Run
+[x] 418. Provided troubleshooting guide for common deployment issues
+[x] 419. Added monitoring commands for Cloud Run and Firebase
+[x] 420. ✅ FIREBASE + CLOUD RUN INTEGRATION COMPLETED - READY TO DEPLOY! ✅
 [x] 291. Banner now automatically loads saved YouTube URL when Social Feed tab opens
 [x] 292. Added console logging for debugging URL loading
 [x] 293. Fixed timing issue where localStorage wasn't checked on component mount

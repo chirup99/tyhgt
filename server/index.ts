@@ -9,13 +9,28 @@ const app = express();
 
 // Enhanced CORS and security headers for desktop browser compatibility
 app.use((req, res, next) => {
-  // Set comprehensive CORS headers for desktop browser access
-  res.header('Access-Control-Allow-Origin', '*');
+  // Determine allowed origins based on environment
+  const allowedOrigins = [
+    'https://fast-planet-470408-f1.web.app',
+    'https://fast-planet-470408-f1.firebaseapp.com',
+    process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
+  ].filter(Boolean);
+
+  const origin = req.headers.origin;
+  
+  // Set CORS headers
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else if (process.env.NODE_ENV === 'development') {
+    // Allow all origins in development
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
   res.header('Access-Control-Allow-Credentials', 'true');
 
-  // Additional headers for Replit domain compatibility
+  // Additional headers for security
   res.header('X-Frame-Options', 'SAMEORIGIN');
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
