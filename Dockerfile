@@ -1,34 +1,32 @@
-# Use official Node.js 22 slim image
+# Optimized Dockerfile for Cloud Run - Minimal dependencies
 FROM node:22-slim
 
-# Set working directory
 WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including devDependencies for build)
+# Install ALL dependencies (including devDependencies) for build
 RUN npm install
 
-# Copy ALL source code (server, shared, client, config files)
+# Copy ALL source code (server, shared, client)
 COPY . .
 
-# Build BOTH frontend and backend using npm run build
-# This runs: vite build && esbuild server/index.ts
+# Build frontend and backend using the build script
 RUN npm run build
 
-# Keep node_modules (external packages needed at runtime)
-# Don't prune - Cloud Run needs them
+# Keep dependencies (Cloud Run needs them at runtime)
+# DON'T prune - external packages are needed
 
-# Expose port (Cloud Run will set PORT env var, default 8080)
+# Expose port (Cloud Run will set PORT env var, but 8080 is default)
 EXPOSE 8080
 
-# Set environment to production
+# Environment
 ENV NODE_ENV=production
 
-# Healthcheck for Cloud Run
+# Healthcheck for Cloud Run using ES modules syntax
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node --input-type=module -e "import('http').then(http => http.default.get('http://localhost:8080/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}))"
 
-# Start the app (serves both API and frontend from dist/)
+# Start server - PORT env var will be set by Cloud Run
 CMD ["node", "dist/index.js"]
