@@ -445,6 +445,19 @@
 [x] 326. Screenshot captured - all UI elements rendering perfectly
 [x] 327. Updated progress tracker with all completed migration tasks
 [x] 328. ✅ ALL IMPORT MIGRATION TASKS COMPLETED - PROJECT 100% OPERATIONAL AND READY FOR DEVELOPMENT! ✅
+[x] 329. GOOGLE CLOUD RUN DEPLOYMENT SETUP - Firebase auth fix completed
+[x] 330. Created Dockerfile for backend containerization (backend-only build)
+[x] 331. Created .dockerignore to optimize Docker build
+[x] 332. Created deploy-cloud-run.sh deployment script
+[x] 333. Created DEPLOYMENT_GUIDE.md with step-by-step instructions
+[x] 334. Updated server/index.ts to use PORT=8080 for Cloud Run (PORT=5000 for dev)
+[x] 335. Updated client/src/lib/queryClient.ts to use VITE_API_URL environment variable
+[x] 336. Added double-prefixing guards to prevent API URL issues
+[x] 337. Created client/.env.production with Cloud Run URL placeholder
+[x] 338. Fixed architect-identified issues (backend-only build, URL safeguards)
+[x] 339. Restarted workflow - server running successfully on port 5000
+[x] 340. Verified frontend displays correctly - Trading Platform fully operational
+[x] 341. ✅ CLOUD RUN DEPLOYMENT SETUP COMPLETED - READY TO DEPLOY BACKEND!
 [x] 314. ✅ CAROUSEL AUTO-PAUSE FEATURE COMPLETED - VIDEO CONTROLS CAROUSEL!
 [x] 315. NOVEMBER 14, 2025 13:18 SESSION - Latest Replit environment migration initiated
 [x] 316. Re-installed cross-env package for current session (November 14, 2025 13:18)

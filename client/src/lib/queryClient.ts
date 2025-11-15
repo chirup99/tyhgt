@@ -1,5 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// API base URL - uses Cloud Run backend in production, local backend in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -31,7 +34,10 @@ export async function apiRequest(
     throw new Error('Invalid apiRequest parameters');
   }
 
-  const res = await fetch(requestUrl, {
+  // Prevent double-prefixing: only add API_BASE_URL if the URL is relative
+  const fullUrl = requestUrl.startsWith('http') ? requestUrl : `${API_BASE_URL}${requestUrl}`;
+
+  const res = await fetch(fullUrl, {
     method: requestMethod,
     headers: requestData ? { "Content-Type": "application/json" } : {},
     body: requestData ? JSON.stringify(requestData) : undefined,
@@ -48,7 +54,11 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const queryPath = queryKey.join("/");
+    // Prevent double-prefixing: only add API_BASE_URL if the path is relative
+    const fullUrl = queryPath.startsWith('http') ? queryPath : `${API_BASE_URL}${queryPath}`;
+    
+    const res = await fetch(fullUrl as string, {
       credentials: "include",
     });
 
