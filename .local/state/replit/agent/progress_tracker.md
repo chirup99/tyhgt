@@ -758,3 +758,11 @@
 [x] 448. Created quick-deploy.sh script for one-command deployment
 [x] 449. All deployment files now configured for perala service
 [x] 450. ✅ PERALA DEPLOYMENT READY - JUST RUN ./quick-deploy.sh! ✅
+
+[x] 451. IMAGE NOT FOUND FIX - November 15, 2025 17:20
+[x] 452. User error: "Image 'gcr.io/fast-planet-470408-f1/perala:latest' not found"
+[x] 453. Root cause: Image hasn't been built and pushed to GCR yet
+[x] 454. Created deploy-from-source.sh - builds image automatically during deployment
+[x] 455. Created build-and-deploy.sh - builds image first, then deploys
+[x] 456. Recommended using --source . flag for automatic image building
+[x] 457. ✅ DEPLOYMENT SCRIPTS READY - USE deploy-from-source.sh! ✅
