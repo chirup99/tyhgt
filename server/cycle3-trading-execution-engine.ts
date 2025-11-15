@@ -998,13 +998,6 @@ export class Cycle3TradingExecutionEngine {
     }
   }
 
-  private async getCurrentPrice(symbol: string): Promise<number> {
-    // Simulate price movement for demo
-    const basePrice = 24850; // NIFTY base price
-    const volatility = Math.random() * 20 - 10; // ±10 points random movement
-    return basePrice + volatility;
-  }
-
   /**
    * BATTU API COMPLETE EXIT SCENARIOS with Real-Time Trade Status Validation
    * Implements all 4 scenarios with detailed status reporting
