@@ -3,8 +3,9 @@ FROM node:22-slim
 
 WORKDIR /usr/src/app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files explicitly
+COPY package.json ./
+COPY package-lock.json ./
 
 # Install ALL dependencies (including devDependencies) for build
 RUN npm install
