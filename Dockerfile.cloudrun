@@ -1,0 +1,32 @@
+# Optimized Dockerfile for Cloud Run - Minimal dependencies
+FROM node:22-slim
+
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies (including devDependencies) for build
+RUN npm install
+
+# Copy ALL source code (server, shared, client)
+COPY . .
+
+# Build the backend using esbuild
+RUN npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+# Keep dependencies (Cloud Run needs them at runtime)
+# DON'T prune - external packages are needed
+
+# Expose port
+EXPOSE 8080
+
+# Environment
+ENV NODE_ENV=production
+
+# Healthcheck for Cloud Run
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start server
+CMD ["node", "dist/index.js"]

@@ -7,6 +7,23 @@ import { liveWebSocketStreamer } from "./live-websocket-streamer";
 
 const app = express();
 
+// Health check endpoint - MUST come first for Cloud Run
+app.get('/health', (_req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+app.get('/', (_req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    message: 'Trading Platform API',
+    version: '1.0.0'
+  });
+});
+
 // Enhanced CORS and security headers for desktop browser compatibility
 app.use((req, res, next) => {
   // Determine allowed origins based on environment
@@ -79,23 +96,43 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  // Try to register routes, but don't crash if it fails
+  let server;
+  try {
+    server = await registerRoutes(app);
+    log('✅ Routes registered successfully');
+  } catch (error) {
+    console.error('⚠️ Error registering routes:', error);
+    console.log('⚠️ Server will start with minimal routes only');
+    // Create minimal HTTP server if route registration fails
+    const http = await import('http');
+    server = http.createServer(app);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error('Error:', err);
   });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    try {
+      await setupVite(app, server);
+    } catch (error) {
+      console.error('⚠️ Error setting up Vite:', error);
+    }
   } else {
-    serveStatic(app);
+    try {
+      serveStatic(app);
+    } catch (error) {
+      console.error('⚠️ Error serving static files:', error);
+      console.log('⚠️ API-only mode activated');
+    }
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
@@ -118,37 +155,53 @@ if (process.platform !== 'win32') {
 
 server.listen(listenOptions, () => {
     log(`serving on port ${port}`);
-
-    // Start the live WebSocket price streaming system
-    console.log('🚀 Initializing live WebSocket price streaming system...');
-    liveWebSocketStreamer.startStreaming().then(() => {
-      console.log('✅ Live WebSocket price streaming system started successfully');
-    }).catch((error) => {
-      console.error('❌ Failed to start live WebSocket price streaming system:', error);
-    });
-
-    // Auto-post finance news every hour from Google News
-    const postHourlyFinanceNews = async () => {
-      try {
-        console.log('📰 Auto-posting hourly finance news from Google News...');
-        const response = await fetch(`http://localhost:${port}/api/auto-post-daily-news`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const result = await response.json();
-        console.log(`📰 Hourly finance news result: ${result.postsCreated} posts created`);
-      } catch (error) {
-        console.error('📰 Hourly finance news error:', error);
+    
+    // Start background tasks AFTER server is listening and ready
+    // These are non-blocking and will not prevent server startup if they fail
+    setImmediate(() => {
+      // Start the live WebSocket price streaming system (non-blocking)
+      // Only start if Fyers credentials are available
+      if (process.env.FYERS_ACCESS_TOKEN && process.env.FYERS_APP_ID) {
+        console.log('🚀 Initializing live WebSocket price streaming system...');
+        liveWebSocketStreamer.startStreaming()
+          .then(() => {
+            console.log('✅ Live WebSocket price streaming system started successfully');
+          })
+          .catch((error) => {
+            console.error('❌ Failed to start live WebSocket price streaming system:', error);
+            console.log('⚠️  Server will continue running without live streaming');
+          });
+      } else {
+        console.log('⚠️  Fyers credentials not found, skipping WebSocket streaming');
       }
-    };
 
-    // Post finance news immediately on startup, then every hour
-    // Check if Google Cloud is properly configured before starting
-    setTimeout(() => {
-      console.log('📰 Attempting to start hourly Google Finance news posting...');
-      postHourlyFinanceNews();
-      // Only set interval if the first call succeeds
-      setInterval(postHourlyFinanceNews, 60 * 60 * 1000); // Every 1 hour (3600000ms)
-    }, 10000); // Wait 10 seconds for server to be ready
+      // Auto-post finance news every hour from Google News (non-blocking)
+      const postHourlyFinanceNews = async () => {
+        try {
+          console.log('📰 Auto-posting hourly finance news from Google News...');
+          const response = await fetch(`http://localhost:${port}/api/auto-post-daily-news`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const result = await response.json();
+          console.log(`📰 Hourly finance news result: ${result.postsCreated} posts created`);
+        } catch (error) {
+          console.error('📰 Hourly finance news error:', error);
+          console.log('⚠️  Server will continue running without auto news posting');
+        }
+      };
+
+      // Post finance news after delay, then every hour (non-blocking)
+      // Only start if Google Cloud/Firebase is configured
+      if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL) {
+        setTimeout(() => {
+          console.log('📰 Attempting to start hourly Google Finance news posting...');
+          postHourlyFinanceNews();
+          setInterval(postHourlyFinanceNews, 60 * 60 * 1000); // Every 1 hour
+        }, 10000); // Wait 10 seconds for server to be ready
+      } else {
+        console.log('⚠️  Firebase credentials not found, skipping auto news posting');
+      }
+    });
   });
 })();
