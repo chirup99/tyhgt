@@ -4100,7 +4100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📖 Fetching existing profile...');
       const existingProfile = await withTimeout(
         db.collection('users').doc(userId).get(),
-        5000,
+        15000,  // Increased from 5s to 15s
         'Fetch existing profile'
       );
       
@@ -4120,23 +4120,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
 
-      // Save user profile with timeout protection
+      // Save user profile with extended timeout (60 seconds)
       console.log('💾 Saving user profile to Firestore...');
+      console.log('⏰ This may take up to 60 seconds depending on network conditions');
       await withTimeout(
         db.collection('users').doc(userId).set(userProfile, { merge: true }),
-        10000,
+        60000,  // Increased from 10s to 60s
         'User profile save'
       );
       console.log('✅ User profile saved to Firestore with displayName:', userProfile.displayName);
       
-      // Also save username mapping with timeout protection
+      // Also save username mapping with extended timeout
       console.log('💾 Saving username mapping...');
       await withTimeout(
         db.collection('usernames').doc(username.toLowerCase()).set({
           userId: userId,
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true }),
-        8000,
+        30000,  // Increased from 8s to 30s
         'Username mapping save'
       );
       console.log('✅ Username mapping saved');
