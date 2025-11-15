@@ -141,25 +141,24 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   const port = parseInt(process.env.PORT || (app.get("env") === "development" ? '5000' : '8080'), 10);
 
-// Configure server options based on platform
-// reusePort is not supported on Windows
+// Configure server options - simple config for Cloud Run compatibility
 const listenOptions: any = {
   port,
-  // Windows sometimes has issues with 0.0.0.0, use localhost instead
-  host: process.platform === 'win32' ? '127.0.0.1' : '0.0.0.0',
+  host: '0.0.0.0',
 };
 
-// Only add reusePort on non-Windows platforms (Linux, macOS)
-if (process.platform !== 'win32') {
+// Only add reusePort in development (not on Cloud Run)
+if (process.env.NODE_ENV === 'development' && process.platform !== 'win32') {
   listenOptions.reusePort = true;
 }
 
 server.listen(listenOptions, () => {
     log(`serving on port ${port}`);
+    log(`Server ready - environment: ${app.get("env")}`);
     
-    // Start background tasks AFTER server is listening and ready
-    // These are non-blocking and will not prevent server startup if they fail
-    setImmediate(() => {
+    // Start background tasks AFTER server is ready and health check passes
+    // Delay startup to ensure Cloud Run health check succeeds first
+    setTimeout(() => {
       // Start the live WebSocket price streaming system (non-blocking)
       // Only start if Fyers credentials are available
       if (process.env.FYERS_ACCESS_TOKEN && process.env.FYERS_APP_ID) {
@@ -199,10 +198,10 @@ server.listen(listenOptions, () => {
           console.log('📰 Attempting to start hourly Google Finance news posting...');
           postHourlyFinanceNews();
           setInterval(postHourlyFinanceNews, 60 * 60 * 1000); // Every 1 hour
-        }, 10000); // Wait 10 seconds for server to be ready
+        }, 30000); // Wait 30 seconds for server to be fully ready
       } else {
         console.log('⚠️  Firebase credentials not found, skipping auto news posting');
       }
-    });
+    }, 5000); // Delay background tasks by 5 seconds for Cloud Run health check
   });
 })();
