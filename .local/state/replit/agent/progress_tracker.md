@@ -365,6 +365,17 @@
 [x] 418. Provided troubleshooting guide for common deployment issues
 [x] 419. Added monitoring commands for Cloud Run and Firebase
 [x] 420. ✅ FIREBASE + CLOUD RUN INTEGRATION COMPLETED - READY TO DEPLOY! ✅
+
+[x] 421. CLOUD RUN PORT ENVIRONMENT VARIABLE FIX - November 15, 2025 12:15 PM
+[x] 422. User reported error: "PORT This name is reserved" when setting Cloud Run env vars
+[x] 423. Identified that Cloud Run automatically provides PORT environment variable
+[x] 424. PORT cannot be manually set - Cloud Run injects it automatically (typically 8080)
+[x] 425. Verified server code already handles Cloud Run's PORT correctly in server/index.ts
+[x] 426. Created updated guide: CLOUD-RUN-ENV-VARIABLES.md (without PORT)
+[x] 427. Updated environment variables list to remove PORT from configuration
+[x] 428. Total required env vars reduced from 13 to 12 (PORT excluded)
+[x] 429. Documented Cloud Run automatic variables: PORT, K_SERVICE, K_REVISION
+[x] 430. ✅ PORT ISSUE RESOLVED - USER CAN NOW CONFIGURE CLOUD RUN CORRECTLY! ✅
 [x] 291. Banner now automatically loads saved YouTube URL when Social Feed tab opens
 [x] 292. Added console logging for debugging URL loading
 [x] 293. Fixed timing issue where localStorage wasn't checked on component mount
