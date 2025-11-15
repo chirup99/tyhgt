@@ -686,3 +686,12 @@
 [x] 382. Added better logging for production environment detection
 [x] 383. Verified production build completes successfully (dist/index.js + dist/public/)
 [x] 384. ✅ CLOUD RUN DEPLOYMENT FIXES COMPLETED - READY TO DEPLOY! ✅
+
+[x] 385. DOCKERFILE FIX FOR CLOUD RUN - November 15, 2025 14:05
+[x] 386. Identified issue: Default Dockerfile only built backend (no frontend)
+[x] 387. Updated Dockerfile to copy ALL source files (server, client, shared)
+[x] 388. Changed build command to run full npm run build (Vite + esbuild)
+[x] 389. Kept node_modules for runtime (external packages needed)
+[x] 390. Added healthcheck for Cloud Run with /health endpoint
+[x] 391. Verified Dockerfile now matches working Dockerfile.cloudrun
+[x] 392. ✅ DOCKERFILE FIXED - WILL NOW DEPLOY FULL-STACK APP! ✅
