@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "fast-planet-470408-f1",
     "public": "dist/public",
     "ignore": [
       "firebase.json",
