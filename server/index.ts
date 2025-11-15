@@ -16,7 +16,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.get('/', (_req, res) => {
+// API status endpoint (not the root route)
+app.get('/api/status', (_req, res) => {
   res.status(200).json({ 
     status: 'ok',
     message: 'Trading Platform API',
