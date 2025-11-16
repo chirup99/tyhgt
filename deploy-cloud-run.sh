@@ -52,7 +52,7 @@ gcloud run deploy $SERVICE_NAME \
   --timeout=300 \
   --max-instances=10 \
   --min-instances=0 \
-  --set-env-vars="NODE_ENV=production"
+  --set-env-vars="NODE_ENV=production,VITE_FIREBASE_API_KEY=AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk,VITE_FIREBASE_AUTH_DOMAIN=fast-planet-470408-f1.firebaseapp.com,VITE_FIREBASE_PROJECT_ID=fast-planet-470408-f1,VITE_FIREBASE_STORAGE_BUCKET=fast-planet-470408-f1.firebasestorage.app,VITE_FIREBASE_MESSAGING_SENDER_ID=808950990883,VITE_FIREBASE_APP_ID=1:808950990883:web:1252e6131d1f1c21688996"
 
 if [ $? -eq 0 ]; then
     echo ""

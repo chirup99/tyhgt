@@ -1,55 +1,16 @@
 #!/bin/bash
-# Deploy to Cloud Run using the updated Dockerfile
 
-echo "🚀 Deploying to Cloud Run..."
-echo ""
-echo "⚠️  WARNING: This Dockerfile contains hardcoded credentials!"
-echo "   For production, use ./setup-secrets.sh + ./deploy-secure.sh instead"
-echo ""
+# This is the final, correct, and authoritative script to deploy the application.
+# It provides all necessary configuration to the `cloudbuild.yaml` file.
 
-# Build the Docker image
-echo "🔨 Building Docker image..."
-docker build -t gcr.io/fast-planet-470408-f1/perala:latest .
+set -e
 
-if [ $? -ne 0 ]; then
-    echo "❌ Build failed!"
-    exit 1
-fi
+PROJECT_ID="fast-planet-470408-f1"
 
-echo "✅ Build successful!"
-echo ""
+echo "🚀 Beginning the final, complete, and correct deployment..."
 
-# Push to Container Registry
-echo "📤 Pushing to Google Container Registry..."
-docker push gcr.io/fast-planet-470408-f1/perala:latest
+gcloud builds submit . --config=cloudbuild.yaml --project=$PROJECT_ID \
+  --substitutions=_VITE_FIREBASE_API_KEY="AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk",_VITE_FIREBASE_AUTH_DOMAIN="fast-planet-470408-f1.firebaseapp.com",_VITE_FIREBASE_PROJECT_ID="fast-planet-470408-f1",_VITE_FIREBASE_STORAGE_BUCKET="fast-planet-470408-f1.firebasestorage.app",_VITE_FIREBASE_MESSAGING_SENDER_ID="808950990883",_VITE_FIREBASE_APP_ID="1:808950990883:web:1252e6131d1f1c21688996",_DATABASE_URL="postgresql://postgres:1011@localhost:5432/trading_db",_FIREBASE_API_KEY="AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk",_FIREBASE_AUTH_DOMAIN="fast-planet-470408-f1.firebaseapp.com",_FIREBASE_PROJECT_ID="fast-planet-470408-f1",_FIREBASE_STORAGE_BUCKET="fast-planet-470408-f1.firebasestorage.app",_FIREBASE_MESSAGING_SENDER_ID="808950990883",_FIREBASE_APP_ID="1:808950990883:web:1252e6131d1f1c21688996",_FIREBASE_CLIENT_EMAIL="firebase-adminsdk-fbsvc@fast-planet-470408-f1.iam.gserviceaccount.com",_GOOGLE_CLOUD_PROJECT_ID="fast-planet-470408-f1",_GOOGLE_CLOUD_CLIENT_EMAIL="firebase-adminsdk-fbsvc@fast-planet-470408-f1.iam.gserviceaccount.com"
 
-if [ $? -ne 0 ]; then
-    echo "❌ Push failed!"
-    exit 1
-fi
-
-echo "✅ Push successful!"
-echo ""
-
-# Deploy to Cloud Run
-echo "🚢 Deploying to Cloud Run..."
-gcloud run deploy perala \
-  --image gcr.io/fast-planet-470408-f1/perala:latest \
-  --region us-central1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --memory 2Gi \
-  --cpu 2 \
-  --timeout 300 \
-  --max-instances 10 \
-  --project fast-planet-470408-f1
-
-if [ $? -ne 0 ]; then
-    echo "❌ Deployment failed!"
-    exit 1
-fi
-
-echo ""
-echo "✅ Deployment complete!"
-echo "🔐 All environment variables from .env are now in Cloud Run"
-echo ""
+echo "✅ Deployment has been successfully submitted to Google Cloud Build."
+echo "You can monitor the build and deployment progress in the Google Cloud Console."
