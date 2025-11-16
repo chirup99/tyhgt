@@ -846,3 +846,16 @@
 [x] 476. Provided complete deployment commands with build args
 [x] 477. Added verification steps and troubleshooting guide
 [x] 478. ✅ FIREBASE CLOUD RUN FIX COMPLETED - DEPLOYMENT GUIDE READY! ✅
+
+[x] 479. DOCKERFILE SECURITY FIX - November 16, 2025 06:15 AM
+[x] 480. User requested: Fix actual Dockerfile without using deployment script
+[x] 481. User context: Cloud Run is automatically deploying from repository
+[x] 482. Removed ALL hardcoded secrets from Dockerfile (lines 41-60 deleted)
+[x] 483. Kept VITE_FIREBASE_* as build arguments (required for Vite frontend)
+[x] 484. Added comments explaining Cloud Run will inject runtime env vars
+[x] 485. Created CLOUD-RUN-SETUP-GUIDE.md with complete setup instructions
+[x] 486. Created cloudbuild.yaml configuration for automatic builds
+[x] 487. Documented substitutions for Firebase build arguments
+[x] 488. Provided Cloud Run Console instructions for runtime env vars
+[x] 489. Explained both automatic and manual deployment methods
+[x] 490. ✅ DOCKERFILE FIXED - NOW SECURE AND READY FOR CLOUD RUN AUTO-DEPLOY! ✅

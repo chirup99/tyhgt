@@ -63,11 +63,11 @@ options:
   timeout: '1800s'
 
 # Substitution variables for Firebase config
-# Set these values in Cloud Build trigger or provide via command line
+# These values are embedded into the client bundle during build
 substitutions:
-  _VITE_FIREBASE_API_KEY: ''
-  _VITE_FIREBASE_AUTH_DOMAIN: ''
-  _VITE_FIREBASE_PROJECT_ID: ''
-  _VITE_FIREBASE_STORAGE_BUCKET: ''
-  _VITE_FIREBASE_MESSAGING_SENDER_ID: ''
-  _VITE_FIREBASE_APP_ID: ''
+  _VITE_FIREBASE_API_KEY: 'AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk'
+  _VITE_FIREBASE_AUTH_DOMAIN: 'fast-planet-470408-f1.firebaseapp.com'
+  _VITE_FIREBASE_PROJECT_ID: 'fast-planet-470408-f1'
+  _VITE_FIREBASE_STORAGE_BUCKET: 'fast-planet-470408-f1.firebasestorage.app'
+  _VITE_FIREBASE_MESSAGING_SENDER_ID: '808950990883'
+  _VITE_FIREBASE_APP_ID: '1:808950990883:web:1252e6131d1f1c21688996'
