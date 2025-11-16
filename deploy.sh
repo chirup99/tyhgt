@@ -1,16 +1,20 @@
 #!/bin/bash
+# This script provides a reliable, repeatable way to build and deploy the application.
+# It ensures that all necessary build-time variables and runtime secrets are correctly configured.
 
-# This is the final, correct, and authoritative script to deploy the application.
-# It provides all necessary configuration to the `cloudbuild.yaml` file.
+echo "INFO: Starting the Cloud Build process..."
 
-set -e
+# Check if gcloud is installed
+if ! command -v gcloud &> /dev/null
+then
+    echo "ERROR: gcloud command not found. Please install the Google Cloud SDK and ensure it is in your PATH."
+    exit 1
+fi
 
-PROJECT_ID="fast-planet-470408-f1"
+# Submit the build to Google Cloud Build, using the configuration from cloudbuild.yaml
+# This is the crucial step that correctly injects the VITE_* variables for the frontend build.
+gcloud builds submit . --config=cloudbuild.yaml
 
-echo "🚀 Beginning the final, complete, and correct deployment..."
-
-gcloud builds submit . --config=cloudbuild.yaml --project=$PROJECT_ID \
-  --substitutions=_VITE_FIREBASE_API_KEY="AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk",_VITE_FIREBASE_AUTH_DOMAIN="fast-planet-470408-f1.firebaseapp.com",_VITE_FIREBASE_PROJECT_ID="fast-planet-470408-f1",_VITE_FIREBASE_STORAGE_BUCKET="fast-planet-470408-f1.firebasestorage.app",_VITE_FIREBASE_MESSAGING_SENDER_ID="808950990883",_VITE_FIREBASE_APP_ID="1:808950990883:web:1252e6131d1f1c21688996",_DATABASE_URL="postgresql://postgres:1011@localhost:5432/trading_db",_FIREBASE_API_KEY="AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk",_FIREBASE_AUTH_DOMAIN="fast-planet-470408-f1.firebaseapp.com",_FIREBASE_PROJECT_ID="fast-planet-470408-f1",_FIREBASE_STORAGE_BUCKET="fast-planet-470408-f1.firebasestorage.app",_FIREBASE_MESSAGING_SENDER_ID="808950990883",_FIREBASE_APP_ID="1:808950990883:web:1252e6131d1f1c21688996",_FIREBASE_CLIENT_EMAIL="firebase-adminsdk-fbsvc@fast-planet-470408-f1.iam.gserviceaccount.com",_GOOGLE_CLOUD_PROJECT_ID="fast-planet-470408-f1",_GOOGLE_CLOUD_CLIENT_EMAIL="firebase-adminsdk-fbsvc@fast-planet-470408-f1.iam.gserviceaccount.com"
-
-echo "✅ Deployment has been successfully submitted to Google Cloud Build."
-echo "You can monitor the build and deployment progress in the Google Cloud Console."
+# The cloudbuild.yaml file handles the subsequent push and deploy steps.
+echo "INFO: Cloud Build process initiated. Monitor the build progress in the Google Cloud Console."
+echo "INFO: https://console.cloud.google.com/cloud-builds"

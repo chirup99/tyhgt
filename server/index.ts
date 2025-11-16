@@ -1,9 +1,46 @@
 
+import * as admin from 'firebase-admin';
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { liveWebSocketStreamer } from "./live-websocket-streamer";
+
+// --- Firebase Admin SDK Initialization ---
+// This version has been corrected to work with Google Secret Manager.
+// It directly uses the FIREBASE_PRIVATE_KEY from the environment, trusting that
+// Secret Manager provides it in the correct format without extra escaping.
+
+if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+  const credential = {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    // The private key is now passed directly from the secret.
+    privateKey: process.env.FIREBASE_PRIVATE_KEY,
+  };
+
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(credential),
+      storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
+    });
+    log('✅ Firebase Admin SDK initialized successfully via environment variables and Secret Manager.');
+  } catch (error) {
+    console.error('⚠️ Firebase Admin SDK initialization failed:', error);
+  }
+
+} else {
+  log('⚠️ Firebase Admin credentials not found in environment variables. Attempting default initialization.');
+  // Fallback for local development or other environments where GOOGLE_APPLICATION_CREDENTIALS might be set.
+  try {
+    admin.initializeApp();
+    log('✅ Firebase Admin SDK initialized with default application credentials.');
+  } catch(e) {
+    log('⚠️ Could not initialize Firebase with default credentials.');
+  }
+}
+// --- End of Firebase Initialization ---
+
 
 const app = express();
 
