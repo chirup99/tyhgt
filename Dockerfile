@@ -38,10 +38,20 @@ ARG FIREBASE_PROJECT_ID
 ARG FIREBASE_CLIENT_EMAIL
 ARG FIREBASE_PRIVATE_KEY
 
+# Accept other backend API keys as build arguments
+ARG GEMINI_API_KEY
+ARG FYERS_APP_ID
+ARG FYERS_SECRET_KEY
+ARG FYERS_ACCESS_TOKEN
+
 # Set as environment variables for runtime (Backend)
 ENV FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
 ENV FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL
 ENV FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY
+ENV GEMINI_API_KEY=$GEMINI_API_KEY
+ENV FYERS_APP_ID=$FYERS_APP_ID
+ENV FYERS_SECRET_KEY=$FYERS_SECRET_KEY
+ENV FYERS_ACCESS_TOKEN=$FYERS_ACCESS_TOKEN
 
 # Build frontend and backend using the build script
 RUN npm run build
@@ -61,7 +71,7 @@ RUN npm run build
 # The .env file is also included as a fallback (copied on line 14)
 # The backend reads it using dotenv (server/index.ts line 2)
 #
-# Required variables:
+# All backend credentials are now set as ENV variables above from build args:
 # ✅ FIREBASE_PROJECT_ID
 # ✅ FIREBASE_CLIENT_EMAIL  
 # ✅ FIREBASE_PRIVATE_KEY (MUST be single-line with \n escapes)
