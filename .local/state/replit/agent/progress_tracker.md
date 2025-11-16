@@ -306,6 +306,19 @@
 [x] 401. Removed all references to deleted image variables across entire codebase
 [x] 402. Restarted workflow - build successful without asset import errors
 [x] 403. ✅ GOOGLE CLOUD RUN DEPLOYMENT ISSUE FIXED - BUILD NOW SUCCEEDS! ✅
+
+[x] 404. FIREBASE AUTHENTICATION FIX FOR CLOUD RUN
+[x] 405. Identified root cause: VITE_ env vars must be embedded at BUILD time, not runtime
+[x] 406. Updated Dockerfile to accept Firebase config as ARG and ENV before npm run build
+[x] 407. Updated cloudbuild.yaml with --build-arg flags for all 6 Firebase variables
+[x] 408. Added substitution variables section to cloudbuild.yaml for CI/CD triggers
+[x] 409. Created deploy-to-cloudrun.sh script with automatic .env loading
+[x] 410. Made deployment script executable (chmod +x)
+[x] 411. Updated DEPLOYMENT_GUIDE.md with comprehensive Firebase auth fix section
+[x] 412. Added 4 deployment methods: Script, Manual gcloud, Cloud Build trigger, Direct submit
+[x] 413. Included verification steps, troubleshooting, and security notes
+[x] 414. Provided complete environment variables checklist (build-time vs runtime)
+[x] 415. ✅ FIREBASE AUTHENTICATION CLOUD RUN FIX COMPLETE - READY TO DEPLOY! ✅
 [x] 251. SIGNIN DATA WINDOW UI UPDATE - Split window layout implemented
 [x] 252. Reduced user list height from max-h-64 to max-h-32 (split in half)
 [x] 253. Added Livestream Ads card below Sign In Data window

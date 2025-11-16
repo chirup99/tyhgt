@@ -263,3 +263,267 @@ npm run build && firebase deploy --only hosting
 ---
 
 **Need help?** Check Cloud Run logs or contact support.
+
+---
+
+# 🔥 Firebase Authentication Fix for Cloud Run
+
+## ⚠️ Common Issue: "Invalid Key" Error
+
+If you see Firebase authentication errors on Cloud Run but it works locally, it's because **VITE environment variables must be embedded at BUILD time, not runtime**.
+
+### The Problem
+When you set environment variables in Cloud Run console, they're only available when the container **runs**. But Vite needs them when you **build** the frontend (during `npm run build`).
+
+```
+❌ Cloud Run Runtime Env Vars → Too late, JS already built
+✅ Docker Build Args → Embedded during npm run build
+```
+
+---
+
+## ✅ Solution: Updated Dockerfile & Build Process
+
+### What Changed:
+The `Dockerfile` now accepts Firebase config as **build arguments**:
+
+```dockerfile
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+# ... etc
+
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
+# ... etc
+
+RUN npm run build  # ← Now has access to Firebase config
+```
+
+---
+
+## 🚀 Quick Fix Deployment Methods
+
+### Method 1: Using deploy-to-cloudrun.sh Script
+
+**Step 1:** Edit `deploy-to-cloudrun.sh`:
+```bash
+PROJECT_ID="fast-planet-470408-f1"  # Your project ID
+SERVICE_NAME="perala"               # Your service name
+REGION="us-central1"                # Your region
+```
+
+**Step 2:** Ensure `.env` has Firebase variables:
+```bash
+VITE_FIREBASE_API_KEY=AIza...
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123:web:abc123
+```
+
+**Step 3:** Deploy:
+```bash
+chmod +x deploy-to-cloudrun.sh
+./deploy-to-cloudrun.sh
+```
+
+---
+
+### Method 2: Manual gcloud Command with Build Args
+
+```bash
+# Load Firebase env vars from .env
+export $(grep -v '^#' .env | grep VITE_FIREBASE | xargs)
+
+# Deploy with build arguments
+gcloud run deploy perala \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --memory 2Gi \
+  --cpu 2 \
+  --build-arg VITE_FIREBASE_API_KEY="$VITE_FIREBASE_API_KEY" \
+  --build-arg VITE_FIREBASE_AUTH_DOMAIN="$VITE_FIREBASE_AUTH_DOMAIN" \
+  --build-arg VITE_FIREBASE_PROJECT_ID="$VITE_FIREBASE_PROJECT_ID" \
+  --build-arg VITE_FIREBASE_STORAGE_BUCKET="$VITE_FIREBASE_STORAGE_BUCKET" \
+  --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="$VITE_FIREBASE_MESSAGING_SENDER_ID" \
+  --build-arg VITE_FIREBASE_APP_ID="$VITE_FIREBASE_APP_ID" \
+  --project fast-planet-470408-f1
+```
+
+---
+
+### Method 3: Using Cloud Build Trigger (GitHub/GitLab CI/CD)
+
+The `cloudbuild.yaml` is already updated with build args.
+
+**Step 1:** In Cloud Build console, edit your trigger
+
+**Step 2:** Add these **Substitution Variables**:
+```
+_VITE_FIREBASE_API_KEY = (your Firebase API key)
+_VITE_FIREBASE_AUTH_DOMAIN = your-project.firebaseapp.com
+_VITE_FIREBASE_PROJECT_ID = your-project-id
+_VITE_FIREBASE_STORAGE_BUCKET = your-project.appspot.com
+_VITE_FIREBASE_MESSAGING_SENDER_ID = (your sender ID)
+_VITE_FIREBASE_APP_ID = (your app ID)
+```
+
+**Step 3:** Trigger build (push to repo or manual trigger)
+
+---
+
+### Method 4: Direct Cloud Build Submit
+
+```bash
+# Load Firebase env vars
+export $(grep -v '^#' .env | grep VITE_FIREBASE | xargs)
+
+# Submit build with substitutions
+gcloud builds submit \
+  --config=cloudbuild.yaml \
+  --substitutions=\
+_VITE_FIREBASE_API_KEY="$VITE_FIREBASE_API_KEY",\
+_VITE_FIREBASE_AUTH_DOMAIN="$VITE_FIREBASE_AUTH_DOMAIN",\
+_VITE_FIREBASE_PROJECT_ID="$VITE_FIREBASE_PROJECT_ID",\
+_VITE_FIREBASE_STORAGE_BUCKET="$VITE_FIREBASE_STORAGE_BUCKET",\
+_VITE_FIREBASE_MESSAGING_SENDER_ID="$VITE_FIREBASE_MESSAGING_SENDER_ID",\
+_VITE_FIREBASE_APP_ID="$VITE_FIREBASE_APP_ID"
+```
+
+---
+
+## 🔍 Verify Firebase Config Was Embedded
+
+After deployment, check build logs:
+
+```bash
+# Get latest build
+gcloud builds list --limit=1
+
+# View build log
+gcloud builds log [BUILD_ID]
+```
+
+Look for these lines in the log:
+```
+ENV VITE_FIREBASE_API_KEY=AIza...
+ENV VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+```
+
+If you see actual values (not "your-api-key"), it worked!
+
+---
+
+## 🧪 Test Authentication
+
+1. Visit your Cloud Run URL
+2. Open browser console (F12)
+3. Try to sign in
+4. Check console for Firebase errors
+
+**Working correctly:**
+```
+✅ Authentication successful, redirecting to app...
+```
+
+**Still broken:**
+```
+❌ Firebase: Error (auth/invalid-api-key)
+```
+→ Build args weren't passed, redeploy with --build-arg flags
+
+---
+
+## 🔐 Security Notes
+
+- Firebase API keys are **safe** to embed in frontend (they're public)
+- They're protected by Firebase Security Rules
+- Backend keys (FIREBASE_PRIVATE_KEY) should stay in runtime env vars
+- Don't commit `.env` to Git
+
+---
+
+## 📊 Full Environment Variables Checklist
+
+### Build-Time (Dockerfile ARG/ENV):
+- ✅ VITE_FIREBASE_API_KEY
+- ✅ VITE_FIREBASE_AUTH_DOMAIN
+- ✅ VITE_FIREBASE_PROJECT_ID
+- ✅ VITE_FIREBASE_STORAGE_BUCKET
+- ✅ VITE_FIREBASE_MESSAGING_SENDER_ID
+- ✅ VITE_FIREBASE_APP_ID
+
+### Runtime (Cloud Run Env Vars):
+- ✅ NODE_ENV=production
+- ✅ FIREBASE_PROJECT_ID
+- ✅ FIREBASE_CLIENT_EMAIL
+- ✅ FIREBASE_PRIVATE_KEY
+- ✅ DATABASE_URL (if using database)
+- ✅ Other backend API keys (Fyers, Gemini, etc.)
+
+---
+
+## 🐛 Common Issues & Solutions
+
+### Issue: "Invalid key" even after setting build args
+**Solution:** 
+- Make sure you're using `--build-arg` flag (not `--set-env-vars`)
+- Verify .env file has correct values
+- Check build logs to confirm values were embedded
+
+### Issue: Build takes very long
+**Solution:**
+- Cloud Build uses `E2_HIGHCPU_8` machine (already configured)
+- First build is slow, subsequent builds use Docker layer cache
+- Consider using Cloud Build instead of `gcloud run deploy --source`
+
+### Issue: Can't load environment variables
+**Solution:**
+```bash
+# Instead of manually typing, load from .env:
+export $(grep -v '^#' .env | grep VITE_FIREBASE | xargs)
+```
+
+### Issue: Variables show as "undefined" in browser
+**Solution:**
+- VITE_ prefix is required for frontend env vars
+- They must be set during build, not runtime
+- Redeploy with --build-arg flags
+
+---
+
+## 📝 Complete Deployment Checklist
+
+- [ ] Update `Dockerfile` (already done ✅)
+- [ ] Update `cloudbuild.yaml` (already done ✅)
+- [ ] Ensure `.env` has all VITE_FIREBASE_* variables
+- [ ] Choose deployment method (script/manual/CI)
+- [ ] Pass build arguments during deployment
+- [ ] Verify build logs show embedded values
+- [ ] Test authentication on Cloud Run URL
+- [ ] Set runtime env vars for backend (if needed)
+- [ ] Update OAuth redirect URIs (if using Google auth)
+
+---
+
+## 🎯 Quick Start (TL;DR)
+
+```bash
+# 1. Check your .env file has Firebase config
+grep VITE_FIREBASE .env
+
+# 2. Edit deploy script with your project details
+nano deploy-to-cloudrun.sh
+
+# 3. Deploy
+chmod +x deploy-to-cloudrun.sh
+./deploy-to-cloudrun.sh
+
+# 4. Test
+# Visit your Cloud Run URL and try logging in
+
+# Done! 🎉
+```
