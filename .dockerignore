@@ -5,6 +5,8 @@ npm-debug.log
 README.md
 .env
 .env.local
+.env.production
+.env.production.backup
 dist/public
 attached_assets
 .replit
