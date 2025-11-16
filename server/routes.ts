@@ -3776,17 +3776,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email } = req.body;
       const authHeader = req.headers.authorization;
       
+      console.log('🔐 Login attempt:', { email, hasAuthHeader: !!authHeader });
+      
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.error('❌ Login failed: No authentication token provided');
         return res.status(401).json({ message: 'No authentication token provided' });
       }
 
       const idToken = authHeader.split('Bearer ')[1];
       
-      // Verify the Firebase ID token
+      // Verify the Firebase ID token with enhanced error logging
       const admin = await import('firebase-admin');
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      let decodedToken;
+      
+      try {
+        decodedToken = await admin.auth().verifyIdToken(idToken, true);
+        console.log('✅ Firebase token verified successfully:', { 
+          userId: decodedToken.uid, 
+          email: decodedToken.email 
+        });
+      } catch (tokenError: any) {
+        console.error('❌ Firebase token verification failed:', {
+          errorCode: tokenError.code,
+          errorMessage: tokenError.message,
+          email: email
+        });
+        return res.status(401).json({ 
+          message: 'Invalid or expired token. Please try logging in again.',
+          error: tokenError.code 
+        });
+      }
       
       if (decodedToken.email !== email) {
+        console.error('❌ Login failed: Email mismatch', {
+          providedEmail: email,
+          tokenEmail: decodedToken.email
+        });
         return res.status(401).json({ message: 'Email mismatch' });
       }
 
@@ -3815,6 +3840,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log('✅ Login successful:', { userId: decodedToken.uid, email: decodedToken.email });
+      
       // Store user session
       res.json({ 
         success: true, 
@@ -3822,9 +3849,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: decodedToken.uid,
         email: decodedToken.email 
       });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(401).json({ message: 'Authentication failed' });
+    } catch (error: any) {
+      console.error('❌ Unexpected login error:', {
+        error: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      res.status(401).json({ 
+        message: 'Authentication failed. Please try again.',
+        error: error.code || 'UNKNOWN_ERROR'
+      });
     }
   });
 

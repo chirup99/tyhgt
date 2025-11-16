@@ -140,7 +140,20 @@ export function UserProfileDropdown() {
 
   const handleLogout = async () => {
     try {
+      // Clear all Firebase-related localStorage items first
+      localStorage.removeItem('currentUserId');
+      localStorage.removeItem('currentUserEmail');
+      
+      // Clear all Firebase Auth cache keys
+      const firebaseKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('firebase:')
+      );
+      firebaseKeys.forEach(key => localStorage.removeItem(key));
+      
+      // Sign out from Firebase
       await auth.signOut();
+      
+      // Force a complete page reload to clear all state
       window.location.href = '/';
     } catch (error) {
       console.error('Error logging out:', error);

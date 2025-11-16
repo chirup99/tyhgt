@@ -102,7 +102,15 @@ export default function Landing() {
       }
 
       const user = userCredential.user;
-      const idToken = await user.getIdToken();
+      
+      // Force fresh token retrieval to avoid stale token issues on Cloud Run
+      const idToken = await user.getIdToken(true);
+      
+      console.log('🔑 Authentication attempt:', { 
+        action: isLogin ? 'login' : 'register',
+        userId: user.uid,
+        email: user.email 
+      });
 
       const response = await fetch(isLogin ? '/api/auth/login' : '/api/auth/register', {
         method: 'POST',
@@ -123,6 +131,10 @@ export default function Landing() {
         window.location.href = "/";
       } else {
         const data = await response.json();
+        console.error('❌ Backend authentication failed:', {
+          status: response.status,
+          message: data.message
+        });
         toast({
           title: "Authentication Failed",
           description: data.message || "Please try again",
@@ -130,8 +142,14 @@ export default function Landing() {
         });
       }
     } catch (error: any) {
+      console.error('❌ Authentication error:', error);
       if (error.code === 'auth/api-key-not-valid') {
         console.error("Firebase: Invalid API Key. Please check your Firebase configuration.");
+        toast({
+          title: "Configuration Error",
+          description: "Firebase API key is invalid. Please contact support.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Authentication Error",

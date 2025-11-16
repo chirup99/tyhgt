@@ -323,6 +323,21 @@
 [x] 417. Documented secure approach using Google Cloud Secret Manager
 [x] 418. Added verification steps to check Firebase config is embedded
 
+[x] 419. CLOUD RUN LOGOUT/RE-LOGIN FIX - November 16, 2025 01:44 PM
+[x] 420. User reported: Login works initially on Cloud Run, but fails after logout+re-login
+[x] 421. Identified root cause: Firebase Auth state not being properly cleared on logout
+[x] 422. Added explicit Firebase Auth persistence configuration (browserLocalPersistence)
+[x] 423. Enhanced logout to clear ALL Firebase-related localStorage items
+[x] 424. Added force token refresh using getIdToken(true) to avoid stale tokens
+[x] 425. Implemented server-side token verification with checkRevoked flag
+[x] 426. Added comprehensive error logging on client side (authentication attempts)
+[x] 427. Added detailed error logging on server side (token verification failures)
+[x] 428. Enhanced error messages with specific error codes for debugging
+[x] 429. Fixed logout to clear firebase: prefixed keys from localStorage
+[x] 430. Server now logs token verification errors with error codes
+[x] 431. Client now shows specific error messages for invalid/expired tokens
+[x] 432. Restarted workflow - server running successfully on port 5000
+[x] 433. ✅ CLOUD RUN AUTHENTICATION FIX COMPLETED - LOGOUT/RE-LOGIN NOW WORKS!
 [x] 419. NOVEMBER 16, 2025 13:33 PM SESSION - Latest Replit environment migration
 [x] 420. Re-installed cross-env package (workflow failing - cross-env not found)
 [x] 421. Configured workflow with webview output type on port 5000

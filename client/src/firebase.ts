@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 // Firebase configuration
 // Get these values from https://console.firebase.google.com/
@@ -15,6 +15,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and export it
+// Initialize Firebase Authentication
 export const auth = getAuth(app);
+
+// Set persistence mode explicitly for Cloud Run compatibility
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error('Error setting Firebase persistence:', error);
+});
+
 export default app;
