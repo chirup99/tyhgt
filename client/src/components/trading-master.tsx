@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, TrendingDown, Calendar, Download, Check, ChevronsUpDown, ChevronDown, Search, MessageCircle, MessageSquare, Send, X, BarChart3, BookOpen, Target, CircleDot, Filter, RefreshCw, Play, MoreVertical, Trash2, Plus, Edit, Share2, Copy, ThumbsUp, Code, Shuffle, ToggleLeft, ToggleRight } from "lucide-react";
-import aiIconImage from "@assets/image_1756655254431.png";
+import { TrendingUp, TrendingDown, Calendar, Download, Check, ChevronsUpDown, ChevronDown, Search, MessageCircle, MessageSquare, Send, X, BarChart3, BookOpen, Target, CircleDot, Filter, RefreshCw, Play, MoreVertical, Trash2, Plus, Edit, Share2, Copy, ThumbsUp, Code, Shuffle, ToggleLeft, ToggleRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine, AreaChart, Area } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5449,7 +5448,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               Options
             </TabsTrigger>
             <TabsTrigger value="visualai" className="flex items-center gap-2" data-testid="button-tab-visualai">
-              <img src={aiIconImage} alt="AI" className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               Test AI
             </TabsTrigger>
           </TabsList>
@@ -6778,11 +6777,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                     }`}
                     data-testid="button-toggle-ai"
                   >
-                    <img 
-                      src={aiIconImage} 
-                      alt="AI" 
-                      className="w-6 h-6 mr-1 object-cover rounded-full"
-                    />
+                    <Sparkles className="w-6 h-6 mr-1" />
                     AI
                   </Button>
                   {!isAIMode && !isVisualAIMode && (
@@ -7919,11 +7914,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                               }`}
                               data-testid="button-toggle-ai"
                             >
-                              <img 
-                                src={aiIconImage} 
-                                alt="AI" 
-                                className="w-6 h-6 mr-1 object-cover rounded-full"
-                              />
+                              <Sparkles className="w-6 h-6 mr-1" />
                               AI
                             </Button>
                             {!isAIMode && !isVisualAIMode && (
@@ -10025,11 +10016,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                         }`}
                         data-testid="button-toggle-ai"
                       >
-                        <img 
-                          src={aiIconImage} 
-                          alt="AI" 
-                          className="w-6 h-6 mr-1 object-cover rounded-full"
-                        />
+                        <Sparkles className="w-6 h-6 mr-1" />
                         AI
                       </Button>
                       {!isSidebarAIMode && !isSidebarVisualAIMode && (
@@ -11550,7 +11537,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
-                      <img src={aiIconImage} alt="AI" className="h-5 w-5" />
+                      <Sparkles className="h-5 w-5" />
                       <h3 className="text-lg font-semibold">Pattern Manager</h3>
                     </div>
                     <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
@@ -11789,7 +11776,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                     {/* 🤖 QUICK ACTIONS */}
                     <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
                       <div className="flex items-center gap-2 mb-3">
-                        <img src={aiIconImage} alt="AI" className="h-4 w-4" />
+                        <Sparkles className="h-4 w-4" />
                         <span className="text-sm font-semibold text-purple-800 dark:text-purple-200">Quick Actions</span>
                       </div>
                       <div className="space-y-2">
@@ -11870,7 +11857,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-700">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <img src={aiIconImage} alt="AI" className="h-5 w-5" />
+                  <Sparkles className="h-5 w-5" />
                   <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">AI Pattern Recognition Summary</h3>
                 </div>
                 
@@ -11910,7 +11897,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <img src={aiIconImage} alt="AI" className="h-5 w-5" />
+              <Sparkles className="h-5 w-5" />
               Save Pattern for AI Recognition
             </DialogTitle>
           </DialogHeader>

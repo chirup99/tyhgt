@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import bannerImage from '@assets/image_1757245857707.png';
 
 interface LivestreamSettings {
   id: number;
@@ -53,7 +52,6 @@ const getDefaultBannerContent = (youtubeUrl?: string | null): BannerContent[] =>
       type: 'content',
       title: 'Market Analysis Update',
       description: 'Latest market trends and analysis',
-      imageUrl: bannerImage,
       date: '9 Sep 2024'
     },
     {

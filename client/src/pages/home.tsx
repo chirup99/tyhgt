@@ -6,11 +6,6 @@ import React, {
   useRef,
 } from "react";
 import { useLocation } from "wouter";
-// User provided custom images
-import charMinarImage from "@assets/image_1757005261197.png";
-import cafeHyderabadImage from "@assets/image_1757005324152.png";
-import robotAiImage from "@assets/image_1757005353281.png";
-import bullBearImage from "@assets/image_1757005432581.png";
 import { AuthButton } from "@/components/auth-button";
 import { ConnectionStatus } from "@/components/connection-status";
 import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
@@ -3145,19 +3140,22 @@ ${
 
   const { theme, toggleTheme } = useTheme();
 
-  // Event images mapping using user provided images
+  // Event images - using gradient placeholders for cloud deployment
   const getEventImage = (eventName: string) => {
-    const imageMap: Record<string, string> = {
-      "Global Startup Summit | Hyderabad 2025": charMinarImage, // Charminar
-      "TiE Bangalore Founders Summit": robotAiImage, // Robot/AI
-      "Pharma Bio Summit Hyderabad": charMinarImage, // Charminar
-      "Hyderabad Food Festival": cafeHyderabadImage, // Cafe Hyderabad
-      "HITEX IT Expo Hyderabad": robotAiImage, // Robot/AI
-      "Mumbai Fintech Festival": bullBearImage, // Bull & Bear
-      "Nasscom Product Conclave Bangalore": robotAiImage, // Robot/AI
-      "India AI Summit Mumbai": robotAiImage, // Robot/AI
+    // Return a data URL with gradient based on event type
+    const gradients: Record<string, string> = {
+      "Global Startup Summit | Hyderabad 2025": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "TiE Bangalore Founders Summit": "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      "Pharma Bio Summit Hyderabad": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "Hyderabad Food Festival": "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+      "HITEX IT Expo Hyderabad": "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      "Mumbai Fintech Festival": "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
+      "Nasscom Product Conclave Bangalore": "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      "India AI Summit Mumbai": "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     };
-    return imageMap[eventName] || charMinarImage;
+    const gradient = gradients[eventName] || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    // Return empty string to use CSS gradient instead
+    return "";
   };
 
   // Removed AI image generation effects
