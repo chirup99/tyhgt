@@ -10,8 +10,12 @@ COPY package-lock.json ./
 # Install ALL dependencies (including devDependencies) for build
 RUN npm install
 
-# Copy ALL source code (server, shared, client)
+# Copy ALL source code (server, shared, client) including .env file
 COPY . .
+
+# NOTE: The .env file IS copied and will be read by dotenv
+# Make sure .env has single-line format for FIREBASE_PRIVATE_KEY (use \n for newlines)
+# Example: FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQ...\n-----END PRIVATE KEY-----
 
 # Accept Firebase config as build arguments
 ARG VITE_FIREBASE_API_KEY
@@ -37,18 +41,25 @@ RUN npm run build
 
 # ==========================================
 # Runtime environment variables
-# Cloud Run will inject these automatically
-# Set them in Cloud Run Console -> Edit & Deploy New Revision -> Variables & Secrets
 # ==========================================
-# Required runtime env vars (set in Cloud Run):
-# - DATABASE_URL
-# - FIREBASE_PROJECT_ID
-# - FIREBASE_CLIENT_EMAIL
-# - FIREBASE_PRIVATE_KEY
-# - GEMINI_API_KEY
-# - FYERS_APP_ID
-# - FYERS_SECRET_KEY
-# - FYERS_ACCESS_TOKEN
+# The .env file IS included in the Docker image (copied on line 14)
+# The backend reads it using dotenv (server/index.ts line 2)
+#
+# Required variables that MUST be in .env file:
+# ✅ DATABASE_URL
+# ✅ FIREBASE_PROJECT_ID
+# ✅ FIREBASE_CLIENT_EMAIL  
+# ✅ FIREBASE_PRIVATE_KEY (MUST be single-line with \n escapes)
+# ✅ GEMINI_API_KEY
+# ✅ FYERS_APP_ID
+# ✅ FYERS_SECRET_KEY
+# ✅ FYERS_ACCESS_TOKEN
+#
+# IMPORTANT: .env format requirements:
+# - FIREBASE_PRIVATE_KEY must be single-line: -----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----
+# - Do NOT use multi-line format (it will break dotenv parsing)
+#
+# Alternative: You can also set these in Cloud Run Console instead of using .env
 
 # Expose port (Cloud Run will set PORT env var, but 8080 is default)
 EXPOSE 8080
