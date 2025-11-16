@@ -1,0 +1,38 @@
+# ⚠️ WARNING: This Dockerfile contains hardcoded credentials
+# This is NOT recommended for production use
+# Use Dockerfile.hardcoded only for testing
+
+FROM node:22-slim
+
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package.json ./
+COPY package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# ⚠️ HARDCODED Firebase credentials - NOT SECURE!
+# Replace these with your actual values from .env file
+ENV VITE_FIREBASE_API_KEY="AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk"
+ENV VITE_FIREBASE_AUTH_DOMAIN="fast-planet-470408-f1.firebaseapp.com"
+ENV VITE_FIREBASE_PROJECT_ID="fast-planet-470408-f1"
+ENV VITE_FIREBASE_STORAGE_BUCKET="fast-planet-470408-f1.firebasestorage.app"
+ENV VITE_FIREBASE_MESSAGING_SENDER_ID="808950990883"
+ENV VITE_FIREBASE_APP_ID="1:808950990883:web:1252e6131d1f1c21688996"
+
+# Build the application
+RUN npm run build
+
+EXPOSE 8080
+
+ENV NODE_ENV=production
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node --input-type=module -e "import('http').then(http => http.default.get('http://localhost:8080/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}))"
+
+CMD ["node", "dist/index.js"]
