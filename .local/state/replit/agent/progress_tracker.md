@@ -859,3 +859,15 @@
 [x] 488. Provided Cloud Run Console instructions for runtime env vars
 [x] 489. Explained both automatic and manual deployment methods
 [x] 490. ✅ DOCKERFILE FIXED - NOW SECURE AND READY FOR CLOUD RUN AUTO-DEPLOY! ✅
+
+[x] 491. ENV FILE FORMAT FIX FOR CLOUD RUN - November 16, 2025 06:20 AM
+[x] 492. User reported: Environment variables missing from Dockerfile, available in .env
+[x] 493. User wants to paste .env values directly into Cloud Run Console
+[x] 494. Analyzed .env file - found multi-line FIREBASE_PRIVATE_KEY format (lines 3-30)
+[x] 495. Identified issue: Multi-line format won't work in Cloud Run environment variables
+[x] 496. Created CLOUDRUN-ENV-VARS-PASTE.txt with properly formatted single-line values
+[x] 497. Converted FIREBASE_PRIVATE_KEY to single-line with \n escape sequences
+[x] 498. Formatted all 9 runtime environment variables for direct copy-paste
+[x] 499. Added clear instructions: DO NOT include quotes, DO NOT set PORT
+[x] 500. Verified format matches Cloud Run requirements exactly
+[x] 501. ✅ ENVIRONMENT VARIABLES READY FOR CLOUD RUN PASTE! ✅
