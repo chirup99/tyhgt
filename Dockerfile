@@ -17,7 +17,7 @@ COPY . .
 # Make sure .env has single-line format for FIREBASE_PRIVATE_KEY (use \n for newlines)
 # Example: FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQ...\n-----END PRIVATE KEY-----
 
-# Accept Firebase config as build arguments
+# Accept Firebase config as build arguments (Frontend)
 ARG VITE_FIREBASE_API_KEY
 ARG VITE_FIREBASE_AUTH_DOMAIN
 ARG VITE_FIREBASE_PROJECT_ID
@@ -25,13 +25,23 @@ ARG VITE_FIREBASE_STORAGE_BUCKET
 ARG VITE_FIREBASE_MESSAGING_SENDER_ID
 ARG VITE_FIREBASE_APP_ID
 
-# Set as environment variables for build
+# Set as environment variables for build (Frontend)
 ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
 ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
 ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
 ENV VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET
 ENV VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID
 ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+
+# Accept Firebase Admin SDK credentials as build arguments (Backend)
+ARG FIREBASE_PROJECT_ID
+ARG FIREBASE_CLIENT_EMAIL
+ARG FIREBASE_PRIVATE_KEY
+
+# Set as environment variables for runtime (Backend)
+ENV FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
+ENV FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL
+ENV FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY
 
 # Build frontend and backend using the build script
 RUN npm run build
@@ -42,11 +52,16 @@ RUN npm run build
 # ==========================================
 # Runtime environment variables
 # ==========================================
-# The .env file IS included in the Docker image (copied on line 14)
+# Backend Firebase Admin SDK credentials are now set as ENV variables above
+# They can be passed via:
+# 1. Build args (--build-arg FIREBASE_PROJECT_ID=...)
+# 2. Cloud Run environment variables (--set-env-vars)
+# 3. Cloud Run secrets (--set-secrets)
+#
+# The .env file is also included as a fallback (copied on line 14)
 # The backend reads it using dotenv (server/index.ts line 2)
 #
-# Required variables that MUST be in .env file:
-# ✅ DATABASE_URL
+# Required variables:
 # ✅ FIREBASE_PROJECT_ID
 # ✅ FIREBASE_CLIENT_EMAIL  
 # ✅ FIREBASE_PRIVATE_KEY (MUST be single-line with \n escapes)
@@ -55,11 +70,8 @@ RUN npm run build
 # ✅ FYERS_SECRET_KEY
 # ✅ FYERS_ACCESS_TOKEN
 #
-# IMPORTANT: .env format requirements:
-# - FIREBASE_PRIVATE_KEY must be single-line: -----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----
-# - Do NOT use multi-line format (it will break dotenv parsing)
-#
-# Alternative: You can also set these in Cloud Run Console instead of using .env
+# IMPORTANT: FIREBASE_PRIVATE_KEY format:
+# Single-line: -----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----
 
 # Expose port (Cloud Run will set PORT env var, but 8080 is default)
 EXPOSE 8080
