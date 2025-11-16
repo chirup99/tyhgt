@@ -9,9 +9,9 @@ else
 fi
 
 # Configuration
-PROJECT_ID="your-gcp-project-id"  # Change this to your GCP project ID
-SERVICE_NAME="trading-platform"    # Change this to your service name
-REGION="us-central1"               # Change this to your region
+PROJECT_ID="fast-planet-470408-f1"  # Your GCP project ID
+SERVICE_NAME="perala"               # Your service name (change if different)
+REGION="us-central1"                # Your region
 
 echo "🚀 Deploying to Cloud Run with Firebase config..."
 
