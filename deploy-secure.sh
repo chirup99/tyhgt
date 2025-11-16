@@ -118,6 +118,12 @@ VITE_FIREBASE_STORAGE_BUCKET=$(grep '^VITE_FIREBASE_STORAGE_BUCKET=' .env | cut 
 VITE_FIREBASE_MESSAGING_SENDER_ID=$(grep '^VITE_FIREBASE_MESSAGING_SENDER_ID=' .env | cut -d'=' -f2 | tr -d '"')
 VITE_FIREBASE_APP_ID=$(grep '^VITE_FIREBASE_APP_ID=' .env | cut -d'=' -f2 | tr -d '"')
 
+# Debug: Show what we're passing (hide sensitive values)
+echo "   Frontend Firebase API Key: ${VITE_FIREBASE_API_KEY:0:20}..."
+echo "   Backend Firebase Project: $FIREBASE_PROJECT_ID"
+echo "   Gemini API Key: ${GEMINI_API_KEY:0:20}..."
+echo "   Fyers App ID: $FYERS_APP_ID"
+
 gcloud builds submit \
     --tag gcr.io/$PROJECT_ID/perala \
     --timeout=1200s \
@@ -130,7 +136,11 @@ gcloud builds submit \
     --build-arg VITE_FIREBASE_APP_ID="$VITE_FIREBASE_APP_ID" \
     --build-arg FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
     --build-arg FIREBASE_CLIENT_EMAIL="$FIREBASE_CLIENT_EMAIL" \
-    --build-arg FIREBASE_PRIVATE_KEY="$FIREBASE_PRIVATE_KEY"
+    --build-arg FIREBASE_PRIVATE_KEY="$FIREBASE_PRIVATE_KEY" \
+    --build-arg GEMINI_API_KEY="$GEMINI_API_KEY" \
+    --build-arg FYERS_APP_ID="$FYERS_APP_ID" \
+    --build-arg FYERS_SECRET_KEY="$FYERS_SECRET_KEY" \
+    --build-arg FYERS_ACCESS_TOKEN="$FYERS_ACCESS_TOKEN"
 
 echo ""
 echo "🚀 Step 5: Deploying to Cloud Run..."
