@@ -61,6 +61,7 @@ echo "⏳ This may take 2-5 minutes..."
 echo ""
 
 # Deploy to Cloud Run with runtime environment variables (for backend)
+# Using custom service account with minimal permissions for better security
 gcloud run deploy $SERVICE_NAME \
   --image gcr.io/$PROJECT_ID/$SERVICE_NAME:latest \
   --region $REGION \
@@ -71,6 +72,7 @@ gcloud run deploy $SERVICE_NAME \
   --timeout 300 \
   --max-instances 10 \
   --project $PROJECT_ID \
+  --service-account cloud-build-perala@$PROJECT_ID.iam.gserviceaccount.com \
   --set-env-vars "DATABASE_URL=sqlite.db,NODE_ENV=production,FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID,FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL,FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY_SINGLE_LINE,GEMINI_API_KEY=$GEMINI_API_KEY,FYERS_APP_ID=$FYERS_APP_ID,FYERS_SECRET_KEY=$FYERS_SECRET_KEY,FYERS_ACCESS_TOKEN=$FYERS_ACCESS_TOKEN"
 
 echo ""

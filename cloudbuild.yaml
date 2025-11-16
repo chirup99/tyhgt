@@ -33,7 +33,7 @@ steps:
       - 'push'
       - 'gcr.io/$PROJECT_ID/perala:$COMMIT_SHA'
       
-  # Deploy to Cloud Run
+  # Deploy to Cloud Run with custom service account (minimal permissions)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -55,6 +55,8 @@ steps:
       - '300'
       - '--max-instances'
       - '10'
+      - '--service-account'
+      - 'cloud-build-perala@$PROJECT_ID.iam.gserviceaccount.com'
       - '--set-env-vars'
       - 'DATABASE_URL=sqlite.db,NODE_ENV=production,FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID},FIREBASE_CLIENT_EMAIL=${_FIREBASE_CLIENT_EMAIL},FIREBASE_PRIVATE_KEY=${_FIREBASE_PRIVATE_KEY},GEMINI_API_KEY=${_GEMINI_API_KEY},FYERS_APP_ID=${_FYERS_APP_ID},FYERS_SECRET_KEY=${_FYERS_SECRET_KEY},FYERS_ACCESS_TOKEN=${_FYERS_ACCESS_TOKEN}'
       
