@@ -27,11 +27,13 @@ echo ""
 # Convert multi-line private key to single-line for Docker
 FIREBASE_PRIVATE_KEY_SINGLE_LINE=$(echo "$FIREBASE_PRIVATE_KEY" | awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}')
 
-echo "🔨 Building Docker image with Firebase build arguments..."
+echo "🔨 Building Docker image with Firebase frontend config..."
 echo "📦 This embeds Firebase config into the frontend bundle at BUILD time"
+echo "🔒 Backend credentials are NOT embedded - they're passed at runtime for security"
 echo ""
 
-# Build Docker image with ALL Firebase config as build arguments
+# Build Docker image with ONLY frontend Firebase config as build arguments
+# Backend credentials are passed at runtime via --set-env-vars (more secure)
 docker build \
   --build-arg VITE_FIREBASE_API_KEY="$VITE_FIREBASE_API_KEY" \
   --build-arg VITE_FIREBASE_AUTH_DOMAIN="$VITE_FIREBASE_AUTH_DOMAIN" \
@@ -39,13 +41,6 @@ docker build \
   --build-arg VITE_FIREBASE_STORAGE_BUCKET="$VITE_FIREBASE_STORAGE_BUCKET" \
   --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="$VITE_FIREBASE_MESSAGING_SENDER_ID" \
   --build-arg VITE_FIREBASE_APP_ID="$VITE_FIREBASE_APP_ID" \
-  --build-arg FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
-  --build-arg FIREBASE_CLIENT_EMAIL="$FIREBASE_CLIENT_EMAIL" \
-  --build-arg FIREBASE_PRIVATE_KEY="$FIREBASE_PRIVATE_KEY_SINGLE_LINE" \
-  --build-arg GEMINI_API_KEY="$GEMINI_API_KEY" \
-  --build-arg FYERS_APP_ID="$FYERS_APP_ID" \
-  --build-arg FYERS_SECRET_KEY="$FYERS_SECRET_KEY" \
-  --build-arg FYERS_ACCESS_TOKEN="$FYERS_ACCESS_TOKEN" \
   -t gcr.io/$PROJECT_ID/$SERVICE_NAME:latest \
   -f Dockerfile \
   .
