@@ -86,14 +86,19 @@ app.use((req, res, next) => {
   // Set CORS headers
   if (origin && allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else if (process.env.NODE_ENV === 'development' && origin) {
+    // In development, allow the requesting origin (required for credentials: include)
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
   } else if (process.env.NODE_ENV === 'development') {
-    // Allow all origins in development
+    // Fallback for development when no origin header (e.g., curl, Postman)
     res.header('Access-Control-Allow-Origin', '*');
+    // Don't set credentials header with wildcard origin
   }
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
-  res.header('Access-Control-Allow-Credentials', 'true');
 
   // Additional headers for security
   res.header('X-Frame-Options', 'SAMEORIGIN');
