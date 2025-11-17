@@ -89,6 +89,12 @@ export function LiveBanner() {
   useEffect(() => {
     if (isError) {
       console.error('❌ LiveBanner failed to fetch settings:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      });
       console.warn('⚠️ Displaying fallback banner due to fetch error');
     }
   }, [isError, error]);

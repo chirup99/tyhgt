@@ -263,9 +263,15 @@ function LivestreamAdsControl() {
   useEffect(() => {
     if (isError) {
       console.error('❌ Failed to fetch livestream settings:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      });
       toast({
         title: "Connection Error",
-        description: "Unable to fetch current banner settings. Please refresh the page.",
+        description: `Unable to fetch banner settings: ${error?.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
@@ -274,7 +280,7 @@ function LivestreamAdsControl() {
   // Update livestream settings mutation
   const updateSettings = useMutation({
     mutationFn: async (payload: { youtubeUrl: string | null }) => {
-      const response = await apiRequest('/api/livestream-settings', 'POST', payload);
+      const response = await apiRequest('POST', '/api/livestream-settings', payload);
       return response as LivestreamSettings;
     },
     onSuccess: () => {
