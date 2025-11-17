@@ -1845,7 +1845,7 @@ export default function Home() {
       setPendingTab(tabName);
       setShowPasscodeModal(true);
     } else {
-      setActiveTab(tabName);
+      setTabWithAuthCheck(tabName);
     }
   };
 
@@ -1854,7 +1854,7 @@ export default function Home() {
       const newAuthenticatedTabs = new Set(authenticatedTabs);
       newAuthenticatedTabs.add(pendingTab);
       setAuthenticatedTabs(newAuthenticatedTabs);
-      setActiveTab(pendingTab);
+      setTabWithAuthCheck(pendingTab);
       setShowPasscodeModal(false);
       setPasscodeInput("");
       setPendingTab("");
@@ -1873,20 +1873,26 @@ export default function Home() {
   // Trading Master Coming Soon Modal State
   const [showTradingMasterComingSoon, setShowTradingMasterComingSoon] = useState(false);
 
-  // Check if user is logged in, redirect to login if not
-  const checkAuthAndNavigate = (tabName: string) => {
+  // Centralized authentication check helper - ALL tab switches MUST use this
+  const setTabWithAuthCheck = (tabName: string) => {
     const userId = localStorage.getItem('currentUserId');
     const userEmail = localStorage.getItem('currentUserEmail');
     
-    if (!userId || !userEmail) {
-      // User not logged in, redirect to login page
+    // Robust check for Cloud Run compatibility
+    if (!userId || !userEmail || userId === 'null' || userEmail === 'null') {
+      console.log('[AUTH] Authentication required for tab:', tabName, '- redirecting to login');
       setLocation('/login');
       return false;
     }
     
-    // User is logged in, set active tab
+    console.log('[AUTH] User authenticated, setting tab:', tabName);
     setActiveTab(tabName);
     return true;
+  };
+
+  // Check if user is logged in, redirect to login if not
+  const checkAuthAndNavigate = (tabName: string) => {
+    return setTabWithAuthCheck(tabName);
   };
 
   // Handle Trading Master access - only for chiranjeevi.perala99@gmail.com
@@ -1894,12 +1900,14 @@ export default function Home() {
     const userId = localStorage.getItem('currentUserId');
     const userEmail = localStorage.getItem('currentUserEmail');
     
-    if (!userId || !userEmail) {
-      // User not logged in, redirect to login page
+    // Robust check for Cloud Run compatibility
+    if (!userId || !userEmail || userId === 'null' || userEmail === 'null') {
+      console.log('[AUTH] Authentication required for Trading Master - redirecting to login');
       setLocation('/login');
       return;
     }
     
+    console.log('[AUTH] User authenticated for Trading Master check - email:', userEmail);
     // Check if user is authorized for Trading Master
     if (userEmail === 'chiranjeevi.perala99@gmail.com') {
       // Authorized user - navigate to trading-master tab
@@ -1954,6 +1962,16 @@ export default function Home() {
   const handleSearch = async (queryOverride?: string) => {
     const query = queryOverride || searchQuery;
     if (!query.trim()) return;
+
+    // Check authentication before allowing search
+    const userId = localStorage.getItem('currentUserId');
+    const userEmail = localStorage.getItem('currentUserEmail');
+    
+    if (!userId || !userEmail || userId === 'null' || userEmail === 'null') {
+      console.log('[AUTH] Authentication required for search - redirecting to login');
+      setLocation('/login');
+      return;
+    }
 
     // Prevent concurrent searches
     if (isSearchLoading) return;
@@ -5191,15 +5209,15 @@ ${
   // Expose tab state management to window for navigation preservation
   useEffect(() => {
     window.getActiveTab = () => {
-      console.log("🔍 Getting active tab:", activeTab);
+      console.log('[TAB] Getting active tab:', activeTab);
       return activeTab;
     };
     window.setActiveTab = (tab: string) => {
-      console.log("🎯 Setting active tab to:", tab);
+      console.log('[TAB] Setting active tab to:', tab);
       setActiveTab(tab);
     };
 
-    console.log("📱 Tab functions exposed, current tab:", activeTab);
+    console.log('[TAB] Tab functions exposed, current tab:', activeTab);
 
     return () => {
       delete window.getActiveTab;
@@ -5241,7 +5259,7 @@ ${
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         {/* Full-width Social Feed - No Sidebar */}
         <main className="h-screen w-full">
-          <NeoFeedSocialFeed onBackClick={() => setActiveTab("trading-home")} />
+          <NeoFeedSocialFeed onBackClick={() => setTabWithAuthCheck("trading-home")} />
         </main>
       </div>
     );
@@ -6234,7 +6252,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("chart")}
+              onClick={() => setTabWithAuthCheck("chart")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "chart"
                   ? "bg-primary text-primary-foreground"
@@ -6245,7 +6263,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("check")}
+              onClick={() => setTabWithAuthCheck("check")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "check"
                   ? "bg-primary text-primary-foreground"
@@ -6256,7 +6274,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("4candle")}
+              onClick={() => setTabWithAuthCheck("4candle")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "4candle"
                   ? "bg-primary text-primary-foreground"
@@ -6267,7 +6285,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("scanner")}
+              onClick={() => setTabWithAuthCheck("scanner")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "scanner"
                   ? "bg-primary text-primary-foreground"
@@ -6309,7 +6327,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("cb")}
+              onClick={() => setTabWithAuthCheck("cb")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "cb"
                   ? "bg-primary text-primary-foreground"
@@ -6320,7 +6338,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("simulator")}
+              onClick={() => setTabWithAuthCheck("simulator")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "simulator"
                   ? "bg-primary text-primary-foreground"
@@ -6365,7 +6383,7 @@ ${
             </p>
 
             <button
-              onClick={() => setActiveTab("tutor")}
+              onClick={() => setTabWithAuthCheck("tutor")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "tutor"
                   ? "bg-primary text-primary-foreground"
@@ -6393,7 +6411,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("documentation")}
+              onClick={() => setTabWithAuthCheck("documentation")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "documentation"
                   ? "bg-primary text-primary-foreground"
@@ -6404,7 +6422,7 @@ ${
             </button>
 
             <button
-              onClick={() => setActiveTab("strategy-build")}
+              onClick={() => setTabWithAuthCheck("strategy-build")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeTab === "strategy-build"
                   ? "bg-primary text-primary-foreground"
@@ -6562,7 +6580,7 @@ ${
                       {localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
                         <button
                           onClick={() => {
-                            setActiveTab("dashboard");
+                            setTabWithAuthCheck("dashboard");
                             setIsNavOpen(false);
                           }}
                           className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
@@ -7345,7 +7363,7 @@ ${
 
                         {/* Main clickable button */}
                         <Button
-                          onClick={() => setActiveTab("tutor")}
+                          onClick={() => setTabWithAuthCheck("tutor")}
                           className="relative w-16 h-16 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-2xl hover:animate-none transition-all duration-300 border-4 border-white/20 pointer-events-auto animate-bounce hover:scale-110"
                         >
                           <ChevronUp className="h-8 w-8 text-gray-400 pointer-events-none" />
@@ -7521,7 +7539,7 @@ ${
               <div className="h-full relative">
                 {/* Back Button */}
                 <Button
-                  onClick={() => setActiveTab("trading-home")}
+                  onClick={() => setTabWithAuthCheck("trading-home")}
                   variant="ghost"
                   size="icon"
                   className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
@@ -7537,7 +7555,7 @@ ${
               <div className="space-y-6 p-6 relative">
                 {/* Back Button */}
                 <Button
-                  onClick={() => setActiveTab("trading-home")}
+                  onClick={() => setTabWithAuthCheck("trading-home")}
                   variant="ghost"
                   size="icon"
                   className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
