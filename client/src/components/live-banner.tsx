@@ -33,9 +33,9 @@ const getDefaultBannerContent = (youtubeUrl?: string | null): BannerContent[] =>
     {
       id: '1', 
       type: 'live_stream',
-      title: 'Live Trading Stream',
+      title: 'CNBC Live Stream',
       description: 'Watch live market analysis and trading strategies',
-      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1',
+      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&pp=ygUJY25iYyBsaXZl',
       isLive: true,
       priority: 'high'
     },
@@ -71,7 +71,7 @@ export function LiveBanner() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
 
-  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1');
+  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&pp=ygUJY25iYyBsaXZl');
 
   // Load saved URL from localStorage on mount
   useEffect(() => {
@@ -89,7 +89,7 @@ export function LiveBanner() {
         setYoutubeUrl(newUrl);
         setCurrentIndex(0);
       } else {
-        setYoutubeUrl('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1');
+        setYoutubeUrl('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&pp=ygUJY25iYyBsaXZl');
         setCurrentIndex(0);
       }
     };
