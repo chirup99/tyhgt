@@ -5482,16 +5482,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get livestream settings (YouTube banner URL)
+  // Get livestream settings (YouTube banner URL) - PUBLIC endpoint (no auth required)
   app.get('/api/livestream-settings', async (req, res) => {
     try {
       console.log('📺 Fetching livestream settings from Firebase...');
       const settings = await storage.getLivestreamSettings();
       console.log('✅ Livestream settings fetched:', settings);
-      res.json(settings || { id: 1, youtubeUrl: null, updatedAt: new Date().toISOString() });
+      
+      // Always return a valid response even if settings is undefined
+      const response = settings || { id: 1, youtubeUrl: null, updatedAt: new Date().toISOString() };
+      res.json(response);
     } catch (error: any) {
       console.error('❌ Error fetching livestream settings:', error.message);
-      res.status(500).json({ error: 'Failed to fetch livestream settings' });
+      console.error('Stack trace:', error.stack);
+      
+      // Return default settings instead of error to prevent frontend failures
+      console.log('⚠️ Returning default settings due to error');
+      res.json({ id: 1, youtubeUrl: null, updatedAt: new Date().toISOString() });
     }
   });
 

@@ -274,28 +274,46 @@ export class FirebaseStorage implements IStorage {
   }
 
   async getLivestreamSettings(): Promise<LivestreamSettings | undefined> {
-    const doc = await this.db.collection('global').doc('livestream_settings').get();
-    if (!doc.exists) return undefined;
-    
-    const data = doc.data();
-    // Convert Firestore Timestamp to Date
-    return {
-      id: data?.id || 1,
-      youtubeUrl: data?.youtubeUrl ?? null,
-      updatedAt: data?.updatedAt?.toDate?.() || new Date(),
-    };
+    try {
+      const doc = await this.db.collection('global').doc('livestream_settings').get();
+      if (!doc.exists) {
+        console.log('📺 No livestream settings found in Firebase, returning undefined');
+        return undefined;
+      }
+      
+      const data = doc.data();
+      // Convert Firestore Timestamp to Date
+      const settings = {
+        id: data?.id || 1,
+        youtubeUrl: data?.youtubeUrl ?? null,
+        updatedAt: data?.updatedAt?.toDate?.() || new Date(),
+      };
+      console.log('📺 Livestream settings retrieved from Firebase:', settings);
+      return settings;
+    } catch (error: any) {
+      console.error('❌ Error fetching livestream settings from Firebase:', error.message);
+      // Return undefined instead of throwing to prevent API failures
+      return undefined;
+    }
   }
 
   async updateLivestreamSettings(settings: InsertLivestreamSettings): Promise<LivestreamSettings> {
-    const now = new Date();
-    const livestreamSettings: LivestreamSettings = {
-      id: 1,
-      youtubeUrl: settings.youtubeUrl ?? null,
-      updatedAt: now,
-    };
-    
-    await this.db.collection('global').doc('livestream_settings').set(livestreamSettings);
-    return livestreamSettings;
+    try {
+      const now = new Date();
+      const livestreamSettings: LivestreamSettings = {
+        id: 1,
+        youtubeUrl: settings.youtubeUrl ?? null,
+        updatedAt: now,
+      };
+      
+      console.log('💾 Saving livestream settings to Firebase:', livestreamSettings);
+      await this.db.collection('global').doc('livestream_settings').set(livestreamSettings);
+      console.log('✅ Livestream settings saved to Firebase successfully');
+      return livestreamSettings;
+    } catch (error: any) {
+      console.error('❌ Error saving livestream settings to Firebase:', error.message);
+      throw error; // Re-throw to let the API route handle it
+    }
   }
 
   async initializeDefaultData(): Promise<void> {
