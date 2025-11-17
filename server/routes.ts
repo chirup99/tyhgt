@@ -3790,19 +3790,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let decodedToken;
       
       try {
-        decodedToken = await admin.auth().verifyIdToken(idToken, true);
+        // Use checkRevoked=false for better Cloud Run compatibility
+        // Cloud Run deployments may have network latency issues with strict revocation checks
+        decodedToken = await admin.auth().verifyIdToken(idToken, false);
         console.log('✅ Firebase token verified successfully:', { 
           userId: decodedToken.uid, 
-          email: decodedToken.email 
+          email: decodedToken.email,
+          environment: process.env.NODE_ENV || 'unknown'
         });
       } catch (tokenError: any) {
         console.error('❌ Firebase token verification failed:', {
           errorCode: tokenError.code,
           errorMessage: tokenError.message,
-          email: email
+          email: email,
+          environment: process.env.NODE_ENV || 'unknown'
         });
+        
+        // More descriptive error messages for different failure scenarios
+        let errorMessage = 'Invalid or expired token. Please try logging in again.';
+        if (tokenError.code === 'auth/id-token-expired') {
+          errorMessage = 'Your session has expired. Please log in again.';
+        } else if (tokenError.code === 'auth/argument-error') {
+          errorMessage = 'Authentication failed. Please refresh the page and try again.';
+        } else if (tokenError.code === 'auth/invalid-id-token') {
+          errorMessage = 'Invalid authentication token. Please log in again.';
+        }
+        
         return res.status(401).json({ 
-          message: 'Invalid or expired token. Please try logging in again.',
+          message: errorMessage,
           error: tokenError.code 
         });
       }
@@ -3873,9 +3888,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const idToken = authHeader.split('Bearer ')[1];
       
-      // Verify the Firebase ID token
+      // Verify the Firebase ID token (Cloud Run compatible)
       const admin = await import('firebase-admin');
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      let decodedToken;
+      
+      try {
+        // Use checkRevoked=false for better Cloud Run compatibility
+        decodedToken = await admin.auth().verifyIdToken(idToken, false);
+        console.log('✅ Registration token verified:', { userId: decodedToken.uid, email: decodedToken.email });
+      } catch (tokenError: any) {
+        console.error('❌ Registration token verification failed:', tokenError);
+        return res.status(401).json({ 
+          message: 'Invalid authentication token. Please try again.',
+          error: tokenError.code 
+        });
+      }
       
       if (decodedToken.email !== email) {
         return res.status(401).json({ message: 'Email mismatch' });
@@ -3928,9 +3955,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const idToken = authHeader.split('Bearer ')[1];
       
-      // Verify the Firebase ID token
+      // Verify the Firebase ID token (Cloud Run compatible)
       const admin = await import('firebase-admin');
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      let decodedToken;
+      
+      try {
+        // Use checkRevoked=false for better Cloud Run compatibility
+        decodedToken = await admin.auth().verifyIdToken(idToken, false);
+        console.log('✅ Google sign-in token verified:', { userId: decodedToken.uid, email: decodedToken.email });
+      } catch (tokenError: any) {
+        console.error('❌ Google sign-in token verification failed:', tokenError);
+        return res.status(401).json({ 
+          message: 'Invalid authentication token. Please try again.',
+          error: tokenError.code 
+        });
+      }
 
       // Save the displayName from Google to Firestore in background (non-blocking)
       if (decodedToken.name) {

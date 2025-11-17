@@ -788,6 +788,15 @@ function SwipeableCardStack({
                   className={`bg-white ${card.buttonColor} hover:bg-gray-100 px-3 py-1.5 md:px-3 md:py-1 rounded-full text-xs md:text-[11px] font-semibold shadow-lg w-fit`}
                   onClick={() => {
                     if (isTop) {
+                      const userId = localStorage.getItem('currentUserId');
+                      const userEmail = localStorage.getItem('currentUserEmail');
+                      
+                      if (!userId || !userEmail) {
+                        console.log('🔒 User not authenticated, redirecting to login');
+                        window.location.href = '/login';
+                        return;
+                      }
+                      
                       if (isPlaying) {
                         stopAudio();
                       } else {
