@@ -22,9 +22,11 @@ if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && proc
   try {
     admin.initializeApp({
       credential: admin.credential.cert(credential),
+      projectId: process.env.FIREBASE_PROJECT_ID,
       storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
     });
     log('✅ Firebase Admin SDK initialized successfully via environment variables and Secret Manager.');
+    log(`📋 Project ID: ${process.env.FIREBASE_PROJECT_ID}`);
   } catch (error) {
     console.error('⚠️ Firebase Admin SDK initialization failed:', error);
   }
@@ -32,9 +34,17 @@ if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && proc
 } else {
   log('⚠️ Firebase Admin credentials not found in environment variables. Attempting default initialization.');
   // Fallback for local development or other environments where GOOGLE_APPLICATION_CREDENTIALS might be set.
+  // Also set projectId from GOOGLE_CLOUD_PROJECT (standard Cloud Run env var) or FIREBASE_PROJECT_ID
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.FIREBASE_PROJECT_ID;
+  
   try {
-    admin.initializeApp();
+    admin.initializeApp({
+      ...(projectId ? { projectId } : {})
+    });
     log('✅ Firebase Admin SDK initialized with default application credentials.');
+    if (projectId) {
+      log(`📋 Project ID: ${projectId}`);
+    }
   } catch(e) {
     log('⚠️ Could not initialize Firebase with default credentials.');
   }

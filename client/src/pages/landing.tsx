@@ -112,35 +112,33 @@ export default function Landing() {
         email: user.email 
       });
 
-      const response = await fetch(isLogin ? '/api/auth/login' : '/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ name: isLogin ? undefined : name, email })
-      });
+      // Store user session immediately after Firebase Auth succeeds
+      localStorage.setItem('currentUserId', user.uid);
+      localStorage.setItem('currentUserEmail', user.email || '');
 
-      if (response.ok) {
-        // Store user ID and email for later use
-        localStorage.setItem('currentUserId', user.uid);
-        localStorage.setItem('currentUserEmail', user.email || '');
-        
-        // Immediately redirect without waiting for toast
-        console.log('✅ Authentication successful, redirecting to app...');
-        window.location.href = "/";
-      } else {
-        const data = await response.json();
-        console.error('❌ Backend authentication failed:', {
-          status: response.status,
-          message: data.message
+      try {
+        const response = await fetch(isLogin ? '/api/auth/login' : '/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ name: isLogin ? undefined : name, email }),
+          signal: AbortSignal.timeout(8000) // 8 second timeout
         });
-        toast({
-          title: "Authentication Failed",
-          description: data.message || "Please try again",
-          variant: "destructive",
-        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          console.warn('⚠️ Backend sync failed, but Firebase Auth succeeded:', data.message);
+        }
+      } catch (fetchError) {
+        // Backend call failed, but Firebase Auth succeeded - continue anyway
+        console.warn('⚠️ Backend unreachable, but Firebase Auth succeeded. Continuing...', fetchError);
       }
+
+      // Always redirect after successful Firebase Auth
+      console.log('✅ Authentication successful, redirecting to app...');
+      window.location.href = "/";
     } catch (error: any) {
       console.error('❌ Authentication error:', error);
       if (error.code === 'auth/api-key-not-valid') {

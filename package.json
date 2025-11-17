@@ -5,11 +5,11 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "dotenv -e .env -- vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
-    "firebase:deploy": "npm run build && GOOGLE_APPLICATION_CREDENTIALS=firebase-service-account.json firebase deploy --only hosting",
+    "firebase:deploy": "npm run build && gcloud run deploy perala --image gcr.io/fast-planet-470408-f1/perala --platform managed --region us-central1 --allow-unauthenticated --set-env-vars=\"FIREBASE_PROJECT_ID=fast-planet-470408-f1,FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@fast-planet-470408-f1.iam.gserviceaccount.com,NODE_ENV=production,FYERS_APP_ID=BUXMASTNCH-100,FYERS_SECRET_KEY=TMA74Z9O0Z\" --update-secrets=\"FIREBASE_PRIVATE_KEY=firebase-private-key:latest,FYERS_ACCESS_TOKEN=fyers-access-token:latest\"",
     "firebase:login": "firebase login --no-localhost"
   },
   "dependencies": {
@@ -125,7 +125,7 @@
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
-    "typescript": "5.6.3",
+    "typescript": "^5.6.3",
     "vite": "^6.4.1"
   },
   "optionalDependencies": {
