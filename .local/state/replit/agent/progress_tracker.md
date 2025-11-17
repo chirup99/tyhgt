@@ -1146,3 +1146,14 @@
 [x] 560. Kept CustomEvent dispatch system for real-time banner updates
 [x] 561. Restarted workflow - server running successfully on port 5000
 [x] 562. ✅ CONNECT BUTTON SIMPLIFIED - NOW USES SIMPLE LOCALSTORAGE INSTEAD OF COMPLEX FIREBASE! ✅
+
+[x] 563. SET DEFAULT YOUTUBE LINK FOR ALL USERS - November 17, 2025 09:30 PM
+[x] 564. User requested: Default CNBC live stream visible to all users
+[x] 565. Updated default YouTube URL: https://www.youtube.com/watch?v=0AzLJkgUtAo
+[x] 566. Converted to embed format: https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1
+[x] 567. Updated three locations in live-banner.tsx:
+[x] 568.   - getDefaultBannerContent function (fallback when no custom URL)
+[x] 569.   - Initial state (what users see when page first loads)
+[x] 570.   - Clear handler fallback (what shows after clearing custom URL)
+[x] 571. Restarted workflow to apply changes
+[x] 572. ✅ ALL USERS NOW SEE CNBC LIVE STREAM BY DEFAULT ON BANNER ADS! ✅

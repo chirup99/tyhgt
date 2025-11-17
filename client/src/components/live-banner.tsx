@@ -35,7 +35,7 @@ const getDefaultBannerContent = (youtubeUrl?: string | null): BannerContent[] =>
       type: 'live_stream',
       title: 'Live Trading Stream',
       description: 'Watch live market analysis and trading strategies',
-      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1',
+      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1',
       isLive: true,
       priority: 'high'
     },
@@ -71,7 +71,7 @@ export function LiveBanner() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
 
-  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1');
+  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1');
 
   // Load saved URL from localStorage on mount
   useEffect(() => {
@@ -89,7 +89,7 @@ export function LiveBanner() {
         setYoutubeUrl(newUrl);
         setCurrentIndex(0);
       } else {
-        setYoutubeUrl('https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1');
+        setYoutubeUrl('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1');
         setCurrentIndex(0);
       }
     };
