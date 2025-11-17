@@ -1187,3 +1187,17 @@
 [x] 598.   - YouTube Player API integration working correctly
 [x] 599. Restarted workflow - server running successfully on port 5000
 [x] 600. ✅ NEOFEED BANNER NOW SHOWS CNBC LIVE STREAM WITH AUTO CAROUSEL CONTROL! ✅
+
+[x] 601. CAROUSEL AUTO-STOP FIX - November 17, 2025 09:50 PM  
+[x] 602. Issue identified: YouTube Player API onStateChange events not firing
+[x] 603. Root cause: YouTube Player API doesn't work properly with iframes that have pre-set src
+[x] 604. Solution implemented: Switched from YouTube Player API to postMessage API
+[x] 605. Removed YT.Player initialization code (lines 115-168)
+[x] 606. Added postMessage event listener to detect YouTube player state changes
+[x] 607. postMessage listens for 'infoDelivery' events from YouTube iframe
+[x] 608. PlayerState 1 (PLAYING) → stops carousel
+[x] 609. PlayerState 2 (PAUSED) or 0 (ENDED) → resumes carousel
+[x] 610. Added console logs for debugging: "🎥 YouTube Player State via postMessage"
+[x] 611. Sent listening message to YouTube iframe on mount
+[x] 612. Restarted workflow - server running successfully on port 5000
+[x] 613. ✅ CAROUSEL AUTO-STOP FIX IMPLEMENTED - TESTING REQUIRED! ✅

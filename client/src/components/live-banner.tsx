@@ -112,59 +112,36 @@ export function LiveBanner() {
       return;
     }
 
-    if (!(window as any).YT) {
-      const script = document.createElement('script');
-      script.src = 'https://www.youtube.com/iframe_api';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-
-    const initPlayer = () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
-
-      if ((window as any).YT && (window as any).YT.Player) {
-        try {
-          playerRef.current = new (window as any).YT.Player('youtube-player-iframe', {
-            events: {
-              onStateChange: (event: any) => {
-                console.log('🎥 YouTube Player State Changed:', event.data);
-                if (event.data === (window as any).YT.PlayerState.PLAYING) {
-                  console.log('▶️ YouTube video is PLAYING - pausing carousel');
-                  setYoutubePlayerState('playing');
-                } else if (event.data === (window as any).YT.PlayerState.PAUSED || 
-                           event.data === (window as any).YT.PlayerState.ENDED) {
-                  console.log('⏸️ YouTube video is PAUSED - resuming carousel');
-                  setYoutubePlayerState('paused');
-                }
-              },
-              onReady: () => {
-                console.log('✅ YouTube Player API Ready');
-              }
-            }
-          });
-        } catch (error) {
-          console.error('❌ Error initializing YouTube Player:', error);
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.event === 'infoDelivery' && data.info && data.info.playerState !== undefined) {
+          const playerState = data.info.playerState;
+          console.log('🎥 YouTube Player State via postMessage:', playerState);
+          
+          if (playerState === 1) {
+            console.log('▶️ YouTube video is PLAYING - stopping carousel');
+            setYoutubePlayerState('playing');
+          } else if (playerState === 2 || playerState === 0) {
+            console.log('⏸️ YouTube video is PAUSED or ENDED - resuming carousel');
+            setYoutubePlayerState('paused');
+          }
         }
+      } catch (e) {
       }
     };
 
-    if ((window as any).YT && (window as any).YT.Player) {
-      initPlayer();
-    } else {
-      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    window.addEventListener('message', handleMessage);
+
+    if (iframeRef.current) {
+      iframeRef.current.contentWindow?.postMessage('{"event":"listening","id":1}', '*');
     }
 
     return () => {
-      if (playerRef.current) {
-        try {
-          playerRef.current.destroy();
-        } catch (e) {
-          console.log('Error destroying player:', e);
-        }
-        playerRef.current = null;
-      }
+      window.removeEventListener('message', handleMessage);
     };
   }, [currentContent.youtubeEmbedUrl, currentIndex]);
 
