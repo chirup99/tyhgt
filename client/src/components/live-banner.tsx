@@ -21,7 +21,7 @@ import {
 interface LivestreamSettings {
   id: number;
   youtubeUrl: string | null;
-  updatedAt: Date;
+  updatedAt: string; // ISO string from API
 }
 
 interface BannerContent {
@@ -79,11 +79,19 @@ export function LiveBanner() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
 
-  // Fetch livestream settings from Firebase
-  const { data: settings } = useQuery<LivestreamSettings>({
+  // Fetch livestream settings from Firebase (uses default queryFn with credentials)
+  const { data: settings, error, isError } = useQuery<LivestreamSettings>({
     queryKey: ['/api/livestream-settings'],
     refetchInterval: 10000, // Refresh every 10 seconds
   });
+
+  // Handle fetch errors with user feedback
+  useEffect(() => {
+    if (isError) {
+      console.error('❌ LiveBanner failed to fetch settings:', error);
+      console.warn('⚠️ Displaying fallback banner due to fetch error');
+    }
+  }, [isError, error]);
 
   // Derive banner content dynamically from settings (reacts to both updates and clears)
   const bannerContent = useMemo(() => {

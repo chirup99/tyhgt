@@ -246,33 +246,57 @@ export function SigninDataWindow() {
 interface LivestreamSettings {
   id: number;
   youtubeUrl: string | null;
-  updatedAt: Date;
+  updatedAt: string; // ISO string from API
 }
 
 function LivestreamAdsControl() {
   const [streamLink, setStreamLink] = useState('');
   const { toast } = useToast();
 
-  // Fetch current livestream settings from Firebase
-  const { data: settings } = useQuery<LivestreamSettings>({
+  // Fetch current livestream settings from Firebase (uses default queryFn with credentials)
+  const { data: settings, isError, error } = useQuery<LivestreamSettings>({
     queryKey: ['/api/livestream-settings'],
     refetchInterval: 10000, // Refresh every 10 seconds
   });
 
+  // Show error toast if fetch fails
+  useEffect(() => {
+    if (isError) {
+      console.error('❌ Failed to fetch livestream settings:', error);
+      toast({
+        title: "Connection Error",
+        description: "Unable to fetch current banner settings. Please refresh the page.",
+        variant: "destructive"
+      });
+    }
+  }, [isError, error, toast]);
+
   // Update livestream settings mutation
   const updateSettings = useMutation({
-    mutationFn: async (youtubeUrl: string | null) => {
-      return await apiRequest<LivestreamSettings>('/api/livestream-settings', 'POST', { youtubeUrl });
+    mutationFn: async (payload: { youtubeUrl: string | null }) => {
+      const response = await apiRequest('/api/livestream-settings', 'POST', payload);
+      return response as LivestreamSettings;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/livestream-settings'] });
     },
+    onError: (error: Error) => {
+      console.error('❌ Failed to update livestream settings:', error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to save YouTube link to database. Please try again.",
+        variant: "destructive"
+      });
+    },
   });
 
-  // Initialize streamLink from fetched settings
+  // Keep streamLink in sync with fetched settings (updates after mutations)
   useEffect(() => {
     if (settings?.youtubeUrl) {
       setStreamLink(settings.youtubeUrl);
+    } else if (settings && settings.youtubeUrl === null) {
+      // Clear the input if Firebase has no URL
+      setStreamLink('');
     }
   }, [settings]);
 
@@ -286,6 +310,8 @@ function LivestreamAdsControl() {
       return;
     }
 
+    console.log('🔗 Connecting YouTube link:', streamLink);
+
     let embedUrl = streamLink;
     if (streamLink.includes('youtube.com/watch?v=')) {
       const videoId = streamLink.split('v=')[1]?.split('&')[0];
@@ -297,21 +323,28 @@ function LivestreamAdsControl() {
       embedUrl = `${streamLink}${streamLink.includes('?') ? '&' : '?'}enablejsapi=1`;
     }
 
+    console.log('📺 Converted to embed URL:', embedUrl);
+
     try {
-      await updateSettings.mutateAsync(embedUrl);
+      console.log('💾 Saving to Firebase via API...');
+      const result = await updateSettings.mutateAsync({ youtubeUrl: embedUrl });
+      console.log('✅ Firebase save successful:', result);
       
+      // Dispatch event to notify LiveBanner component
       window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
         detail: { url: embedUrl } 
       }));
+      console.log('📢 Event dispatched to LiveBanner');
 
       toast({
-        title: "Success",
-        description: "Banner updated! Check the Social Feed tab to see your new video.",
+        title: "✅ Connected Successfully",
+        description: "YouTube video is now live on NeoFeed banner! Old link has been replaced.",
       });
     } catch (error) {
+      console.error('❌ Connection failed:', error);
       toast({
-        title: "Error",
-        description: "Failed to update banner. Please try again.",
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to update banner. Please try again.",
         variant: "destructive"
       });
     }
@@ -319,7 +352,7 @@ function LivestreamAdsControl() {
 
   const handleClear = async () => {
     try {
-      await updateSettings.mutateAsync(null);
+      await updateSettings.mutateAsync({ youtubeUrl: null });
       setStreamLink('');
       
       window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
@@ -359,42 +392,7 @@ function LivestreamAdsControl() {
             onChange={(e) => setStreamLink(e.target.value)}
             data-testid="input-stream-link"
           />
-          <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
-            <p className="text-xs text-yellow-700 dark:text-yellow-400 font-medium mb-1">
-              ⚠️ Important: Not all YouTube videos can be embedded
-            </p>
-            <ul className="text-xs text-yellow-600 dark:text-yellow-500 space-y-1">
-              <li>• Videos must have "Allow embedding" enabled by creator</li>
-              <li>• Age-restricted or private videos won't work</li>
-              <li>• If you see "refused to connect", try a different video</li>
-            </ul>
-          </div>
-          <details className="text-xs">
-            <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline mb-2">
-              💡 Test with embeddable videos (click to expand)
-            </summary>
-            <div className="space-y-1 pl-4 text-muted-foreground">
-              <p className="font-medium">Try these working examples:</p>
-              <button 
-                onClick={() => setStreamLink('https://www.youtube.com/watch?v=jNQXAC9IVRw')}
-                className="text-left hover:text-blue-600 dark:hover:text-blue-400 block w-full"
-              >
-                • "Me at the zoo" (First YouTube video ever)
-              </button>
-              <button 
-                onClick={() => setStreamLink('https://www.youtube.com/watch?v=dQw4w9WgXcQ')}
-                className="text-left hover:text-blue-600 dark:hover:text-blue-400 block w-full"
-              >
-                • Popular music video (embedding enabled)
-              </button>
-              <button 
-                onClick={() => setStreamLink('https://www.youtube.com/watch?v=9bZkp7q19f0')}
-                className="text-left hover:text-blue-600 dark:hover:text-blue-400 block w-full"
-              >
-                • PSY - Gangnam Style
-              </button>
-            </div>
-          </details>
+
           <p className="text-xs text-muted-foreground">
             Paste any YouTube URL (watch, embed, or short link)
           </p>

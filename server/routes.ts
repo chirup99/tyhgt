@@ -5485,8 +5485,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get livestream settings (YouTube banner URL)
   app.get('/api/livestream-settings', async (req, res) => {
     try {
+      console.log('📺 Fetching livestream settings from Firebase...');
       const settings = await storage.getLivestreamSettings();
-      res.json(settings || { id: 1, youtubeUrl: null, updatedAt: new Date() });
+      console.log('✅ Livestream settings fetched:', settings);
+      res.json(settings || { id: 1, youtubeUrl: null, updatedAt: new Date().toISOString() });
     } catch (error: any) {
       console.error('❌ Error fetching livestream settings:', error.message);
       res.status(500).json({ error: 'Failed to fetch livestream settings' });
@@ -5498,17 +5500,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { insertLivestreamSettingsSchema } = await import("@shared/schema");
       
+      console.log('📺 Received livestream update request:', req.body);
+      
       // Validate request body with Zod
       const validationResult = insertLivestreamSettingsSchema.safeParse(req.body);
       if (!validationResult.success) {
+        console.error('❌ Validation failed:', validationResult.error.errors);
         return res.status(400).json({ error: 'Invalid request body', details: validationResult.error.errors });
       }
       
+      console.log('✅ Validation passed, saving to Firebase...');
       const settings = await storage.updateLivestreamSettings(validationResult.data);
+      console.log('✅ Firebase save successful! Settings:', settings);
+      console.log('🔄 Old YouTube link has been replaced with new one in Firebase');
+      
       res.json(settings);
     } catch (error: any) {
       console.error('❌ Error updating livestream settings:', error.message);
-      res.status(500).json({ error: 'Failed to update livestream settings' });
+      console.error('Stack trace:', error.stack);
+      res.status(500).json({ error: 'Failed to update livestream settings', details: error.message });
     }
   });
 
