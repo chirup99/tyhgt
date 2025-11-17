@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, RefreshCw, Mail, Clock, Database, Radio } from "lucide-react";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -243,70 +243,21 @@ export function SigninDataWindow() {
   );
 }
 
-interface LivestreamSettings {
-  id: number;
-  youtubeUrl: string | null;
-  updatedAt: string; // ISO string from API
-}
-
 function LivestreamAdsControl() {
   const [streamLink, setStreamLink] = useState('');
+  const [activeUrl, setActiveUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fetch current livestream settings from Firebase (uses default queryFn with credentials)
-  const { data: settings, isError, error } = useQuery<LivestreamSettings>({
-    queryKey: ['/api/livestream-settings'],
-    refetchInterval: 10000, // Refresh every 10 seconds
-  });
-
-  // Show error toast if fetch fails
+  // Load saved URL from localStorage on mount
   useEffect(() => {
-    if (isError) {
-      console.error('❌ Failed to fetch livestream settings:', error);
-      console.error('❌ Error details:', {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name,
-        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
-      });
-      toast({
-        title: "Connection Error",
-        description: `Unable to fetch banner settings: ${error?.message || 'Unknown error'}`,
-        variant: "destructive"
-      });
+    const savedUrl = localStorage.getItem('youtube_banner_url');
+    if (savedUrl) {
+      setActiveUrl(savedUrl);
+      setStreamLink(savedUrl);
     }
-  }, [isError, error, toast]);
+  }, []);
 
-  // Update livestream settings mutation
-  const updateSettings = useMutation({
-    mutationFn: async (payload: { youtubeUrl: string | null }) => {
-      const response = await apiRequest('POST', '/api/livestream-settings', payload);
-      return response as LivestreamSettings;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/livestream-settings'] });
-    },
-    onError: (error: Error) => {
-      console.error('❌ Failed to update livestream settings:', error);
-      toast({
-        title: "Connection Error",
-        description: "Failed to save YouTube link to database. Please try again.",
-        variant: "destructive"
-      });
-    },
-  });
-
-  // Keep streamLink in sync with fetched settings (updates after mutations)
-  useEffect(() => {
-    if (settings?.youtubeUrl) {
-      setStreamLink(settings.youtubeUrl);
-    } else if (settings && settings.youtubeUrl === null) {
-      // Clear the input if Firebase has no URL
-      setStreamLink('');
-    }
-  }, [settings]);
-
-  const handleConnect = async () => {
+  const handleConnect = () => {
     if (!streamLink.trim()) {
       toast({
         title: "Error",
@@ -316,8 +267,7 @@ function LivestreamAdsControl() {
       return;
     }
 
-    console.log('🔗 Connecting YouTube link:', streamLink);
-
+    // Convert to embed URL
     let embedUrl = streamLink;
     if (streamLink.includes('youtube.com/watch?v=')) {
       const videoId = streamLink.split('v=')[1]?.split('&')[0];
@@ -329,53 +279,34 @@ function LivestreamAdsControl() {
       embedUrl = `${streamLink}${streamLink.includes('?') ? '&' : '?'}enablejsapi=1`;
     }
 
-    console.log('📺 Converted to embed URL:', embedUrl);
+    // Save to localStorage
+    localStorage.setItem('youtube_banner_url', embedUrl);
+    setActiveUrl(embedUrl);
 
-    try {
-      console.log('💾 Saving to Firebase via API...');
-      const result = await updateSettings.mutateAsync({ youtubeUrl: embedUrl });
-      console.log('✅ Firebase save successful:', result);
-      
-      // Dispatch event to notify LiveBanner component
-      window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
-        detail: { url: embedUrl } 
-      }));
-      console.log('📢 Event dispatched to LiveBanner');
+    // Notify banner to update
+    window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
+      detail: { url: embedUrl } 
+    }));
 
-      toast({
-        title: "✅ Connected Successfully",
-        description: "YouTube video is now live on NeoFeed banner! Old link has been replaced.",
-      });
-    } catch (error) {
-      console.error('❌ Connection failed:', error);
-      toast({
-        title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to update banner. Please try again.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "✅ Connected",
+      description: "YouTube video is now playing on Social Feed banner!",
+    });
   };
 
-  const handleClear = async () => {
-    try {
-      await updateSettings.mutateAsync({ youtubeUrl: null });
-      setStreamLink('');
-      
-      window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
-        detail: { url: '' } 
-      }));
+  const handleClear = () => {
+    localStorage.removeItem('youtube_banner_url');
+    setStreamLink('');
+    setActiveUrl(null);
+    
+    window.dispatchEvent(new CustomEvent('livestream-url-updated', { 
+      detail: { url: '' } 
+    }));
 
-      toast({
-        title: "Cleared",
-        description: "Banner reset to default",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to clear banner. Please try again.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Cleared",
+      description: "Banner reset to default",
+    });
   };
 
   return (
@@ -404,13 +335,13 @@ function LivestreamAdsControl() {
           </p>
         </div>
 
-        {settings?.youtubeUrl && (
+        {activeUrl && (
           <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
             <p className="text-xs text-green-700 dark:text-green-400 font-medium">
               ✓ Active Banner URL
             </p>
             <p className="text-xs text-green-600 dark:text-green-500 truncate mt-1">
-              {settings.youtubeUrl}
+              {activeUrl}
             </p>
           </div>
         )}
@@ -419,16 +350,14 @@ function LivestreamAdsControl() {
           <Button 
             className="flex-1 bg-green-500 hover:bg-green-600 text-white"
             onClick={handleConnect}
-            disabled={updateSettings.isPending}
             data-testid="button-connect-stream"
           >
-            {updateSettings.isPending ? "Connecting..." : "Connect"}
+            Connect
           </Button>
-          {settings?.youtubeUrl && (
+          {activeUrl && (
             <Button 
               variant="outline"
               onClick={handleClear}
-              disabled={updateSettings.isPending}
               data-testid="button-clear-stream"
             >
               Clear

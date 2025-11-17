@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -17,12 +15,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-
-interface LivestreamSettings {
-  id: number;
-  youtubeUrl: string | null;
-  updatedAt: string; // ISO string from API
-}
 
 interface BannerContent {
   id: string;
@@ -79,43 +71,27 @@ export function LiveBanner() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
 
-  // Fetch livestream settings from Firebase (uses default queryFn with credentials)
-  const { data: settings, error, isError } = useQuery<LivestreamSettings>({
-    queryKey: ['/api/livestream-settings'],
-    refetchInterval: 10000, // Refresh every 10 seconds
-  });
+  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1');
 
-  // Handle fetch errors with user feedback
+  // Load saved URL from localStorage on mount
   useEffect(() => {
-    if (isError) {
-      console.error('❌ LiveBanner failed to fetch settings:', error);
-      console.error('❌ Error details:', {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name,
-        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
-      });
-      console.warn('⚠️ Displaying fallback banner due to fetch error');
+    const savedUrl = localStorage.getItem('youtube_banner_url');
+    if (savedUrl) {
+      setYoutubeUrl(savedUrl);
     }
-  }, [isError, error]);
+  }, []);
 
-  // Derive banner content dynamically from settings (reacts to both updates and clears)
-  const bannerContent = useMemo(() => {
-    const youtubeUrl = settings?.youtubeUrl || 'https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1';
-    console.log('📺 Deriving banner content with YouTube URL:', youtubeUrl);
-    return getDefaultBannerContent(youtubeUrl);
-  }, [settings]);
-  
-  const currentContent = bannerContent[currentIndex];
-
-  // Listen for CustomEvent updates and invalidate query to refetch
+  // Listen for URL updates from LivestreamAdsControl
   useEffect(() => {
     const handleUrlUpdate = (event: CustomEvent) => {
       const newUrl = event.detail.url;
-      console.log('📺 Received livestream URL update event:', newUrl);
-      // Invalidate query to trigger refetch from Firebase
-      queryClient.invalidateQueries({ queryKey: ['/api/livestream-settings'] });
-      setCurrentIndex(0);
+      if (newUrl) {
+        setYoutubeUrl(newUrl);
+        setCurrentIndex(0);
+      } else {
+        setYoutubeUrl('https://www.youtube.com/embed/6pMBUfHhXtQ?enablejsapi=1');
+        setCurrentIndex(0);
+      }
     };
 
     window.addEventListener('livestream-url-updated', handleUrlUpdate as EventListener);
@@ -123,6 +99,12 @@ export function LiveBanner() {
       window.removeEventListener('livestream-url-updated', handleUrlUpdate as EventListener);
     };
   }, []);
+
+  const bannerContent = useMemo(() => {
+    return getDefaultBannerContent(youtubeUrl);
+  }, [youtubeUrl]);
+  
+  const currentContent = bannerContent[currentIndex];
 
   useEffect(() => {
     if (!currentContent.youtubeEmbedUrl) {
