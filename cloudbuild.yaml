@@ -1,74 +1,16 @@
 
-# This is the definitive, correct, and final Cloud Build configuration.
-# It defines the entire build, push, and deploy pipeline.
-
 steps:
-  # Step 1: Build the container image.
-  # This passes the public, build-time variables to the Vite frontend.
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'Build'
-    args:
-      - 'build'
-      - '--build-arg'
-      - 'VITE_FIREBASE_API_KEY=${_VITE_FIREBASE_API_KEY}'
-      - '--build-arg'
-      - 'VITE_FIREBASE_AUTH_DOMAIN=${_VITE_FIREBASE_AUTH_DOMAIN}'
-      - '--build-arg'
-      - 'VITE_FIREBASE_PROJECT_ID=${_VITE_FIREBASE_PROJECT_ID}'
-      - '--build-arg'
-      - 'VITE_FIREBASE_STORAGE_BUCKET=${_VITE_FIREBASE_STORAGE_BUCKET}'
-      - '--build-arg'
-      - 'VITE_FIREBASE_MESSAGING_SENDER_ID=${_VITE_FIREBASE_MESSAGING_SENDER_ID}'
-      - '--build-arg'
-      - 'VITE_FIREBASE_APP_ID=${_VITE_FIREBASE_APP_ID}'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/perala:$BUILD_ID'
-      - '-f'
-      - 'Dockerfile'
-      - '.'
-
-  # Step 2: Push the container image to Google Container Registry.
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'Push'
-    args: ['push', 'gcr.io/$PROJECT_ID/perala:$BUILD_ID']
-
-  # Step 3: Deploy the image to Cloud Run with the complete configuration.
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'Deploy'
-    entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - 'perala'
-      - '--image'
-      - 'gcr.io/$PROJECT_ID/perala:$BUILD_ID'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      # Set all non-sensitive runtime environment variables.
-      - '--set-env-vars'
-      - >-
-        NODE_ENV=production,DATABASE_URL=${_DATABASE_URL},FIREBASE_API_KEY=${_VITE_FIREBASE_API_KEY},FIREBASE_AUTH_DOMAIN=${_VITE_FIREBASE_AUTH_DOMAIN},FIREBASE_PROJECT_ID=${_VITE_FIREBASE_PROJECT_ID},FIREBASE_STORAGE_BUCKET=${_VITE_FIREBASE_STORAGE_BUCKET},FIREBASE_MESSAGING_SENDER_ID=${_VITE_FIREBASE_MESSAGING_SENDER_ID},FIREBASE_APP_ID=${_VITE_FIREBASE_APP_ID},FIREBASE_CLIENT_EMAIL=${_FIREBASE_CLIENT_EMAIL},GOOGLE_CLOUD_PROJECT_ID=${_GOOGLE_CLOUD_PROJECT_ID},GOOGLE_CLOUD_CLIENT_EMAIL=${_GOOGLE_CLOUD_CLIENT_EMAIL},GOOGLE_CLOUD_BACKUP_ENABLED=false
-      # Securely mount all secrets.
-      - '--set-secrets'
-      - >-
-        FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,GOOGLE_CLOUD_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,FYERS_APP_ID=FYERS_APP_ID:latest,FYERS_SECRET_KEY=FYERS_SECRET_KEY:latest,FYERS_ACCESS_TOKEN=FYERS_ACCESS_TOKEN:latest
-
-# List the images that will be built.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '--build-arg', 'VITE_FIREBASE_API_KEY=${_VITE_FIREBASE_API_KEY}',
+    '--build-arg', 'VITE_FIREBASE_AUTH_DOMAIN=${_VITE_FIREBASE_AUTH_DOMAIN}',
+    '--build-arg', 'VITE_FIREBASE_PROJECT_ID=${_VITE_FIREBASE_PROJECT_ID}',
+    '--build-arg', 'VITE_FIREBASE_STORAGE_BUCKET=${_VITE_FIREBASE_STORAGE_BUCKET}',
+    '--build-arg', 'VITE_FIREBASE_MESSAGING_SENDER_ID=${_VITE_FIREBASE_MESSAGING_SENDER_ID}',
+    '--build-arg', 'VITE_FIREBASE_APP_ID=${_VITE_FIREBASE_APP_ID}',
+    '-t', 'gcr.io/$PROJECT_ID/perala',
+    '.'
+  ]
 images:
-  - 'gcr.io/$PROJECT_ID/perala:$BUILD_ID'
-
-# All substitution variables expected by this script.
-substitutions:
-  _VITE_FIREBASE_API_KEY: ''
-  _VITE_FIREBASE_AUTH_DOMAIN: ''
-  _VITE_FIREBASE_PROJECT_ID: ''
-  _VITE_FIREBASE_STORAGE_BUCKET: ''
-  _VITE_FIREBASE_MESSAGING_SENDER_ID: ''
-  _VITE_FIREBASE_APP_ID: ''
-  _DATABASE_URL: ''
-  _FIREBASE_CLIENT_EMAIL: ''
-  _GOOGLE_CLOUD_PROJECT_ID: ''
-  _GOOGLE_CLOUD_CLIENT_EMAIL: ''
+- 'gcr.io/$PROJECT_ID/perala'

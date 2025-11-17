@@ -1,27 +1,34 @@
 #!/bin/bash
-# Build Docker image and deploy to Cloud Run
+# Build and Deploy with environment variables
 
 set -e
 
-PROJECT_ID="fast-planet-470408-f1"
-SERVICE_NAME="perala"
-IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest"
+echo "🚀 Building and Deploying with environment variables..."
+echo "=================================================="
 
-echo "🏗️  Step 1: Building Docker image..."
-docker build -t ${IMAGE_NAME} -f Dockerfile .
+# Load environment variables from .env file
+if [ -f .env ]; then
+  export $(cat .env | sed 's/#.*//g' | xargs)
+fi
 
-echo "📤 Step 2: Pushing to Google Container Registry..."
-docker push ${IMAGE_NAME}
+# Trigger Cloud Build
+gcloud builds submit --config cloudbuild.yaml --substitutions=\
+"_VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY,_VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN,_VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID,_VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET,_VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID,_VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID"
 
-echo "🚀 Step 3: Deploying to Cloud Run..."
-gcloud run deploy ${SERVICE_NAME} \
-  --image=${IMAGE_NAME} \
-  --region=us-central1 \
+# Deploy to Cloud Run
+gcloud run deploy perala \
+  --image gcr.io/fast-planet-470408-f1/perala \
+  --region=asia-south1 \
+  --project=fast-planet-470408-f1 \
   --platform=managed \
   --allow-unauthenticated \
-  --memory=2Gi \
+  --port=8080 \
+  --memory=4Gi \
   --cpu=2 \
-  --timeout=300
-
-echo "✅ Deployment complete!"
-gcloud run services describe ${SERVICE_NAME} --region=us-central1 --format='value(status.url)'
+  --timeout=900 \
+  --cpu-boost \
+  --concurrency=80 \
+  --min-instances=0 \
+  --max-instances=10 \
+  --service-account=perala@fast-planet-470408-f1.iam.gserviceaccount.com \
+  --set-env-vars="NODE_ENV=production"

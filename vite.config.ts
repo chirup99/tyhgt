@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+// The public URL of your Cloud Workstation, used for HMR.
+const hmrHost = '5000-firebase-tyhgtgit-1763291535620.cluster-m7dwy2bmizezqukxkuxd55k5ka.cloudworkstations.dev';
+
 export default defineConfig({
   plugins: [
     react(),
@@ -33,7 +36,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443,
+      protocol: 'wss',
+      host: hmrHost,
+      clientPort: 443
     },
     fs: {
       strict: true,

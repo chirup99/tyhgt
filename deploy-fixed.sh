@@ -1,50 +1,44 @@
 #!/bin/bash
-# Deploy to Google Cloud Run, correctly passing build-time arguments for Firebase.
+# Corrected Cloud Run Backend Deployment Script
+
 set -e
 
-# Load environment variables from .env file
-if [ ! -f .env ]; then
-  echo "Error: .env file not found."
-  exit 1
-fi
-set -o allexport
-source .env
-set +o allexport
+echo "🚀 Deploying Backend to Cloud Run..."
+echo "====================================="
 
-# --- Your variables ---
 PROJECT_ID="fast-planet-470408-f1"
 SERVICE_NAME="perala"
-REGION="us-central1"
+REGION="asia-south1"
 
-# Create a comma-separated list of substitutions for the Cloud Build process.
-# These are the variables your `cloudbuild.yaml` expects.
-SUBSTITUTIONS=""
-SUBSTITUTIONS+="_VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY},"
-SUBSTITUTIONS+="_VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN},"
-SUBSTITUTIONS+="_VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID},"
-SUBSTITUTIONS+="_VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET},"
-SUBSTITUTIONS+="_VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID},"
-SUBSTITUTIONS+="_VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID},"
-# Also include backend variables if they are used in the build
-SUBSTITUTIONS+="_FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID},"
-SUBSTITUTIONS+="_FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL},"
-# The private key needs special handling for newlines
-SUBSTITUTIONS+="_FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY},"
-SUBSTITUTIONS+="_GEMINI_API_KEY=${GEMINI_API_KEY},"
-SUBSTITUTIONS+="_FYERS_APP_ID=${FYERS_APP_ID},"
-SUBSTITUTIONS+="_FYERS_SECRET_KEY=${FYERS_SECRET_KEY},"
-SUBSTITUTIONS+="_FYERS_ACCESS_TOKEN=${FYERS_ACCESS_TOKEN}"
+echo ""
+echo "🐳 Building and deploying to Cloud Run..."
+echo "Using optimized Dockerfile.cloudrun"
 
-echo "🚀 Starting secure deployment to Cloud Run..."
+# Build the docker image using Cloud Build, specifying the correct Dockerfile
+gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME --file=Dockerfile.cloudrun .
 
-# Deploy using `gcloud run deploy` with the --source flag.
-# The --substitutions flag will pass the variables to the underlying Cloud Build process.
+# Deploy the image to Cloud Run
 gcloud run deploy $SERVICE_NAME \
-  --source . \
+  --image gcr.io/$PROJECT_ID/$SERVICE_NAME \
   --region=$REGION \
+  --project=$PROJECT_ID \
   --platform=managed \
   --allow-unauthenticated \
-  --project=$PROJECT_ID \
-  --substitutions="$SUBSTITUTIONS"
+  --port=8080 \
+  --memory=4Gi \
+  --cpu=2 \
+  --timeout=900 \
+  --cpu-boost \
+  --concurrency=80 \
+  --min-instances=0 \
+  --max-instances=10 \
+  --service-account=perala@fast-planet-470408-f1.iam.gserviceaccount.com \
+  --set-env-vars="NODE_ENV=production"
 
-echo "✅ Deployment submitted. Check the Google Cloud Console for status."
+echo ""
+echo "✅ Deployment Complete!"
+echo "Backend URL: $(gcloud run services describe $SERVICE_NAME --region=$REGION --project=$PROJECT_ID --format='value(status.url)')"
+echo ""
+echo "🔍 Test health endpoint:"
+echo "curl $(gcloud run services describe $SERVICE_NAME --region=$REGION --project=$PROJECT_ID --format='value(status.url)')/health"
+echo ""
