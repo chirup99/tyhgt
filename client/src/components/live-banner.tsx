@@ -172,15 +172,17 @@ export function LiveBanner() {
     if (!isPlaying) return;
     
     if (currentContent.youtubeEmbedUrl && youtubePlayerState === 'playing') {
+      console.log('🛑 Carousel auto-play STOPPED - YouTube video is playing');
       return;
     }
     
+    console.log('▶️ Carousel auto-play ACTIVE - slides will change every 5 seconds');
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % bannerContent.length);
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [isPlaying, currentContent.youtubeEmbedUrl, youtubePlayerState]);
+  }, [isPlaying, currentContent.youtubeEmbedUrl, youtubePlayerState, bannerContent.length]);
 
   const pauseYouTube = () => {
     if (iframeRef.current && currentContent.youtubeEmbedUrl) {
