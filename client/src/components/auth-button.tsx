@@ -14,6 +14,7 @@ export function AuthButton() {
   const [authCode, setAuthCode] = useState("");
   const [showTokenInput, setShowTokenInput] = useState(true);
   const [showCodeInput, setShowCodeInput] = useState(false);
+  const [manualAuthUrl, setManualAuthUrl] = useState<string | null>(null);
 
   const { data: apiStatus } = useQuery<ApiStatus>({
     queryKey: ["/api/status"],
@@ -119,18 +120,40 @@ export function AuthButton() {
       return authData.authUrl;
     },
     onSuccess: (authUrl) => {
-      // Open Fyers authentication in new window
-      window.open(authUrl, '_blank', 'width=600,height=700');
+      // Store the auth URL for manual access
+      setManualAuthUrl(authUrl);
+      
+      // Try to open Fyers authentication in new window
+      const popup = window.open(authUrl, '_blank', 'width=600,height=700,noopener,noreferrer');
 
-      toast({
-        title: "Authentication Started",
-        description: "Please complete authentication in the popup window.",
-      });
+      // Check if popup was blocked
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        // Popup was blocked, show direct link instead
+        toast({
+          title: "Popup Blocked",
+          description: "Click the 'Open Authentication' link below to authenticate manually.",
+          variant: "destructive",
+        });
+        
+        // Show the auth code input field with the URL as a clickable link
+        setShowCodeInput(true);
+        setShowTokenInput(false);
+      } else {
+        // Popup opened successfully
+        toast({
+          title: "Authentication Started",
+          description: "Please complete authentication in the popup window, then paste the code from the redirect URL.",
+        });
+        
+        // Automatically show code input for when user returns with the code
+        setShowCodeInput(true);
+        setShowTokenInput(false);
+      }
     },
     onError: (error) => {
       toast({
         title: "Authentication Failed",
-        description: "Failed to start authentication process.",
+        description: "Failed to start authentication process. Please try again or use the manual token input.",
         variant: "destructive",
       });
     },
@@ -312,6 +335,24 @@ export function AuthButton() {
         {/* Authorization Code Input */}
         {showCodeInput && (
           <form onSubmit={handleCodeSubmit}>
+            {manualAuthUrl && (
+              <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-xs text-blue-800 mb-2">
+                  If the popup was blocked, click the button below to authenticate manually:
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => window.open(manualAuthUrl, '_blank', 'noopener,noreferrer')}
+                  variant="outline"
+                  size="sm"
+                  className="border-[hsl(207,90%,54%)] text-[hsl(207,90%,54%)] hover:bg-[hsl(207,90%,54%)]/10"
+                  data-testid="button-manual-auth"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Open Authentication Page
+                </Button>
+              </div>
+            )}
             <div className="flex items-end space-x-3">
               <div className="flex-1">
                 <Label htmlFor="authCode" className="text-xs text-blue-900">
