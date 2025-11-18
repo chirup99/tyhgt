@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Radio, Play, Heart, MessageCircle, Share } from 'lucide-react';
@@ -43,6 +43,7 @@ export function AudioMinicastCard({
   const [isPlaying, setIsPlaying] = useState(false);
   const [localLiked, setLocalLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
+  const previousCardIdRef = useRef<string | null>(null);
 
   const [cards, setCards] = useState<AudioCard[]>(() => {
     console.log('🎧 AudioMinicastCard Initializing:', {
@@ -51,9 +52,8 @@ export function AudioMinicastCard({
       hasPosts: selectedPosts.length > 0
     });
     
-    const allCards: AudioCard[] = [
-      { id: 'main', type: 'main', content, colorIndex: 0 }
-    ];
+    // Only include posts with actual content (not the main announcement card)
+    const allCards: AudioCard[] = [];
     
     // Only include posts with actual content (not placeholders or empty content)
     if (selectedPosts.length > 0) {
@@ -75,7 +75,7 @@ export function AudioMinicastCard({
             type: 'post',
             content: post.content,
             postId: post.id,
-            colorIndex: (idx + 1) % 5
+            colorIndex: idx % 5
           });
         } else {
           console.log(`  Skipping card ${idx + 1}: No real content`);
@@ -83,9 +83,47 @@ export function AudioMinicastCard({
       });
     }
     
-    console.log('📋 Total cards created:', allCards.length);
+    console.log('📋 Total content cards created:', allCards.length);
     return allCards;
   });
+
+  // Auto-play when swiping to a new card
+  useEffect(() => {
+    const currentCard = cards[0];
+    if (currentCard && currentCard.id !== previousCardIdRef.current) {
+      previousCardIdRef.current = currentCard.id;
+      
+      // Only auto-play content cards (not the main card)
+      if (currentCard.type === 'post') {
+        // Stop any current playback
+        window.speechSynthesis.cancel();
+        
+        // Start playing the new card
+        const textToSpeak = cleanTextForSpeech(currentCard.content);
+        console.log('🎵 Auto-playing card:', {
+          cardId: currentCard.id,
+          textLength: textToSpeak.length,
+          textPreview: textToSpeak.substring(0, 100) + '...'
+        });
+        
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        utterance.onend = () => {
+          setIsPlaying(false);
+        };
+        
+        utterance.onerror = () => {
+          setIsPlaying(false);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+        setIsPlaying(true);
+      }
+    }
+  }, [cards]);
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -115,10 +153,10 @@ export function AudioMinicastCard({
   const getGradient = (idx: number) => {
     const gradients = [
       { from: 'from-blue-500', to: 'to-blue-600', label: 'AUDIO MINICAST', icon: '🎙️' },
-      { from: 'from-purple-500', to: 'to-purple-600', label: 'POST 1', icon: '📊' },
-      { from: 'from-pink-500', to: 'to-pink-600', label: 'POST 2', icon: '📈' },
-      { from: 'from-indigo-500', to: 'to-indigo-600', label: 'POST 3', icon: '💡' },
-      { from: 'from-cyan-500', to: 'to-cyan-600', label: 'POST 4', icon: '🎯' },
+      { from: 'from-purple-500', to: 'to-purple-600', label: 'MINICAST 1', icon: '📊' },
+      { from: 'from-pink-500', to: 'to-pink-600', label: 'MINICAST 2', icon: '📈' },
+      { from: 'from-indigo-500', to: 'to-indigo-600', label: 'MINICAST 3', icon: '💡' },
+      { from: 'from-cyan-500', to: 'to-cyan-600', label: 'MINICAST 4', icon: '🎯' },
     ];
     return gradients[idx % gradients.length];
   };
@@ -140,34 +178,34 @@ export function AudioMinicastCard({
       window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
-      // Only read the currently visible (top) card's content
+      // Only read content cards (not the main announcement card)
       const currentCard = cards[0];
-      const rawText = currentCard ? currentCard.content : content;
-      const textToSpeak = cleanTextForSpeech(rawText);
-      
-      console.log('🔊 Playing audio:', {
-        currentCardId: currentCard?.id,
-        currentCardType: currentCard?.type,
-        rawTextLength: rawText?.length || 0,
-        cleanTextLength: textToSpeak?.length || 0,
-        cleanTextPreview: textToSpeak?.substring(0, 100) + '...'
-      });
-      
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      utterance.onend = () => {
-        setIsPlaying(false);
-      };
-      
-      utterance.onerror = () => {
-        setIsPlaying(false);
-      };
-      
-      window.speechSynthesis.speak(utterance);
-      setIsPlaying(true);
+      if (currentCard && currentCard.type === 'post') {
+        const textToSpeak = cleanTextForSpeech(currentCard.content);
+        
+        console.log('🔊 Playing audio:', {
+          currentCardId: currentCard.id,
+          currentCardType: currentCard.type,
+          textLength: textToSpeak.length,
+          textPreview: textToSpeak.substring(0, 100) + '...'
+        });
+        
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        utterance.onend = () => {
+          setIsPlaying(false);
+        };
+        
+        utterance.onerror = () => {
+          setIsPlaying(false);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+        setIsPlaying(true);
+      }
     }
   }
 
@@ -432,39 +470,40 @@ export function AudioMinicastCard({
                     </div>
 
                     {/* Card content */}
-                    <div className="relative z-10">
-                      <div className="text-[8px] text-white/80 mb-1 uppercase tracking-wide font-medium">
-                        {gradient.label}
-                      </div>
-                      <h3 className="text-xs font-bold text-white mb-2 leading-tight">
-                        {card.type === 'main' ? (
-                          <>
-                            Latest in
-                            <br />
-                            {author.displayName.toLowerCase()}
-                          </>
-                        ) : (
-                          <span className="opacity-0">
-                            {/* Hidden text for spacing */}
-                            Content
-                          </span>
-                        )}
-                      </h3>
-                      <button
-                        className="bg-white text-gray-800 hover:bg-gray-100 px-2 py-1 rounded-full text-[10px] font-medium shadow-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isTop) {
-                            togglePlay();
-                          }
-                        }}
-                        data-testid="button-play-audio-card"
-                      >
-                        <div className="flex items-center gap-1">
-                          <Play className="w-2 h-2" />
-                          <span>{isPlaying ? 'Playing' : 'Play Now'}</span>
+                    <div className="relative z-10 h-full flex flex-col">
+                      {/* Top section - Centered Play Button */}
+                      <div className="flex flex-col items-center gap-1 mb-2">
+                        <div className="text-[8px] text-white/80 uppercase tracking-wide font-medium">
+                          {gradient.label}
                         </div>
-                      </button>
+                        <button
+                          className="bg-white text-gray-800 hover:bg-gray-100 px-3 py-1.5 rounded-full text-[10px] font-medium shadow-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isTop) {
+                              togglePlay();
+                            }
+                          }}
+                          data-testid="button-play-audio-card"
+                        >
+                          <div className="flex items-center gap-1">
+                            <Play className="w-2.5 h-2.5" />
+                            <span>{isPlaying ? 'Playing' : 'Play Now'}</span>
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Username section - Center */}
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-white/90 text-[10px] font-medium mb-0.5">
+                            @{author.username}
+                          </div>
+                          <div className="text-white font-bold text-xs leading-tight">
+                            {author.displayName}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Icon */}
