@@ -68,16 +68,21 @@ export function LiveBanner() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [youtubePlayerState, setYoutubePlayerState] = useState<'playing' | 'paused' | null>(null);
+  const [isScrolling, setIsScrolling] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&pp=ygUJY25iYyBsaXZl');
+  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&modestbranding=1&controls=0&showinfo=0&rel=0&pp=ygUJY25iYyBsaXZl');
 
   // Load saved URL from localStorage on mount
   useEffect(() => {
     const savedUrl = localStorage.getItem('youtube_banner_url');
     if (savedUrl) {
-      setYoutubeUrl(savedUrl);
+      const cleanUrl = savedUrl.includes('?') 
+        ? `${savedUrl}&modestbranding=1&controls=0&showinfo=0&rel=0`
+        : `${savedUrl}?modestbranding=1&controls=0&showinfo=0&rel=0`;
+      setYoutubeUrl(cleanUrl);
     }
   }, []);
 
@@ -86,10 +91,13 @@ export function LiveBanner() {
     const handleUrlUpdate = (event: CustomEvent) => {
       const newUrl = event.detail.url;
       if (newUrl) {
-        setYoutubeUrl(newUrl);
+        const cleanUrl = newUrl.includes('?') 
+          ? `${newUrl}&modestbranding=1&controls=0&showinfo=0&rel=0`
+          : `${newUrl}?modestbranding=1&controls=0&showinfo=0&rel=0`;
+        setYoutubeUrl(cleanUrl);
         setCurrentIndex(0);
       } else {
-        setYoutubeUrl('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&pp=ygUJY25iYyBsaXZl');
+        setYoutubeUrl('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&modestbranding=1&controls=0&showinfo=0&rel=0&pp=ygUJY25iYyBsaXZl');
         setCurrentIndex(0);
       }
     };
@@ -105,6 +113,42 @@ export function LiveBanner() {
   }, [youtubeUrl]);
   
   const currentContent = bannerContent[currentIndex];
+
+  // Detect scrolling and pause YouTube video (moved here after currentContent is defined)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!currentContent.youtubeEmbedUrl) return;
+      
+      setIsScrolling(true);
+      
+      // Pause YouTube video when scrolling
+      if (iframeRef.current && youtubePlayerState === 'playing') {
+        console.log('📜 Scroll detected - pausing YouTube video');
+        iframeRef.current.contentWindow?.postMessage(
+          '{"event":"command","func":"pauseVideo","args":""}', 
+          '*'
+        );
+      }
+      
+      // Clear previous timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      // Set scroll as stopped after 150ms of no scrolling
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [currentContent.youtubeEmbedUrl, youtubePlayerState]);
 
   useEffect(() => {
     if (!currentContent.youtubeEmbedUrl) {
@@ -148,16 +192,19 @@ export function LiveBanner() {
   useEffect(() => {
     if (!isPlaying) return;
     
+    // Stop carousel rotation when YouTube video is playing
     if (currentContent.youtubeEmbedUrl && youtubePlayerState === 'playing') {
+      console.log('⏸️ Carousel paused - YouTube video is playing');
       return;
     }
     
+    // Resume carousel when video is paused or not present
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % bannerContent.length);
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [isPlaying, currentContent.youtubeEmbedUrl, youtubePlayerState]);
+  }, [isPlaying, currentContent.youtubeEmbedUrl, youtubePlayerState, bannerContent.length]);
 
   const pauseYouTube = () => {
     if (iframeRef.current && currentContent.youtubeEmbedUrl) {
@@ -201,20 +248,62 @@ export function LiveBanner() {
     }
   };
 
+  const toggleYouTubePlayback = () => {
+    if (!iframeRef.current || !currentContent.youtubeEmbedUrl) return;
+    
+    if (youtubePlayerState === 'playing') {
+      console.log('⏸️ Pausing YouTube video');
+      iframeRef.current.contentWindow?.postMessage(
+        '{"event":"command","func":"pauseVideo","args":""}', 
+        '*'
+      );
+    } else {
+      console.log('▶️ Playing YouTube video');
+      iframeRef.current.contentWindow?.postMessage(
+        '{"event":"command","func":"playVideo","args":""}', 
+        '*'
+      );
+    }
+  };
+
   return (
     <Card className="w-full h-32 md:h-48 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 flex items-center justify-center">
         {currentContent.youtubeEmbedUrl ? (
-          <iframe
-            id="youtube-player-iframe"
-            ref={iframeRef}
-            src={currentContent.youtubeEmbedUrl}
-            title={currentContent.title}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            data-testid="banner-youtube-iframe"
-          />
+          <>
+            <iframe
+              id="youtube-player-iframe"
+              ref={iframeRef}
+              src={currentContent.youtubeEmbedUrl}
+              title={currentContent.title}
+              className="w-full h-full object-cover"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              data-testid="banner-youtube-iframe"
+              style={{ border: 'none' }}
+            />
+            
+            <div className="absolute top-2 left-2 md:top-3 md:left-3 flex items-center gap-2 z-20">
+              <button
+                onClick={toggleYouTubePlayback}
+                className="bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 md:p-2 transition-all backdrop-blur-sm"
+                data-testid="button-youtube-play-overlay"
+              >
+                {youtubePlayerState === 'playing' ? (
+                  <Pause className="w-3 h-3 md:w-4 md:h-4" />
+                ) : (
+                  <Play className="w-3 h-3 md:w-4 md:h-4 ml-0.5" />
+                )}
+              </button>
+              
+              {currentContent.isLive && (
+                <div className="bg-red-500 text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-semibold animate-pulse flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                  LIVE
+                </div>
+              )}
+            </div>
+          </>
         ) : currentContent.imageUrl ? (
           <img
             src={currentContent.imageUrl}
