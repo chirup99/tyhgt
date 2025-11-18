@@ -302,7 +302,13 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setViewMode(viewMode === 'audio' ? 'post' : 'audio')}
+                onClick={() => {
+                  if (viewMode === 'audio' && onMinimize) {
+                    onMinimize();
+                  } else {
+                    setViewMode(viewMode === 'audio' ? 'post' : 'audio');
+                  }
+                }}
                 className={`p-2 h-8 w-8 rounded-full ${
                   viewMode === 'audio' 
                     ? 'bg-purple-100 dark:bg-purple-900/30' 
