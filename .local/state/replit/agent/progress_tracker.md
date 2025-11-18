@@ -358,4 +358,9 @@
 [x] 936. Architect approved security fix - no remaining vulnerabilities detected
 [x] 937. Restarted workflow - server running successfully with secure CORS
 [x] 938. All tasks completed and architect-reviewed
-[x] 939. ✅ CLOUD RUN POST CREATION FIX COMPLETED - SECURE AND PRODUCTION-READY! ✅
+[x] 939. User feedback: Already has VITE_API_URL environment variable configured
+[x] 940. Updated CORS to use existing VITE_API_URL instead of new CLOUD_RUN_URL variable
+[x] 941. Architect approved: Using VITE_API_URL for CORS is sound and consistent
+[x] 942. Single-source configuration - same variable for frontend fetch and backend CORS
+[x] 943. Restarted workflow - final configuration verified and working
+[x] 944. ✅ CLOUD RUN POST CREATION FIX COMPLETED - SECURE AND PRODUCTION-READY! ✅

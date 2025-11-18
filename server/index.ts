@@ -81,8 +81,8 @@ app.use((req, res, next) => {
     // Firebase Hosting domains for this specific project
     'https://fast-planet-470408-f1.web.app',
     'https://fast-planet-470408-f1.firebaseapp.com',
-    // Cloud Run URL (set via environment variable)
-    process.env.CLOUD_RUN_URL ? process.env.CLOUD_RUN_URL : null,
+    // Cloud Run URL (from existing VITE_API_URL environment variable)
+    process.env.VITE_API_URL ? process.env.VITE_API_URL : null,
     // Replit development domain
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
   ].filter(Boolean);
