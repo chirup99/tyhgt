@@ -64,10 +64,6 @@ fi
 if [ -n "$FIREBASE_CLIENT_EMAIL" ]; then
     BACKEND_ENV_VARS="${BACKEND_ENV_VARS}FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL},"
 fi
-if [ -n "$FIREBASE_PRIVATE_KEY" ]; then
-    FIREBASE_PRIVATE_KEY_SINGLE_LINE=$(echo "$FIREBASE_PRIVATE_KEY" | tr '\n' ' ' | sed 's/  */ /g')
-    BACKEND_ENV_VARS="${BACKEND_ENV_VARS}FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY_SINGLE_LINE},"
-fi
 
 # Add Google Cloud credentials
 if [ -n "$GOOGLE_CLOUD_PROJECT_ID" ]; then
@@ -81,20 +77,10 @@ if [ -n "$GOOGLE_CLOUD_PRIVATE_KEY" ]; then
     BACKEND_ENV_VARS="${BACKEND_ENV_VARS}GOOGLE_CLOUD_PRIVATE_KEY=${GOOGLE_CLOUD_PRIVATE_KEY_SINGLE_LINE},"
 fi
 
-# Add Gemini API key
-if [ -n "$GEMINI_API_KEY" ]; then
-    BACKEND_ENV_VARS="${BACKEND_ENV_VARS}GEMINI_API_KEY=${GEMINI_API_KEY},"
-fi
 
 # Add Fyers API credentials
 if [ -n "$FYERS_APP_ID" ]; then
     BACKEND_ENV_VARS="${BACKEND_ENV_VARS}FYERS_APP_ID=${FYERS_APP_ID},"
-fi
-if [ -n "$FYERS_SECRET_KEY" ]; then
-    BACKEND_ENV_VARS="${BACKEND_ENV_VARS}FYERS_SECRET_KEY=${FYERS_SECRET_KEY},"
-fi
-if [ -n "$FYERS_ACCESS_TOKEN" ]; then
-    BACKEND_ENV_VARS="${BACKEND_ENV_VARS}FYERS_ACCESS_TOKEN=${FYERS_ACCESS_TOKEN},"
 fi
 
 # Add NODE_ENV
@@ -105,6 +91,10 @@ BACKEND_ENV_VARS="${BACKEND_ENV_VARS%,}"
 
 echo "✅ Backend environment variables prepared"
 echo ""
+
+# Define secrets
+SECRETS="FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,FYERS_ACCESS_TOKEN=FYERS_ACCESS_TOKEN:latest,FYERS_SECRET_KEY=FYERS_SECRET_KEY:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest"
+
 
 # Step 3: Deploy to Cloud Run
 echo "🚀 Step 3: Deploying to Cloud Run..."
@@ -125,7 +115,8 @@ gcloud run deploy $SERVICE_NAME \
   --timeout 300 \
   --max-instances 10 \
   --port 5000 \
-  --set-env-vars="$BACKEND_ENV_VARS"
+  --set-env-vars="$BACKEND_ENV_VARS" \
+  --set-secrets="$SECRETS"
 
 echo ""
 echo "✅ Deployment complete!"
