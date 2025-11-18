@@ -76,13 +76,28 @@ export function AuthButton() {
       setAccessToken("");
     },
     onError: (error: any) => {
-      const errorMessage = error?.message || "Invalid access token. Please check and try again.";
+      let errorMessage = "Invalid access token. Please check and try again.";
+      
+      if (error?.message) {
+        if (error.message.includes('timeout')) {
+          errorMessage = "Connection timeout. The server is taking too long to respond. Please try again.";
+        } else if (error.message.includes('Network error') || error.message.includes('Failed to fetch')) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else if (error.message.includes('400')) {
+          errorMessage = "Invalid token format. Please ensure you're using a valid Fyers access token.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Authentication Failed",
         description: errorMessage,
         variant: "destructive",
       });
     },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
   const codeMutation = useMutation({
@@ -104,13 +119,27 @@ export function AuthButton() {
       });
       setAuthCode("");
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      let errorMessage = "Invalid authorization code. Please check and try again.";
+      
+      if (error?.message) {
+        if (error.message.includes('timeout')) {
+          errorMessage = "Connection timeout. The exchange is taking too long. Please try again.";
+        } else if (error.message.includes('Network error') || error.message.includes('Failed to fetch')) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Authentication Failed",
-        description: "Invalid authorization code. Please check and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
   const authMutation = useMutation({
@@ -324,9 +353,15 @@ export function AuthButton() {
                 disabled={tokenMutation.isPending || !accessToken.trim()}
                 className="bg-[hsl(122,39%,49%)] hover:bg-[hsl(122,39%,39%)] text-white"
                 size="sm"
+                data-testid="button-connect-token"
               >
                 <Key className="mr-2 h-4 w-4" />
-                {tokenMutation.isPending ? 'Connecting...' : 'Connect'}
+                {tokenMutation.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    Connecting...
+                  </span>
+                ) : 'Connect'}
               </Button>
             </div>
           </form>
@@ -372,9 +407,15 @@ export function AuthButton() {
                 disabled={codeMutation.isPending || !authCode.trim()}
                 className="bg-[hsl(122,39%,49%)] hover:bg-[hsl(122,39%,39%)] text-white"
                 size="sm"
+                data-testid="button-exchange-code"
               >
                 <Key className="mr-2 h-4 w-4" />
-                {codeMutation.isPending ? 'Connecting...' : 'Exchange'}
+                {codeMutation.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    Exchanging...
+                  </span>
+                ) : 'Exchange'}
               </Button>
             </div>
           </form>

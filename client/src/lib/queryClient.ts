@@ -10,6 +10,25 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Helper function to add timeout to fetch requests
+function fetchWithTimeout(url: string, options: RequestInit, timeout: number = 30000): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Request timeout. Please check your connection and try again.'));
+    }, timeout);
+
+    fetch(url, options)
+      .then(response => {
+        clearTimeout(timeoutId);
+        resolve(response);
+      })
+      .catch(error => {
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+}
+
 export async function apiRequest(
   options: { url: string; method: string; body?: unknown } | string,
   url?: string,
@@ -37,15 +56,24 @@ export async function apiRequest(
   // Prevent double-prefixing: only add API_BASE_URL if the URL is relative
   const fullUrl = requestUrl.startsWith('http') ? requestUrl : `${API_BASE_URL}${requestUrl}`;
 
-  const res = await fetch(fullUrl, {
-    method: requestMethod,
-    headers: requestData ? { "Content-Type": "application/json" } : {},
-    body: requestData ? JSON.stringify(requestData) : undefined,
-    credentials: "include",
-  });
+  try {
+    const res = await fetchWithTimeout(fullUrl, {
+      method: requestMethod,
+      headers: requestData ? { "Content-Type": "application/json" } : {},
+      body: requestData ? JSON.stringify(requestData) : undefined,
+      credentials: "include",
+    }, 30000);
 
-  await throwIfResNotOk(res);
-  return await res.json();
+    await throwIfResNotOk(res);
+    return await res.json();
+  } catch (error: any) {
+    if (error.message.includes('timeout')) {
+      throw new Error('Connection timeout. The server is taking too long to respond. Please try again.');
+    } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('Network error. Please check your internet connection and try again.');
+    }
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -77,10 +105,12 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: 1,
+      retryDelay: 1000,
     },
     mutations: {
-      retry: false,
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     },
   },
 });
