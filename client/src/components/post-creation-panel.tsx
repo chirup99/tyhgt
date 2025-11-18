@@ -304,6 +304,7 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
                 size="sm"
                 onClick={() => {
                   if (viewMode === 'audio' && onMinimize) {
+                    setIsAudioMode(false);
                     onMinimize();
                   } else {
                     setViewMode(viewMode === 'audio' ? 'post' : 'audio');
