@@ -2021,7 +2021,7 @@ export default function Home() {
         console.log("📊 [FRONTEND] Fetching trading journal data...");
         let journalTrades: any[] = [];
         try {
-          const journalResponse = await fetch(getFullApiUrl("/api/journal/all-dates");
+          const journalResponse = await fetch(getFullApiUrl("/api/journal/all-dates"));
           if (journalResponse.ok) {
             const allJournalData = await journalResponse.json();
             // Flatten all trades from all dates
@@ -2364,7 +2364,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
           // Get additional fundamental data from social feed
           let fundamentalData = "";
           try {
-            const socialResponse = await fetch(getFullApiUrl("/api/social-posts?limit=5");
+            const socialResponse = await fetch(getFullApiUrl("/api/social-posts?limit=5"));
             if (socialResponse.ok) {
               const socialData = await socialResponse.json();
               const relevantPosts = socialData.filter(
@@ -2927,7 +2927,7 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
 
     try {
       // Fetch all journal dates and data
-      const allDatesResponse = await fetch(getFullApiUrl("/api/journal/all-dates");
+      const allDatesResponse = await fetch(getFullApiUrl("/api/journal/all-dates"));
       const allJournalData = allDatesResponse.ok
         ? await allDatesResponse.json()
         : {};
@@ -3304,7 +3304,7 @@ ${
         setIsLoadingHeatmapData(true);
 
         // Fetch all journal dates from Google Cloud
-        const response = await fetch(getFullApiUrl("/api/journal/all-dates");
+        const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
 
         if (response.ok) {
           const allDatesData = await response.json();
