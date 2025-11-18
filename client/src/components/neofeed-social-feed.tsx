@@ -2782,13 +2782,11 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
 
       {/* Mobile Audio Minicast Dialog - Only shows on mobile when Radio button is tapped */}
       <Dialog open={showMobileAudioMinicast} onOpenChange={setShowMobileAudioMinicast}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0">
-          <div className="p-4">
-            <PostCreationPanel 
-              initialViewMode="audio" 
-              onMinimize={() => setShowMobileAudioMinicast(false)}
-            />
-          </div>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0 border-0 bg-transparent shadow-none [&>button]:hidden">
+          <PostCreationPanel 
+            initialViewMode="audio" 
+            onMinimize={() => setShowMobileAudioMinicast(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -2824,11 +2822,15 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
               <Plus className="h-5 w-5" />
             </button>
 
-            {/* Cards Swiping Icon */}
+            {/* MiniCast Icon - Toggles Audio MiniCast */}
             <button
-              onClick={() => setShowMobileAudioMinicast(true)}
-              className="flex items-center justify-center flex-1 rounded-full px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
-              data-testid="button-cards-mobile"
+              onClick={() => setShowMobileAudioMinicast(!showMobileAudioMinicast)}
+              className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
+                showMobileAudioMinicast 
+                  ? 'text-red-500 dark:text-red-400' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              data-testid="button-minicast-mobile"
             >
               <Layers className="h-5 w-5" />
             </button>
