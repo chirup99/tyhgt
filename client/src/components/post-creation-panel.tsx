@@ -324,16 +324,6 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
                 }`} />
               </Button>
             )}
-            {/* Message Icon */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'message' ? 'post' : 'message')}
-              className="p-2 h-8 w-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
-              data-testid="button-toggle-message"
-            >
-              <MessageCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            </Button>
           </div>
         </CardTitle>
         

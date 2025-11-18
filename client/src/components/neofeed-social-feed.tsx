@@ -689,7 +689,13 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Bell className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowMobileMessages(true)}
+                className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                data-testid="button-messages"
+              >
                 <MessageCircle className="h-5 w-5" />
               </Button>
               <UserProfileDropdown />
@@ -2281,6 +2287,7 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [showMobileCreatePost, setShowMobileCreatePost] = useState(false);
   const [showMobileAudioMinicast, setShowMobileAudioMinicast] = useState(false);
+  const [showMobileMessages, setShowMobileMessages] = useState(false);
   const { toast } = useToast();
   
   // Audio mode for text selection
@@ -2787,6 +2794,15 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
             initialViewMode="audio" 
             onMinimize={() => setShowMobileAudioMinicast(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile Messages Dialog - Only shows on mobile when Messages button is tapped */}
+      <Dialog open={showMobileMessages} onOpenChange={setShowMobileMessages}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-4">
+            <PostCreationPanel initialViewMode="message" hideAudioMode={true} />
+          </div>
         </DialogContent>
       </Dialog>
 
