@@ -10,7 +10,7 @@ import {
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
   Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
-  ChevronDown, ChevronUp, ArrowLeft, Check, Layers, Mic
+  ChevronDown, ChevronUp, ArrowLeft, Check, Layers, Mic, Newspaper
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -1165,6 +1165,9 @@ function EditProfileDialog({ isOpen, onClose, profileData, onSuccess }: {
 function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
 
+  // Mobile view toggle state (fundamentals vs news)
+  const [showNewsOnMobile, setShowNewsOnMobile] = useState(false);
+
   // Extract stock symbol from ticker (remove $ prefix)
   const stockSymbol = ticker.replace('$', '');
   
@@ -1227,13 +1230,56 @@ function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: bo
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl backdrop-blur-sm ">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="h-5 w-5 text-gray-600 dark:text-gray-400 " />
-          <h3 className="text-gray-900 dark:text-white font-semibold ">Fundamental Analysis</h3>
-          {loadingFundamentals && (
+          <h3 className="text-gray-900 dark:text-white font-semibold flex-1 ">{showNewsOnMobile ? 'Related News' : 'Fundamental Analysis'}</h3>
+          {!showNewsOnMobile && loadingFundamentals && (
             <div className="ml-2 w-4 h-4 border-2 border-gray-600 dark:border-gray-400 border-t-transparent rounded-full animate-spin "></div>
           )}
+          {showNewsOnMobile && loadingNews && (
+            <div className="ml-2 w-4 h-4 border-2 border-gray-600 dark:border-gray-400 border-t-transparent rounded-full animate-spin "></div>
+          )}
+          {/* Mobile toggle button - switch between Fundamentals and News */}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="lg:hidden"
+            onClick={() => setShowNewsOnMobile(!showNewsOnMobile)}
+            data-testid="button-toggle-news-mobile"
+          >
+            <Newspaper className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          </Button>
         </div>
 
-        <div className="space-y-4 max-h-80 overflow-y-auto bg-gray-50 dark:bg-gray-700/60 rounded-xl p-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800 ">
+        {/* Conditional content - show news or fundamentals on mobile */}
+        {showNewsOnMobile ? (
+          /* Related News content for mobile */
+          <div className="space-y-3 max-h-80 overflow-y-auto bg-gray-50 dark:bg-gray-700/60 rounded-xl p-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800 lg:hidden ">
+            {analysisData.news && analysisData.news.length > 0 ? (
+              analysisData.news.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="p-3 bg-gray-100 dark:bg-gray-600/60 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600/70 transition-colors backdrop-blur-sm shadow-sm cursor-pointer"
+                  onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+                >
+                  <h4 className="text-gray-700 dark:text-gray-300 font-medium text-sm mb-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                    {item.title} ↗
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500 dark:text-gray-400 text-xs ">{item.source}</span>
+                    <span className="text-gray-500 dark:text-gray-500 text-xs ">{item.time}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-6 text-gray-500 dark:text-gray-400 ">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No recent news available for this stock</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 ">Check back later for updates</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Fundamental Analysis content */
+          <div className="space-y-4 max-h-80 overflow-y-auto bg-gray-50 dark:bg-gray-700/60 rounded-xl p-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800 ">
           {/* Price Chart & Data */}
           <PriceChartSection ticker={ticker} analysisData={analysisData} />
 
@@ -1470,11 +1516,12 @@ function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: bo
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Related News Panel */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl backdrop-blur-sm ">
+      {/* Related News Panel - Hidden on mobile, visible on lg+ */}
+      <div className="hidden lg:block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl backdrop-blur-sm ">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400 " />
           <h3 className="text-gray-900 dark:text-white font-semibold ">Related News</h3>
