@@ -4,10 +4,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { 
   Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize2, 
+  Pause,
   Calendar,
   TrendingUp,
   Zap,
@@ -35,7 +32,7 @@ const getDefaultBannerContent = (youtubeUrl?: string | null): BannerContent[] =>
       type: 'live_stream',
       title: 'CNBC Live Stream',
       description: 'Watch live market analysis and trading strategies',
-      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&pp=ygUJY25iYyBsaXZl',
+      youtubeEmbedUrl: youtubeUrl || 'https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&modestbranding=1&controls=0&showinfo=0&rel=0&pp=ygUJY25iYyBsaXZl',
       isLive: true,
       priority: 'high'
     },
@@ -65,13 +62,9 @@ const getDefaultBannerContent = (youtubeUrl?: string | null): BannerContent[] =>
 
 export function LiveBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
-  const [youtubePlayerState, setYoutubePlayerState] = useState<'playing' | 'paused' | null>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
+  const [isCarouselPlaying, setIsCarouselPlaying] = useState(true);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const playerRef = useRef<any>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/embed/0AzLJkgUtAo?enablejsapi=1&modestbranding=1&controls=0&showinfo=0&rel=0&pp=ygUJY25iYyBsaXZl');
 
@@ -114,97 +107,45 @@ export function LiveBanner() {
   
   const currentContent = bannerContent[currentIndex];
 
-  // Detect scrolling and pause YouTube video (moved here after currentContent is defined)
+  // Carousel auto-rotation - STOPS when video is playing
   useEffect(() => {
-    const handleScroll = () => {
-      if (!currentContent.youtubeEmbedUrl) return;
-      
-      setIsScrolling(true);
-      
-      // Pause YouTube video when scrolling
-      if (iframeRef.current && youtubePlayerState === 'playing') {
-        console.log('📜 Scroll detected - pausing YouTube video');
-        iframeRef.current.contentWindow?.postMessage(
-          '{"event":"command","func":"pauseVideo","args":""}', 
-          '*'
-        );
-      }
-      
-      // Clear previous timeout
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      
-      // Set scroll as stopped after 150ms of no scrolling
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 150);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, [currentContent.youtubeEmbedUrl, youtubePlayerState]);
-
-  useEffect(() => {
-    if (!currentContent.youtubeEmbedUrl) {
-      setYoutubePlayerState(null);
-      return;
-    }
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://www.youtube.com') return;
-      
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.event === 'infoDelivery' && data.info && data.info.playerState !== undefined) {
-          const playerState = data.info.playerState;
-          console.log('🎥 YouTube Player State via postMessage:', playerState);
-          
-          if (playerState === 1) {
-            console.log('▶️ YouTube video is PLAYING - stopping carousel');
-            setYoutubePlayerState('playing');
-          } else if (playerState === 2 || playerState === 0) {
-            console.log('⏸️ YouTube video is PAUSED or ENDED - resuming carousel');
-            setYoutubePlayerState('paused');
-          }
-        }
-      } catch (e) {
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    if (iframeRef.current) {
-      iframeRef.current.contentWindow?.postMessage('{"event":"listening","id":1}', '*');
-    }
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [currentContent.youtubeEmbedUrl, currentIndex]);
-
-  useEffect(() => {
-    if (!isPlaying) return;
+    if (!isCarouselPlaying) return;
     
-    // Stop carousel rotation when YouTube video is playing
-    if (currentContent.youtubeEmbedUrl && youtubePlayerState === 'playing') {
-      console.log('⏸️ Carousel paused - YouTube video is playing');
+    // STOP carousel if YouTube video is playing
+    if (currentContent.youtubeEmbedUrl && isVideoPlaying) {
+      console.log('⏸️ Carousel PAUSED - YouTube video is playing');
       return;
     }
     
-    // Resume carousel when video is paused or not present
+    // Run carousel normally when video is NOT playing
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % bannerContent.length);
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [isPlaying, currentContent.youtubeEmbedUrl, youtubePlayerState, bannerContent.length]);
+  }, [isCarouselPlaying, isVideoPlaying, currentContent.youtubeEmbedUrl, bannerContent.length]);
+
+  // Handle scroll - pause video when scrolling
+  useEffect(() => {
+    if (!currentContent.youtubeEmbedUrl) return;
+
+    const handleScroll = () => {
+      if (isVideoPlaying && iframeRef.current) {
+        // Pause YouTube video
+        iframeRef.current.contentWindow?.postMessage(
+          '{"event":"command","func":"pauseVideo","args":""}', 
+          '*'
+        );
+        setIsVideoPlaying(false);
+        console.log('⏸️ Video paused due to scroll');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [currentContent.youtubeEmbedUrl, isVideoPlaying]);
 
   const pauseYouTube = () => {
     if (iframeRef.current && currentContent.youtubeEmbedUrl) {
@@ -225,17 +166,20 @@ export function LiveBanner() {
   const getBadgeStyle = (type: string, priority?: string) => {
     switch (type) {
       case 'live_stream':
-        return 'bg-red-500 text-white animate-pulse';
+        return 'bg-red-600 hover:bg-red-700';
       case 'update':
-        return priority === 'high' ? 'bg-orange-500 text-white' : 'bg-blue-500 text-white';
+        if (priority === 'high') {
+          return 'bg-orange-600 hover:bg-orange-700';
+        }
+        return 'bg-blue-600 hover:bg-blue-700';
       case 'ad':
-        return 'bg-green-500 text-white';
+        return 'bg-purple-600 hover:bg-purple-700';
       default:
-        return 'bg-indigo-500 text-white';
+        return 'bg-indigo-600 hover:bg-indigo-700';
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getBadgeIcon = (type: string) => {
     switch (type) {
       case 'live_stream':
         return <Zap className="w-3 h-3" />;
@@ -251,22 +195,22 @@ export function LiveBanner() {
   const toggleYouTubePlayback = () => {
     if (!iframeRef.current || !currentContent.youtubeEmbedUrl) return;
     
-    if (youtubePlayerState === 'playing') {
-      console.log('⏸️ Pausing YouTube video');
+    if (isVideoPlaying) {
+      // Pause video
       iframeRef.current.contentWindow?.postMessage(
         '{"event":"command","func":"pauseVideo","args":""}', 
         '*'
       );
-      // Immediately update state so carousel can resume
-      setYoutubePlayerState('paused');
+      setIsVideoPlaying(false);
+      console.log('⏸️ Video PAUSED - Carousel will RESUME');
     } else {
-      console.log('▶️ Playing YouTube video');
+      // Play video
       iframeRef.current.contentWindow?.postMessage(
         '{"event":"command","func":"playVideo","args":""}', 
         '*'
       );
-      // Immediately update state so carousel can stop
-      setYoutubePlayerState('playing');
+      setIsVideoPlaying(true);
+      console.log('▶️ Video PLAYING - Carousel will STOP');
     }
   };
 
@@ -274,164 +218,98 @@ export function LiveBanner() {
     <Card className="w-full h-32 md:h-48 relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 border-2 border-indigo-400/30">
       <div className="absolute inset-0 flex items-center justify-center">
         {currentContent.youtubeEmbedUrl ? (
-          <>
+          <div className="relative w-full h-full">
+            {/* Clean YouTube Video */}
             <iframe
-              id="youtube-player-iframe"
               ref={iframeRef}
+              className="absolute inset-0 w-full h-full"
               src={currentContent.youtubeEmbedUrl}
-              title={currentContent.title}
-              className="w-full h-full object-cover"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              data-testid="banner-youtube-iframe"
-              style={{ border: 'none' }}
+              data-testid="youtube-iframe"
             />
             
-            <div className="absolute top-2 left-2 md:top-3 md:left-3 flex items-center gap-2 z-20">
-              <button
+            {/* Top-left corner controls */}
+            <div className="absolute top-2 left-2 flex items-center gap-2 z-10">
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={toggleYouTubePlayback}
-                className="bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 md:p-2 transition-all backdrop-blur-sm"
-                data-testid="button-youtube-play-overlay"
+                className="h-8 w-8 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white"
+                data-testid="button-youtube-toggle"
               >
-                {youtubePlayerState === 'playing' ? (
-                  <Pause className="w-3 h-3 md:w-4 md:h-4" />
-                ) : (
-                  <Play className="w-3 h-3 md:w-4 md:h-4 ml-0.5" />
-                )}
-              </button>
+                {isVideoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </Button>
               
               {currentContent.isLive && (
-                <div className="bg-red-500 text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-semibold animate-pulse flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                <Badge className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-0.5 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                   LIVE
-                </div>
+                </Badge>
               )}
             </div>
-          </>
-        ) : currentContent.imageUrl ? (
-          <img
-            src={currentContent.imageUrl}
-            alt={currentContent.title}
-            className="w-full h-full object-cover opacity-70"
-            data-testid="banner-background-image"
-          />
+          </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-indigo-600/20 via-purple-600/20 to-blue-600/20" />
-        )}
-        
-        {!currentContent.youtubeEmbedUrl && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-        )}
-      </div>
-
-      {!currentContent.youtubeEmbedUrl && (
-        <div className="relative z-10 h-full flex flex-col justify-between p-3 md:p-6">
-          <div className="flex justify-between items-start">
-          <div className="flex items-center gap-2 md:gap-3">
-            <Badge className={`flex items-center gap-1 text-xs ${getBadgeStyle(currentContent.type, currentContent.priority)}`}>
-              {getTypeIcon(currentContent.type)}
-              {currentContent.type === 'live_stream' && currentContent.isLive ? 'LIVE' : 
-               currentContent.type.toUpperCase().replace('_', ' ')}
-            </Badge>
-            
-            {currentContent.isLive && (
-              <div className="hidden md:flex items-center gap-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-white text-sm">Live Stream Active</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-white/20 h-8 w-8 p-0"
-              onClick={() => setIsPlaying(!isPlaying)}
-              data-testid="button-banner-play-pause"
-            >
-              {isPlaying ? <Pause className="w-3 h-3 md:w-4 md:h-4" /> : <Play className="w-3 h-3 md:w-4 md:h-4" />}
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-white/20 h-8 w-8 p-0"
-              onClick={() => setIsMuted(!isMuted)}
-              data-testid="button-banner-mute"
-            >
-              {isMuted ? <VolumeX className="w-3 h-3 md:w-4 md:h-4" /> : <Volume2 className="w-3 h-3 md:w-4 md:h-4" />}
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-white/20 h-8 w-8 p-0"
-              data-testid="button-banner-fullscreen"
-            >
-              <Maximize2 className="w-3 h-3 md:w-4 md:h-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-between">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-white hover:bg-white/20 h-8 w-8 md:h-10 md:w-10 p-0"
-            onClick={navigateLeft}
-            data-testid="button-banner-nav-left"
-          >
-            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-          </Button>
-
-          <div className="text-center text-white max-w-2xl px-2">
-            <h2 className="text-sm md:text-2xl font-bold mb-1 md:mb-2" data-testid="banner-title">
+          <div className="text-center px-4 md:px-8">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Badge 
+                className={`${getBadgeStyle(currentContent.type, currentContent.priority)} text-white flex items-center gap-1`}
+                data-testid={`badge-${currentContent.type}`}
+              >
+                {getBadgeIcon(currentContent.type)}
+                <span>{currentContent.type.replace('_', ' ').toUpperCase()}</span>
+              </Badge>
+              {currentContent.date && (
+                <span className="text-xs text-indigo-300">{currentContent.date}</span>
+              )}
+            </div>
+            <h2 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-2">
               {currentContent.title}
             </h2>
-            <p className="text-white/80 text-xs md:text-sm mb-1 md:mb-3" data-testid="banner-description">
+            <p className="text-sm md:text-base text-indigo-200 line-clamp-2">
               {currentContent.description}
             </p>
-            
-            {currentContent.date && (
-              <div className="flex items-center justify-center gap-1 md:gap-2 text-white/70 text-xs">
-                <Calendar className="w-3 h-3" />
-                <span data-testid="banner-date">{currentContent.date}</span>
-              </div>
-            )}
           </div>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-white hover:bg-white/20 h-8 w-8 md:h-10 md:w-10 p-0"
-            onClick={navigateRight}
-            data-testid="button-banner-nav-right"
-          >
-            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-          </Button>
-        </div>
-
-        <div className="flex items-center justify-center gap-2">
-          {bannerContent.map((_, index) => (
-            <button
-              key={index}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex ? 'bg-white w-4 md:w-6' : 'bg-white/40'
-              }`}
-              onClick={() => setCurrentIndex(index)}
-              data-testid={`banner-indicator-${index}`}
-            />
-          ))}
-        </div>
+        )}
       </div>
-      )}
 
-      {currentContent.isLive && !currentContent.youtubeEmbedUrl && (
-        <div className="absolute top-2 md:top-4 right-12 md:right-20 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold animate-pulse">
-          ● LIVE
-        </div>
-      )}
+      {/* Navigation arrows */}
+      <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 pointer-events-none">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={navigateLeft}
+          className="pointer-events-auto h-8 w-8 md:h-10 md:w-10 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white"
+          data-testid="button-banner-left"
+        >
+          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={navigateRight}
+          className="pointer-events-auto h-8 w-8 md:h-10 md:w-10 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white"
+          data-testid="button-banner-right"
+        >
+          <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+        </Button>
+      </div>
+
+      {/* Progress indicators */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+        {bannerContent.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`h-1.5 rounded-full transition-all ${
+              index === currentIndex 
+                ? 'w-6 bg-white' 
+                : 'w-1.5 bg-white/40 hover:bg-white/60'
+            }`}
+            data-testid={`button-indicator-${index}`}
+          />
+        ))}
+      </div>
     </Card>
   );
 }
