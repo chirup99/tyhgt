@@ -55,34 +55,31 @@ export function AudioMinicastCard({
       { id: 'main', type: 'main', content, colorIndex: 0 }
     ];
     
-    // Use selectedPosts if available, otherwise fall back to selectedPostIds
+    // Only include posts with actual content (not placeholders or empty content)
     if (selectedPosts.length > 0) {
       console.log('✅ Using selectedPosts with actual content');
       selectedPosts.forEach((post, idx) => {
-        console.log(`  Card ${idx + 1}:`, {
-          id: post.id,
-          contentLength: post.content?.length || 0,
-          contentPreview: post.content?.substring(0, 50) + '...'
-        });
-        allCards.push({
-          id: `post-${post.id}`,
-          type: 'post',
-          content: post.content,
-          postId: post.id,
-          colorIndex: (idx + 1) % 5
-        });
-      });
-    } else {
-      console.warn('⚠️ No selectedPosts, falling back to placeholder content');
-      // Fallback for backward compatibility
-      selectedPostIds.forEach((postId, idx) => {
-        allCards.push({
-          id: `post-${postId}`,
-          type: 'post',
-          content: `Selected Post ${idx + 1}`,
-          postId,
-          colorIndex: (idx + 1) % 5
-        });
+        // Filter out posts with no content or placeholder content
+        const hasRealContent = post.content && 
+                               post.content.trim().length > 0 && 
+                               !post.content.startsWith('Selected Post');
+        
+        if (hasRealContent) {
+          console.log(`  Card ${idx + 1}:`, {
+            id: post.id,
+            contentLength: post.content?.length || 0,
+            contentPreview: post.content?.substring(0, 50) + '...'
+          });
+          allCards.push({
+            id: `post-${post.id}`,
+            type: 'post',
+            content: post.content,
+            postId: post.id,
+            colorIndex: (idx + 1) % 5
+          });
+        } else {
+          console.log(`  Skipping card ${idx + 1}: No real content`);
+        }
       });
     }
     
@@ -126,6 +123,18 @@ export function AudioMinicastCard({
     return gradients[idx % gradients.length];
   };
 
+  // Clean text for speech: remove emojis, links, and special characters
+  const cleanTextForSpeech = (text: string): string => {
+    // Remove URLs
+    let cleaned = text.replace(/https?:\/\/[^\s]+/gi, '').replace(/www\.[^\s]+/gi, '');
+    
+    // Remove emojis by removing characters outside basic ASCII range
+    cleaned = cleaned.replace(/[^\x20-\x7E\s]/g, '');
+    
+    // Remove extra whitespace and return
+    return cleaned.replace(/\s+/g, ' ').trim();
+  }
+
   const togglePlay = () => {
     if (isPlaying) {
       window.speechSynthesis.cancel();
@@ -133,13 +142,15 @@ export function AudioMinicastCard({
     } else {
       // Only read the currently visible (top) card's content
       const currentCard = cards[0];
-      const textToSpeak = currentCard ? currentCard.content : content;
+      const rawText = currentCard ? currentCard.content : content;
+      const textToSpeak = cleanTextForSpeech(rawText);
       
       console.log('🔊 Playing audio:', {
         currentCardId: currentCard?.id,
         currentCardType: currentCard?.type,
-        textLength: textToSpeak?.length || 0,
-        textPreview: textToSpeak?.substring(0, 100) + '...'
+        rawTextLength: rawText?.length || 0,
+        cleanTextLength: textToSpeak?.length || 0,
+        cleanTextPreview: textToSpeak?.substring(0, 100) + '...'
       });
       
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -158,7 +169,7 @@ export function AudioMinicastCard({
       window.speechSynthesis.speak(utterance);
       setIsPlaying(true);
     }
-  };
+  }
 
   const handleLike = () => {
     setLocalLiked(!localLiked);
@@ -433,11 +444,10 @@ export function AudioMinicastCard({
                             {author.displayName.toLowerCase()}
                           </>
                         ) : (
-                          <>
-                            Post #{card.postId}
-                            <br />
-                            selected
-                          </>
+                          <span className="opacity-0">
+                            {/* Hidden text for spacing */}
+                            Content
+                          </span>
                         )}
                       </h3>
                       <button
