@@ -338,19 +338,24 @@
 [x] 916. Identified root cause: Cloud Run blocks preflight OPTIONS requests when auth is required
 [x] 917. CORS middleware too restrictive - only allowed specific hardcoded Firebase URLs
 [x] 918. Fixed CORS configuration to dynamically allow trusted domains
-[x] 919. Added pattern matching for all Firebase domains (*.web.app, *.firebaseapp.com)
-[x] 920. Added pattern matching for all Cloud Run domains (*.run.app)
-[x] 921. Added pattern matching for all Replit domains (*.replit.dev, *.repl.co)
-[x] 922. Implemented isTrustedOrigin() function for dynamic origin validation
-[x] 923. Added comprehensive CORS logging for debugging (✅ allowed, ❌ rejected)
-[x] 924. Enhanced preflight OPTIONS handling - responds with 204 status code
-[x] 925. Added Access-Control-Max-Age header (86400 seconds) for better performance
-[x] 926. Added comprehensive request logging for post creation with unique request IDs
-[x] 927. Each POST /api/social-posts request gets unique tracking ID
-[x] 928. Logging includes: origin, auth status, token length, user profile fetch, errors
-[x] 929. Added detailed error logging with error code, message, and stack traces
-[x] 930. Post creation now logs every step: token verification, profile fetch, Firestore save
-[x] 931. Development mode includes error details in response for debugging
-[x] 932. Restarted workflow - server running successfully with enhanced CORS
-[x] 933. Verified CORS logs showing successful origin allowance
-[x] 934. ✅ CLOUD RUN POST CREATION FIX COMPLETED - READY FOR DEPLOYMENT! ✅
+[x] 919. Implemented isTrustedOrigin() function for dynamic origin validation
+[x] 920. Added comprehensive CORS logging for debugging (✅ allowed, ❌ rejected)
+[x] 921. Enhanced preflight OPTIONS handling - responds with 204 status code
+[x] 922. Added Access-Control-Max-Age header (86400 seconds) for better performance
+[x] 923. Added comprehensive request logging for post creation with unique request IDs
+[x] 924. Each POST /api/social-posts request gets unique tracking ID
+[x] 925. Logging includes: origin, auth status, token length, user profile fetch, errors
+[x] 926. Added detailed error logging with error code, message, and stack traces
+[x] 927. Post creation now logs every step: token verification, profile fetch, Firestore save
+[x] 928. Development mode includes error details in response for debugging
+[x] 929. SECURITY REVIEW: Architect flagged overly permissive CORS wildcard matching
+[x] 930. Critical vulnerability: Allowed ALL *.web.app, *.firebaseapp.com, *.run.app domains
+[x] 931. Fixed: Removed wildcard matching for public hosting providers
+[x] 932. Implemented strict allowlist with explicit domain enumeration
+[x] 933. Added CLOUD_RUN_URL environment variable for user configuration
+[x] 934. Development mode fallback confined to NODE_ENV === 'development' only
+[x] 935. Production CORS now only trusts: specific Firebase URLs + CLOUD_RUN_URL + Replit dev
+[x] 936. Architect approved security fix - no remaining vulnerabilities detected
+[x] 937. Restarted workflow - server running successfully with secure CORS
+[x] 938. All tasks completed and architect-reviewed
+[x] 939. ✅ CLOUD RUN POST CREATION FIX COMPLETED - SECURE AND PRODUCTION-READY! ✅
