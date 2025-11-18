@@ -77,13 +77,18 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
       
       const idToken = await user.getIdToken();
       
-      const response = await fetch('/api/social-posts', {
+      // Use API base URL from environment variable for Cloud Run compatibility
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+      const fullUrl = `${API_BASE_URL}/api/social-posts`;
+      
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify(postData)
+        body: JSON.stringify(postData),
+        credentials: 'include'
       });
       
       if (!response.ok) {

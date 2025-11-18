@@ -314,7 +314,7 @@ function SwipeableCardStack({
         return;
       }
 
-      const response = await fetch("/api/daily-news", {
+      const response = await fetch(getFullApiUrl("/api/daily-news"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1015,7 +1015,7 @@ function HistoricalDataSection() {
 
   const fetchHistoricalData = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/historical-data", {
+      const response = await fetch(getFullApiUrl("/api/historical-data"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1052,7 +1052,7 @@ function HistoricalDataSection() {
 
     setIsAnalyzingSentiment(true);
     try {
-      const response = await fetch("/api/sentiment-analysis", {
+      const response = await fetch(getFullApiUrl("/api/sentiment-analysis"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1791,6 +1791,15 @@ function MicroAnimationsDemoPage() {
   );
 }
 
+// API base URL for Cloud Run compatibility - use environment variable
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+// Helper function to construct full API URLs for Cloud Run compatibility
+const getFullApiUrl = (path: string): string => {
+  if (path.startsWith('http')) return path;
+  return `${API_BASE_URL}${path}`;
+};
+
 export default function Home() {
   const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("trading-home");
@@ -2012,7 +2021,7 @@ export default function Home() {
         console.log("📊 [FRONTEND] Fetching trading journal data...");
         let journalTrades: any[] = [];
         try {
-          const journalResponse = await fetch("/api/journal/all-dates");
+          const journalResponse = await fetch(getFullApiUrl("/api/journal/all-dates");
           if (journalResponse.ok) {
             const allJournalData = await journalResponse.json();
             // Flatten all trades from all dates
@@ -2039,7 +2048,7 @@ export default function Home() {
           );
         }
 
-        const response = await fetch("/api/advanced-query", {
+        const response = await fetch(getFullApiUrl("/api/advanced-query"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -2146,7 +2155,7 @@ Use Trading Master for detailed chart analysis with all 14 timeframes and advanc
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
 
-          const socialResponse = await fetch("/api/social-posts?limit=5", {
+          const socialResponse = await fetch(getFullApiUrl("/api/social-posts?limit=5"), {
             signal: controller.signal,
           });
           clearTimeout(timeoutId);
@@ -2355,7 +2364,7 @@ Configure alerts through Trading Master and monitor via Social Feed updates.`;
           // Get additional fundamental data from social feed
           let fundamentalData = "";
           try {
-            const socialResponse = await fetch("/api/social-posts?limit=5");
+            const socialResponse = await fetch(getFullApiUrl("/api/social-posts?limit=5");
             if (socialResponse.ok) {
               const socialData = await socialResponse.json();
               const relevantPosts = socialData.filter(
@@ -2860,7 +2869,7 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
         console.log(`🤖 Using Advanced AI Agent for query: ${query}`);
 
         try {
-          const response = await fetch("/api/advanced-search", {
+          const response = await fetch(getFullApiUrl("/api/advanced-search"), {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -2918,7 +2927,7 @@ ${fundamentalInsights}**📈 Essential Analysis Framework:**
 
     try {
       // Fetch all journal dates and data
-      const allDatesResponse = await fetch("/api/journal/all-dates");
+      const allDatesResponse = await fetch(getFullApiUrl("/api/journal/all-dates");
       const allJournalData = allDatesResponse.ok
         ? await allDatesResponse.json()
         : {};
@@ -3103,7 +3112,7 @@ ${
   const fetchTrendingPodcasts = async (sector: string) => {
     setIsPodcastsLoading(true);
     try {
-      const response = await fetch("/api/trending-podcasts", {
+      const response = await fetch(getFullApiUrl("/api/trending-podcasts"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sector }),
@@ -3295,7 +3304,7 @@ ${
         setIsLoadingHeatmapData(true);
 
         // Fetch all journal dates from Google Cloud
-        const response = await fetch("/api/journal/all-dates");
+        const response = await fetch(getFullApiUrl("/api/journal/all-dates");
 
         if (response.ok) {
           const allDatesData = await response.json();
@@ -3464,7 +3473,7 @@ ${
         range_to: selectedJournalDate,
       };
 
-      const response = await fetch("/api/historical-data", {
+      const response = await fetch(getFullApiUrl("/api/historical-data"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
