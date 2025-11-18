@@ -79,15 +79,7 @@ export function AuthButton() {
       let errorMessage = "Invalid access token. Please check and try again.";
       
       if (error?.message) {
-        if (error.message.includes('timeout')) {
-          errorMessage = "Connection timeout. The server is taking too long to respond. Please try again.";
-        } else if (error.message.includes('Network error') || error.message.includes('Failed to fetch')) {
-          errorMessage = "Network error. Please check your internet connection and try again.";
-        } else if (error.message.includes('400')) {
-          errorMessage = "Invalid token format. Please ensure you're using a valid Fyers access token.";
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       
       toast({
@@ -123,13 +115,7 @@ export function AuthButton() {
       let errorMessage = "Invalid authorization code. Please check and try again.";
       
       if (error?.message) {
-        if (error.message.includes('timeout')) {
-          errorMessage = "Connection timeout. The exchange is taking too long. Please try again.";
-        } else if (error.message.includes('Network error') || error.message.includes('Failed to fetch')) {
-          errorMessage = "Network error. Please check your internet connection and try again.";
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       
       toast({

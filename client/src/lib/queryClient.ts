@@ -5,8 +5,22 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage: string;
+    try {
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const json = await res.json();
+        errorMessage = json.message || json.error || res.statusText;
+      } else {
+        errorMessage = (await res.text()) || res.statusText;
+      }
+    } catch (e) {
+      errorMessage = res.statusText;
+    }
+    
+    const error: any = new Error(errorMessage);
+    error.status = res.status;
+    throw error;
   }
 }
 
@@ -67,10 +81,16 @@ export async function apiRequest(
     await throwIfResNotOk(res);
     return await res.json();
   } catch (error: any) {
-    if (error.message.includes('timeout')) {
-      throw new Error('Connection timeout. The server is taking too long to respond. Please try again.');
-    } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-      throw new Error('Network error. Please check your internet connection and try again.');
+    if (error.message && error.message.includes('timeout')) {
+      const timeoutError: any = new Error('Connection timeout. The server is taking too long to respond. Please try again.');
+      timeoutError.isTimeout = true;
+      throw timeoutError;
+    } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+      const networkError: any = new Error('Network error. Please check your internet connection and try again.');
+      networkError.isNetworkError = true;
+      throw networkError;
+    } else if (error.status) {
+      throw error;
     }
     throw error;
   }

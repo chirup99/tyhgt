@@ -233,3 +233,24 @@
 [x] 817. Token errors show: "Invalid token format. Please ensure you're using a valid Fyers access token."
 [x] 818. Restarted workflow - server running successfully with improved connection handling
 [x] 819. ✅ FYERS API CONNECTION RELIABILITY FIX COMPLETED - PERFECT CONNECTION FLOW! ✅
+
+[x] 820. FYERS API ERROR MESSAGE FIX - November 18, 2025 08:15 AM
+[x] 821. User reported: Access token connection shows "Network error" but there is no network issue
+[x] 822. Issue identified: Error handling incorrectly categorizing all server errors as "Network error"
+[x] 823. Root cause: throwIfResNotOk was throwing errors with status codes in message, triggering wrong detection
+[x] 824. Fixed throwIfResNotOk to properly extract JSON error messages from server responses
+[x] 825. Added proper content-type detection (application/json vs text)
+[x] 826. Server error messages now properly extracted: json.message || json.error || res.statusText
+[x] 827. Added status property to error objects for proper error type detection
+[x] 828. Fixed apiRequest error handling to only flag actual network/timeout errors
+[x] 829. Removed incorrect error message mapping that was hiding real server messages
+[x] 830. Simplified error handling in auth-button.tsx to show actual server error messages
+[x] 831. Real server errors now properly displayed to users:
+[x] 832.   - "Invalid token format. Token appears to be incomplete." (token too short)
+[x] 833.   - "Access token is required" (missing token)
+[x] 834.   - Any specific validation error from backend
+[x] 835. Network errors still properly detected for actual connection failures
+[x] 836. Timeout errors still properly detected with custom message
+[x] 837. Users now get clear, specific error messages instead of generic "Network error"
+[x] 838. Restarted workflow - server running with corrected error message handling
+[x] 839. ✅ FYERS API ERROR MESSAGE FIX COMPLETED - USERS SEE REAL ERROR MESSAGES! ✅
