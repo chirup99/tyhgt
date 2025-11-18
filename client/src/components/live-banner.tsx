@@ -257,12 +257,16 @@ export function LiveBanner() {
         '{"event":"command","func":"pauseVideo","args":""}', 
         '*'
       );
+      // Immediately update state so carousel can resume
+      setYoutubePlayerState('paused');
     } else {
       console.log('▶️ Playing YouTube video');
       iframeRef.current.contentWindow?.postMessage(
         '{"event":"command","func":"playVideo","args":""}', 
         '*'
       );
+      // Immediately update state so carousel can stop
+      setYoutubePlayerState('playing');
     }
   };
 
