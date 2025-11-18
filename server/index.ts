@@ -81,8 +81,11 @@ app.use((req, res, next) => {
     // Firebase Hosting domains for this specific project
     'https://fast-planet-470408-f1.web.app',
     'https://fast-planet-470408-f1.firebaseapp.com',
-    // Cloud Run URL (from existing VITE_API_URL environment variable)
+    // Cloud Run backend URL
     process.env.VITE_API_URL ? process.env.VITE_API_URL : null,
+    // Cloud Run frontend URL (for deployments)
+    process.env.FRONTEND_URL ? process.env.FRONTEND_URL : null,
+    process.env.CLOUD_RUN_FRONTEND_URL ? process.env.CLOUD_RUN_FRONTEND_URL : null,
     // Replit development domain
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
   ].filter(Boolean);
@@ -93,6 +96,12 @@ app.use((req, res, next) => {
     
     // Check exact matches against allowlist
     if (allowedOrigins.includes(origin)) return true;
+    
+    // Production: Allow all Cloud Run URLs (*.run.app domains)
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.run\.app$/)) {
+      log(`✅ CORS allowed for Cloud Run domain: ${origin}`);
+      return true;
+    }
     
     // Development mode only: allow localhost and Replit domains
     if (process.env.NODE_ENV === 'development') {
