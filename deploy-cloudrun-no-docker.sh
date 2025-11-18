@@ -40,6 +40,9 @@ echo ""
 ENV_VARS=""
 
 # Add VITE_* frontend variables (these MUST be set at build time)
+if [ -n "$VITE_API_URL" ]; then
+    ENV_VARS="${ENV_VARS}VITE_API_URL=${VITE_API_URL},"
+fi
 if [ -n "$VITE_FIREBASE_API_KEY" ]; then
     ENV_VARS="${ENV_VARS}VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY},"
 fi
@@ -80,6 +83,22 @@ fi
 if [ -n "$GOOGLE_CLOUD_PRIVATE_KEY" ]; then
     GOOGLE_CLOUD_PRIVATE_KEY_SINGLE_LINE=$(echo "$GOOGLE_CLOUD_PRIVATE_KEY" | tr '\n' ' ' | sed 's/  */ /g')
     ENV_VARS="${ENV_VARS}GOOGLE_CLOUD_PRIVATE_KEY=${GOOGLE_CLOUD_PRIVATE_KEY_SINGLE_LINE},"
+fi
+
+# Add Gemini API key
+if [ -n "$GEMINI_API_KEY" ]; then
+    ENV_VARS="${ENV_VARS}GEMINI_API_KEY=${GEMINI_API_KEY},"
+fi
+
+# Add Fyers API credentials
+if [ -n "$FYERS_APP_ID" ]; then
+    ENV_VARS="${ENV_VARS}FYERS_APP_ID=${FYERS_APP_ID},"
+fi
+if [ -n "$FYERS_SECRET_KEY" ]; then
+    ENV_VARS="${ENV_VARS}FYERS_SECRET_KEY=${FYERS_SECRET_KEY},"
+fi
+if [ -n "$FYERS_ACCESS_TOKEN" ]; then
+    ENV_VARS="${ENV_VARS}FYERS_ACCESS_TOKEN=${FYERS_ACCESS_TOKEN},"
 fi
 
 # Add any other necessary environment variables
