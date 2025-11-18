@@ -115,6 +115,12 @@
 [x] 988. Alternative: Route through Firebase Hosting to avoid CORS
 [x] 989. Code is production-ready - only Cloud Run config needs update
 [x] 990. ✅ CLOUD RUN POST CREATION FIX DOCUMENTED ✅
+[x] 991. User requested: Fix Cloud Run to unblock POST requests from frontend
+[x] 992. Created deployment script: deploy-fix-posts.sh
+[x] 993. Script deploys with --allow-unauthenticated flag (fixes CORS)
+[x] 994. Maintains security: POST endpoints still require Firebase authentication
+[x] 995. Made script executable with proper permissions
+[x] 996. ✅ CLOUD RUN DEPLOYMENT FIX SCRIPT READY ✅
 [x] 979. Confirmed all UI elements working:
 [x] 980.   - Global market indices showing (USA +0.45%, CANADA +0.28%, INDIA +0.65%, HONG KONG +0.22%, TOKYO +0.38%)
 [x] 981.   - Search bar functional
