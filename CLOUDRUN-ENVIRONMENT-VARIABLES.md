@@ -6,15 +6,23 @@
 These MUST be passed as `--build-arg` when building the Docker image:
 
 ```bash
+# Required: Firebase configuration
 --build-arg VITE_FIREBASE_API_KEY="AIzaSyAg-jCM5IzgosNkdRJ2xQRZfFzl0C7LHZk"
 --build-arg VITE_FIREBASE_AUTH_DOMAIN="fast-planet-470408-f1.firebaseapp.com"
 --build-arg VITE_FIREBASE_PROJECT_ID="fast-planet-470408-f1"
 --build-arg VITE_FIREBASE_STORAGE_BUCKET="fast-planet-470408-f1.firebasestorage.app"
 --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="808950990883"
 --build-arg VITE_FIREBASE_APP_ID="1:808950990883:web:1252e6131d1f1c21688996"
+
+# Optional: API URL (only if frontend and backend are separate services)
+--build-arg VITE_API_URL="https://your-backend-xxxxx.run.app"
 ```
 
 **Why?** Vite embeds these into the client bundle during `npm run build`. Setting them as runtime env vars won't work.
+
+**VITE_API_URL Usage:**
+- **Separate services** (frontend + backend on different Cloud Run services): Set to backend URL
+- **Single service** (frontend + backend together): Leave empty or omit entirely - frontend will use relative URLs
 
 ### 2️⃣ RUNTIME Environment Variables (Set on Cloud Run)
 Set these in Cloud Run Console or via gcloud:
@@ -69,13 +77,14 @@ FYERS_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoy
 
 ## 📋 Complete Checklist
 
-### ✅ Build Arguments (6 total)
-- [ ] VITE_FIREBASE_API_KEY
-- [ ] VITE_FIREBASE_AUTH_DOMAIN
-- [ ] VITE_FIREBASE_PROJECT_ID
-- [ ] VITE_FIREBASE_STORAGE_BUCKET
-- [ ] VITE_FIREBASE_MESSAGING_SENDER_ID
-- [ ] VITE_FIREBASE_APP_ID
+### ✅ Build Arguments (6 required + 1 optional)
+- [ ] VITE_FIREBASE_API_KEY (required)
+- [ ] VITE_FIREBASE_AUTH_DOMAIN (required)
+- [ ] VITE_FIREBASE_PROJECT_ID (required)
+- [ ] VITE_FIREBASE_STORAGE_BUCKET (required)
+- [ ] VITE_FIREBASE_MESSAGING_SENDER_ID (required)
+- [ ] VITE_FIREBASE_APP_ID (required)
+- [ ] VITE_API_URL (optional - only for separate frontend/backend services)
 
 ### ✅ Runtime Environment Variables (11 total)
 - [ ] DATABASE_URL

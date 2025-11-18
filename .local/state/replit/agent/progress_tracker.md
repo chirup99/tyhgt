@@ -52,3 +52,36 @@
 [x] 926. Validated feature cards displaying correctly (Social Feed, Trading Master, Journal)
 [x] 927. Navigation working properly (sidebar with home, login, theme toggle)
 [x] 928. ✅ NOVEMBER 18, 2025 MIGRATION COMPLETED - PROJECT FULLY OPERATIONAL! ✅
+
+[x] 929. NOVEMBER 18, 2025 - CLOUD RUN NEOFEED POST CREATION FIX
+[x] 930. User reported: Post creation fails on Cloud Run with "Failed to create post"
+[x] 931. User reported: Profile not loading in Neo Feed tab on Cloud Run
+[x] 932. Working correctly on VS Code and Replit local development
+[x] 933. Analyzed code flow - found post creation endpoint at server/routes.ts:5053
+[x] 934. Root Cause #1: Missing VITE_API_URL environment variable
+[x] 935.   - Frontend uses: const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+[x] 936.   - Without VITE_API_URL, makes relative requests that fail on separate services
+[x] 937. Root Cause #2: CORS preflight failure on IAM-authenticated Cloud Run
+[x] 938.   - OPTIONS requests sent without Authorization header
+[x] 939.   - Cloud Run IAM layer rejects before CORS middleware sees request
+[x] 940. Root Cause #3: Missing Firestore IAM permissions
+[x] 941.   - Cloud Run service account needs roles/datastore.user for Firestore access
+[x] 942. Created comprehensive fix document: CLOUD-RUN-NEOFEED-FIX.md
+[x] 943. Fix #1: Grant roles/datastore.user to Cloud Run service account
+[x] 944. Fix #2: Deploy Cloud Run with --allow-unauthenticated flag
+[x] 945. Fix #3: Add VITE_API_URL to build arguments (if separate services)
+[x] 946. Provided gcloud commands for IAM permission setup
+[x] 947. Provided deployment commands with correct flags
+[x] 948. Provided testing checklist and troubleshooting guide
+[x] 949. Documented all 3 root causes and their solutions
+[x] 950. ✅ CLOUD RUN NEOFEED FIX DOCUMENTATION COMPLETED ✅
+[x] 951. User requested deploy-cloudrun-no-docker.md documentation
+[x] 952. Created comprehensive deployment guide: DEPLOY-CLOUDRUN-NO-DOCKER.md
+[x] 953. Documented prerequisites: gcloud CLI, APIs, secrets, IAM permissions
+[x] 954. Included step-by-step deployment instructions
+[x] 955. Added verification steps for builds, services, and logs
+[x] 956. Included Neo Feed testing procedures
+[x] 957. Added troubleshooting section for common deployment issues
+[x] 958. Documented security best practices for Cloud Run
+[x] 959. Provided quick reference commands
+[x] 960. ✅ CLOUD RUN DEPLOYMENT DOCUMENTATION COMPLETED ✅
