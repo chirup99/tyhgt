@@ -3,6 +3,8 @@ steps:
   args:
   - 'build'
   - '--build-arg'
+  - 'VITE_API_URL=${_VITE_API_URL}'
+  - '--build-arg'
   - 'VITE_FIREBASE_API_KEY=${_VITE_FIREBASE_API_KEY}'
   - '--build-arg'
   - 'VITE_FIREBASE_AUTH_DOMAIN=${_VITE_FIREBASE_AUTH_DOMAIN}'
@@ -15,7 +17,7 @@ steps:
   - '--build-arg'
   - 'VITE_FIREBASE_APP_ID=${_VITE_FIREBASE_APP_ID}'
   - '-t'
-  - 'gcr.io/fast-planet-470408-f1/perala'
+  - 'gcr.io/fast-planet-470408-f1/perala:latest'
   - '.'
 images:
-- 'gcr.io/fast-planet-470408-f1/perala'
+- 'gcr.io/fast-planet-470408-f1/perala:latest'

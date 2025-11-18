@@ -3,7 +3,8 @@ FROM node:22-slim
 
 WORKDIR /usr/src/app
 
-# Add ARG declarations for Firebase API keys
+# Add ARG declarations for build-time environment variables
+ARG VITE_API_URL
 ARG VITE_FIREBASE_API_KEY
 ARG VITE_FIREBASE_AUTH_DOMAIN
 ARG VITE_FIREBASE_PROJECT_ID
@@ -23,7 +24,8 @@ COPY . .
 
 # Build frontend and backend using the build script
 # Pass the build-time arguments to the build command
-RUN VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
+RUN VITE_API_URL=$VITE_API_URL \
+    VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
     VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
     VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
     VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET \
