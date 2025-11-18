@@ -1267,3 +1267,14 @@
 [x] 646. Each card displays author information prominently
 [x] 647. Restarted workflow - server running successfully on port 5000
 [x] 648. ✅ AUDIO MINICAST NOW AUTO-PLAYS, SHOWS USERNAME, AND HAS CENTERED PLAY BUTTON! ✅
+
+[x] 649. AUDIO MINICAST LAYOUT REFINEMENTS - November 18, 2025 04:50 AM
+[x] 650. User requested: Skip auto-play on first card, remove @username, center display name, move Play button to bottom
+[x] 651. Updated auto-play logic to skip first card (index 0) - only auto-plays from 2nd card onwards
+[x] 652. Removed @username display - now only shows author's display name
+[x] 653. Centered display name in middle of card (larger font: text-sm)
+[x] 654. Relocated Play button to bottom of card
+[x] 655. Updated card layout with justify-between for proper spacing
+[x] 656. Card now has: Label (top) → Display Name (center) → Play Button (bottom)
+[x] 657. Restarted workflow - server running successfully on port 5000
+[x] 658. ✅ AUDIO MINICAST NOW HAS REFINED LAYOUT WITH SELECTIVE AUTO-PLAY! ✅

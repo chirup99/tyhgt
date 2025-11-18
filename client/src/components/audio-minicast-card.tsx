@@ -87,21 +87,24 @@ export function AudioMinicastCard({
     return allCards;
   });
 
-  // Auto-play when swiping to a new card
+  // Auto-play when swiping to a new card (skip first card)
   useEffect(() => {
     const currentCard = cards[0];
+    const currentIndex = cards.findIndex(c => c.id === currentCard?.id);
+    
     if (currentCard && currentCard.id !== previousCardIdRef.current) {
       previousCardIdRef.current = currentCard.id;
       
-      // Only auto-play content cards (not the main card)
-      if (currentCard.type === 'post') {
+      // Only auto-play from 2nd card onwards (skip first card at index 0)
+      if (currentCard.type === 'post' && currentIndex > 0) {
         // Stop any current playback
         window.speechSynthesis.cancel();
         
         // Start playing the new card
         const textToSpeak = cleanTextForSpeech(currentCard.content);
-        console.log('🎵 Auto-playing card:', {
+        console.log('🎵 Auto-playing card (skipping first):', {
           cardId: currentCard.id,
+          cardIndex: currentIndex,
           textLength: textToSpeak.length,
           textPreview: textToSpeak.substring(0, 100) + '...'
         });
@@ -470,12 +473,25 @@ export function AudioMinicastCard({
                     </div>
 
                     {/* Card content */}
-                    <div className="relative z-10 h-full flex flex-col">
-                      {/* Top section - Centered Play Button */}
-                      <div className="flex flex-col items-center gap-1 mb-2">
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                      {/* Top section - Label */}
+                      <div className="flex flex-col items-center gap-1">
                         <div className="text-[8px] text-white/80 uppercase tracking-wide font-medium">
                           {gradient.label}
                         </div>
+                      </div>
+
+                      {/* Display name - Center */}
+                      <div className="flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-white font-bold text-sm leading-tight">
+                            {author.displayName}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Play button - Bottom */}
+                      <div className="flex justify-center">
                         <button
                           className="bg-white text-gray-800 hover:bg-gray-100 px-3 py-1.5 rounded-full text-[10px] font-medium shadow-lg"
                           onClick={(e) => {
@@ -491,18 +507,6 @@ export function AudioMinicastCard({
                             <span>{isPlaying ? 'Playing' : 'Play Now'}</span>
                           </div>
                         </button>
-                      </div>
-
-                      {/* Username section - Center */}
-                      <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-white/90 text-[10px] font-medium mb-0.5">
-                            @{author.username}
-                          </div>
-                          <div className="text-white font-bold text-xs leading-tight">
-                            {author.displayName}
-                          </div>
-                        </div>
                       </div>
                     </div>
 
