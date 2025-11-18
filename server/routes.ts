@@ -5051,37 +5051,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post('/api/social-posts', async (req, res) => {
+    const requestId = Math.random().toString(36).substring(7);
+    console.log(`\n🚀 [${requestId}] POST /api/social-posts - New post creation request`);
+    console.log(`📍 [${requestId}] Origin: ${req.headers.origin || 'none'}`);
+    console.log(`🔐 [${requestId}] Has Authorization: ${!!req.headers.authorization}`);
+    
     try {
       const authHeader = req.headers.authorization;
       
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log(`❌ [${requestId}] No valid authorization header`);
         return res.status(401).json({ error: 'Authentication required to create posts' });
       }
 
       const idToken = authHeader.split('Bearer ')[1];
+      console.log(`🎫 [${requestId}] Token length: ${idToken.length} chars`);
       
       // Verify the Firebase ID token
+      console.log(`🔍 [${requestId}] Verifying Firebase ID token...`);
       const admin = await import('firebase-admin');
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const userId = decodedToken.uid;
+      console.log(`✅ [${requestId}] Token verified for user: ${userId}`);
       
       // Get user profile from Firestore
       const { getFirestore } = await import('firebase-admin/firestore');
       const db = getFirestore();
       
+      console.log(`📖 [${requestId}] Fetching user profile from Firestore...`);
       let userData: any = null;
       try {
         const userDoc = await db.collection('users').doc(userId).get();
         
         if (userDoc.exists) {
           userData = userDoc.data();
+          console.log(`✅ [${requestId}] User profile found: ${userData.username} (${userData.displayName})`);
+        } else {
+          console.log(`⚠️ [${requestId}] User profile not found in Firestore`);
         }
       } catch (error: any) {
-        console.log('⚠️ Error fetching user profile from Firestore:', error.message);
+        console.error(`❌ [${requestId}] Error fetching user profile from Firestore:`, error.message);
+        console.error(`❌ [${requestId}] Error stack:`, error.stack);
       }
       
       // Validate that user has profile set up
       if (!userData || !userData.username || !userData.displayName) {
+        console.log(`❌ [${requestId}] Incomplete user profile - username: ${!!userData?.username}, displayName: ${!!userData?.displayName}`);
         return res.status(400).json({ 
           error: 'Profile not set up', 
           message: 'Please complete your profile before creating posts' 
@@ -5092,8 +5107,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { content, stockMentions, sentiment, tags, hasImage, imageUrl, isAudioPost, selectedPostIds, selectedPosts } = req.body;
       
       if (!content || content.trim().length === 0) {
+        console.log(`❌ [${requestId}] Empty post content`);
         return res.status(400).json({ error: 'Post content is required' });
       }
+      
+      console.log(`📝 [${requestId}] Post content length: ${content.length} chars`);
+      console.log(`📊 [${requestId}] Post metadata: stockMentions=${stockMentions?.length || 0}, hasImage=${hasImage}, isAudioPost=${isAudioPost}`);
       
       // Create post data with authenticated user's profile information
       const postData = {
@@ -5116,14 +5135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
       
-      console.log('📝 Creating social post for user:', userData.username, '|', userData.displayName);
-      console.log('📄 Post content:', content.substring(0, 50) + '...');
+      console.log(`📝 [${requestId}] Creating social post for user: ${userData.username} | ${userData.displayName}`);
+      console.log(`📄 [${requestId}] Post content: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`);
       
       // Save user posts to Firebase Firestore (user-specific collection)
-      console.log('🔥 Saving user post to Firebase Firestore (user-specific collection)');
+      console.log(`🔥 [${requestId}] Saving user post to Firebase Firestore collection: user_posts`);
       const postRef = await db.collection('user_posts').add(postData);
       
-      console.log('✅ User post saved to Firebase with ID:', postRef.id);
+      console.log(`✅ [${requestId}] User post saved to Firebase with ID: ${postRef.id}`);
       
       // Return the created post
       const createdPost = {
@@ -5133,15 +5152,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date()
       };
       
+      console.log(`🎉 [${requestId}] Post creation successful! Returning response.`);
       res.json(createdPost);
-    } catch (error) {
-      console.error('❌ Error creating social post:', error);
+    } catch (error: any) {
+      console.error(`❌ [${requestId}] Error creating social post:`, error);
+      console.error(`❌ [${requestId}] Error code:`, error.code);
+      console.error(`❌ [${requestId}] Error message:`, error.message);
+      console.error(`❌ [${requestId}] Error stack:`, error.stack);
+      
       if (error.code === 'auth/id-token-expired') {
+        console.log(`⏰ [${requestId}] Token expired`);
         res.status(401).json({ error: 'Session expired. Please log in again.' });
       } else if (error.code === 'auth/argument-error') {
+        console.log(`🔐 [${requestId}] Invalid token`);
         res.status(401).json({ error: 'Invalid authentication token' });
       } else {
-        res.status(500).json({ error: 'Failed to create post. Please try again.' });
+        console.log(`💥 [${requestId}] Unknown error type`);
+        res.status(500).json({ 
+          error: 'Failed to create post. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+        });
       }
     }
   });

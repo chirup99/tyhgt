@@ -72,42 +72,62 @@ app.get('/api/status', (_req, res) => {
   });
 });
 
-// Enhanced CORS and security headers for desktop browser compatibility
+// Enhanced CORS and security headers for Cloud Run and Firebase compatibility
 app.use((req, res, next) => {
-  // Determine allowed origins based on environment
-  const allowedOrigins = [
-    'https://fast-planet-470408-f1.web.app',
-    'https://fast-planet-470408-f1.firebaseapp.com',
-    process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
-  ].filter(Boolean);
-
   const origin = req.headers.origin;
   
-  // Set CORS headers
-  if (origin && allowedOrigins.includes(origin)) {
+  // Define trusted origins - explicitly list all allowed domains for security
+  const allowedOrigins = [
+    // Firebase Hosting domains for this specific project
+    'https://fast-planet-470408-f1.web.app',
+    'https://fast-planet-470408-f1.firebaseapp.com',
+    // Cloud Run URL (set via environment variable)
+    process.env.CLOUD_RUN_URL ? process.env.CLOUD_RUN_URL : null,
+    // Replit development domain
+    process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
+  ].filter(Boolean);
+  
+  // Function to check if origin is trusted
+  const isTrustedOrigin = (origin: string | undefined): boolean => {
+    if (!origin) return false;
+    
+    // Check exact matches against allowlist
+    if (allowedOrigins.includes(origin)) return true;
+    
+    // Development mode only: allow localhost and Replit domains
+    if (process.env.NODE_ENV === 'development') {
+      if (origin.match(/^https?:\/\/localhost(:\d+)?$/)) return true;
+      if (origin.match(/^https:\/\/.*\.replit\.dev$/)) return true;
+      if (origin.match(/^https:\/\/.*\.repl\.co$/)) return true;
+      return true; // Allow all origins in development mode for testing
+    }
+    
+    return false;
+  };
+  
+  // Set CORS headers for trusted origins only
+  if (origin && isTrustedOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
-  } else if (process.env.NODE_ENV === 'development' && origin) {
-    // In development, allow the requesting origin (required for credentials: include)
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-  } else if (process.env.NODE_ENV === 'development') {
-    // Fallback for development when no origin header (e.g., curl, Postman)
-    res.header('Access-Control-Allow-Origin', '*');
-    // Don't set credentials header with wildcard origin
+    log(`✅ CORS allowed for origin: ${origin}`);
+  } else if (origin) {
+    // Log rejected origins in production for debugging
+    log(`❌ CORS rejected for untrusted origin: ${origin}`);
   }
   
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, X-CSRF-Token');
+  res.header('Access-Control-Max-Age', '86400');
 
   // Additional headers for security
   res.header('X-Frame-Options', 'SAMEORIGIN');
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  // Handle preflight requests
+  // Handle preflight OPTIONS requests immediately
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
+    log(`✅ Preflight OPTIONS request from ${origin || 'unknown'} - responding 204`);
+    res.status(204).end();
     return;
   }
 
