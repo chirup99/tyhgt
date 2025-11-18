@@ -186,3 +186,13 @@
 [x] 773. Clean separation: App bar for messages, Audio minicast window for audio only
 [x] 774. Restarted workflow - server running successfully with message icon relocation
 [x] 775. ✅ MESSAGE ICON RELOCATION COMPLETED - REAL ICON NOW IN APP BAR! ✅
+
+[x] 776. RESPONSIVE MESSAGE ICON FIX - November 18, 2025 07:55 AM
+[x] 777. User requested: Only remove message icon on mobile, keep it on desktop
+[x] 778. Added responsive class "hidden md:flex" to app bar message button
+[x] 779. App bar message icon now hidden on mobile, visible on desktop (md and above)
+[x] 780. Added responsive class "md:hidden" to PostCreationPanel message button
+[x] 781. PostCreationPanel message icon now visible on mobile, hidden on desktop
+[x] 782. Final behavior: Desktop = message in app bar only, Mobile = message in audio window only
+[x] 783. Restarted workflow - server running successfully with responsive fix
+[x] 784. ✅ RESPONSIVE MESSAGE ICON FIX COMPLETED - PROPER MOBILE/DESKTOP SEPARATION! ✅
