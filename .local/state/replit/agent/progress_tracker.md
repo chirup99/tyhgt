@@ -85,3 +85,13 @@
 [x] 958. Documented security best practices for Cloud Run
 [x] 959. Provided quick reference commands
 [x] 960. ✅ CLOUD RUN DEPLOYMENT DOCUMENTATION COMPLETED ✅
+[x] 961. User clarified: Both Firebase Hosting and Cloud Run URLs failing to create posts
+[x] 962. Checked local Replit logs - working perfectly (profile and posts loading)
+[x] 963. Issue is specifically with Cloud Run production deployment
+[x] 964. Created comprehensive diagnostic guide: DIAGNOSE-CLOUD-RUN-POSTS.md
+[x] 965. Created automated diagnostic script: check-cloud-run-setup.sh
+[x] 966. Script checks: Cloud Run existence, IAM, Firestore permissions, .env config, builds, logs
+[x] 967. Documented all 6 diagnostic steps with expected outputs
+[x] 968. Provided fix commands for each potential issue
+[x] 969. Included browser console debugging steps
+[x] 970. ✅ CLOUD RUN DIAGNOSTIC TOOLS COMPLETED ✅
