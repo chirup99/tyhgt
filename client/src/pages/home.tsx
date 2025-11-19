@@ -3284,6 +3284,11 @@ ${
     return {};
   });
 
+  // ✅ PERSONAL HEATMAP REVISION: Track updates to force React re-renders
+  // This counter increments after personal auto-clicking completes
+  // Ensures heatmap cells update when personalTradingDataByDate changes
+  const [personalHeatmapRevision, setPersonalHeatmapRevision] = useState(0);
+
   // Demo mode state - toggle between demo data (same for all users) and user-specific data
   // Switch ON (true) = Demo mode active (shared demo data, Heatmap #1)
   // Switch OFF (false) = Personal mode active (user-specific data, Heatmap #2)
@@ -3327,8 +3332,15 @@ ${
   // Loading state for date selection
   const [isDateLoading, setIsDateLoading] = useState(false);
 
-  // ✅ Helper functions to get the active heatmap data based on current mode
-  const tradingDataByDate = isDemoMode ? demoTradingDataByDate : personalTradingDataByDate;
+  // ✅ FIXED: Use useMemo with personalHeatmapRevision dependency to force re-renders
+  // When personal mode auto-clicking completes, personalHeatmapRevision increments
+  // This triggers React to re-compute tradingDataByDate and re-render the heatmap
+  const tradingDataByDate = useMemo(() => {
+    const activeData = isDemoMode ? demoTradingDataByDate : personalTradingDataByDate;
+    console.log(`🔄 tradingDataByDate recomputed [Mode: ${isDemoMode ? 'DEMO' : 'PERSONAL'}, Revision: ${personalHeatmapRevision}, Dates: ${Object.keys(activeData).length}]`);
+    return activeData;
+  }, [isDemoMode, demoTradingDataByDate, personalTradingDataByDate, personalHeatmapRevision]);
+  
   const setTradingDataByDate = isDemoMode ? setDemoTradingDataByDate : setPersonalTradingDataByDate;
   const getActiveStorageKey = () => isDemoMode ? "demoTradingDataByDate" : "personalTradingDataByDate";
 
@@ -9047,17 +9059,25 @@ ${
                                             // Wait for all fetches to complete in parallel
                                             const results = await Promise.all(fetchPromises);
 
-                                            // Update state with all loaded data
+                                            // ✅ CRITICAL FIX: Update state with all loaded data + increment revision counter
                                             const validResults = results.filter((r) => r !== null);
                                             if (validResults.length > 0) {
+                                              // Create a BRAND NEW object so React detects the change
                                               const updatedData = { ...personalData };
                                               validResults.forEach((result: any) => {
                                                 if (result) {
                                                   updatedData[result.dateStr] = result.journalData;
                                                 }
                                               });
+                                              
+                                              // Update the personal heatmap data
                                               setPersonalTradingDataByDate(updatedData);
                                               localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
+                                              
+                                              // ✅ INCREMENT REVISION COUNTER: This forces React to re-render heatmap
+                                              // Without this, the heatmap won't update because React doesn't detect object changes
+                                              setPersonalHeatmapRevision(prev => prev + 1);
+                                              
                                               console.log(
                                                 `✅ Ultra-fast PERSONAL HEATMAP #2 population complete! Loaded ${validResults.length} dates in parallel. Heatmap colors should now be visible!`,
                                               );
