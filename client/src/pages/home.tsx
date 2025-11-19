@@ -8945,6 +8945,9 @@ ${
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 mr-2">
+                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                {isDemoMode ? "Demo" : "Personal"}
+                              </span>
                               <Switch
                                 checked={isDemoMode}
                                 onCheckedChange={async (checked) => {
