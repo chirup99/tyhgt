@@ -220,8 +220,12 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                                 w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
                                 ${cellColor}
                                 hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
+                                focus:outline-none
                               `}
-                              onClick={() => onDateSelect(date)}
+                              onClick={() => {
+                                setCurrentDate(date);
+                                onDateSelect(date);
+                              }}
                               data-testid={`demo-calendar-day-${date.getDate()}-${date.getMonth()}`}
                             />
                           );
