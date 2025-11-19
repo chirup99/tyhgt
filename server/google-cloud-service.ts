@@ -1118,16 +1118,19 @@ export class GoogleCloudService {
       const collectionPath = `users/${userId}/trading-journal`;
       const snapshot = await this.firestore.collection(collectionPath).get();
       
-      const journals = snapshot.docs.map(doc => ({
-        date: doc.id,
-        ...doc.data()
-      }));
+      // ✅ FIX: Convert array to object with dates as keys (matches demo data format)
+      // Frontend expects: { "2025-03-02": data, "2025-03-03": data }
+      // NOT: [{ date: "2025-03-02", ...data }, { date: "2025-03-03", ...data }]
+      const journals: Record<string, any> = {};
+      snapshot.docs.forEach(doc => {
+        journals[doc.id] = doc.data();
+      });
       
-      console.log(`📚 Retrieved ${journals.length} trading journal entries for user ${userId}`);
+      console.log(`📚 Retrieved ${Object.keys(journals).length} trading journal entries for user ${userId}`);
       return journals;
     } catch (error) {
       console.error('❌ Error loading all user trading journals:', error);
-      return [];
+      return {};
     }
   }
 
