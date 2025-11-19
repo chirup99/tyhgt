@@ -3282,6 +3282,9 @@ ${
 
   // Loading state for heatmap data
   const [isLoadingHeatmapData, setIsLoadingHeatmapData] = useState(true);
+  
+  // Loading state for date selection
+  const [isDateLoading, setIsDateLoading] = useState(false);
 
   // Helper function to get or create userId from localStorage
   const getUserId = () => {
@@ -3964,6 +3967,9 @@ ${
       `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()})`,
     );
 
+    // Set loading state to show spinner
+    setIsDateLoading(true);
+
     try {
       // Choose endpoint based on demo mode
       // Switch ON (true) = Demo mode, Switch OFF (false) = Personal mode
@@ -3971,12 +3977,12 @@ ${
       if (isDemoMode) {
         // Switch ON = Demo mode: Load from shared Google Cloud journal database
         console.log("📊 Loading from demo data (shared)");
-        response = await fetch(`/api/journal/${dateKey}`);
+        response = await fetch(getFullApiUrl(`/api/journal/${dateKey}`));
       } else {
         // Switch OFF = Personal mode: Load from Firebase (user-specific)
         const userId = getUserId();
         console.log(`👤 Loading from user-specific data (userId: ${userId})`);
-        response = await fetch(`/api/user-journal/${userId}/${dateKey}`);
+        response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateKey}`));
       }
       console.log(`📡 Load response status: ${response.status}`, response);
 
@@ -4143,9 +4149,25 @@ ${
           `❌ Load failed with status ${response.status}:`,
           errorText,
         );
+        // Clear data on failed load
+        setNotesContent("");
+        setTempNotesContent("");
+        setSelectedTags([]);
+        setTradeHistoryData([]);
+        setTradingImages([]);
       }
     } catch (error) {
       console.error("❌ Error loading journal data:", error);
+      // Clear data on error
+      setNotesContent("");
+      setTempNotesContent("");
+      setSelectedTags([]);
+      setTradeHistoryData([]);
+      setTradingImages([]);
+    } finally {
+      // Always clear loading state
+      setIsDateLoading(false);
+      console.log("✅ Date loading complete");
     }
   };
 
@@ -8487,6 +8509,15 @@ ${
                                     String(checked),
                                   );
                                   
+                                  // CRITICAL: Clear ALL current UI state first to prevent demo data from persisting
+                                  console.log("🧹 Clearing all current UI state...");
+                                  setNotesContent("");
+                                  setTempNotesContent("");
+                                  setSelectedTags([]);
+                                  setTradeHistoryData([]);
+                                  setTradingImages([]);
+                                  setSelectedDate(null);
+                                  
                                   if (checked) {
                                     // Switch ON = Demo mode: Reload demo data from API
                                     console.log("📊 Switching to Demo mode - loading demo data...");
@@ -8497,6 +8528,15 @@ ${
                                         console.log("✅ Demo data loaded successfully:", Object.keys(allDatesData).length, "dates");
                                         setTradingDataByDate(allDatesData);
                                         localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+                                        
+                                        // Load the latest demo date automatically
+                                        const dates = Object.keys(allDatesData).sort().reverse();
+                                        if (dates.length > 0) {
+                                          const latestDateKey = dates[0];
+                                          const latestDate = new Date(latestDateKey);
+                                          console.log("📅 Auto-selecting latest demo date:", latestDateKey);
+                                          await handleDateSelect(latestDate);
+                                        }
                                       } else {
                                         console.log("⚠️ Failed to load demo data from API");
                                       }
@@ -8519,6 +8559,17 @@ ${
                                           const personalData = await response.json();
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
                                           setTradingDataByDate(personalData);
+                                          
+                                          // Load the latest personal date if available
+                                          const dates = Object.keys(personalData).sort().reverse();
+                                          if (dates.length > 0) {
+                                            const latestDateKey = dates[0];
+                                            const latestDate = new Date(latestDateKey);
+                                            console.log("📅 Auto-selecting latest personal date:", latestDateKey);
+                                            await handleDateSelect(latestDate);
+                                          } else {
+                                            console.log("📭 No personal data found - UI will remain empty");
+                                          }
                                         }
                                       } else {
                                         console.log("⚠️ No user logged in - personal mode will be empty");
