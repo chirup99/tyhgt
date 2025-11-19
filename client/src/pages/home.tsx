@@ -4322,13 +4322,6 @@ ${
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
 
-    // IMMEDIATELY clear existing data for instant UI update
-    setNotesContent("");
-    setTempNotesContent("");
-    setSelectedTags([]);
-    setTradeHistoryData([]);
-    setTradingImages([]);
-
     // Load trading data from appropriate source based on demo mode
     // Use forceMode if provided (to avoid state closure issues), otherwise use isDemoMode state
     const effectiveMode = forceMode !== undefined ? forceMode : (isDemoMode ? 'demo' : 'personal');
@@ -4339,8 +4332,18 @@ ${
       `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${effectiveMode}]`,
     );
 
-    // Set loading state to show spinner (but data already cleared above)
+    // Set loading state and clear data IMMEDIATELY in separate state updates
+    // This ensures React processes them and triggers re-renders
     setIsDateLoading(true);
+    
+    // Clear data after a tiny delay to ensure loading state is set
+    setTimeout(() => {
+      setNotesContent("");
+      setTempNotesContent("");
+      setSelectedTags([]);
+      setTradeHistoryData([]);
+      setTradingImages([]);
+    }, 0);
 
     try {
       // Choose endpoint based on demo mode
