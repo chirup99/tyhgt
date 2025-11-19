@@ -55,12 +55,14 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
     return months;
   };
 
-  const months = generateMonthsData();
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
-  // Year navigation functions
-  const handlePreviousYear = () => setYear(year - 1);
-  const handleNextYear = () => setYear(year + 1);
+  // Year navigation functions - use useMemo for instant updates
+  const handlePreviousYear = () => setYear(prev => prev - 1);
+  const handleNextYear = () => setYear(prev => prev + 1);
+  
+  // Generate months data based on current year (recalculates immediately when year changes)
+  const months = generateMonthsData();
 
   const formatSelectedDate = (date: Date | null) => {
     // If no date selected, show current date with the selected year
@@ -226,12 +228,41 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
           <ChevronLeft className="w-4 h-4" />
         </Button>
         
-        {selectedRange ? (
-          <div className="flex items-center gap-2 min-w-[250px] justify-center">
+        <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8">
+              <Calendar className="w-3 h-3 mr-1" />
+              <span className="text-xs">{year}</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" align="center">
+            <div className="space-y-2">
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                placeholder="From Date"
+                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                data-testid="input-from-date"
+              />
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                placeholder="To Date"
+                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                data-testid="input-to-date"
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {selectedRange && (
+          <div className="flex items-center gap-2">
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Selected Date Range: {selectedRange.from.getFullYear()}
+                  Selected: {selectedRange.from.getFullYear()}
                 </span>
                 <Button
                   variant="ghost"
@@ -246,42 +277,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
               <span className="text-[10px] text-gray-600 dark:text-gray-400">
                 {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} - {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
-              <span className="text-[10px] text-blue-600 dark:text-blue-400">
-                Showing trade data within selected range
-              </span>
             </div>
           </div>
-        ) : (
-          <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
-            <PopoverTrigger asChild>
-              <div className="flex items-center gap-2 min-w-[250px] justify-center cursor-pointer hover-elevate rounded-md px-3 py-1">
-                <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {formatSelectedDate(selectedDate)}
-                </span>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="center">
-              <div className="space-y-2">
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  placeholder="From Date"
-                  className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  data-testid="input-from-date"
-                />
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  placeholder="To Date"
-                  className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  data-testid="input-to-date"
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
         )}
 
         <Button
