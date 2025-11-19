@@ -3462,17 +3462,69 @@ ${
             setTradingDataByDate(personalData);
             setCalendarData(personalData);
 
-            // Auto-select the latest personal date if available
-            if (!selectedDate && Object.keys(personalData).length > 0) {
-              const sortedDates = Object.keys(personalData).sort(
-                (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+            // Save to localStorage for offline access
+            localStorage.setItem("tradingDataByDate", JSON.stringify(personalData));
+
+            // Auto-click all available dates to populate heatmap colors - ULTRA FAST
+            // This simulates clicking each date to ensure colors appear immediately
+            setTimeout(async () => {
+              console.log(
+                "🔄 Ultra-fast auto-clicking all PERSONAL dates for heatmap colors...",
               );
-              const latestDateStr = sortedDates[0];
-              const latestDate = new Date(latestDateStr);
-              console.log("🎯 Auto-selecting latest PERSONAL date:", latestDateStr);
-              setSelectedDate(latestDate);
-              await handleDateSelect(latestDate);
-            }
+
+              // Create all fetch promises in parallel for maximum speed
+              const fetchPromises = Object.keys(personalData).map(
+                async (dateStr) => {
+                  try {
+                    const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
+                    if (response.ok) {
+                      const journalData = await response.json();
+                      if (journalData && Object.keys(journalData).length > 0) {
+                        return { dateStr, journalData };
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      `❌ Error auto-loading PERSONAL date ${dateStr}:`,
+                      error,
+                    );
+                  }
+                  return null;
+                },
+              );
+
+              // Wait for all fetches to complete in parallel
+              const results = await Promise.all(fetchPromises);
+
+              // Update state with all loaded data
+              const validResults = results.filter((r) => r !== null);
+              if (validResults.length > 0) {
+                const updatedData = { ...personalData };
+                validResults.forEach((result: any) => {
+                  if (result) {
+                    updatedData[result.dateStr] = result.journalData;
+                  }
+                });
+                setTradingDataByDate(updatedData);
+                setCalendarData(updatedData);
+                localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
+                console.log(
+                  `✅ Ultra-fast PERSONAL heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
+                );
+              }
+
+              // Auto-select latest date AFTER all data is loaded
+              if (!selectedDate && Object.keys(personalData).length > 0) {
+                const sortedDates = Object.keys(personalData).sort(
+                  (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+                );
+                const latestDateStr = sortedDates[0];
+                const latestDate = new Date(latestDateStr);
+                console.log("🎯 Auto-selecting latest PERSONAL date:", latestDateStr);
+                setSelectedDate(latestDate);
+                await handleDateSelect(latestDate);
+              }
+            }, 100);
           } else {
             console.log("📭 No personal data found for user:", userId);
           }

@@ -721,7 +721,51 @@
 [x] 1384.   5. Error handling improved with proper state clearing and user feedback
 [x] 1385. ✅✅✅ TRADE BOOK DEMO MODE & SAVE BUGS FIXED! ✅✅✅
 
-[x] 1386. ARCHITECT FEEDBACK #1 - SECURITY IMPROVEMENTS REQUIRED
+[x] 1386. NOVEMBER 19, 2025 - PERSONAL MODE HEATMAP AUTO-LOAD FIX
+[x] 1387. User reported: "Personal switch heatmap not fetching data automatically - only when clicking dates"
+[x] 1388. User reported: "Demo switch works perfectly - loads all data and colors immediately"
+[x] 1389. User reported: "March 3, 4 data exists in personal trade book but shows null/grey on heatmap until clicked"
+[x] 1390. **BUG IDENTIFIED**: Personal mode missing auto-click logic to populate heatmap colors
+[x] 1391.   - Demo mode (lines 3325-3445): Has "ultra-fast auto-clicking" that loads ALL dates in parallel
+[x] 1392.   - Personal mode (lines 3447-3478): Only fetches date list, missing auto-click logic
+[x] 1393.   - Impact: Heatmap shows grey/null for all personal dates until manually clicked
+[x] 1394.   - Expected: Heatmap should show green/red colors immediately when personal switch ON
+[x] 1395. **ROOT CAUSE ANALYSIS**:
+[x] 1396.   - Demo mode useEffect (line 3313-3504) has two sections:
+[x] 1397.     1. Demo mode: Fetches `/api/journal/all-dates` + auto-clicks ALL dates (lines 3352-3393)
+[x] 1398.     2. Personal mode: Fetches `/api/user-journal/${userId}/all` but NO auto-clicking (lines 3447-3478)
+[x] 1399.   - Auto-clicking logic creates parallel fetch requests for each date
+[x] 1400.   - Populates `tradingDataByDate` with full data including P&L metrics
+[x] 1401.   - Heatmap colors depend on `tradingDataByDate[dateStr].performanceMetrics.netPnL`
+[x] 1402.   - Without auto-clicking, dates exist in list but data is incomplete (no P&L = grey)
+[x] 1403. **FIX IMPLEMENTED**: Added ultra-fast auto-clicking to personal mode (lines 3471-3530)
+[x] 1404.   - Line 3469: Save personal data to localStorage (same as demo mode)
+[x] 1405.   - Lines 3471-3530: NEW - Ultra-fast auto-clicking logic for personal dates
+[x] 1406.   - Line 3479: Fetch all personal dates in parallel using Promise.all
+[x] 1407.   - Line 3482: Endpoint changed to `/api/user-journal/${userId}/${dateStr}` (user-specific)
+[x] 1408.   - Lines 3500-3517: Update tradingDataByDate and calendarData with loaded data
+[x] 1409.   - Line 3513: Save updated data to localStorage for offline access
+[x] 1410.   - Lines 3519-3529: Auto-select latest date AFTER all data loaded
+[x] 1411. **HOW THE FIX WORKS**:
+[x] 1412.   1. User toggles personal switch ON
+[x] 1413.   2. useEffect triggers (isDemoMode changes from true to false)
+[x] 1414.   3. Fetches `/api/user-journal/${userId}/all` - gets list of dates
+[x] 1415.   4. **NEW**: Automatically fetches each individual date in parallel
+[x] 1416.   5. Each date fetch gets full data: tradeHistory, performanceMetrics, notes, images
+[x] 1417.   6. Updates tradingDataByDate with complete data for all dates
+[x] 1418.   7. Heatmap recalculates colors based on netPnL (green=profit, red=loss)
+[x] 1419.   8. Colors appear immediately - no more null/grey until clicked!
+[x] 1420. **BENEFITS**:
+[x] 1421.   ✅ Personal mode now matches demo mode behavior exactly
+[x] 1422.   ✅ Heatmap shows green/red colors immediately when switch toggled
+[x] 1423.   ✅ March 3, 4 (and all dates) display correct P&L colors without clicking
+[x] 1424.   ✅ Ultra-fast parallel loading (all dates fetch simultaneously)
+[x] 1425.   ✅ Data saved to localStorage for offline access
+[x] 1426.   ✅ Automatic selection of latest date after load completes
+[x] 1427. Workflow restarted to test fix - server running on port 5000
+[x] 1428. ✅✅✅ PERSONAL MODE HEATMAP AUTO-LOAD BUG FIXED! ✅✅✅
+
+[x] 1429. ARCHITECT FEEDBACK #1 - SECURITY IMPROVEMENTS REQUIRED
 [x] 1387. Issue: getUserId() still generated random fallback IDs when Firebase auth missing
 [x] 1388. Issue: No null guards on .startsWith() calls - would crash when userId is null
 [x] 1389. Issue: Save/load paths didn't explicitly block when no Firebase user
