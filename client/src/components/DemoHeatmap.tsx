@@ -222,9 +222,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                                 hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
                               `}
                               onClick={() => onDateSelect(date)}
-                              title={`${date.toDateString()}${
-                                hasActualTradeData ? ` - P&L: ₹${netPnL.toLocaleString("en-IN")}` : " - No data"
-                              }`}
                               data-testid={`demo-calendar-day-${date.getDate()}-${date.getMonth()}`}
                             />
                           );
