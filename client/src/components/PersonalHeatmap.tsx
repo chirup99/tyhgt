@@ -11,7 +11,7 @@ interface PersonalHeatmapProps {
 }
 
 export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: PersonalHeatmapProps) {
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [personalData, setPersonalData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [fromDate, setFromDate] = useState("");
@@ -19,7 +19,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
 
-  // Load personal data from Firebase when userId changes or year changes
+  // Load personal data from Firebase when userId changes
   useEffect(() => {
     if (!userId) {
       console.log("⚠️ PERSONAL HEATMAP: No userId provided");
@@ -30,41 +30,39 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
       setIsLoading(true);
       
       try {
-        console.log(`📊 PERSONAL HEATMAP: Loading data for userId: ${userId}, year: ${year}`);
+        console.log(`📊 PERSONAL HEATMAP: Loading data for userId: ${userId}`);
         
-        const response = await fetch(`/api/user-journal/${userId}/all`);
+        // Fetch REAL personal data from Firebase API
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+        const response = await fetch(`${API_BASE_URL}/api/user-journal/${userId}/all`);
+        
         if (!response.ok) {
           throw new Error(`Failed to load personal data: ${response.status}`);
         }
         
         const data = await response.json();
+        setPersonalData(data);
+        localStorage.setItem("personalTradingDataByDate", JSON.stringify(data));
         console.log(`✅ PERSONAL HEATMAP: Loaded ${Object.keys(data).length} dates from Firebase`);
-        
-        // Filter data for the selected year
-        const yearData = Object.keys(data).reduce((acc, dateStr) => {
-          const date = new Date(dateStr);
-          if (date.getFullYear() === year) {
-            acc[dateStr] = data[dateStr];
-          }
-          return acc;
-        }, {} as Record<string, any>);
-        
-        setPersonalData(yearData);
-        localStorage.setItem("personalTradingDataByDate", JSON.stringify(yearData));
-        
-        console.log(`📅 PERSONAL HEATMAP: Filtered to ${Object.keys(yearData).length} dates for year ${year}`);
       } catch (error) {
         console.error("❌ PERSONAL HEATMAP: Failed to load data:", error);
+        // Try localStorage fallback
+        const stored = localStorage.getItem("personalTradingDataByDate");
+        if (stored) {
+          setPersonalData(JSON.parse(stored));
+          console.log("📊 PERSONAL HEATMAP: Loaded from localStorage fallback");
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     loadPersonalData();
-  }, [userId, year]);
+  }, [userId]);
 
   // Generate month data organized by day of week
   const generateMonthsData = () => {
+    const year = currentDate.getFullYear();
     const months = [];
     
     for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
@@ -93,26 +91,25 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
 
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
-  // Year navigation functions - use functional updates for instant changes
-  const handlePreviousYear = () => setYear(prev => prev - 1);
-  const handleNextYear = () => setYear(prev => prev + 1);
+  // Date navigation functions
+  const handlePreviousDate = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 1);
+    setCurrentDate(newDate);
+  };
   
-  // Generate months data based on current year (recalculates immediately when year changes)
+  const handleNextDate = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 1);
+    setCurrentDate(newDate);
+  };
+  
+  // Generate months data based on current date
   const months = generateMonthsData();
 
-  const formatSelectedDate = (date: Date | null) => {
-    // If no date selected, show current date with the selected year
-    if (!date) {
-      const today = new Date();
-      const currentDateInYear = new Date(year, today.getMonth(), today.getDate());
-      return currentDateInYear.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    }
-    return date.toLocaleDateString('en-US', { 
+  // Format date like the image: "Friday, November 28, 2025"
+  const formatDisplayDate = () => {
+    return currentDate.toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric', 
@@ -156,7 +153,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
       {/* Loading indicator */}
       {isLoading && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          Loading personal data...
+          Loading personal data from Firebase...
         </div>
       )}
 
@@ -269,23 +266,23 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
         </div>
       </div>
 
-      {/* Year Navigation & Date Range Picker */}
+      {/* Date Navigation & Date Range Picker - Like the image */}
       <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         <Button
           variant="ghost"
           size="icon"
-          onClick={handlePreviousYear}
+          onClick={handlePreviousDate}
           className="h-8 w-8"
-          data-testid="button-prev-year"
+          data-testid="button-prev-date"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
         
         <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8">
-              <Calendar className="w-3 h-3 mr-1" />
-              <span className="text-xs">{year}</span>
+            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
+              <Calendar className="w-3 h-3 mr-2" />
+              <span className="text-xs">{formatDisplayDate()}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-48 p-2" align="center">
@@ -337,9 +334,9 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleNextYear}
+          onClick={handleNextDate}
           className="h-8 w-8"
-          data-testid="button-next-year"
+          data-testid="button-next-date"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -348,7 +345,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
       {/* Data summary */}
       {Object.keys(personalData).length > 0 && (
         <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-          {Object.keys(personalData).length} trading days recorded in {year}
+          {Object.keys(personalData).length} trading days recorded
         </div>
       )}
 

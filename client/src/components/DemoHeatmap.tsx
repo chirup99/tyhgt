@@ -11,60 +11,64 @@ interface DemoHeatmapProps {
 
 export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [firebaseData, setFirebaseData] = useState<Record<string, any>>({});
+  const [demoData, setDemoData] = useState<Record<string, any>>({});
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch REAL Firebase data - NO hardcoded data
+  // Fetch DEMO data from /api/journal/all-dates (common for all users)
   useEffect(() => {
-    const loadFirebaseData = async () => {
+    const loadDemoData = async () => {
       try {
         setIsLoading(true);
+        console.log("📊 DEMO HEATMAP: Fetching common demo data from /api/journal/all-dates");
         
-        // Get user ID from localStorage
-        const userId = localStorage.getItem("currentUserId");
-        
-        if (!userId) {
-          console.log("⚠️ No user ID found - cannot load Firebase data");
-          setFirebaseData({});
-          setIsLoading(false);
-          return;
-        }
-
-        console.log("🔥 FIREBASE HEATMAP: Fetching real data for user:", userId);
-        
-        // Fetch REAL user data from Firebase API
+        // Fetch common DEMO data from API
         const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-        const response = await fetch(`${API_BASE_URL}/api/user-journal/${userId}/all`);
+        const response = await fetch(`${API_BASE_URL}/api/journal/all-dates`);
         
         if (response.ok) {
           const data = await response.json();
-          setFirebaseData(data);
-          console.log("✅ FIREBASE HEATMAP: Loaded", Object.keys(data).length, "real dates from Firebase");
+          setDemoData(data);
+          localStorage.setItem("demoTradingDataByDate", JSON.stringify(data));
+          console.log("✅ DEMO HEATMAP: Loaded", Object.keys(data).length, "dates from demo API");
         } else {
-          console.log("⚠️ Failed to load Firebase data:", response.statusText);
-          setFirebaseData({});
+          console.log("⚠️ Failed to load demo data:", response.statusText);
+          // Try localStorage fallback
+          const stored = localStorage.getItem("demoTradingDataByDate");
+          if (stored) {
+            setDemoData(JSON.parse(stored));
+            console.log("📊 DEMO HEATMAP: Loaded from localStorage fallback");
+          } else {
+            setDemoData({});
+          }
         }
       } catch (error) {
-        console.error("❌ Error loading Firebase data:", error);
-        setFirebaseData({});
+        console.error("❌ Error loading demo data:", error);
+        // Try localStorage fallback
+        const stored = localStorage.getItem("demoTradingDataByDate");
+        if (stored) {
+          setDemoData(JSON.parse(stored));
+          console.log("📊 DEMO HEATMAP: Loaded from localStorage fallback after error");
+        } else {
+          setDemoData({});
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadFirebaseData();
+    loadDemoData();
   }, []);
 
-  // Generate month data organized by day of week - NO hardcoded dates
+  // Generate month data organized by day of week
   const generateMonthsData = () => {
     const year = currentDate.getFullYear();
     const months = [];
     
-    // Start from January (no hardcoded month logic)
+    // Start from January
     for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
       const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
       const firstDay = new Date(year, monthIndex, 1);
@@ -158,11 +162,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         <div className="flex-1 overflow-x-auto thin-scrollbar">
           {isLoading ? (
             <div className="flex items-center justify-center h-24 text-sm text-gray-500 dark:text-gray-400">
-              Loading Firebase data...
-            </div>
-          ) : Object.keys(firebaseData).length === 0 ? (
-            <div className="flex items-center justify-center h-24 text-sm text-gray-500 dark:text-gray-400">
-              No Firebase data available. Start trading to see your heatmap!
+              Loading demo data...
             </div>
           ) : (
             <div className="flex gap-3 pb-2">
@@ -188,10 +188,10 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                           }
 
                           const dateStr = formatDateKey(date);
-                          const savedData = firebaseData[dateStr];
+                          const savedData = demoData[dateStr];
                           const netPnL = savedData?.performanceMetrics?.netPnL || 0;
 
-                          // ONLY show data if it exists in Firebase - NO hardcoded data
+                          // Show data from demo API
                           const hasActualTradeData =
                             savedData &&
                             ((savedData.tradeHistory && savedData.tradeHistory.length > 0) ||
@@ -202,7 +202,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                           // Gray for no data
                           let cellColor = "bg-gray-100 dark:bg-gray-700";
                           
-                          // Only show color if REAL Firebase data exists
+                          // Show color if demo data exists
                           if (hasActualTradeData) {
                             cellColor = netPnL !== 0 ? getHeatmapColor(netPnL) : "bg-green-200 dark:bg-green-700";
                           }
@@ -229,7 +229,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                               title={`${date.toDateString()}${
                                 hasActualTradeData ? ` - P&L: ₹${netPnL.toLocaleString("en-IN")}` : " - No data"
                               }`}
-                              data-testid={`firebase-calendar-day-${date.getDate()}-${date.getMonth()}`}
+                              data-testid={`demo-calendar-day-${date.getDate()}-${date.getMonth()}`}
                             />
                           );
                         })}
