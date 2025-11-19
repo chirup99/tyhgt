@@ -608,3 +608,90 @@
 [x] 1330. ✅✅✅ TRADING JOURNAL COMPREHENSIVE BUG ANALYSIS COMPLETED! ✅✅✅
 [x] 1331. 📋 BUG REPORT FILE: TRADING-JOURNAL-BUG-ANALYSIS.md
 [x] 1332. 🎯 RESULT: Found 2 critical bugs requiring user-visible error feedback
+
+[x] 1333. NOVEMBER 19, 2025 - TRADE BOOK DEMO MODE & SAVE BUG FIXES
+[x] 1334. User reported: Trade book demo data delays loading from Firebase API
+[x] 1335. User reported: Demo mode toggle bug - data vanishes when toggled off then on
+[x] 1336. User reported: Save button not saving to Firebase with user ID when demo is OFF
+[x] 1337. User reported: Bottom P&L window not displaying user data when demo is OFF
+[x] 1338. **BUG #1 IDENTIFIED**: getUserId() generating random IDs instead of using Firebase user ID
+[x] 1339.   - Line 3296-3306: Function created random ID like `user-1731998000000-abc123`
+[x] 1340.   - Should use: `localStorage.getItem("currentUserId")` from Firebase authentication
+[x] 1341.   - Impact: User data saves to wrong/random user IDs, not Firebase user ID
+[x] 1342. **BUG #2 IDENTIFIED**: No loading indicator during demo mode toggle
+[x] 1343.   - Demo data loads from API but user sees no loading state
+[x] 1344.   - Creates perception of "delay" without visual feedback
+[x] 1345. **BUG #3 IDENTIFIED**: P&L metrics not clearing when switching to personal mode with no data
+[x] 1346.   - Demo data P&L lingers when user has no personal trading data
+[x] 1347.   - performanceMetrics depends on tradeHistoryData but UI might cache old values
+[x] 1348. **FIX #1 IMPLEMENTED**: Updated getUserId() function (lines 3298-3318)
+[x] 1349.   - Now checks `localStorage.getItem("currentUserId")` FIRST (Firebase user ID)
+[x] 1350.   - Falls back to legacy `tradingJournalUserId` if no Firebase ID
+[x] 1351.   - Generates random ID only if user not logged in (with warning)
+[x] 1352.   - Added console logging for debugging: "🔑 Using Firebase user ID: {userId}"
+[x] 1353. **FIX #2 IMPLEMENTED**: Added loading states to demo mode toggle (lines 8563-8688)
+[x] 1354.   - Added `setIsLoadingHeatmapData(true)` when toggle starts
+[x] 1355.   - Added `setIsLoadingHeatmapData(false)` when data loads or errors
+[x] 1356.   - Loading indicator shows during mode switch (fixes "delay" perception)
+[x] 1357. **FIX #3 IMPLEMENTED**: Improved data clearing logic for personal mode
+[x] 1358.   - Line 8622: Added check `!userId.startsWith('user-')` to verify real Firebase ID
+[x] 1359.   - Line 8651: Added `setTradingDataByDate({})` when no personal data found
+[x] 1360.   - Line 8662: Added `setTradingDataByDate({})` when load fails - clears old demo data
+[x] 1361.   - Line 8682: Added `setTradingDataByDate({})` on error - ensures zero P&L metrics
+[x] 1362.   - All state clears ensure performanceMetrics recalculates to zeros
+[x] 1363. **FIX #4 IMPLEMENTED**: Added user login validation for personal mode
+[x] 1364.   - Line 8666-8671: Checks if user logged in with Firebase before switching
+[x] 1365.   - Shows alert: "⚠️ Please log in with your Firebase account to use personal mode"
+[x] 1366.   - Automatically reverts to demo mode if no Firebase user logged in
+[x] 1367.   - Prevents saving to random/invalid user IDs
+[x] 1368. **SAVE FUNCTION VERIFICATION**: Checked saveAllTradingData() function (lines 4518-4660)
+[x] 1369.   - ✅ Demo mode (isDemoMode=true): Saves to `/api/journal/${date}` (shared demo data)
+[x] 1370.   - ✅ Personal mode (isDemoMode=false): Saves to `/api/user-journal` with userId
+[x] 1371.   - ✅ Now uses fixed getUserId() - will get correct Firebase user ID
+[x] 1372.   - ✅ Backend endpoint `/api/user-journal` expects {userId, date, tradingData}
+[x] 1373.   - ✅ Data saved with proper structure: tradingData wrapped with userId and date
+[x] 1374. **P&L METRICS VERIFICATION**: Checked performanceMetrics calculation (lines 4663-4715)
+[x] 1375.   - ✅ useMemo depends on tradeHistoryData state
+[x] 1376.   - ✅ When tradeHistoryData.length === 0, returns all zeros (lines 4674-4682)
+[x] 1377.   - ✅ P&L display (lines 7860-7946) uses performanceMetrics directly
+[x] 1378.   - ✅ Clearing tradeHistoryData will auto-recalculate metrics to zero
+[x] 1379. **ALL FIXES SUMMARY:**
+[x] 1380.   1. getUserId() now uses actual Firebase user ID from localStorage("currentUserId")
+[x] 1381.   2. Loading indicators added to demo mode toggle (fixes perceived delay)
+[x] 1382.   3. P&L metrics properly clear when switching to personal mode with no data
+[x] 1383.   4. User login validation prevents saving to invalid user IDs
+[x] 1384.   5. Error handling improved with proper state clearing and user feedback
+[x] 1385. ✅✅✅ TRADE BOOK DEMO MODE & SAVE BUGS FIXED! ✅✅✅
+
+[x] 1386. ARCHITECT FEEDBACK #1 - SECURITY IMPROVEMENTS REQUIRED
+[x] 1387. Issue: getUserId() still generated random fallback IDs when Firebase auth missing
+[x] 1388. Issue: No null guards on .startsWith() calls - would crash when userId is null
+[x] 1389. Issue: Save/load paths didn't explicitly block when no Firebase user
+[x] 1390. **CRITICAL FIX #1**: getUserId() Security Hardening (lines 3298-3313)
+[x] 1391.   - Changed return type from `string` to `string | null`
+[x] 1392.   - Returns `null` when no Firebase user logged in (no more random IDs)
+[x] 1393.   - Removed fallback random ID generation completely
+[x] 1394.   - Logs: "⚠️ No Firebase user logged in - getUserId() returns null"
+[x] 1395. **CRITICAL FIX #2**: Save Function Authentication Guard (lines 4591-4596)
+[x] 1396.   - Added null check: `if (!userId) { ... throw error }`
+[x] 1397.   - Shows alert: "Please log in with your Firebase account to save personal trading data"
+[x] 1398.   - Throws error to prevent save when no Firebase auth
+[x] 1399.   - Blocks all personal mode saves without authentication
+[x] 1400. **CRITICAL FIX #3**: handleDateSelect Authentication Guard (lines 4047-4057)
+[x] 1401.   - Added null check before fetching personal data
+[x] 1402.   - Clears UI state and returns early when no Firebase user
+[x] 1403.   - Sets loading to false to prevent permanent spinner
+[x] 1404.   - Blocks all personal mode loads without authentication
+[x] 1405. **CRITICAL FIX #4**: Removed Unsafe String Operations
+[x] 1406.   - Removed all `.startsWith('user-')` calls that could crash on null
+[x] 1407.   - Demo toggle already has proper null check (lines 8629-8680)
+[x] 1408.   - Initial load already has proper null check (lines 3449-3455)
+[x] 1409.   - Verified: grep found zero remaining `.startsWith()` calls on userId
+[x] 1410. **SECURITY VERIFICATION**:
+[x] 1411.   ✅ No random user IDs generated - returns null instead
+[x] 1412.   ✅ Personal mode save explicitly blocked without Firebase auth
+[x] 1413.   ✅ Personal mode load explicitly blocked without Firebase auth
+[x] 1414.   ✅ All getUserId() consumers null-safe (no crashes)
+[x] 1415.   ✅ UI shows clear error messages when auth missing
+[x] 1416.   ✅ Demo mode accessible without auth (as intended)
+[x] 1417. ✅✅✅ CRITICAL SECURITY FIXES COMPLETED! ✅✅✅

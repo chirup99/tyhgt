@@ -3292,17 +3292,21 @@ ${
   // Loading state for date selection
   const [isDateLoading, setIsDateLoading] = useState(false);
 
-  // Helper function to get or create userId from localStorage
-  const getUserId = () => {
-    if (typeof window === "undefined") return "default-user";
+  // Helper function to get Firebase userId from localStorage
+  // Returns null if user is not logged in with Firebase
+  const getUserId = (): string | null => {
+    if (typeof window === "undefined") return null;
 
-    let userId = localStorage.getItem("tradingJournalUserId");
-    if (!userId) {
-      // Generate a unique user ID if none exists
-      userId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      localStorage.setItem("tradingJournalUserId", userId);
+    // Use the actual Firebase user ID from authentication ONLY
+    const firebaseUserId = localStorage.getItem("currentUserId");
+    if (firebaseUserId) {
+      console.log(`🔑 Using Firebase user ID: ${firebaseUserId}`);
+      return firebaseUserId;
     }
-    return userId;
+
+    // No Firebase user logged in - return null instead of generating random IDs
+    console.log(`⚠️ No Firebase user logged in - getUserId() returns null`);
+    return null;
   };
 
   // Load all heatmap data on startup and when demo mode or tab changes
@@ -4038,6 +4042,17 @@ ${
       } else {
         // Switch OFF = Personal mode: Load from Firebase (user-specific)
         const userId = getUserId();
+        if (!userId) {
+          console.error("❌ Cannot load personal data - no Firebase user logged in");
+          setIsDateLoading(false);
+          // Clear UI to show empty state
+          setNotesContent("");
+          setTempNotesContent("");
+          setSelectedTags([]);
+          setTradeHistoryData([]);
+          setTradingImages([]);
+          return;
+        }
         console.log(`👤 Loading from user-specific data (userId: ${userId})`);
         response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateKey}`));
       }
@@ -4582,6 +4597,11 @@ ${
       } else {
         // Switch OFF = Personal mode: Save to Firebase (user-specific)
         const userId = getUserId();
+        if (!userId) {
+          console.error("❌ Cannot save in personal mode - no Firebase user logged in");
+          alert("⚠️ Please log in with your Firebase account to save personal trading data.\n\nSwitch to Demo mode or log in to continue.");
+          throw new Error("No Firebase user logged in - cannot save to personal mode");
+        }
         console.log(`👤 Saving to user-specific data (userId: ${userId})`);
         response = await fetch(`/api/user-journal`, {
           method: "POST",
@@ -8558,8 +8578,8 @@ ${
                                     String(checked),
                                   );
                                   
-                                  // DON'T clear UI immediately - wait until new data loads successfully
-                                  // This prevents blank screens if data loading fails
+                                  // Show loading state while switching modes
+                                  setIsLoadingHeatmapData(true);
                                   
                                   if (checked) {
                                     // Switch ON = Demo mode: Reload demo data from API
@@ -8570,7 +8590,7 @@ ${
                                         const allDatesData = await response.json();
                                         console.log("✅ Demo data loaded successfully:", Object.keys(allDatesData).length, "dates");
                                         
-                                        // ONLY clear UI after we have new data to replace it
+                                        // Clear UI state and load demo data
                                         console.log("🧹 Clearing UI state to load demo data...");
                                         setNotesContent("");
                                         setTempNotesContent("");
@@ -8590,28 +8610,31 @@ ${
                                           console.log("📅 Auto-selecting latest demo date:", latestDateKey);
                                           await handleDateSelect(latestDate);
                                         }
+                                        
+                                        setIsLoadingHeatmapData(false);
                                       } else {
-                                        console.log("⚠️ Failed to load demo data from API - keeping existing UI");
+                                        console.log("⚠️ Failed to load demo data from API");
+                                        setIsLoadingHeatmapData(false);
                                       }
                                     } catch (error) {
                                       console.error("❌ Error loading demo data:", error);
-                                      console.log("⚠️ Keeping existing UI state due to error");
+                                      setIsLoadingHeatmapData(false);
                                     }
                                   } else {
-                                    // Switch OFF = Personal mode: Load personal data (don't clear immediately)
+                                    // Switch OFF = Personal mode: Load personal data
                                     console.log("👤 Switching to Personal mode - loading personal data...");
                                     
                                     // Load personal data for all dates if user is logged in
                                     try {
                                       const userId = getUserId();
                                       if (userId) {
-                                        console.log(`📊 Loading personal data for user: ${userId}`);
+                                        console.log(`📊 Loading personal data for Firebase user: ${userId}`);
                                         const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
                                         if (response.ok) {
                                           const personalData = await response.json();
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
                                           
-                                          // ONLY clear UI after we have new data to replace it
+                                          // Clear UI state and load personal data
                                           console.log("🧹 Clearing UI state to load personal data...");
                                           setNotesContent("");
                                           setTempNotesContent("");
@@ -8631,23 +8654,41 @@ ${
                                             console.log("📅 Auto-selecting latest personal date:", latestDateKey);
                                             await handleDateSelect(latestDate);
                                           } else {
-                                            console.log("📭 No personal data found - clearing UI");
-                                            // Clear UI only when we know there's no personal data
-                                            setNotesContent("");
-                                            setTempNotesContent("");
-                                            setSelectedTags([]);
-                                            setTradeHistoryData([]);
-                                            setTradingImages([]);
+                                            console.log("📭 No personal data found - UI cleared, ready for new entries");
+                                            // Ensure empty state with zero metrics
+                                            setTradingDataByDate({});
                                           }
                                         } else {
-                                          console.log("⚠️ Failed to load personal data - keeping existing UI");
+                                          console.log("⚠️ Failed to load personal data - clearing to empty state");
+                                          // Clear to empty state
+                                          setNotesContent("");
+                                          setTempNotesContent("");
+                                          setSelectedTags([]);
+                                          setTradeHistoryData([]);
+                                          setTradingImages([]);
+                                          setSelectedDate(null);
+                                          setTradingDataByDate({});
                                         }
+                                        setIsLoadingHeatmapData(false);
                                       } else {
-                                        console.log("⚠️ No user logged in - keeping existing UI");
+                                        console.log("⚠️ No Firebase user logged in - please log in first");
+                                        alert("⚠️ Please log in with your Firebase account to use personal mode");
+                                        // Revert back to demo mode
+                                        setIsDemoMode(true);
+                                        localStorage.setItem("tradingJournalDemoMode", "true");
+                                        setIsLoadingHeatmapData(false);
                                       }
                                     } catch (error) {
                                       console.error("❌ Error loading personal data:", error);
-                                      console.log("⚠️ Keeping existing UI state due to error");
+                                      // Clear to empty state on error
+                                      setNotesContent("");
+                                      setTempNotesContent("");
+                                      setSelectedTags([]);
+                                      setTradeHistoryData([]);
+                                      setTradingImages([]);
+                                      setSelectedDate(null);
+                                      setTradingDataByDate({});
+                                      setIsLoadingHeatmapData(false);
                                     }
                                   }
                                 }}
