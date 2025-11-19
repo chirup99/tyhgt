@@ -210,7 +210,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                           // Selected date: gray-900 instead of blue
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                           if (isSelected) {
-                            cellColor = "bg-gray-900 dark:bg-gray-100 ring-1 ring-gray-600 dark:ring-gray-400";
+                            cellColor = "bg-gray-900 dark:bg-gray-100";
                           }
 
                           return (
@@ -219,8 +219,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                               className={`
                                 w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
                                 ${cellColor}
-                                hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
-                                focus:outline-none
                               `}
                               onClick={() => {
                                 setCurrentDate(date);
