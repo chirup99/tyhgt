@@ -8665,6 +8665,22 @@ ${
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
                                           setTradingDataByDate(personalData);
                                           localStorage.removeItem("tradingDataByDate");
+                                          
+                                          // AUTO-SELECT LATEST DATE if data exists
+                                          const personalDates = Object.keys(personalData);
+                                          if (personalDates.length > 0) {
+                                            // Sort dates and get the latest one
+                                            const latestDateStr = personalDates.sort().reverse()[0];
+                                            const latestDate = new Date(latestDateStr);
+                                            
+                                            console.log(`🎯 Auto-selecting latest PERSONAL date: ${latestDateStr}`);
+                                            setSelectedDate(latestDate);
+                                            
+                                            // Load the data for this date
+                                            await handleDateSelect(latestDate);
+                                          } else {
+                                            console.log("ℹ️ No personal data found - calendar is empty");
+                                          }
                                         } else {
                                           console.log("⚠️ Failed to load personal data - clearing to empty state");
                                           setTradingDataByDate({});
