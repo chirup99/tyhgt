@@ -8568,129 +8568,85 @@ ${
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                                 Demo
                               </span>
+                              {isLoadingHeatmapData && (
+                                <div className="flex items-center gap-1">
+                                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                  <span className="text-xs text-blue-600 dark:text-blue-400">Loading...</span>
+                                </div>
+                              )}
                               <Switch
                                 checked={isDemoMode}
+                                disabled={isLoadingHeatmapData}
                                 onCheckedChange={async (checked) => {
                                   console.log(`🔄 Demo mode toggle: ${checked ? 'ON (Demo)' : 'OFF (Personal)'}`);
-                                  setIsDemoMode(checked);
-                                  localStorage.setItem(
-                                    "tradingJournalDemoMode",
-                                    String(checked),
-                                  );
                                   
-                                  // Show loading state while switching modes
+                                  // IMMEDIATE STATE UPDATE for instant visual feedback
+                                  setIsDemoMode(checked);
+                                  localStorage.setItem("tradingJournalDemoMode", String(checked));
+                                  
+                                  // Show loading state
                                   setIsLoadingHeatmapData(true);
                                   
-                                  if (checked) {
-                                    // Switch ON = Demo mode: Reload demo data from API
-                                    console.log("📊 Switching to Demo mode - loading demo data...");
+                                  // Clear UI immediately to show transition
+                                  setNotesContent("");
+                                  setTempNotesContent("");
+                                  setSelectedTags([]);
+                                  setTradeHistoryData([]);
+                                  setTradingImages([]);
+                                  setSelectedDate(null);
+                                  
+                                  // Use setTimeout to prevent UI blocking (makes toggle feel instant)
+                                  setTimeout(async () => {
                                     try {
-                                      const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
-                                      if (response.ok) {
-                                        const allDatesData = await response.json();
-                                        console.log("✅ Demo data loaded successfully:", Object.keys(allDatesData).length, "dates");
+                                      if (checked) {
+                                        // Switch ON = Demo mode: Load demo data
+                                        console.log("📊 Switching to Demo mode - loading demo data...");
+                                        const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
+                                        if (response.ok) {
+                                          const allDatesData = await response.json();
+                                          console.log("✅ Demo data loaded:", Object.keys(allDatesData).length, "dates");
+                                          
+                                          setTradingDataByDate(allDatesData);
+                                          localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+                                        } else {
+                                          console.log("⚠️ Failed to load demo data from API");
+                                          setTradingDataByDate({});
+                                        }
+                                      } else {
+                                        // Switch OFF = Personal mode: Load personal data
+                                        console.log("👤 Switching to Personal mode - loading personal data...");
+                                        const userId = getUserId();
                                         
-                                        // Clear UI state and load demo data
-                                        console.log("🧹 Clearing UI state to load demo data...");
-                                        setNotesContent("");
-                                        setTempNotesContent("");
-                                        setSelectedTags([]);
-                                        setTradeHistoryData([]);
-                                        setTradingImages([]);
-                                        setSelectedDate(null);
-                                        
-                                        setTradingDataByDate(allDatesData);
-                                        localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
-                                        
-                                        // Load the latest demo date automatically
-                                        const dates = Object.keys(allDatesData).sort().reverse();
-                                        if (dates.length > 0) {
-                                          const latestDateKey = dates[0];
-                                          const latestDate = new Date(latestDateKey);
-                                          console.log("📅 Auto-selecting latest demo date:", latestDateKey);
-                                          await handleDateSelect(latestDate);
+                                        if (!userId) {
+                                          console.log("⚠️ No Firebase user logged in");
+                                          alert("⚠️ Please log in with your Firebase account to use personal mode");
+                                          // Revert back to demo mode
+                                          setIsDemoMode(true);
+                                          localStorage.setItem("tradingJournalDemoMode", "true");
+                                          setIsLoadingHeatmapData(false);
+                                          return;
                                         }
                                         
-                                        setIsLoadingHeatmapData(false);
-                                      } else {
-                                        console.log("⚠️ Failed to load demo data from API");
-                                        setIsLoadingHeatmapData(false);
-                                      }
-                                    } catch (error) {
-                                      console.error("❌ Error loading demo data:", error);
-                                      setIsLoadingHeatmapData(false);
-                                    }
-                                  } else {
-                                    // Switch OFF = Personal mode: Load personal data
-                                    console.log("👤 Switching to Personal mode - loading personal data...");
-                                    
-                                    // Load personal data for all dates if user is logged in
-                                    try {
-                                      const userId = getUserId();
-                                      if (userId) {
                                         console.log(`📊 Loading personal data for Firebase user: ${userId}`);
                                         const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
+                                        
                                         if (response.ok) {
                                           const personalData = await response.json();
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
-                                          
-                                          // Clear UI state and load personal data
-                                          console.log("🧹 Clearing UI state to load personal data...");
-                                          setNotesContent("");
-                                          setTempNotesContent("");
-                                          setSelectedTags([]);
-                                          setTradeHistoryData([]);
-                                          setTradingImages([]);
-                                          setSelectedDate(null);
-                                          
                                           setTradingDataByDate(personalData);
-                                          localStorage.removeItem("tradingDataByDate"); // Remove demo data from localStorage
-                                          
-                                          // Load the latest personal date if available
-                                          const dates = Object.keys(personalData).sort().reverse();
-                                          if (dates.length > 0) {
-                                            const latestDateKey = dates[0];
-                                            const latestDate = new Date(latestDateKey);
-                                            console.log("📅 Auto-selecting latest personal date:", latestDateKey);
-                                            await handleDateSelect(latestDate);
-                                          } else {
-                                            console.log("📭 No personal data found - UI cleared, ready for new entries");
-                                            // Ensure empty state with zero metrics
-                                            setTradingDataByDate({});
-                                          }
+                                          localStorage.removeItem("tradingDataByDate");
                                         } else {
                                           console.log("⚠️ Failed to load personal data - clearing to empty state");
-                                          // Clear to empty state
-                                          setNotesContent("");
-                                          setTempNotesContent("");
-                                          setSelectedTags([]);
-                                          setTradeHistoryData([]);
-                                          setTradingImages([]);
-                                          setSelectedDate(null);
                                           setTradingDataByDate({});
                                         }
-                                        setIsLoadingHeatmapData(false);
-                                      } else {
-                                        console.log("⚠️ No Firebase user logged in - please log in first");
-                                        alert("⚠️ Please log in with your Firebase account to use personal mode");
-                                        // Revert back to demo mode
-                                        setIsDemoMode(true);
-                                        localStorage.setItem("tradingJournalDemoMode", "true");
-                                        setIsLoadingHeatmapData(false);
                                       }
                                     } catch (error) {
-                                      console.error("❌ Error loading personal data:", error);
-                                      // Clear to empty state on error
-                                      setNotesContent("");
-                                      setTempNotesContent("");
-                                      setSelectedTags([]);
-                                      setTradeHistoryData([]);
-                                      setTradingImages([]);
-                                      setSelectedDate(null);
+                                      console.error("❌ Error during mode switch:", error);
                                       setTradingDataByDate({});
+                                    } finally {
                                       setIsLoadingHeatmapData(false);
                                     }
-                                  }
+                                  }, 0);
                                 }}
                                 data-testid="switch-demo-mode"
                               />
