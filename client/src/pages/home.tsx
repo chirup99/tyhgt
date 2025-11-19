@@ -3991,13 +3991,124 @@ ${
     }
   }, [fromDate, toDate]);
 
-  // Year navigation handlers
+  // Auto-click all personal dates for current year or date range
+  const [isAutoClickingPersonal, setIsAutoClickingPersonal] = useState(false);
+  
+  const handleAutoClickPersonalDates = async () => {
+    if (isDemoMode) {
+      console.log("⚠️ Auto-click only works in Personal mode");
+      return;
+    }
+    
+    const userId = getUserId();
+    if (!userId) {
+      console.log("⚠️ No user ID found - cannot auto-click personal dates");
+      alert("⚠️ Please log in with your Firebase account to use personal mode");
+      return;
+    }
+    
+    setIsAutoClickingPersonal(true);
+    
+    try {
+      console.log(`🔄 Auto-clicking personal dates for year ${heatmapYear}${fromDate && toDate ? ` (range: ${fromDate.toLocaleDateString()} - ${toDate.toLocaleDateString()})` : ''}...`);
+      
+      // Fetch all personal data first
+      const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch personal data');
+      }
+      
+      const allPersonalData = await response.json();
+      let datesToFetch: string[] = Object.keys(allPersonalData);
+      
+      // Filter by year and date range
+      if (fromDate && toDate) {
+        // If date range is selected, only fetch dates within range
+        const fromTime = fromDate.getTime();
+        const toTime = toDate.getTime();
+        
+        datesToFetch = datesToFetch.filter(dateStr => {
+          const dateTime = new Date(dateStr).getTime();
+          return dateTime >= fromTime && dateTime <= toTime;
+        });
+        
+        console.log(`📅 Filtered to ${datesToFetch.length} dates within selected range`);
+      } else {
+        // If no range selected, filter by current heatmap year
+        datesToFetch = datesToFetch.filter(dateStr => {
+          const date = new Date(dateStr);
+          return date.getFullYear() === heatmapYear;
+        });
+        
+        console.log(`📅 Filtered to ${datesToFetch.length} dates for year ${heatmapYear}`);
+      }
+      
+      if (datesToFetch.length === 0) {
+        console.log("ℹ️ No personal dates found for the selected period");
+        alert(`No personal trading data found for ${fromDate && toDate ? 'selected date range' : `year ${heatmapYear}`}`);
+        return;
+      }
+      
+      // Create all fetch promises in parallel for maximum speed
+      const fetchPromises = datesToFetch.map(async (dateStr) => {
+        try {
+          const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
+          if (response.ok) {
+            const journalData = await response.json();
+            if (journalData && Object.keys(journalData).length > 0) {
+              return { dateStr, journalData };
+            }
+          }
+        } catch (error) {
+          console.error(`❌ Error loading personal date ${dateStr}:`, error);
+        }
+        return null;
+      });
+
+      // Wait for all fetches to complete in parallel
+      const results = await Promise.all(fetchPromises);
+
+      // Update state with all loaded data
+      const validResults = results.filter((r) => r !== null);
+      if (validResults.length > 0) {
+        const updatedData = { ...personalTradingDataByDate };
+        validResults.forEach((result: any) => {
+          if (result) {
+            updatedData[result.dateStr] = result.journalData;
+          }
+        });
+        setPersonalTradingDataByDate(updatedData);
+        localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
+        console.log(`✅ Auto-click completed! Loaded ${validResults.length} personal dates for heatmap colors.`);
+      }
+    } catch (error) {
+      console.error("❌ Error during auto-click:", error);
+      alert("Failed to load personal data. Please try again.");
+    } finally {
+      setIsAutoClickingPersonal(false);
+    }
+  };
+
+  // Year navigation handlers - auto-click when year changes
   const handlePreviousYear = () => {
     setHeatmapYear((prev) => prev - 1);
+    // Auto-click dates for new year if in personal mode
+    setTimeout(() => {
+      if (!isDemoMode) {
+        handleAutoClickPersonalDates();
+      }
+    }, 100);
   };
 
   const handleNextYear = () => {
     setHeatmapYear((prev) => prev + 1);
+    // Auto-click dates for new year if in personal mode
+    setTimeout(() => {
+      if (!isDemoMode) {
+        handleAutoClickPersonalDates();
+      }
+    }, 100);
   };
 
   // Reset date range handler
@@ -8740,6 +8851,12 @@ ${
                                   <span className="text-xs text-blue-600 dark:text-blue-400">Loading...</span>
                                 </div>
                               )}
+                              {isAutoClickingPersonal && (
+                                <div className="flex items-center gap-1">
+                                  <div className="w-3 h-3 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                                  <span className="text-xs text-green-600 dark:text-green-400">Loading dates...</span>
+                                </div>
+                              )}
                               <Switch
                                 checked={isDemoMode}
                                 disabled={isLoadingHeatmapData}
@@ -8956,6 +9073,19 @@ ${
                                 data-testid="switch-demo-mode"
                               />
                             </div>
+                            {!isDemoMode && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleAutoClickPersonalDates}
+                                disabled={isAutoClickingPersonal || isLoadingHeatmapData}
+                                className="h-8 px-3 bg-blue-600 dark:bg-blue-600 border-blue-600 dark:border-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white dark:text-white"
+                                data-testid="button-load-personal-dates"
+                                title={fromDate && toDate ? "Load all dates in selected range" : `Load all dates for year ${heatmapYear}`}
+                              >
+                                {isAutoClickingPersonal ? "Loading..." : "Load All"}
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
@@ -9403,7 +9533,7 @@ ${
                                       </div>
                                       {fromDate && toDate && (
                                         <Button
-                                          onClick={() => {
+                                          onClick={async () => {
                                             console.log(
                                               "📊 Fetching calendar data from",
                                               fromDate,
@@ -9411,6 +9541,10 @@ ${
                                               toDate,
                                             );
                                             setIsCalendarDataFetched(true);
+                                            // Auto-click dates in the selected range if in personal mode
+                                            if (!isDemoMode) {
+                                              await handleAutoClickPersonalDates();
+                                            }
                                           }}
                                           size="sm"
                                           className="w-full bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-7"
