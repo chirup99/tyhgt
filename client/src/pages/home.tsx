@@ -8364,7 +8364,11 @@ ${
                                   ) : tradeHistoryData.length === 0 ? (
                                     <tr>
                                       <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                                        No trades for this date
+                                        {!isDemoMode 
+                                          ? "No personal data yet - switch to Demo mode or start adding your trades!" 
+                                          : selectedDate 
+                                            ? "No trades for this date" 
+                                            : "Select a date from the calendar to view trades"}
                                       </td>
                                     </tr>
                                   ) : (
@@ -8532,7 +8536,11 @@ ${
                               ) : tradeHistoryData.length === 0 ? (
                                 <tr>
                                   <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    No trades for this date
+                                    {!isDemoMode 
+                                      ? "No personal data yet - switch to Demo mode or start adding your trades!" 
+                                      : selectedDate 
+                                        ? "No trades for this date" 
+                                        : "Select a date from the calendar to view trades"}
                                   </td>
                                 </tr>
                               ) : (
@@ -8712,7 +8720,7 @@ ${
                                           setTradingDataByDate(personalData);
                                           localStorage.removeItem("tradingDataByDate");
                                           
-                                          // AUTO-SELECT LATEST DATE if data exists
+                                          // AUTO-SELECT LATEST DATE if data exists, otherwise show empty but visible UI
                                           const personalDates = Object.keys(personalData);
                                           if (personalDates.length > 0) {
                                             // Sort dates and get the latest one
@@ -8725,13 +8733,15 @@ ${
                                             // Load the data for this date
                                             await handleDateSelect(latestDate);
                                           } else {
-                                            console.log("ℹ️ No personal data found - calendar is empty");
-                                            // Clear UI only when no data
+                                            console.log("ℹ️ No personal data found - showing empty state");
+                                            // DON'T clear UI - instead show empty state with helpful message
+                                            // This ensures the trade history section is always visible
                                             setNotesContent("");
                                             setTempNotesContent("");
                                             setSelectedTags([]);
                                             setTradeHistoryData([]);
                                             setTradingImages([]);
+                                            setSelectedDate(null); // Ensure no date is selected
                                           }
                                         } else {
                                           console.log("⚠️ Failed to load personal data - clearing to empty state");
