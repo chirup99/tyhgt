@@ -4092,23 +4092,25 @@ ${
 
   // Year navigation handlers - auto-click when year changes
   const handlePreviousYear = () => {
-    setHeatmapYear((prev) => prev - 1);
+    const newYear = heatmapYear - 1;
+    setHeatmapYear(newYear);
     // Auto-click dates for new year if in personal mode
-    setTimeout(() => {
-      if (!isDemoMode) {
+    if (!isDemoMode) {
+      setTimeout(() => {
         handleAutoClickPersonalDates();
-      }
-    }, 100);
+      }, 100);
+    }
   };
 
   const handleNextYear = () => {
-    setHeatmapYear((prev) => prev + 1);
+    const newYear = heatmapYear + 1;
+    setHeatmapYear(newYear);
     // Auto-click dates for new year if in personal mode
-    setTimeout(() => {
-      if (!isDemoMode) {
+    if (!isDemoMode) {
+      setTimeout(() => {
         handleAutoClickPersonalDates();
-      }
-    }, 100);
+      }, 100);
+    }
   };
 
   // Reset date range handler
@@ -4117,6 +4119,20 @@ ${
     setToDate(null);
     setIsCalendarDataFetched(false);
   };
+
+  // Auto-click all dates when personal mode is active (for current year)
+  useEffect(() => {
+    // Only run if in personal mode, on journal tab, and not currently loading
+    if (!isDemoMode && activeTab === 'journal' && !isLoadingHeatmapData && !fromDate && !toDate) {
+      // Small delay to ensure heatmap data is loaded first
+      const timer = setTimeout(() => {
+        console.log(`🔄 Personal mode active - auto-loading all dates for year ${heatmapYear}...`);
+        handleAutoClickPersonalDates();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isDemoMode, activeTab, heatmapYear]); // Trigger when mode, tab, or year changes
 
   // Calculate total duration of all closed trades
   const calculateTotalDuration = (trades: any[]) => {
@@ -9073,19 +9089,6 @@ ${
                                 data-testid="switch-demo-mode"
                               />
                             </div>
-                            {!isDemoMode && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleAutoClickPersonalDates}
-                                disabled={isAutoClickingPersonal || isLoadingHeatmapData}
-                                className="h-8 px-3 bg-blue-600 dark:bg-blue-600 border-blue-600 dark:border-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white dark:text-white"
-                                data-testid="button-load-personal-dates"
-                                title={fromDate && toDate ? "Load all dates in selected range" : `Load all dates for year ${heatmapYear}`}
-                              >
-                                {isAutoClickingPersonal ? "Loading..." : "Load All"}
-                              </Button>
-                            )}
                             <Button
                               variant="outline"
                               size="sm"
