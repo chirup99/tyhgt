@@ -4322,6 +4322,13 @@ ${
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
 
+    // IMMEDIATELY clear all data - NO DELAYS, NO LOADING STATES
+    setNotesContent("");
+    setTempNotesContent("");
+    setSelectedTags([]);
+    setTradeHistoryData([]);
+    setTradingImages([]);
+
     // Load trading data from appropriate source based on demo mode
     // Use forceMode if provided (to avoid state closure issues), otherwise use isDemoMode state
     const effectiveMode = forceMode !== undefined ? forceMode : (isDemoMode ? 'demo' : 'personal');
@@ -4331,19 +4338,6 @@ ${
     console.log(
       `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${effectiveMode}]`,
     );
-
-    // Set loading state and clear data IMMEDIATELY in separate state updates
-    // This ensures React processes them and triggers re-renders
-    setIsDateLoading(true);
-    
-    // Clear data after a tiny delay to ensure loading state is set
-    setTimeout(() => {
-      setNotesContent("");
-      setTempNotesContent("");
-      setSelectedTags([]);
-      setTradeHistoryData([]);
-      setTradingImages([]);
-    }, 0);
 
     try {
       // Choose endpoint based on demo mode
@@ -4357,7 +4351,6 @@ ${
         const userId = getUserId();
         if (!userId) {
           console.error("❌ Cannot load personal data - no Firebase user logged in");
-          setIsDateLoading(false);
           // Data already cleared at start of handleDateSelect - just return
           return;
         }
@@ -4526,13 +4519,10 @@ ${
       }
     } catch (error) {
       console.error("❌ Error loading journal data:", error);
-      console.log("⚠️ Keeping existing data visible instead of clearing UI");
-      // DON'T clear data on error - keep existing UI state visible to prevent blank screens
-    } finally {
-      // Always clear loading state
-      setIsDateLoading(false);
-      console.log("✅ Date loading complete");
+      console.log("⚠️ Error loading data - UI will remain empty");
+      // Data already cleared at start - just log the error
     }
+    console.log("✅ Date loading complete");
   };
 
   const handlePreviousMonth = () => {
