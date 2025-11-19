@@ -217,7 +217,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                             <div
                               key={dayIndex}
                               className={`
-                                w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
+                                w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 outline-none focus:outline-none
                                 ${cellColor}
                               `}
                               onClick={() => {
