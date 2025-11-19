@@ -8738,9 +8738,17 @@ ${
                                   // Show loading state
                                   setIsLoadingHeatmapData(true);
                                   
-                                  // DON'T clear UI immediately - keep existing data visible during load to prevent flash
-                                  // Only clear selected date to indicate transition
+                                  // ✅ CRITICAL FIX: Clear ALL old data immediately to force heatmap sync
+                                  // This ensures the heatmap doesn't show stale data from previous mode
+                                  console.log("🧹 Clearing old heatmap data to force sync...");
+                                  setTradingDataByDate({});
+                                  localStorage.removeItem("tradingDataByDate");
                                   setSelectedDate(null);
+                                  setNotesContent("");
+                                  setTempNotesContent("");
+                                  setSelectedTags([]);
+                                  setTradeHistoryData([]);
+                                  setTradingImages([]);
                                   
                                   // Use setTimeout to prevent UI blocking (makes toggle feel instant)
                                   setTimeout(async () => {
