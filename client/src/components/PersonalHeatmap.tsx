@@ -110,17 +110,14 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
   // Handle date range selection
   const handleDateRangeSubmit = () => {
     if (fromDate && toDate) {
-      // Convert dd-mm-yyyy to Date objects
-      const [fromDay, fromMonth, fromYear] = fromDate.split('-').map(Number);
-      const [toDay, toMonth, toYear] = toDate.split('-').map(Number);
-      
-      const from = new Date(fromYear, fromMonth - 1, fromDay);
-      const to = new Date(toYear, toMonth - 1, toDay);
+      // Date inputs provide yyyy-mm-dd format
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
       
       // Select the "from" date
       onDateSelect(from);
       
-      console.log(`📅 Date range selected: ${fromDate} to ${toDate}`);
+      console.log(`📅 Date range selected: ${from.toLocaleDateString()} to ${to.toLocaleDateString()}`);
       setIsDateRangeOpen(false);
     }
   };
@@ -285,8 +282,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                   From Date
                 </label>
                 <input
-                  type="text"
-                  placeholder="dd-mm-yyyy"
+                  type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -299,8 +295,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                   To Date
                 </label>
                 <input
-                  type="text"
-                  placeholder="dd-mm-yyyy"
+                  type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
