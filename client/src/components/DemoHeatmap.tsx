@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDateKey, getHeatmapColor } from "./heatmap-utils";
 
 interface DemoHeatmapProps {
@@ -32,9 +34,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
       // Create 7 rows (one for each day of week: S, M, T, W, TH, F, S)
       const dayRows: (Date | null)[][] = [[], [], [], [], [], [], []];
       
-      // Get the first day of week offset
-      const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      
       // Fill in all days of the month
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, monthIndex, day);
@@ -54,6 +53,31 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
   const months = generateMonthsData();
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
+  // Navigation functions for selected date
+  const handlePreviousDay = () => {
+    if (!selectedDate) return;
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    onDateSelect(newDate);
+  };
+
+  const handleNextDay = () => {
+    if (!selectedDate) return;
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    onDateSelect(newDate);
+  };
+
+  const formatSelectedDate = (date: Date | null) => {
+    if (!date) return "Select a date";
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
   return (
     <div className="space-y-3">
       {/* Heatmap Grid */}
@@ -70,8 +94,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
           ))}
         </div>
 
-        {/* Scrollable month grid */}
-        <div className="flex-1 overflow-x-auto">
+        {/* Scrollable month grid with thin scrollbar */}
+        <div className="flex-1 overflow-x-auto thin-scrollbar">
           <div className="flex gap-3 pb-2">
             {months.map((monthData, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-1 min-w-fit">
@@ -164,6 +188,60 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
           <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
         </div>
       </div>
+
+      {/* Date Navigation Controls */}
+      <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePreviousDay}
+          disabled={!selectedDate}
+          className="h-8 w-8"
+          data-testid="button-prev-day"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        
+        <div className="flex items-center gap-2 min-w-[250px] justify-center">
+          <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {formatSelectedDate(selectedDate)}
+          </span>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleNextDay}
+          disabled={!selectedDate}
+          className="h-8 w-8"
+          data-testid="button-next-day"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <style>{`
+        .thin-scrollbar::-webkit-scrollbar {
+          height: 6px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-radius: 3px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+        .dark .thin-scrollbar::-webkit-scrollbar-thumb {
+          background: #4b5563;
+        }
+        .dark .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #6b7280;
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDateKey, getHeatmapColor } from "./heatmap-utils";
 
 interface PersonalHeatmapProps {
@@ -11,7 +13,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
   const [year, setYear] = useState(new Date().getFullYear());
   const [personalData, setPersonalData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [hasAutoClicked, setHasAutoClicked] = useState(false);
 
   // Load personal data from Firebase when userId changes or year changes
   useEffect(() => {
@@ -22,7 +23,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
 
     const loadPersonalData = async () => {
       setIsLoading(true);
-      setHasAutoClicked(false); // Reset auto-click flag when loading new data
       
       try {
         console.log(`📊 PERSONAL HEATMAP: Loading data for userId: ${userId}, year: ${year}`);
@@ -58,40 +58,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
     loadPersonalData();
   }, [userId, year]);
 
-  // AUTO-CLICK all dates with data for the current year
-  // This is the critical fix: separate auto-click logic for personal heatmap
-  useEffect(() => {
-    // Only auto-click once after data is loaded
-    if (isLoading || hasAutoClicked || Object.keys(personalData).length === 0) {
-      return;
-    }
-
-    console.log(`🎯 PERSONAL HEATMAP: Starting auto-click for year ${year}...`);
-    
-    const datesWithData = Object.keys(personalData);
-    console.log(`📊 PERSONAL HEATMAP: Found ${datesWithData.length} dates with data:`, datesWithData);
-    
-    // Auto-click each date in sequence with a small delay
-    let clickIndex = 0;
-    const clickInterval = setInterval(() => {
-      if (clickIndex < datesWithData.length) {
-        const dateStr = datesWithData[clickIndex];
-        const date = new Date(dateStr);
-        
-        console.log(`👆 PERSONAL HEATMAP: Auto-clicking date ${clickIndex + 1}/${datesWithData.length}: ${dateStr}`);
-        onDateSelect(date);
-        
-        clickIndex++;
-      } else {
-        clearInterval(clickInterval);
-        setHasAutoClicked(true);
-        console.log(`✅ PERSONAL HEATMAP: Auto-click completed! Clicked ${datesWithData.length} dates.`);
-      }
-    }, 50); // 50ms between clicks
-
-    return () => clearInterval(clickInterval);
-  }, [personalData, isLoading, hasAutoClicked, year, onDateSelect]);
-
   // Generate month data organized by day of week
   const generateMonthsData = () => {
     const months = [];
@@ -122,6 +88,31 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
 
   const months = generateMonthsData();
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
+
+  // Navigation functions for selected date
+  const handlePreviousDay = () => {
+    if (!selectedDate) return;
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    onDateSelect(newDate);
+  };
+
+  const handleNextDay = () => {
+    if (!selectedDate) return;
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    onDateSelect(newDate);
+  };
+
+  const formatSelectedDate = (date: Date | null) => {
+    if (!date) return "Select a date";
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
 
   if (!userId) {
     return (
@@ -156,8 +147,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
           ))}
         </div>
 
-        {/* Scrollable month grid */}
-        <div className="flex-1 overflow-x-auto">
+        {/* Scrollable month grid with thin scrollbar */}
+        <div className="flex-1 overflow-x-auto thin-scrollbar">
           <div className="flex gap-3 pb-2">
             {months.map((monthData, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-1 min-w-fit">
@@ -251,12 +242,66 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
         </div>
       </div>
 
+      {/* Date Navigation Controls */}
+      <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePreviousDay}
+          disabled={!selectedDate}
+          className="h-8 w-8"
+          data-testid="button-prev-day"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        
+        <div className="flex items-center gap-2 min-w-[250px] justify-center">
+          <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {formatSelectedDate(selectedDate)}
+          </span>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleNextDay}
+          disabled={!selectedDate}
+          className="h-8 w-8"
+          data-testid="button-next-day"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+
       {/* Data summary */}
       {Object.keys(personalData).length > 0 && (
         <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
           {Object.keys(personalData).length} trading days recorded in {year}
         </div>
       )}
+
+      <style>{`
+        .thin-scrollbar::-webkit-scrollbar {
+          height: 6px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-radius: 3px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+        .dark .thin-scrollbar::-webkit-scrollbar-thumb {
+          background: #4b5563;
+        }
+        .dark .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #6b7280;
+        }
+      `}</style>
     </div>
   );
 }
