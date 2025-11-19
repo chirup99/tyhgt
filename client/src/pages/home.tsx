@@ -3299,124 +3299,169 @@ ${
     return userId;
   };
 
-  // Load all heatmap data on startup
+  // Load all heatmap data on startup and when demo mode or tab changes
   useEffect(() => {
     const loadAllHeatmapData = async () => {
-      console.log("🔄 Loading all heatmap data for color persistence...");
+      // Only load heatmap data when on journal tab
+      if (activeTab !== "journal") {
+        console.log(`⏭️ Skipping heatmap load - not on journal tab (current: ${activeTab})`);
+        return;
+      }
+
+      console.log(`🔄 Loading heatmap data for ${isDemoMode ? 'DEMO' : 'PERSONAL'} mode...`);
       try {
         setIsLoadingHeatmapData(true);
 
-        // Fetch all journal dates from Google Cloud
-        const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
+        if (isDemoMode) {
+          // DEMO MODE: Fetch from /api/journal/all-dates (Google Cloud shared demo data)
+          console.log("📊 DEMO MODE: Fetching shared demo data from /api/journal/all-dates");
+          const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
 
-        if (response.ok) {
-          const allDatesData = await response.json();
-          console.log(
-            "📊 Loaded all journal dates:",
-            Object.keys(allDatesData).length,
-            "dates",
-          );
-
-          // Update tradingDataByDate with all the loaded data
-          setTradingDataByDate(allDatesData);
-
-          // CRITICAL: Also update calendarData to ensure heatmap functions work properly
-          setCalendarData(allDatesData);
-
-          // Auto-click all available dates to populate heatmap colors - ULTRA FAST
-          // This simulates clicking each date to ensure colors appear immediately
-          setTimeout(async () => {
+          if (response.ok) {
+            const allDatesData = await response.json();
             console.log(
-              "🔄 Ultra-fast auto-clicking all available dates for heatmap colors...",
+              "✅ DEMO data loaded:",
+              Object.keys(allDatesData).length,
+              "dates",
             );
 
-            // Create all fetch promises in parallel for maximum speed
-            const fetchPromises = Object.keys(allDatesData).map(
-              async (dateStr) => {
-                try {
-                  const response = await fetch(`/api/journal/${dateStr}`);
-                  if (response.ok) {
-                    const journalData = await response.json();
-                    if (journalData && Object.keys(journalData).length > 0) {
-                      return { dateStr, journalData };
+            // Update tradingDataByDate with all the loaded data
+            setTradingDataByDate(allDatesData);
+
+            // CRITICAL: Also update calendarData to ensure heatmap functions work properly
+            setCalendarData(allDatesData);
+
+            // Save to localStorage for offline access
+            localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+
+            // Auto-click all available dates to populate heatmap colors - ULTRA FAST
+            // This simulates clicking each date to ensure colors appear immediately
+            setTimeout(async () => {
+              console.log(
+                "🔄 Ultra-fast auto-clicking all available dates for heatmap colors...",
+              );
+
+              // Create all fetch promises in parallel for maximum speed
+              const fetchPromises = Object.keys(allDatesData).map(
+                async (dateStr) => {
+                  try {
+                    const response = await fetch(getFullApiUrl(`/api/journal/${dateStr}`));
+                    if (response.ok) {
+                      const journalData = await response.json();
+                      if (journalData && Object.keys(journalData).length > 0) {
+                        return { dateStr, journalData };
+                      }
                     }
+                  } catch (error) {
+                    console.error(
+                      `❌ Error auto-loading date ${dateStr}:`,
+                      error,
+                    );
                   }
-                } catch (error) {
-                  console.error(
-                    `❌ Error auto-loading date ${dateStr}:`,
-                    error,
-                  );
+                  return null;
+                },
+              );
+
+              // Execute all requests simultaneously
+              const results = await Promise.all(fetchPromises);
+
+              // Update all data at once
+              const updatedData: any = {};
+              results.forEach((result) => {
+                if (result) {
+                  updatedData[result.dateStr] = result.journalData;
                 }
-                return null;
-              },
-            );
+              });
 
-            // Execute all requests simultaneously
-            const results = await Promise.all(fetchPromises);
+              // Single state update with all data
+              setTradingDataByDate((prevData: any) => ({
+                ...prevData,
+                ...updatedData,
+              }));
 
-            // Update all data at once
-            const updatedData: any = {};
-            results.forEach((result) => {
-              if (result) {
-                updatedData[result.dateStr] = result.journalData;
-              }
-            });
+              console.log(
+                "✅ Ultra-fast auto-click completed - all heatmap colors should now be visible",
+              );
+            }, 10);
 
-            // Single state update with all data
-            setTradingDataByDate((prevData: any) => ({
-              ...prevData,
-              ...updatedData,
-            }));
+            console.log("✅ DEMO heatmap data loaded successfully");
 
-            console.log(
-              "✅ Ultra-fast auto-click completed - all heatmap colors should now be visible",
-            );
-          }, 10);
-
-          console.log("✅ Heatmap data loaded successfully");
-
-          // Auto-select the latest date if no date is currently selected
-          if (!selectedDate && Object.keys(allDatesData).length > 0) {
-            const sortedDates = Object.keys(allDatesData).sort(
-              (a, b) => new Date(b).getTime() - new Date(a).getTime(),
-            );
-            const latestDateStr = sortedDates[0];
-            const latestDate = new Date(latestDateStr);
-
-            console.log("🎯 Auto-selecting latest date:", latestDateStr);
-            setSelectedDate(latestDate);
-            await handleDateSelect(latestDate);
-          }
-        } else {
-          console.log(
-            "📭 No journal data found or Google Cloud unavailable, using localStorage...",
-          );
-          // Use localStorage data as primary fallback
-          const localStorageData = localStorage.getItem("tradingDataByDate");
-          if (localStorageData) {
-            const parsedLocalData = JSON.parse(localStorageData);
-            console.log(
-              "💾 Found localStorage journal data:",
-              Object.keys(parsedLocalData).length,
-              "entries",
-            );
-            setTradingDataByDate(parsedLocalData);
-            setCalendarData(parsedLocalData);
-
-            // Auto-select latest date from localStorage
-            if (!selectedDate && Object.keys(parsedLocalData).length > 0) {
-              const sortedDates = Object.keys(parsedLocalData).sort(
+            // Auto-select the latest date if no date is currently selected
+            if (!selectedDate && Object.keys(allDatesData).length > 0) {
+              const sortedDates = Object.keys(allDatesData).sort(
                 (a, b) => new Date(b).getTime() - new Date(a).getTime(),
               );
               const latestDateStr = sortedDates[0];
               const latestDate = new Date(latestDateStr);
-              console.log(
-                "🎯 Auto-selecting latest date from localStorage:",
-                latestDateStr,
-              );
+
+              console.log("🎯 Auto-selecting latest DEMO date:", latestDateStr);
               setSelectedDate(latestDate);
               await handleDateSelect(latestDate);
             }
+          } else {
+            console.log(
+              "📭 No DEMO data found from API, trying localStorage fallback...",
+            );
+            // Use localStorage data as primary fallback
+            const localStorageData = localStorage.getItem("tradingDataByDate");
+            if (localStorageData) {
+              const parsedLocalData = JSON.parse(localStorageData);
+              console.log(
+                "💾 Found localStorage demo data:",
+                Object.keys(parsedLocalData).length,
+                "entries",
+              );
+              setTradingDataByDate(parsedLocalData);
+              setCalendarData(parsedLocalData);
+
+              // Auto-select latest date from localStorage
+              if (!selectedDate && Object.keys(parsedLocalData).length > 0) {
+                const sortedDates = Object.keys(parsedLocalData).sort(
+                  (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+                );
+                const latestDateStr = sortedDates[0];
+                const latestDate = new Date(latestDateStr);
+                console.log(
+                  "🎯 Auto-selecting latest date from localStorage:",
+                  latestDateStr,
+                );
+                setSelectedDate(latestDate);
+                await handleDateSelect(latestDate);
+              }
+            }
+          }
+        } else {
+          // PERSONAL MODE: Fetch user-specific data from Firebase
+          console.log("👤 PERSONAL MODE: Fetching user-specific data from Firebase");
+          const userId = getUserId();
+          
+          if (!userId) {
+            console.log("⚠️ No user ID found - cannot load personal data");
+            setIsLoadingHeatmapData(false);
+            return;
+          }
+
+          const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
+          if (response.ok) {
+            const personalData = await response.json();
+            console.log("✅ PERSONAL data loaded:", Object.keys(personalData).length, "dates");
+            
+            setTradingDataByDate(personalData);
+            setCalendarData(personalData);
+
+            // Auto-select the latest personal date if available
+            if (!selectedDate && Object.keys(personalData).length > 0) {
+              const sortedDates = Object.keys(personalData).sort(
+                (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+              );
+              const latestDateStr = sortedDates[0];
+              const latestDate = new Date(latestDateStr);
+              console.log("🎯 Auto-selecting latest PERSONAL date:", latestDateStr);
+              setSelectedDate(latestDate);
+              await handleDateSelect(latestDate);
+            }
+          } else {
+            console.log("📭 No personal data found for user:", userId);
           }
         }
       } catch (error) {
@@ -3440,7 +3485,7 @@ ${
     };
 
     loadAllHeatmapData();
-  }, []);
+  }, [activeTab, isDemoMode]); // Re-run when tab or demo mode changes
 
   // Images state for saving (with proper type)
   const [tradingImages, setTradingImages] = useState<any[]>([]);

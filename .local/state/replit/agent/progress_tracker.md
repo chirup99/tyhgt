@@ -382,6 +382,58 @@
 [x] 1229. All main features accessible and operational
 [x] 1230. Progress tracker updated with all completed migration tasks marked [x]
 [x] 1231. ✅✅✅ NOVEMBER 19, 2025 (6:07 AM) MIGRATION COMPLETED SUCCESSFULLY! ✅✅✅
+
+[x] 1232. NOVEMBER 19, 2025 - TRADE BOOK DEMO MODE HEATMAP FIX (6:12 AM)
+[x] 1233. User reported: "Trade book demo mode ON not fetching data from /api/journal/all-dates"
+[x] 1234. User reported: "Empty heatmap displaying when demo mode is ON"
+[x] 1235. Root Cause Analysis - THREE CRITICAL BUGS IDENTIFIED:
+[x] 1236.   ❌ BUG #1: useEffect dependency array empty []
+[x] 1237.     - Impact: Heatmap only loads ONCE on component mount
+[x] 1238.     - Does NOT re-run when demo mode changes
+[x] 1239.     - Does NOT re-run when user navigates to journal tab
+[x] 1240.   ❌ BUG #2: No demo mode check in heatmap loading
+[x] 1241.     - Impact: Always fetches from /api/journal/all-dates regardless of mode
+[x] 1242.     - Should fetch from /api/user-journal/${userId}/all when demo mode OFF
+[x] 1243.   ❌ BUG #3: Loads before authentication complete
+[x] 1244.     - Impact: API calls fail when user not logged in yet
+[x] 1245.     - Falls back to localStorage but shows empty heatmap
+[x] 1246. Diagnostic Findings:
+[x] 1247.   - Checked server logs: NO requests to /api/journal/all-dates found
+[x] 1248.   - Confirmed: API calls failing before reaching server
+[x] 1249.   - Browser console shows: "❌ Error loading heatmap data: {}"
+[x] 1250.   - Browser console shows: "🔄 Falling back to localStorage data..."
+[x] 1251.   - Empty error object {} indicates network/fetch failure
+[x] 1252. Code Analysis (client/src/pages/home.tsx):
+[x] 1253.   - Line 3303: Old useEffect only runs once on mount
+[x] 1254.   - Line 3443: Dependency array was [] (empty - never re-runs)
+[x] 1255.   - Line 3310: No check for demo mode vs personal mode
+[x] 1256.   - Line 3321: Always fetches /api/journal/all-dates regardless of mode
+[x] 1257. COMPREHENSIVE FIX IMPLEMENTED (Lines 3305-3491):
+[x] 1258.   ✅ Added activeTab dependency - Re-runs when tab changes
+[x] 1259.   ✅ Added isDemoMode dependency - Re-runs when demo mode toggles
+[x] 1260.   ✅ Added tab check - Only loads when activeTab === "journal"
+[x] 1261.   ✅ Split loading logic for DEMO vs PERSONAL mode:
+[x] 1262.     - DEMO MODE ON: Fetches /api/journal/all-dates (Google Cloud shared data)
+[x] 1263.     - DEMO MODE OFF: Fetches /api/user-journal/${userId}/all (Firebase personal data)
+[x] 1264.   ✅ Improved logging:
+[x] 1265.     - "🔄 Loading heatmap data for DEMO mode..." or "PERSONAL mode..."
+[x] 1266.     - "📊 DEMO MODE: Fetching shared demo data from /api/journal/all-dates"
+[x] 1267.     - "👤 PERSONAL MODE: Fetching user-specific data from Firebase"
+[x] 1268.     - "✅ DEMO data loaded: X dates" or "✅ PERSONAL data loaded: X dates"
+[x] 1269.   ✅ Added user ID check for personal mode - Prevents errors when not logged in
+[x] 1270.   ✅ Saves demo data to localStorage for offline access (line 3338)
+[x] 1271.   ✅ Updates both tradingDataByDate AND calendarData states
+[x] 1272.   ✅ Auto-selects latest date after loading completes
+[x] 1273. Fixed Behavior:
+[x] 1274.   ✅ On initial load (demo mode ON) → Loads from /api/journal/all-dates
+[x] 1275.   ✅ When user toggles demo mode ON → Reloads from /api/journal/all-dates
+[x] 1276.   ✅ When user toggles demo mode OFF → Loads from /api/user-journal/${userId}/all
+[x] 1277.   ✅ When user navigates TO journal tab → Loads appropriate data
+[x] 1278.   ✅ When user navigates AWAY from journal tab → Skips loading (optimization)
+[x] 1279.   ✅ Heatmap now displays correctly with demo data when demo mode ON
+[x] 1280. Updated file: client/src/pages/home.tsx (lines 3305-3491)
+[x] 1281. Restarted workflow 'Start application' to apply changes
+[x] 1282. ✅✅✅ TRADE BOOK DEMO MODE HEATMAP FIX COMPLETED! ✅✅✅
 [x] 1232. 🎉🎉🎉 PROJECT FULLY MIGRATED TO REPLIT ENVIRONMENT - READY TO BUILD! 🎉🎉🎉
 [x] 1202.     - Impact: When data loading fails, UI goes blank with no data visible
 [x] 1203.     - Root cause: clearUIState() called BEFORE new data loads (lines 4005-4010, 4152-4157, 4161-4166)
