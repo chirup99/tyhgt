@@ -4322,6 +4322,13 @@ ${
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
 
+    // IMMEDIATELY clear existing data for instant UI update
+    setNotesContent("");
+    setTempNotesContent("");
+    setSelectedTags([]);
+    setTradeHistoryData([]);
+    setTradingImages([]);
+
     // Load trading data from appropriate source based on demo mode
     // Use forceMode if provided (to avoid state closure issues), otherwise use isDemoMode state
     const effectiveMode = forceMode !== undefined ? forceMode : (isDemoMode ? 'demo' : 'personal');
@@ -4332,7 +4339,7 @@ ${
       `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${effectiveMode}]`,
     );
 
-    // Set loading state to show spinner
+    // Set loading state to show spinner (but data already cleared above)
     setIsDateLoading(true);
 
     try {
@@ -4348,12 +4355,7 @@ ${
         if (!userId) {
           console.error("❌ Cannot load personal data - no Firebase user logged in");
           setIsDateLoading(false);
-          // Clear UI to show empty state
-          setNotesContent("");
-          setTempNotesContent("");
-          setSelectedTags([]);
-          setTradeHistoryData([]);
-          setTradingImages([]);
+          // Data already cleared at start of handleDateSelect - just return
           return;
         }
         console.log(`👤 Loading from user-specific data (userId: ${userId})`);
@@ -4377,12 +4379,8 @@ ${
             journalData,
           );
 
-          // Clear existing data first ONLY when we have new data to replace it
-          setNotesContent("");
-          setTempNotesContent("");
-          setSelectedTags([]);
-          setTradeHistoryData([]);
-          setTradingImages([]);
+          // Data already cleared at start of handleDateSelect for instant feedback
+          // Now just populate with new data
 
           // Load the data into correct state variables (with field name flexibility)
           const notes =
@@ -4506,12 +4504,8 @@ ${
           );
         } else {
           console.log("📭 No journal data found for:", dateKey);
-          // Clear existing data when no data found
-          setNotesContent("");
-          setTempNotesContent("");
-          setSelectedTags([]);
-          setTradeHistoryData([]);
-          setTradingImages([]);
+          // Data already cleared at start of handleDateSelect for instant feedback
+          // Empty state is already showing
 
           // Still open windows to allow adding new data for this date
           setShowTradingNotesWindow(true);
