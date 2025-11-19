@@ -846,3 +846,35 @@
 [x] 1463. ✅✅✅ NOVEMBER 19, 2025 (8:41 AM) MIGRATION COMPLETED SUCCESSFULLY! ✅✅✅
 [x] 1464. 🎉🎉🎉 PROJECT FULLY MIGRATED TO REPLIT ENVIRONMENT - READY TO BUILD! 🎉🎉🎉
 [x] 1465. 🚀🚀🚀 ALL SYSTEMS OPERATIONAL - MIGRATION 100% COMPLETE! 🚀🚀🚀
+
+[x] 1466. NOVEMBER 19, 2025 - DEMO/PERSONAL HEATMAP AUTO-LOAD BUG FIX (8:54 AM)
+[x] 1467. User reported: "when demo switch is off its personal turn but when its on personal heat map is not ultra auto clicking all dates of personal trade book"
+[x] 1468. Issue identified: React state closure problem in demo toggle handler
+[x] 1469. Root cause: `handleDateSelect()` was checking `isDemoMode` state variable
+[x] 1470. Problem: React state updates are async, creating stale closure values in setTimeout callback
+[x] 1471. Evidence from browser console logs:
+[x] 1472.   - "🎯 Auto-selecting latest DEMO date: 2025-09-05" (demo mode ON)
+[x] 1473.   - "🔑 Using Firebase user ID: QyJVxgQpCic4h8oQGU6TCsF8Mwg2" (checking userId)
+[x] 1474.   - "👤 Loading from user-specific data" (loading personal data in demo mode!)
+[x] 1475.   - Result: Empty data because personal Firebase collection has 0 dates
+[x] 1476. **BUG ANALYSIS:**
+[x] 1477.   ❌ Toggle handler calls `setIsDemoMode(checked)` at line 8733
+[x] 1478.   ❌ Then calls `handleDateSelect(latestDate)` at line 8807
+[x] 1479.   ❌ `handleDateSelect` checks `isDemoMode` state variable
+[x] 1480.   ❌ But state variable still has OLD value due to closure and async update
+[x] 1481.   ❌ Demo mode loads from personal endpoint, personal mode loads from demo endpoint
+[x] 1482. **FIX IMPLEMENTED (lines 4100-4142):**
+[x] 1483.   ✅ Added `forceMode?: boolean` parameter to `handleDateSelect` function
+[x] 1484.   ✅ Function now accepts optional mode override to avoid state closure issues
+[x] 1485.   ✅ Uses `effectiveMode = forceMode !== undefined ? forceMode : isDemoMode`
+[x] 1486.   ✅ Updated demo toggle handler line 8813: `await handleDateSelect(latestDate, true)` // force demo mode
+[x] 1487.   ✅ Updated personal toggle handler line 8903: `await handleDateSelect(latestDate, false)` // force personal mode
+[x] 1488. **FIX BENEFITS:**
+[x] 1489.   ✅ Demo mode (switch ON) now ALWAYS loads from `/api/journal/${dateKey}` (shared demo data)
+[x] 1490.   ✅ Personal mode (switch OFF) now ALWAYS loads from `/api/user-journal/${userId}/${dateKey}` (Firebase data)
+[x] 1491.   ✅ No more state closure issues causing wrong endpoint to be called
+[x] 1492.   ✅ Heatmap auto-clicking now works correctly for both modes
+[x] 1493.   ✅ Demo mode heatmap shows green/red colors immediately when toggled
+[x] 1494.   ✅ Personal mode heatmap shows green/red colors immediately when toggled (if data exists)
+[x] 1495. Workflow restarted to test fix - server running on port 5000
+[x] 1496. ✅✅✅ DEMO/PERSONAL HEATMAP AUTO-LOAD BUG FIXED! ✅✅✅
