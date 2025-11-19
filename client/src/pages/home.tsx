@@ -4576,10 +4576,13 @@ ${
         performanceMetrics: safePerformanceMetrics,
         timestamp: new Date().toISOString(),
       };
-      console.log(
-        `🔄 Attempting to save data for date: ${selectedDateStr}`,
-        journalData,
-      );
+      console.log(`💾 SAVE SUMMARY for ${selectedDateStr}:`);
+      console.log(`  📊 Trade History: ${safeTradeHistory.length} trades`);
+      console.log(`  📝 Notes: ${safeNotesContent ? safeNotesContent.substring(0, 50) + '...' : 'None'}`);
+      console.log(`  🏷️ Tags: ${safeTags.length} tags - ${safeTags.join(', ')}`);
+      console.log(`  🖼️ Images: ${safeImages.length} images`);
+      console.log(`  💰 Net P&L: ₹${safePerformanceMetrics.netPnL}`);
+      console.log(`🔄 Attempting to save data for date: ${selectedDateStr}`, journalData);
 
       // Choose endpoint based on demo mode
       // Switch ON (true) = Demo mode, Switch OFF (false) = Personal mode
@@ -4630,12 +4633,37 @@ ${
         setTradingDataByDate(allData);
 
         console.log(
-          `✅ All trading data saved to Google Cloud for ${selectedDateStr}`,
+          `✅ All trading data saved successfully for ${selectedDateStr}`,
           journalData,
         );
 
-        // Automatically reload the data for this date to ensure UI updates
-        console.log("🔄 Reloading data to refresh UI...");
+        // CRITICAL: Reload FULL heatmap data after save to sync everything
+        console.log("🔄 Reloading FULL heatmap data to sync all windows...");
+        
+        // Reload the full heatmap data based on current mode
+        if (isDemoMode) {
+          console.log("📊 Refreshing demo mode heatmap...");
+          const allDatesResponse = await fetch("/api/journal/all-dates");
+          if (allDatesResponse.ok) {
+            const allDatesData = await allDatesResponse.json();
+            console.log(`✅ Heatmap refreshed with ${Object.keys(allDatesData).length} dates`);
+            setTradingDataByDate(allDatesData);
+          }
+        } else {
+          const userId = getUserId();
+          if (userId) {
+            console.log(`👤 Refreshing personal mode heatmap for user: ${userId}`);
+            const allUserDataResponse = await fetch(`/api/user-journal/${userId}/all`);
+            if (allUserDataResponse.ok) {
+              const allUserData = await allUserDataResponse.json();
+              console.log(`✅ Heatmap refreshed with ${Object.keys(allUserData).length} dates`);
+              setTradingDataByDate(allUserData);
+            }
+          }
+        }
+
+        // Reload the current date to ensure UI updates
+        console.log("🔄 Reloading current date to refresh UI...");
         await handleDateSelect(selectedDate);
 
         // Show success message
@@ -4647,11 +4675,13 @@ ${
             year: "numeric",
           });
 
+          const saveLocation = isDemoMode ? "Demo (Shared)" : "Personal (Firebase)";
+          
           alert(
-            `✅ Trading data saved to Google Cloud for ${formattedDate}!\n\n📊 Saved data:\n• ${
+            `✅ Trading data saved successfully!\n\n📅 Date: ${formattedDate}\n💾 Saved to: ${saveLocation}\n\n📊 Saved data:\n• Trades: ${
               safeTradeHistory.length
-            } trades\n• Notes: ${safeNotesContent ? "Yes" : "No"}\n• Tags: ${
-              safeTags.length
+            }\n• Notes: ${safeNotesContent ? "✓" : "✗"}\n• Tags: ${
+              safeTags.length > 0 ? safeTags.join(', ') : "None"
             }\n• Images: ${
               safeImages.length
             }\n• Net P&L: ₹${safePerformanceMetrics.netPnL.toLocaleString(
