@@ -4079,6 +4079,7 @@ ${
           }
         });
         setPersonalTradingDataByDate(updatedData);
+        setCalendarData(updatedData); // CRITICAL: Update calendarData to show heatmap colors!
         localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
         console.log(`✅ Auto-click completed! Loaded ${validResults.length} personal dates for heatmap colors.`);
       }
