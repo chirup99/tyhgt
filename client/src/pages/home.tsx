@@ -1792,7 +1792,13 @@ function MicroAnimationsDemoPage() {
 }
 
 // API base URL for Cloud Run compatibility - use environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// BUT: In development mode (localhost), always use relative URLs to avoid CORS issues
+const isDevelopmentMode = window.location.hostname === 'localhost' || 
+                          window.location.hostname === '127.0.0.1' ||
+                          window.location.hostname.includes('replit.dev') ||
+                          window.location.port === '5000';
+
+const API_BASE_URL = isDevelopmentMode ? '' : (import.meta.env.VITE_API_URL || '');
 
 // Helper function to construct full API URLs for Cloud Run compatibility
 const getFullApiUrl = (path: string): string => {
@@ -3315,7 +3321,10 @@ ${
         if (isDemoMode) {
           // DEMO MODE: Fetch from /api/journal/all-dates (Google Cloud shared demo data)
           console.log("📊 DEMO MODE: Fetching shared demo data from /api/journal/all-dates");
-          const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
+          const url = getFullApiUrl("/api/journal/all-dates");
+          console.log("📡 Full URL:", url);
+          const response = await fetch(url);
+          console.log("📊 Response status:", response.status, response.statusText);
 
           if (response.ok) {
             const allDatesData = await response.json();
@@ -3466,6 +3475,9 @@ ${
         }
       } catch (error) {
         console.error("❌ Error loading heatmap data:", error);
+        console.error("Error type:", typeof error);
+        console.error("Error message:", error instanceof Error ? error.message : 'Unknown error');
+        console.error("Error stack:", error instanceof Error ? error.stack : 'No stack');
         // Fallback to localStorage data if Google Cloud is unavailable
         console.log("🔄 Falling back to localStorage data...");
         const localStorageData = localStorage.getItem("tradingDataByDate");
