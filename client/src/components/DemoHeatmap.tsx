@@ -162,7 +162,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         <div className="flex-1 overflow-x-auto thin-scrollbar">
           {isLoading ? (
             <div className="flex items-center justify-center h-24 text-sm text-gray-500 dark:text-gray-400">
-              Loading demo data...
+              Loading...
             </div>
           ) : (
             <div className="flex gap-3 pb-2">

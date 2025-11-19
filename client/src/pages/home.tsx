@@ -4060,7 +4060,6 @@ ${
       
       if (datesToFetch.length === 0) {
         console.log("ℹ️ No personal dates found for the selected period");
-        alert(`No personal trading data found for ${fromDate && toDate ? 'selected date range' : `year ${heatmapYear}`}`);
         return;
       }
       
@@ -8946,9 +8945,6 @@ ${
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 mr-2">
-                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                {isDemoMode ? "Demo" : "Personal"}
-                              </span>
                               <Switch
                                 checked={isDemoMode}
                                 onCheckedChange={async (checked) => {
