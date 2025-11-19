@@ -8352,11 +8352,27 @@ ${
                                   </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                                  {tradeHistoryData.map((trade, index) => (
-                                    <tr
-                                      key={index}
-                                      className="border-b border-gray-200 dark:border-gray-700"
-                                    >
+                                  {isLoadingHeatmapData && tradeHistoryData.length === 0 ? (
+                                    <tr>
+                                      <td colSpan={9} className="p-8 text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                          <span className="text-sm text-gray-500 dark:text-gray-400">Loading trade history...</span>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ) : tradeHistoryData.length === 0 ? (
+                                    <tr>
+                                      <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        No trades for this date
+                                      </td>
+                                    </tr>
+                                  ) : (
+                                    tradeHistoryData.map((trade, index) => (
+                                      <tr
+                                        key={index}
+                                        className="border-b border-gray-200 dark:border-gray-700"
+                                      >
                                       <td className="p-1">{trade.time}</td>
                                       <td className="p-1">
                                         <span
@@ -8425,7 +8441,8 @@ ${
                                       </td>
                                       <td className="p-1">{trade.duration}</td>
                                     </tr>
-                                  ))}
+                                    ))
+                                  )}
                                 </tbody>
                               </table>
                             </div>
@@ -8503,11 +8520,27 @@ ${
                               </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                              {tradeHistoryData.map((trade, index) => (
-                                <tr
-                                  key={index}
-                                  className="border-b border-gray-200 dark:border-gray-700"
-                                >
+                              {isLoadingHeatmapData && tradeHistoryData.length === 0 ? (
+                                <tr>
+                                  <td colSpan={9} className="p-8 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                      <span className="text-sm text-gray-500 dark:text-gray-400">Loading trade history...</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ) : tradeHistoryData.length === 0 ? (
+                                <tr>
+                                  <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    No trades for this date
+                                  </td>
+                                </tr>
+                              ) : (
+                                tradeHistoryData.map((trade, index) => (
+                                  <tr
+                                    key={index}
+                                    className="border-b border-gray-200 dark:border-gray-700"
+                                  >
                                   <td className="p-1">{trade.time}</td>
                                   <td className="p-1">
                                     <span
@@ -8576,7 +8609,8 @@ ${
                                   </td>
                                   <td className="p-1">{trade.duration}</td>
                                 </tr>
-                              ))}
+                                ))
+                              )}
                             </tbody>
                           </table>
                         </div>
@@ -8617,12 +8651,8 @@ ${
                                   // Show loading state
                                   setIsLoadingHeatmapData(true);
                                   
-                                  // Clear UI immediately to show transition
-                                  setNotesContent("");
-                                  setTempNotesContent("");
-                                  setSelectedTags([]);
-                                  setTradeHistoryData([]);
-                                  setTradingImages([]);
+                                  // DON'T clear UI immediately - keep existing data visible during load to prevent flash
+                                  // Only clear selected date to indicate transition
                                   setSelectedDate(null);
                                   
                                   // Use setTimeout to prevent UI blocking (makes toggle feel instant)
@@ -8638,9 +8668,25 @@ ${
                                           
                                           setTradingDataByDate(allDatesData);
                                           localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+                                          
+                                          // AUTO-SELECT LATEST DATE for demo mode too
+                                          const demoDates = Object.keys(allDatesData);
+                                          if (demoDates.length > 0) {
+                                            const latestDateStr = demoDates.sort().reverse()[0];
+                                            const latestDate = new Date(latestDateStr);
+                                            console.log(`🎯 Auto-selecting latest DEMO date: ${latestDateStr}`);
+                                            setSelectedDate(latestDate);
+                                            await handleDateSelect(latestDate);
+                                          }
                                         } else {
                                           console.log("⚠️ Failed to load demo data from API");
                                           setTradingDataByDate({});
+                                          // Clear UI only on error
+                                          setNotesContent("");
+                                          setTempNotesContent("");
+                                          setSelectedTags([]);
+                                          setTradeHistoryData([]);
+                                          setTradingImages([]);
                                         }
                                       } else {
                                         // Switch OFF = Personal mode: Load personal data
@@ -8680,15 +8726,33 @@ ${
                                             await handleDateSelect(latestDate);
                                           } else {
                                             console.log("ℹ️ No personal data found - calendar is empty");
+                                            // Clear UI only when no data
+                                            setNotesContent("");
+                                            setTempNotesContent("");
+                                            setSelectedTags([]);
+                                            setTradeHistoryData([]);
+                                            setTradingImages([]);
                                           }
                                         } else {
                                           console.log("⚠️ Failed to load personal data - clearing to empty state");
                                           setTradingDataByDate({});
+                                          // Clear UI only on error
+                                          setNotesContent("");
+                                          setTempNotesContent("");
+                                          setSelectedTags([]);
+                                          setTradeHistoryData([]);
+                                          setTradingImages([]);
                                         }
                                       }
                                     } catch (error) {
                                       console.error("❌ Error during mode switch:", error);
                                       setTradingDataByDate({});
+                                      // Clear UI only on error
+                                      setNotesContent("");
+                                      setTempNotesContent("");
+                                      setSelectedTags([]);
+                                      setTradeHistoryData([]);
+                                      setTradingImages([]);
                                     } finally {
                                       setIsLoadingHeatmapData(false);
                                     }
