@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateKey, getHeatmapColor, generateYearHeatmapDays } from "./heatmap-utils";
+import { formatDateKey, getHeatmapColor } from "./heatmap-utils";
 
 interface DemoHeatmapProps {
   onDateSelect: (date: Date) => void;
@@ -22,61 +19,76 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
     }
   }, []);
 
-  // For demo mode in 2025, start from June since demo data starts from June
-  const startMonth = (year === 2025) ? 5 : 0;
-  const months = generateYearHeatmapDays(year, startMonth);
+  // Generate month data organized by day of week
+  const generateMonthsData = () => {
+    const startMonth = (year === 2025) ? 5 : 0; // June for 2025, January for other years
+    const months = [];
+    
+    for (let monthIndex = startMonth; monthIndex < 12; monthIndex++) {
+      const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
+      const firstDay = new Date(year, monthIndex, 1);
+      const lastDay = new Date(year, monthIndex + 1, 0);
+      
+      // Create 7 rows (one for each day of week: S, M, T, W, TH, F, S)
+      const dayRows: (Date | null)[][] = [[], [], [], [], [], [], []];
+      
+      // Get the first day of week offset
+      const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      
+      // Fill in all days of the month
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, monthIndex, day);
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        dayRows[dayOfWeek].push(date);
+      }
+      
+      months.push({
+        name: monthName,
+        dayRows
+      });
+    }
+    
+    return months;
+  };
 
-  const handlePreviousYear = () => setYear(year - 1);
-  const handleNextYear = () => setYear(year + 1);
+  const months = generateMonthsData();
+  const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
   return (
-    <Card className="bg-white dark:bg-gray-800 shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">
-            Demo Trading Heatmap (Shared)
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handlePreviousYear}
-              className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400"
-              data-testid="button-demo-prev-year"
+    <div className="space-y-3">
+      {/* Heatmap Grid */}
+      <div className="flex gap-2">
+        {/* Day of week labels */}
+        <div className="flex flex-col gap-1 pt-6">
+          {dayLabels.map((label, index) => (
+            <div 
+              key={index} 
+              className="h-3 flex items-center justify-end text-[10px] font-medium text-gray-600 dark:text-gray-400 pr-1"
             >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[4rem] text-center">
-              {year}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNextYear}
-              className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400"
-              data-testid="button-demo-next-year"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
+              {label}
+            </div>
+          ))}
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex gap-1 overflow-x-auto pb-2">
+
+        {/* Scrollable month grid */}
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex gap-3 pb-2">
             {months.map((monthData, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-1 min-w-fit">
-                <div className="text-[10px] font-medium text-gray-600 dark:text-gray-400 text-center h-4">
+                {/* Month header */}
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center h-5 flex items-center justify-center">
                   {monthData.name}
                 </div>
-                <div className="flex gap-1">
-                  {monthData.weeks.map((week, weekIndex) => (
-                    <div key={weekIndex} className="flex flex-col gap-1">
-                      {week.map((date, dateIndex) => {
+                
+                {/* Day rows (S, M, T, W, TH, F, S) */}
+                <div className="flex flex-col gap-1">
+                  {monthData.dayRows.map((daysInRow, rowIndex) => (
+                    <div key={rowIndex} className="flex gap-1">
+                      {daysInRow.map((date, dayIndex) => {
                         if (!date) {
                           return (
                             <div
-                              key={dateIndex}
+                              key={dayIndex}
                               className="w-3 h-3"
                             ></div>
                           );
@@ -110,7 +122,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
 
                         return (
                           <div
-                            key={dateIndex}
+                            key={dayIndex}
                             className={`
                               w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
                               ${cellColor}
@@ -130,29 +142,28 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
               </div>
             ))}
           </div>
+        </div>
+      </div>
 
-          {/* P&L Color Legend */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-600 dark:text-gray-400">Loss</span>
-              <div className="flex gap-0.5">
-                <div className="w-2 h-2 bg-red-800 dark:bg-red-700 rounded-sm" title="High Loss (₹5000+)"></div>
-                <div className="w-2 h-2 bg-red-600 dark:bg-red-500 rounded-sm" title="Medium Loss (₹1500+)"></div>
-                <div className="w-2 h-2 bg-red-300 dark:bg-red-300 rounded-sm" title="Small Loss"></div>
-              </div>
-            </div>
-            <div className="w-2 h-2 bg-gray-100 dark:bg-gray-700 rounded-sm" title="No trades"></div>
-            <div className="flex items-center gap-1">
-              <div className="flex gap-0.5">
-                <div className="w-2 h-2 bg-green-300 dark:bg-green-300 rounded-sm" title="Small Profit"></div>
-                <div className="w-2 h-2 bg-green-600 dark:bg-green-500 rounded-sm" title="Medium Profit (₹1500+)"></div>
-                <div className="w-2 h-2 bg-green-800 dark:bg-green-700 rounded-sm" title="High Profit (₹5000+)"></div>
-              </div>
-              <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
-            </div>
+      {/* P&L Color Legend */}
+      <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-600 dark:text-gray-400">Loss</span>
+          <div className="flex gap-1">
+            <div className="w-2.5 h-2.5 bg-red-800 dark:bg-red-700 rounded-full" title="High Loss (₹5000+)"></div>
+            <div className="w-2.5 h-2.5 bg-red-600 dark:bg-red-500 rounded-full" title="Medium Loss (₹1500+)"></div>
+            <div className="w-2.5 h-2.5 bg-red-300 dark:bg-red-300 rounded-full" title="Small Loss"></div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            <div className="w-2.5 h-2.5 bg-green-300 dark:bg-green-300 rounded-full" title="Small Profit"></div>
+            <div className="w-2.5 h-2.5 bg-green-600 dark:bg-green-500 rounded-full" title="Medium Profit (₹1500+)"></div>
+            <div className="w-2.5 h-2.5 bg-green-800 dark:bg-green-700 rounded-full" title="High Profit (₹5000+)"></div>
+          </div>
+          <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
+        </div>
+      </div>
+    </div>
   );
 }
