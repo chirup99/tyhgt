@@ -4318,12 +4318,7 @@ ${
   };
 
   const handleDateSelect = async (date: Date, forceMode?: 'demo' | 'personal') => {
-    // Prevent multiple simultaneous clicks on the same date
-    if (isDateLoading) {
-      console.log("⏳ Already loading date data, ignoring duplicate click");
-      return;
-    }
-
+    // Update selected date IMMEDIATELY for instant visual feedback
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
 

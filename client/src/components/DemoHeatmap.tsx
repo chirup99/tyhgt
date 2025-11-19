@@ -217,24 +217,14 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                             <div
                               key={dayIndex}
                               className={`
-                                w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 select-none
+                                w-3 h-3 rounded-sm cursor-pointer select-none
                                 ${cellColor}
                               `}
                               onClick={() => {
                                 setCurrentDate(date);
                                 onDateSelect(date);
                               }}
-                              onMouseDown={(e) => e.preventDefault()}
-                              onDragStart={(e) => e.preventDefault()}
                               data-testid={`demo-calendar-day-${date.getDate()}-${date.getMonth()}`}
-                              style={{ 
-                                outline: 'none', 
-                                border: 'none',
-                                userSelect: 'none',
-                                WebkitUserSelect: 'none',
-                                MozUserSelect: 'none',
-                                msUserSelect: 'none'
-                              }}
                             />
                           );
                         })}
