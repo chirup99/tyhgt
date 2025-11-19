@@ -3265,18 +3265,28 @@ ${
     },
   ]);
 
-  // Unified Trading Data Storage by Date
-  const [tradingDataByDate, setTradingDataByDate] = useState(() => {
+  // ✅ TWO SEPARATE HEATMAP DATA STATES - NO MERGING!
+  // Demo heatmap data (Heatmap #1)
+  const [demoTradingDataByDate, setDemoTradingDataByDate] = useState(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("tradingDataByDate");
+      const stored = localStorage.getItem("demoTradingDataByDate");
+      return stored ? JSON.parse(stored) : {};
+    }
+    return {};
+  });
+
+  // Personal heatmap data (Heatmap #2)
+  const [personalTradingDataByDate, setPersonalTradingDataByDate] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("personalTradingDataByDate");
       return stored ? JSON.parse(stored) : {};
     }
     return {};
   });
 
   // Demo mode state - toggle between demo data (same for all users) and user-specific data
-  // Switch ON (true) = Demo mode active (shared demo data)
-  // Switch OFF (false) = Personal mode active (user-specific data)
+  // Switch ON (true) = Demo mode active (shared demo data, Heatmap #1)
+  // Switch OFF (false) = Personal mode active (user-specific data, Heatmap #2)
   const [isDemoMode, setIsDemoMode] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("tradingJournalDemoMode");
@@ -3316,6 +3326,11 @@ ${
   
   // Loading state for date selection
   const [isDateLoading, setIsDateLoading] = useState(false);
+
+  // ✅ Helper functions to get the active heatmap data based on current mode
+  const tradingDataByDate = isDemoMode ? demoTradingDataByDate : personalTradingDataByDate;
+  const setTradingDataByDate = isDemoMode ? setDemoTradingDataByDate : setPersonalTradingDataByDate;
+  const getActiveStorageKey = () => isDemoMode ? "demoTradingDataByDate" : "personalTradingDataByDate";
 
   // Helper function to get Firebase userId from localStorage
   // Returns null if user is not logged in with Firebase
@@ -3363,14 +3378,14 @@ ${
               "dates",
             );
 
-            // Update tradingDataByDate with all the loaded data
-            setTradingDataByDate(allDatesData);
+            // ✅ Update DEMO HEATMAP #1 with all the loaded data
+            setDemoTradingDataByDate(allDatesData);
 
             // CRITICAL: Also update calendarData to ensure heatmap functions work properly
             setCalendarData(allDatesData);
 
             // Save to localStorage for offline access
-            localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+            localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
 
             // Auto-click all available dates to populate heatmap colors - ULTRA FAST
             // This simulates clicking each date to ensure colors appear immediately
@@ -8738,11 +8753,9 @@ ${
                                   // Show loading state
                                   setIsLoadingHeatmapData(true);
                                   
-                                  // ✅ CRITICAL FIX: Clear ALL old data immediately to force heatmap sync
-                                  // This ensures the heatmap doesn't show stale data from previous mode
-                                  console.log("🧹 Clearing old heatmap data to force sync...");
-                                  setTradingDataByDate({});
-                                  localStorage.removeItem("tradingDataByDate");
+                                  // ✅ NEW APPROACH: Just switch to the other heatmap - no clearing needed!
+                                  // Each mode has its own independent heatmap data
+                                  console.log(`🔄 Switching to ${checked ? 'DEMO HEATMAP #1' : 'PERSONAL HEATMAP #2'}...`);
                                   setSelectedDate(null);
                                   setNotesContent("");
                                   setTempNotesContent("");
@@ -8754,15 +8767,15 @@ ${
                                   setTimeout(async () => {
                                     try {
                                       if (checked) {
-                                        // Switch ON = Demo mode: Load demo data
-                                        console.log("📊 Switching to Demo mode - loading demo data...");
+                                        // ✅ Switch ON = Demo mode: Load into DEMO HEATMAP #1
+                                        console.log("📊 Switching to DEMO HEATMAP #1 - loading demo data...");
                                         const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
                                         if (response.ok) {
                                           const allDatesData = await response.json();
                                           console.log("✅ Demo data loaded:", Object.keys(allDatesData).length, "dates");
                                           
-                                          setTradingDataByDate(allDatesData);
-                                          localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+                                          setDemoTradingDataByDate(allDatesData);
+                                          localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
                                           
                                           // AUTO-SELECT LATEST DATE for demo mode too
                                           const demoDates = Object.keys(allDatesData);
@@ -8803,10 +8816,10 @@ ${
                                                   updatedData[result.dateStr] = result.journalData;
                                                 }
                                               });
-                                              setTradingDataByDate(updatedData);
-                                              localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
+                                              setDemoTradingDataByDate(updatedData);
+                                              localStorage.setItem("demoTradingDataByDate", JSON.stringify(updatedData));
                                               console.log(
-                                                `✅ Ultra-fast DEMO heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
+                                                `✅ Ultra-fast DEMO HEATMAP #1 population complete! Loaded ${validResults.length} dates in parallel.`,
                                               );
                                             }
                                             
@@ -8818,7 +8831,7 @@ ${
                                           }
                                         } else {
                                           console.log("⚠️ Failed to load demo data from API");
-                                          setTradingDataByDate({});
+                                          setDemoTradingDataByDate({});
                                           // Clear UI only on error
                                           setNotesContent("");
                                           setTempNotesContent("");
@@ -8827,8 +8840,8 @@ ${
                                           setTradingImages([]);
                                         }
                                       } else {
-                                        // Switch OFF = Personal mode: Load personal data
-                                        console.log("👤 Switching to Personal mode - loading personal data...");
+                                        // ✅ Switch OFF = Personal mode: Load into PERSONAL HEATMAP #2
+                                        console.log("👤 Switching to PERSONAL HEATMAP #2 - loading personal data...");
                                         const userId = getUserId();
                                         
                                         if (!userId) {
@@ -8847,8 +8860,8 @@ ${
                                         if (response.ok) {
                                           const personalData = await response.json();
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
-                                          setTradingDataByDate(personalData);
-                                          localStorage.setItem("tradingDataByDate", JSON.stringify(personalData));
+                                          setPersonalTradingDataByDate(personalData);
+                                          localStorage.setItem("personalTradingDataByDate", JSON.stringify(personalData));
                                           
                                           // AUTO-SELECT LATEST DATE if data exists, otherwise show empty but visible UI
                                           const personalDates = Object.keys(personalData);
@@ -8889,10 +8902,10 @@ ${
                                                   updatedData[result.dateStr] = result.journalData;
                                                 }
                                               });
-                                              setTradingDataByDate(updatedData);
-                                              localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
+                                              setPersonalTradingDataByDate(updatedData);
+                                              localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
                                               console.log(
-                                                `✅ Ultra-fast PERSONAL heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
+                                                `✅ Ultra-fast PERSONAL HEATMAP #2 population complete! Loaded ${validResults.length} dates in parallel.`,
                                               );
                                             }
                                             
@@ -8918,7 +8931,7 @@ ${
                                           }
                                         } else {
                                           console.log("⚠️ Failed to load personal data - clearing to empty state");
-                                          setTradingDataByDate({});
+                                          setPersonalTradingDataByDate({});
                                           // Clear UI only on error
                                           setNotesContent("");
                                           setTempNotesContent("");
@@ -8929,8 +8942,7 @@ ${
                                       }
                                     } catch (error) {
                                       console.error("❌ Error during mode switch:", error);
-                                      setTradingDataByDate({});
-                                      // Clear UI only on error
+                                      // Don't clear either heatmap on error - just show error state
                                       setNotesContent("");
                                       setTempNotesContent("");
                                       setSelectedTags([]);
