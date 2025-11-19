@@ -4055,7 +4055,14 @@ ${
         try {
           const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
           if (response.ok) {
-            const journalData = await response.json();
+            let journalData = await response.json();
+            
+            // CRITICAL FIX: Unwrap Firebase response format (has tradingData wrapper)
+            if (journalData && journalData.tradingData) {
+              journalData = journalData.tradingData;
+              console.log(`📦 Unwrapped Firebase tradingData for ${dateStr}`);
+            }
+            
             if (journalData && Object.keys(journalData).length > 0) {
               return { dateStr, journalData };
             }
@@ -4081,7 +4088,7 @@ ${
         setPersonalTradingDataByDate(updatedData);
         setCalendarData(updatedData); // CRITICAL: Update calendarData to show heatmap colors!
         localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
-        console.log(`✅ Auto-click completed! Loaded ${validResults.length} personal dates for heatmap colors.`);
+        console.log(`✅ Auto-click completed! Loaded ${validResults.length} personal dates for heatmap colors. March 3,4,5 should now show colors!`);
       }
     } catch (error) {
       console.error("❌ Error during auto-click:", error);
@@ -9016,7 +9023,14 @@ ${
                                               try {
                                                 const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
                                                 if (response.ok) {
-                                                  const journalData = await response.json();
+                                                  let journalData = await response.json();
+                                                  
+                                                  // CRITICAL FIX: Unwrap Firebase response format (has tradingData wrapper)
+                                                  if (journalData && journalData.tradingData) {
+                                                    journalData = journalData.tradingData;
+                                                    console.log(`📦 Unwrapped Firebase tradingData for ${dateStr}`);
+                                                  }
+                                                  
                                                   if (journalData && Object.keys(journalData).length > 0) {
                                                     return { dateStr, journalData };
                                                   }
@@ -9045,7 +9059,7 @@ ${
                                               setPersonalTradingDataByDate(updatedData);
                                               localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
                                               console.log(
-                                                `✅ Ultra-fast PERSONAL HEATMAP #2 population complete! Loaded ${validResults.length} dates in parallel.`,
+                                                `✅ Ultra-fast PERSONAL HEATMAP #2 population complete! Loaded ${validResults.length} dates in parallel. Heatmap colors should now be visible!`,
                                               );
                                             }
                                             
