@@ -229,9 +229,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                               hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
                             `}
                             onClick={() => onDateSelect(date)}
-                            title={`${date.toDateString()}${
-                              hasActualTradeData ? ` - P&L: ₹${netPnL.toLocaleString("en-IN")}` : ""
-                            }`}
                             data-testid={`personal-calendar-day-${date.getDate()}-${date.getMonth()}`}
                           />
                         );
