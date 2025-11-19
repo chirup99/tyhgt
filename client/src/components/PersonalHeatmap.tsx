@@ -98,7 +98,17 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
   const handleNextYear = () => setYear(year + 1);
 
   const formatSelectedDate = (date: Date | null) => {
-    if (!date) return "Select a date";
+    // If no date selected, show current date with the selected year
+    if (!date) {
+      const today = new Date();
+      const currentDateInYear = new Date(year, today.getMonth(), today.getDate());
+      return currentDateInYear.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    }
     return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 
