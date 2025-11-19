@@ -8889,30 +8889,14 @@ ${
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                                 {isDemoMode ? "Demo" : "Personal"}
                               </span>
-                              {isLoadingHeatmapData && (
-                                <div className="flex items-center gap-1">
-                                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                  <span className="text-xs text-blue-600 dark:text-blue-400">Loading...</span>
-                                </div>
-                              )}
-                              {isAutoClickingPersonal && (
-                                <div className="flex items-center gap-1">
-                                  <div className="w-3 h-3 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                                  <span className="text-xs text-green-600 dark:text-green-400">Loading dates...</span>
-                                </div>
-                              )}
                               <Switch
                                 checked={isDemoMode}
-                                disabled={isLoadingHeatmapData}
                                 onCheckedChange={async (checked) => {
                                   console.log(`🔄 Demo mode toggle: ${checked ? 'ON (Demo)' : 'OFF (Personal)'}`);
                                   
                                   // IMMEDIATE STATE UPDATE for instant visual feedback
                                   setIsDemoMode(checked);
                                   localStorage.setItem("tradingJournalDemoMode", String(checked));
-                                  
-                                  // Show loading state
-                                  setIsLoadingHeatmapData(true);
                                   
                                   // ✅ NEW APPROACH: Just switch to the other heatmap - no clearing needed!
                                   // Each mode has its own independent heatmap data
@@ -9124,8 +9108,6 @@ ${
                                       setSelectedTags([]);
                                       setTradeHistoryData([]);
                                       setTradingImages([]);
-                                    } finally {
-                                      setIsLoadingHeatmapData(false);
                                     }
                                   }, 0);
                                 }}
