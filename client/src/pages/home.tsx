@@ -4094,18 +4094,18 @@ ${
     localStorage.setItem("calendarData", JSON.stringify(data));
   };
 
-  const handleDateSelect = async (date: Date, forceMode?: boolean) => {
+  const handleDateSelect = async (date: Date, forceMode?: 'demo' | 'personal') => {
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
 
     // Load trading data from appropriate source based on demo mode
     // Use forceMode if provided (to avoid state closure issues), otherwise use isDemoMode state
-    const effectiveMode = forceMode !== undefined ? forceMode : isDemoMode;
+    const effectiveMode = forceMode !== undefined ? forceMode : (isDemoMode ? 'demo' : 'personal');
     
     // Use formatDateKey for consistency with save function
     const dateKey = formatDateKey(date);
     console.log(
-      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()})`,
+      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${effectiveMode}]`,
     );
 
     // Set loading state to show spinner
@@ -4113,14 +4113,13 @@ ${
 
     try {
       // Choose endpoint based on demo mode
-      // Switch ON (true) = Demo mode, Switch OFF (false) = Personal mode
       let response;
-      if (effectiveMode) {
-        // Switch ON = Demo mode: Load from shared Google Cloud journal database
+      if (effectiveMode === 'demo') {
+        // Demo mode: Load from shared Google Cloud journal database
         console.log("📊 Loading from demo data (shared)");
         response = await fetch(getFullApiUrl(`/api/journal/${dateKey}`));
       } else {
-        // Switch OFF = Personal mode: Load from Firebase (user-specific)
+        // Personal mode: Load from Firebase (user-specific)
         const userId = getUserId();
         if (!userId) {
           console.error("❌ Cannot load personal data - no Firebase user logged in");
@@ -8807,7 +8806,7 @@ ${
                                             const latestDate = new Date(latestDateStr);
                                             console.log(`🎯 Auto-selecting latest DEMO date: ${latestDateStr}`);
                                             setSelectedDate(latestDate);
-                                            await handleDateSelect(latestDate, true); // true = force demo mode
+                                            await handleDateSelect(latestDate, 'demo'); // Force demo mode
                                           }
                                         } else {
                                           console.log("⚠️ Failed to load demo data from API");
@@ -8897,7 +8896,7 @@ ${
                                             setSelectedDate(latestDate);
                                             
                                             // Load the data for this date (should be already loaded from auto-clicking above)
-                                            await handleDateSelect(latestDate, false); // false = force personal mode
+                                            await handleDateSelect(latestDate, 'personal'); // Force personal mode
                                           } else {
                                             console.log("ℹ️ No personal data found - showing empty state");
                                             // DON'T clear UI - instead show empty state with helpful message
