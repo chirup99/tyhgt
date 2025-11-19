@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatDateKey, getHeatmapColor } from "./heatmap-utils";
@@ -15,6 +15,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
 
   // Load demo data from localStorage on mount
   useEffect(() => {
@@ -81,19 +82,25 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
     });
   };
 
-  // Handle date range selection
-  const handleDateRangeSubmit = () => {
+  // Auto-apply date range when both dates are selected
+  useEffect(() => {
     if (fromDate && toDate) {
-      // Date inputs provide yyyy-mm-dd format
       const from = new Date(fromDate);
       const to = new Date(toDate);
       
-      // Select the "from" date
+      setSelectedRange({ from, to });
       onDateSelect(from);
       
       console.log(`📅 Date range selected: ${from.toLocaleDateString()} to ${to.toLocaleDateString()}`);
       setIsDateRangeOpen(false);
     }
+  }, [fromDate, toDate, onDateSelect]);
+
+  // Reset date range
+  const handleResetRange = () => {
+    setFromDate("");
+    setToDate("");
+    setSelectedRange(null);
   };
 
   return (
@@ -219,58 +226,63 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
           <ChevronLeft className="w-4 h-4" />
         </Button>
         
-        <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
-          <PopoverTrigger asChild>
-            <div className="flex items-center gap-2 min-w-[250px] justify-center cursor-pointer hover-elevate rounded-md px-3 py-1">
-              <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {formatSelectedDate(selectedDate)}
+        {selectedRange ? (
+          <div className="flex items-center gap-2 min-w-[250px] justify-center">
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Selected Date Range: {selectedRange.from.getFullYear()}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleResetRange}
+                  className="h-5 w-5"
+                  data-testid="button-reset-range"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              <span className="text-[10px] text-gray-600 dark:text-gray-400">
+                {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} - {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+              <span className="text-[10px] text-blue-600 dark:text-blue-400">
+                Showing trade data within selected range
               </span>
             </div>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-4" align="center">
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
-                Select Date Range
-              </h3>
-              
+          </div>
+        ) : (
+          <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
+            <PopoverTrigger asChild>
+              <div className="flex items-center gap-2 min-w-[250px] justify-center cursor-pointer hover-elevate rounded-md px-3 py-1">
+                <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {formatSelectedDate(selectedDate)}
+                </span>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="center">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                  From Date
-                </label>
                 <input
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  placeholder="From Date"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   data-testid="input-from-date"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                  To Date
-                </label>
                 <input
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  placeholder="To Date"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   data-testid="input-to-date"
                 />
               </div>
-
-              <Button
-                onClick={handleDateRangeSubmit}
-                className="w-full"
-                disabled={!fromDate || !toDate}
-                data-testid="button-apply-date-range"
-              >
-                Apply
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
+        )}
 
         <Button
           variant="ghost"
