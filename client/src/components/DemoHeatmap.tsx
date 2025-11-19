@@ -10,28 +10,62 @@ interface DemoHeatmapProps {
 }
 
 export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [demoData, setDemoData] = useState<Record<string, any>>({});
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [firebaseData, setFirebaseData] = useState<Record<string, any>>({});
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load demo data from localStorage on mount
+  // Fetch REAL Firebase data - NO hardcoded data
   useEffect(() => {
-    const stored = localStorage.getItem("demoTradingDataByDate");
-    if (stored) {
-      setDemoData(JSON.parse(stored));
-      console.log("📊 DEMO HEATMAP: Loaded demo data:", Object.keys(JSON.parse(stored)).length, "dates");
-    }
+    const loadFirebaseData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get user ID from localStorage
+        const userId = localStorage.getItem("currentUserId");
+        
+        if (!userId) {
+          console.log("⚠️ No user ID found - cannot load Firebase data");
+          setFirebaseData({});
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("🔥 FIREBASE HEATMAP: Fetching real data for user:", userId);
+        
+        // Fetch REAL user data from Firebase API
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+        const response = await fetch(`${API_BASE_URL}/api/user-journal/${userId}/all`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setFirebaseData(data);
+          console.log("✅ FIREBASE HEATMAP: Loaded", Object.keys(data).length, "real dates from Firebase");
+        } else {
+          console.log("⚠️ Failed to load Firebase data:", response.statusText);
+          setFirebaseData({});
+        }
+      } catch (error) {
+        console.error("❌ Error loading Firebase data:", error);
+        setFirebaseData({});
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFirebaseData();
   }, []);
 
-  // Generate month data organized by day of week
+  // Generate month data organized by day of week - NO hardcoded dates
   const generateMonthsData = () => {
-    const startMonth = (year === 2025) ? 5 : 0; // June for 2025, January for other years
+    const year = currentDate.getFullYear();
     const months = [];
     
-    for (let monthIndex = startMonth; monthIndex < 12; monthIndex++) {
+    // Start from January (no hardcoded month logic)
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
       const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
       const firstDay = new Date(year, monthIndex, 1);
       const lastDay = new Date(year, monthIndex + 1, 0);
@@ -57,26 +91,25 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
 
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
-  // Year navigation functions - use useMemo for instant updates
-  const handlePreviousYear = () => setYear(prev => prev - 1);
-  const handleNextYear = () => setYear(prev => prev + 1);
+  // Date navigation functions
+  const handlePreviousDate = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 1);
+    setCurrentDate(newDate);
+  };
   
-  // Generate months data based on current year (recalculates immediately when year changes)
+  const handleNextDate = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 1);
+    setCurrentDate(newDate);
+  };
+  
+  // Generate months data based on current date
   const months = generateMonthsData();
 
-  const formatSelectedDate = (date: Date | null) => {
-    // If no date selected, show current date with the selected year
-    if (!date) {
-      const today = new Date();
-      const currentDateInYear = new Date(year, today.getMonth(), today.getDate());
-      return currentDateInYear.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    }
-    return date.toLocaleDateString('en-US', { 
+  // Format date like the image: "Friday, November 28, 2025"
+  const formatDisplayDate = () => {
+    return currentDate.toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric', 
@@ -123,76 +156,90 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
 
         {/* Scrollable month grid with thin scrollbar */}
         <div className="flex-1 overflow-x-auto thin-scrollbar">
-          <div className="flex gap-3 pb-2">
-            {months.map((monthData, monthIndex) => (
-              <div key={monthIndex} className="flex flex-col gap-1 min-w-fit">
-                {/* Month header */}
-                <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center h-5 flex items-center justify-center">
-                  {monthData.name}
-                </div>
-                
-                {/* Day rows (S, M, T, W, TH, F, S) */}
-                <div className="flex flex-col gap-1">
-                  {monthData.dayRows.map((daysInRow, rowIndex) => (
-                    <div key={rowIndex} className="flex gap-1">
-                      {daysInRow.map((date, dayIndex) => {
-                        if (!date) {
+          {isLoading ? (
+            <div className="flex items-center justify-center h-24 text-sm text-gray-500 dark:text-gray-400">
+              Loading Firebase data...
+            </div>
+          ) : Object.keys(firebaseData).length === 0 ? (
+            <div className="flex items-center justify-center h-24 text-sm text-gray-500 dark:text-gray-400">
+              No Firebase data available. Start trading to see your heatmap!
+            </div>
+          ) : (
+            <div className="flex gap-3 pb-2">
+              {months.map((monthData, monthIndex) => (
+                <div key={monthIndex} className="flex flex-col gap-1 min-w-fit">
+                  {/* Month header */}
+                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center h-5 flex items-center justify-center">
+                    {monthData.name}
+                  </div>
+                  
+                  {/* Day rows (S, M, T, W, TH, F, S) */}
+                  <div className="flex flex-col gap-1">
+                    {monthData.dayRows.map((daysInRow, rowIndex) => (
+                      <div key={rowIndex} className="flex gap-1">
+                        {daysInRow.map((date, dayIndex) => {
+                          if (!date) {
+                            return (
+                              <div
+                                key={dayIndex}
+                                className="w-3 h-3"
+                              ></div>
+                            );
+                          }
+
+                          const dateStr = formatDateKey(date);
+                          const savedData = firebaseData[dateStr];
+                          const netPnL = savedData?.performanceMetrics?.netPnL || 0;
+
+                          // ONLY show data if it exists in Firebase - NO hardcoded data
+                          const hasActualTradeData =
+                            savedData &&
+                            ((savedData.tradeHistory && savedData.tradeHistory.length > 0) ||
+                              (savedData.performanceMetrics && savedData.performanceMetrics.totalTrades > 0) ||
+                              savedData.tradingNotes ||
+                              savedData.notesContent);
+
+                          // Gray for no data
+                          let cellColor = "bg-gray-100 dark:bg-gray-700";
+                          
+                          // Only show color if REAL Firebase data exists
+                          if (hasActualTradeData) {
+                            cellColor = netPnL !== 0 ? getHeatmapColor(netPnL) : "bg-green-200 dark:bg-green-700";
+                          }
+
+                          const isToday = date.toDateString() === new Date().toDateString();
+                          if (isToday && !hasActualTradeData) {
+                            cellColor = "bg-teal-300 dark:bg-teal-600";
+                          }
+
+                          const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+                          if (isSelected) {
+                            cellColor = "bg-blue-600 dark:bg-blue-500 ring-1 ring-blue-400";
+                          }
+
                           return (
                             <div
                               key={dayIndex}
-                              className="w-3 h-3"
-                            ></div>
+                              className={`
+                                w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
+                                ${cellColor}
+                                hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
+                              `}
+                              onClick={() => onDateSelect(date)}
+                              title={`${date.toDateString()}${
+                                hasActualTradeData ? ` - P&L: ₹${netPnL.toLocaleString("en-IN")}` : " - No data"
+                              }`}
+                              data-testid={`firebase-calendar-day-${date.getDate()}-${date.getMonth()}`}
+                            />
                           );
-                        }
-
-                        const dateStr = formatDateKey(date);
-                        const savedData = demoData[dateStr];
-                        const netPnL = savedData?.performanceMetrics?.netPnL || 0;
-
-                        const hasActualTradeData =
-                          savedData &&
-                          ((savedData.tradeHistory && savedData.tradeHistory.length > 0) ||
-                            (savedData.performanceMetrics && savedData.performanceMetrics.totalTrades > 0) ||
-                            savedData.tradingNotes ||
-                            savedData.notesContent);
-
-                        let cellColor = "bg-gray-100 dark:bg-gray-700";
-                        if (hasActualTradeData) {
-                          cellColor = netPnL !== 0 ? getHeatmapColor(netPnL) : "bg-green-200 dark:bg-green-700";
-                        }
-
-                        const isToday = date.toDateString() === new Date().toDateString();
-                        if (isToday && !hasActualTradeData) {
-                          cellColor = "bg-teal-300 dark:bg-teal-600";
-                        }
-
-                        const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
-                        if (isSelected) {
-                          cellColor = "bg-blue-600 dark:bg-blue-500 ring-1 ring-blue-400";
-                        }
-
-                        return (
-                          <div
-                            key={dayIndex}
-                            className={`
-                              w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
-                              ${cellColor}
-                              hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600
-                            `}
-                            onClick={() => onDateSelect(date)}
-                            title={`${date.toDateString()}${
-                              hasActualTradeData ? ` - P&L: ₹${netPnL.toLocaleString("en-IN")}` : ""
-                            }`}
-                            data-testid={`demo-calendar-day-${date.getDate()}-${date.getMonth()}`}
-                          />
-                        );
-                      })}
-                    </div>
-                  ))}
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -216,23 +263,23 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         </div>
       </div>
 
-      {/* Year Navigation & Date Range Picker */}
+      {/* Date Navigation & Date Range Picker - Like the image */}
       <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         <Button
           variant="ghost"
           size="icon"
-          onClick={handlePreviousYear}
+          onClick={handlePreviousDate}
           className="h-8 w-8"
-          data-testid="button-prev-year"
+          data-testid="button-prev-date"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
         
         <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8">
-              <Calendar className="w-3 h-3 mr-1" />
-              <span className="text-xs">{year}</span>
+            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
+              <Calendar className="w-3 h-3 mr-2" />
+              <span className="text-xs">{formatDisplayDate()}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-48 p-2" align="center">
@@ -284,9 +331,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleNextYear}
+          onClick={handleNextDate}
           className="h-8 w-8"
-          data-testid="button-next-year"
+          data-testid="button-next-date"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
