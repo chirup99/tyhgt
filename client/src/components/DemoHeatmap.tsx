@@ -95,16 +95,16 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
 
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
-  // Date navigation functions
-  const handlePreviousDate = () => {
+  // Year navigation functions (changed from date to year)
+  const handlePreviousYear = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() - 1);
+    newDate.setFullYear(currentDate.getFullYear() - 1);
     setCurrentDate(newDate);
   };
   
-  const handleNextDate = () => {
+  const handleNextYear = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + 1);
+    newDate.setFullYear(currentDate.getFullYear() + 1);
     setCurrentDate(newDate);
   };
   
@@ -259,23 +259,24 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         </div>
       </div>
 
-      {/* Date Navigation & Date Range Picker - Like the image */}
+      {/* Year Navigation & Date Range Picker */}
       <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         <Button
           variant="ghost"
           size="icon"
-          onClick={handlePreviousDate}
+          onClick={handlePreviousYear}
           className="h-8 w-8"
-          data-testid="button-prev-date"
+          data-testid="button-prev-year"
+          title="Previous Year"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
         
         <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
+            <Button variant="ghost" size="sm" className="h-8 min-w-[120px]">
               <Calendar className="w-3 h-3 mr-2" />
-              <span className="text-xs">{formatDisplayDate()}</span>
+              <span className="text-sm font-semibold">{currentDate.getFullYear()}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-48 p-2" align="center">
@@ -327,9 +328,10 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleNextDate}
+          onClick={handleNextYear}
           className="h-8 w-8"
-          data-testid="button-next-date"
+          data-testid="button-next-year"
+          title="Next Year"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
