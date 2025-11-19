@@ -274,9 +274,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         
         <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 min-w-[120px]">
+            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
               <Calendar className="w-3 h-3 mr-2" />
-              <span className="text-sm font-semibold">{currentDate.getFullYear()}</span>
+              <span className="text-xs">{formatDisplayDate()}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-48 p-2" align="center">
