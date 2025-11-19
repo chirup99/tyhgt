@@ -217,14 +217,16 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                           <div
                             key={dayIndex}
                             className={`
-                              w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 outline-none focus:outline-none
+                              w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
                               ${cellColor}
                             `}
                             onClick={() => {
                               setCurrentDate(date);
                               onDateSelect(date);
                             }}
+                            onMouseDown={(e) => e.preventDefault()}
                             data-testid={`personal-calendar-day-${date.getDate()}-${date.getMonth()}`}
+                            style={{ outline: 'none', border: 'none' }}
                           />
                         );
                       })}
