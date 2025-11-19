@@ -4002,7 +4002,7 @@ ${
             journalData,
           );
 
-          // Clear existing data first
+          // Clear existing data first ONLY when we have new data to replace it
           setNotesContent("");
           setTempNotesContent("");
           setSelectedTags([]);
@@ -4149,21 +4149,13 @@ ${
           `❌ Load failed with status ${response.status}:`,
           errorText,
         );
-        // Clear data on failed load
-        setNotesContent("");
-        setTempNotesContent("");
-        setSelectedTags([]);
-        setTradeHistoryData([]);
-        setTradingImages([]);
+        console.log("⚠️ Keeping existing data visible instead of clearing UI");
+        // DON'T clear data on failed load - keep existing UI state visible
       }
     } catch (error) {
       console.error("❌ Error loading journal data:", error);
-      // Clear data on error
-      setNotesContent("");
-      setTempNotesContent("");
-      setSelectedTags([]);
-      setTradeHistoryData([]);
-      setTradingImages([]);
+      console.log("⚠️ Keeping existing data visible instead of clearing UI");
+      // DON'T clear data on error - keep existing UI state visible to prevent blank screens
     } finally {
       // Always clear loading state
       setIsDateLoading(false);
@@ -8509,14 +8501,8 @@ ${
                                     String(checked),
                                   );
                                   
-                                  // CRITICAL: Clear ALL current UI state first to prevent demo data from persisting
-                                  console.log("🧹 Clearing all current UI state...");
-                                  setNotesContent("");
-                                  setTempNotesContent("");
-                                  setSelectedTags([]);
-                                  setTradeHistoryData([]);
-                                  setTradingImages([]);
-                                  setSelectedDate(null);
+                                  // DON'T clear UI immediately - wait until new data loads successfully
+                                  // This prevents blank screens if data loading fails
                                   
                                   if (checked) {
                                     // Switch ON = Demo mode: Reload demo data from API
@@ -8526,6 +8512,16 @@ ${
                                       if (response.ok) {
                                         const allDatesData = await response.json();
                                         console.log("✅ Demo data loaded successfully:", Object.keys(allDatesData).length, "dates");
+                                        
+                                        // ONLY clear UI after we have new data to replace it
+                                        console.log("🧹 Clearing UI state to load demo data...");
+                                        setNotesContent("");
+                                        setTempNotesContent("");
+                                        setSelectedTags([]);
+                                        setTradeHistoryData([]);
+                                        setTradingImages([]);
+                                        setSelectedDate(null);
+                                        
                                         setTradingDataByDate(allDatesData);
                                         localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
                                         
@@ -8538,16 +8534,15 @@ ${
                                           await handleDateSelect(latestDate);
                                         }
                                       } else {
-                                        console.log("⚠️ Failed to load demo data from API");
+                                        console.log("⚠️ Failed to load demo data from API - keeping existing UI");
                                       }
                                     } catch (error) {
                                       console.error("❌ Error loading demo data:", error);
+                                      console.log("⚠️ Keeping existing UI state due to error");
                                     }
                                   } else {
-                                    // Switch OFF = Personal mode: Clear demo data and load personal data
-                                    console.log("👤 Switching to Personal mode - clearing demo data...");
-                                    setTradingDataByDate({});
-                                    localStorage.removeItem("tradingDataByDate");
+                                    // Switch OFF = Personal mode: Load personal data (don't clear immediately)
+                                    console.log("👤 Switching to Personal mode - loading personal data...");
                                     
                                     // Load personal data for all dates if user is logged in
                                     try {
@@ -8558,7 +8553,18 @@ ${
                                         if (response.ok) {
                                           const personalData = await response.json();
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
+                                          
+                                          // ONLY clear UI after we have new data to replace it
+                                          console.log("🧹 Clearing UI state to load personal data...");
+                                          setNotesContent("");
+                                          setTempNotesContent("");
+                                          setSelectedTags([]);
+                                          setTradeHistoryData([]);
+                                          setTradingImages([]);
+                                          setSelectedDate(null);
+                                          
                                           setTradingDataByDate(personalData);
+                                          localStorage.removeItem("tradingDataByDate"); // Remove demo data from localStorage
                                           
                                           // Load the latest personal date if available
                                           const dates = Object.keys(personalData).sort().reverse();
@@ -8568,14 +8574,23 @@ ${
                                             console.log("📅 Auto-selecting latest personal date:", latestDateKey);
                                             await handleDateSelect(latestDate);
                                           } else {
-                                            console.log("📭 No personal data found - UI will remain empty");
+                                            console.log("📭 No personal data found - clearing UI");
+                                            // Clear UI only when we know there's no personal data
+                                            setNotesContent("");
+                                            setTempNotesContent("");
+                                            setSelectedTags([]);
+                                            setTradeHistoryData([]);
+                                            setTradingImages([]);
                                           }
+                                        } else {
+                                          console.log("⚠️ Failed to load personal data - keeping existing UI");
                                         }
                                       } else {
-                                        console.log("⚠️ No user logged in - personal mode will be empty");
+                                        console.log("⚠️ No user logged in - keeping existing UI");
                                       }
                                     } catch (error) {
                                       console.error("❌ Error loading personal data:", error);
+                                      console.log("⚠️ Keeping existing UI state due to error");
                                     }
                                   }
                                 }}

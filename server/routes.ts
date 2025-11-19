@@ -4540,10 +4540,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`📊 Total journal entries for heatmap: ${Object.keys(allJournalData).length}`);
+      
+      // Return the data (even if empty) with proper status
+      if (Object.keys(allJournalData).length === 0) {
+        console.log('⚠️ No journal data found, returning empty object with 200 status');
+      }
       res.json(allJournalData);
     } catch (error) {
       console.error('❌ Error fetching all journal dates:', error);
-      res.json({}); // Return empty object on error
+      res.status(500).json({ error: 'Failed to fetch journal dates', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -4680,11 +4685,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (journalData) {
         res.json(journalData);
       } else {
-        res.json({}); // Return empty object if no data found
+        console.log(`ℹ️ No journal data found for ${key}, returning empty object with 200 status`);
+        res.json({}); // Return empty object with 200 status (not an error - just no data for this date)
       }
     } catch (error) {
       console.error('❌ Error fetching journal data:', error);
-      res.status(500).json({ error: 'Failed to fetch journal data' });
+      res.status(500).json({ error: 'Failed to fetch journal data', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
