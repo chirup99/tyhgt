@@ -8479,18 +8479,53 @@ ${
                               </span>
                               <Switch
                                 checked={isDemoMode}
-                                onCheckedChange={(checked) => {
+                                onCheckedChange={async (checked) => {
+                                  console.log(`🔄 Demo mode toggle: ${checked ? 'ON (Demo)' : 'OFF (Personal)'}`);
                                   setIsDemoMode(checked);
                                   localStorage.setItem(
                                     "tradingJournalDemoMode",
                                     String(checked),
                                   );
-                                  if (!checked) {
-                                    // Switch OFF = Personal mode = clear demo data from view
+                                  
+                                  if (checked) {
+                                    // Switch ON = Demo mode: Reload demo data from API
+                                    console.log("📊 Switching to Demo mode - loading demo data...");
+                                    try {
+                                      const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
+                                      if (response.ok) {
+                                        const allDatesData = await response.json();
+                                        console.log("✅ Demo data loaded successfully:", Object.keys(allDatesData).length, "dates");
+                                        setTradingDataByDate(allDatesData);
+                                        localStorage.setItem("tradingDataByDate", JSON.stringify(allDatesData));
+                                      } else {
+                                        console.log("⚠️ Failed to load demo data from API");
+                                      }
+                                    } catch (error) {
+                                      console.error("❌ Error loading demo data:", error);
+                                    }
+                                  } else {
+                                    // Switch OFF = Personal mode: Clear demo data and load personal data
+                                    console.log("👤 Switching to Personal mode - clearing demo data...");
                                     setTradingDataByDate({});
-                                    localStorage.removeItem(
-                                      "tradingDataByDate",
-                                    );
+                                    localStorage.removeItem("tradingDataByDate");
+                                    
+                                    // Load personal data for all dates if user is logged in
+                                    try {
+                                      const userId = getUserId();
+                                      if (userId) {
+                                        console.log(`📊 Loading personal data for user: ${userId}`);
+                                        const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
+                                        if (response.ok) {
+                                          const personalData = await response.json();
+                                          console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
+                                          setTradingDataByDate(personalData);
+                                        }
+                                      } else {
+                                        console.log("⚠️ No user logged in - personal mode will be empty");
+                                      }
+                                    } catch (error) {
+                                      console.error("❌ Error loading personal data:", error);
+                                    }
                                   }
                                 }}
                                 data-testid="switch-demo-mode"

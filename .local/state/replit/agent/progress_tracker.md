@@ -150,3 +150,21 @@
 [x] 1004.   - Dark theme active and working
 [x] 1005. All main features accessible and operational
 [x] 1006. ✅✅✅ NOVEMBER 19, 2025 MIGRATION COMPLETED SUCCESSFULLY! ✅✅✅
+
+[x] 1007. NOVEMBER 19, 2025 - TRADE BOOK FIREBASE INTEGRATION FIX
+[x] 1008. User reported: Trade book not fetching data from Firebase correctly
+[x] 1009. User reported: Demo mode toggle bug - demo data vanishes when toggled off then on
+[x] 1010. Issue identified: Demo mode switch clears data but doesn't reload when toggled back
+[x] 1011. Root cause: Missing reload logic when switching back to demo mode
+[x] 1012. System already maintains separate storage for demo data vs personal data
+[x] 1013. Fix implemented: Added demo data reload when switching from personal to demo mode
+[x] 1014. Fix implemented: Demo data now reloads from /api/journal/all-dates when toggled ON
+[x] 1015. Fix implemented: Personal data loads from /api/user-journal/${userId}/all when toggled OFF
+[x] 1016. Updated client/src/pages/home.tsx demo mode switch handler (lines 8485-8533)
+[x] 1017. Demo mode ON: Fetches all demo data from shared Google Cloud journal
+[x] 1018. Demo mode OFF: Clears demo data and loads user-specific Firebase data
+[x] 1019. Each user has independent Firebase storage for personal trade book data
+[x] 1020. Demo data is common for all users (shared experience)
+[x] 1021. Personal data is unique per user (stored in Firebase with userId)
+[x] 1022. Bug fixed: Demo data no longer vanishes when toggled off then on
+[x] 1023. ✅ TRADE BOOK FIREBASE INTEGRATION FIX COMPLETED ✅
