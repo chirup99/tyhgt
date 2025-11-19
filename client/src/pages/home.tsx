@@ -4156,6 +4156,66 @@ ${
     }
   }, [isDemoMode, activeTab, heatmapYear]); // Trigger when mode, tab, or year changes
 
+  // ULTRA-FAST AUTO-CLICKING: Auto-click all DEMO dates when journal tab opens in demo mode
+  useEffect(() => {
+    // Only run if in DEMO mode, on journal tab, and has demo data
+    if (isDemoMode && activeTab === 'journal' && !isLoadingHeatmapData) {
+      const timer = setTimeout(async () => {
+        console.log(`🚀 DEMO mode journal tab opened - ultra-fast auto-clicking all dates for heatmap colors...`);
+        
+        // Fetch all demo dates from Firebase
+        const response = await fetch(getFullApiUrl('/api/journal/all-dates'));
+        if (response.ok) {
+          const allDatesData = await response.json();
+          const demoDates = Object.keys(allDatesData);
+          
+          if (demoDates.length > 0) {
+            console.log(`🔄 Ultra-fast auto-clicking ${demoDates.length} DEMO dates for heatmap colors...`);
+            
+            // Create all fetch promises in parallel for maximum speed
+            const fetchPromises = demoDates.map(async (dateStr) => {
+              try {
+                const response = await fetch(getFullApiUrl(`/api/journal/${dateStr}`));
+                if (response.ok) {
+                  const journalData = await response.json();
+                  if (journalData && Object.keys(journalData).length > 0) {
+                    return { dateStr, journalData };
+                  }
+                }
+              } catch (error) {
+                console.error(`❌ Error auto-loading date ${dateStr}:`, error);
+              }
+              return null;
+            });
+            
+            // Execute all requests simultaneously
+            const results = await Promise.all(fetchPromises);
+            
+            // Update all data at once
+            const updatedData: any = {};
+            results.forEach((result) => {
+              if (result) {
+                updatedData[result.dateStr] = result.journalData;
+              }
+            });
+            
+            // Single state update with all data
+            setTradingDataByDate((prevData: any) => ({
+              ...prevData,
+              ...updatedData,
+            }));
+            
+            console.log(`✅ Ultra-fast DEMO heatmap #1 population complete! Loaded ${demoDates.length} dates in parallel`);
+          } else {
+            console.log(`📭 No DEMO data found in Firebase - heatmap will be empty`);
+          }
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isDemoMode, activeTab]); // Trigger when demo mode or tab changes
+
   // Calculate total duration of all closed trades
   const calculateTotalDuration = (trades: any[]) => {
     let totalMinutes = 0;

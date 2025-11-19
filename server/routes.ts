@@ -4421,71 +4421,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Journal Database API endpoints with Google Cloud primary storage
-  // Google Cloud storage as primary, memory storage as backup
-  const journalMemoryStore = new Map<string, any>();
-
-  // Initialize sample journal data for demo when Google Cloud is unavailable
-  const initializeSampleJournalData = () => {
-    if (journalMemoryStore.size === 0) {
-      console.log('🎯 Initializing sample journal data for demo...');
-      
-      // Sample journal entries for different dates
-      const sampleEntries = [
-        {
-          date: '2025-09-08',
-          data: {
-            totalTrades: 3,
-            winningTrades: 2,
-            losingTrades: 1,
-            totalProfit: 1250,
-            totalLoss: -400,
-            netPnL: 850,
-            winRate: 67,
-            notes: 'Good day with NIFTY breakout pattern. Morning volatility provided excellent entry points.',
-            tags: ['Breakout', 'NIFTY', 'Profitable'],
-            images: []
-          }
-        },
-        {
-          date: '2025-09-06',
-          data: {
-            totalTrades: 2,
-            winningTrades: 1,
-            losingTrades: 1,
-            totalProfit: 800,
-            totalLoss: -300,
-            netPnL: 500,
-            winRate: 50,
-            notes: 'Mixed session. Early exit on Reliance saved from bigger loss.',
-            tags: ['Risk Management', 'Banking'],
-            images: []
-          }
-        },
-        {
-          date: '2025-09-05',
-          data: {
-            totalTrades: 4,
-            winningTrades: 3,
-            losingTrades: 1,
-            totalProfit: 1800,
-            totalLoss: -200,
-            netPnL: 1600,
-            winRate: 75,
-            notes: 'Excellent day! Pattern recognition working well. Focused on high-probability setups.',
-            tags: ['High Probability', 'Pattern Recognition', 'Profitable'],
-            images: []
-          }
-        }
-      ];
-      
-      sampleEntries.forEach(entry => {
-        const key = `journal_${entry.date}`;
-        journalMemoryStore.set(key, entry.data);
-        console.log(`📊 Added sample journal data for ${entry.date}`);
-      });
-    }
-  };
+  // Journal Database API endpoints with Firebase Google Cloud as primary storage
+  // NO local memory storage - ONLY Firebase data
 
   // Get all journal dates with data for heatmap color loading
   app.get('/api/journal/all-dates', async (req, res) => {
@@ -4520,22 +4457,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (error) {
           console.log(`⚠️ Collection '${collectionName}' unavailable:`, error instanceof Error ? error.message : error);
-        }
-      }
-      
-      // Restore sample data ONLY as absolute last resort if no real data exists anywhere
-      if (!googleCloudWorking && journalMemoryStore.size === 0) {
-        console.log('🔄 No journal data found in any storage, initializing minimal samples...');
-        initializeSampleJournalData();
-      }
-      
-      // Add data from memory store (as backup or additional entries)
-      for (const [key, data] of journalMemoryStore) {
-        if (key.startsWith('journal_')) {
-          const dateKey = key.replace('journal_', '');
-          if (!allJournalData[dateKey]) {
-            allJournalData[dateKey] = data;
-          }
         }
       }
       
@@ -4670,18 +4591,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Restore sample data ONLY as absolute last resort if no real data exists anywhere
-      if (!googleCloudWorking && journalMemoryStore.size === 0) {
-        console.log('🔄 No journal data found in any storage, initializing minimal samples...');
-        initializeSampleJournalData();
-      }
-      
-      // If not found in Google Cloud, try memory store as fallback
-      if (!journalData) {
-        journalData = journalMemoryStore.get(key) || null;
-        console.log(`💾 Memory store result for ${key}:`, journalData ? 'Found data' : 'No data');
-      }
-      
       if (journalData) {
         res.json(journalData);
       } else {
@@ -4728,15 +4637,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         if (!saveSuccess) {
-          console.log(`📝 Falling back to memory storage only`);
+          console.log(`⚠️ Firebase save failed - data not persisted`);
+          return res.status(500).json({ error: 'Failed to save to Firebase' });
         }
       }
       
-      // Always save to memory storage as backup
-      journalMemoryStore.set(key, journalData);
-      console.log(`💾 Saved to memory store for ${key}: Success`);
-      
-      res.json({ success: true, message: 'Journal data saved successfully' });
+      res.json({ success: true, message: 'Journal data saved successfully to Firebase' });
     } catch (error) {
       console.error('❌ Error saving journal data:', error);
       res.status(500).json({ error: 'Failed to save journal data' });
