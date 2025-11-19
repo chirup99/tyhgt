@@ -199,22 +199,18 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
                               savedData.tradingNotes ||
                               savedData.notesContent);
 
-                          // Gray for no data
+                          // ONLY show colors when Firebase data exists - NO hardcoded data
                           let cellColor = "bg-gray-100 dark:bg-gray-700";
                           
-                          // Show color if demo data exists
+                          // Show color ONLY if real Firebase demo data exists
                           if (hasActualTradeData) {
                             cellColor = netPnL !== 0 ? getHeatmapColor(netPnL) : "bg-green-200 dark:bg-green-700";
                           }
 
-                          const isToday = date.toDateString() === new Date().toDateString();
-                          if (isToday && !hasActualTradeData) {
-                            cellColor = "bg-teal-300 dark:bg-teal-600";
-                          }
-
+                          // Selected date: gray-900 instead of blue
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                           if (isSelected) {
-                            cellColor = "bg-blue-600 dark:bg-blue-500 ring-1 ring-blue-400";
+                            cellColor = "bg-gray-900 dark:bg-gray-100 ring-1 ring-gray-600 dark:ring-gray-400";
                           }
 
                           return (
