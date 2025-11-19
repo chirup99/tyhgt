@@ -9153,7 +9153,7 @@ ${
                             />
                           ) : (
                             <PersonalHeatmap
-                              userId={getCurrentFirebaseUserId()}
+                              userId={getUserId()}
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
                             />
