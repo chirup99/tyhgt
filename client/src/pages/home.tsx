@@ -8935,8 +8935,8 @@ ${
                     </Card>
 
                     {/* Trade Book - Right Side (Functional Calendar) */}
-                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
-                      <CardContent className="p-4">
+                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                      <CardContent className="p-4 flex flex-col h-full">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -9187,7 +9187,7 @@ ${
                         </div>
 
                         {/* ✅ NEW CLEAN HEATMAP IMPLEMENTATION - Separate components for Demo & Personal */}
-                        <div className="pt-4">
+                        <div className="flex-1 overflow-auto">
                           {isDemoMode ? (
                             <DemoHeatmap 
                               onDateSelect={handleDateSelect}
