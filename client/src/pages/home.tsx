@@ -3280,8 +3280,33 @@ ${
   const [isDemoMode, setIsDemoMode] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("tradingJournalDemoMode");
-      // Default to true (demo mode ON) for new users
-      return stored === null ? true : stored === "true";
+      
+      // If user has explicitly set a preference, respect it
+      if (stored !== null) {
+        return stored === "true";
+      }
+      
+      // SMART DEFAULT LOGIC:
+      // Check if user has personal data in localStorage
+      const personalDataStr = localStorage.getItem("tradingDataByDate");
+      if (personalDataStr) {
+        try {
+          const personalData = JSON.parse(personalDataStr);
+          const hasPersonalData = Object.keys(personalData).length > 0;
+          
+          if (hasPersonalData) {
+            console.log("🎯 Smart default: User has personal data → Defaulting to PERSONAL mode (demo OFF)");
+            // User has data → default to PERSONAL mode (false)
+            return false;
+          }
+        } catch (e) {
+          console.error("Error parsing personal data:", e);
+        }
+      }
+      
+      // No personal data found → default to DEMO mode (true) for best first-time experience
+      console.log("🎯 Smart default: No personal data found → Defaulting to DEMO mode (demo ON)");
+      return true;
     }
     return true; // Default to demo mode for new users
   });
@@ -8732,6 +8757,49 @@ ${
                                           // AUTO-SELECT LATEST DATE for demo mode too
                                           const demoDates = Object.keys(allDatesData);
                                           if (demoDates.length > 0) {
+                                            // ULTRA-FAST AUTO-CLICKING: Load all dates in parallel for heatmap colors
+                                            console.log(
+                                              "🔄 Ultra-fast auto-clicking all DEMO dates for heatmap colors...",
+                                            );
+
+                                            // Create all fetch promises in parallel for maximum speed
+                                            const fetchPromises = demoDates.map(async (dateStr) => {
+                                              try {
+                                                const response = await fetch(getFullApiUrl(`/api/journal/${dateStr}`));
+                                                if (response.ok) {
+                                                  const journalData = await response.json();
+                                                  if (journalData && Object.keys(journalData).length > 0) {
+                                                    return { dateStr, journalData };
+                                                  }
+                                                }
+                                              } catch (error) {
+                                                console.error(
+                                                  `❌ Error auto-loading DEMO date ${dateStr}:`,
+                                                  error,
+                                                );
+                                              }
+                                              return null;
+                                            });
+
+                                            // Wait for all fetches to complete in parallel
+                                            const results = await Promise.all(fetchPromises);
+
+                                            // Update state with all loaded data
+                                            const validResults = results.filter((r) => r !== null);
+                                            if (validResults.length > 0) {
+                                              const updatedData = { ...allDatesData };
+                                              validResults.forEach((result: any) => {
+                                                if (result) {
+                                                  updatedData[result.dateStr] = result.journalData;
+                                                }
+                                              });
+                                              setTradingDataByDate(updatedData);
+                                              localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
+                                              console.log(
+                                                `✅ Ultra-fast DEMO heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
+                                              );
+                                            }
+                                            
                                             const latestDateStr = demoDates.sort().reverse()[0];
                                             const latestDate = new Date(latestDateStr);
                                             console.log(`🎯 Auto-selecting latest DEMO date: ${latestDateStr}`);
@@ -8770,11 +8838,54 @@ ${
                                           const personalData = await response.json();
                                           console.log("✅ Personal data loaded:", Object.keys(personalData).length, "dates");
                                           setTradingDataByDate(personalData);
-                                          localStorage.removeItem("tradingDataByDate");
+                                          localStorage.setItem("tradingDataByDate", JSON.stringify(personalData));
                                           
                                           // AUTO-SELECT LATEST DATE if data exists, otherwise show empty but visible UI
                                           const personalDates = Object.keys(personalData);
                                           if (personalDates.length > 0) {
+                                            // ULTRA-FAST AUTO-CLICKING: Load all dates in parallel for heatmap colors
+                                            console.log(
+                                              "🔄 Ultra-fast auto-clicking all PERSONAL dates for heatmap colors...",
+                                            );
+
+                                            // Create all fetch promises in parallel for maximum speed
+                                            const fetchPromises = personalDates.map(async (dateStr) => {
+                                              try {
+                                                const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
+                                                if (response.ok) {
+                                                  const journalData = await response.json();
+                                                  if (journalData && Object.keys(journalData).length > 0) {
+                                                    return { dateStr, journalData };
+                                                  }
+                                                }
+                                              } catch (error) {
+                                                console.error(
+                                                  `❌ Error auto-loading PERSONAL date ${dateStr}:`,
+                                                  error,
+                                                );
+                                              }
+                                              return null;
+                                            });
+
+                                            // Wait for all fetches to complete in parallel
+                                            const results = await Promise.all(fetchPromises);
+
+                                            // Update state with all loaded data
+                                            const validResults = results.filter((r) => r !== null);
+                                            if (validResults.length > 0) {
+                                              const updatedData = { ...personalData };
+                                              validResults.forEach((result: any) => {
+                                                if (result) {
+                                                  updatedData[result.dateStr] = result.journalData;
+                                                }
+                                              });
+                                              setTradingDataByDate(updatedData);
+                                              localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
+                                              console.log(
+                                                `✅ Ultra-fast PERSONAL heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
+                                              );
+                                            }
+                                            
                                             // Sort dates and get the latest one
                                             const latestDateStr = personalDates.sort().reverse()[0];
                                             const latestDate = new Date(latestDateStr);
@@ -8782,7 +8893,7 @@ ${
                                             console.log(`🎯 Auto-selecting latest PERSONAL date: ${latestDateStr}`);
                                             setSelectedDate(latestDate);
                                             
-                                            // Load the data for this date
+                                            // Load the data for this date (should be already loaded from auto-clicking above)
                                             await handleDateSelect(latestDate);
                                           } else {
                                             console.log("ℹ️ No personal data found - showing empty state");
