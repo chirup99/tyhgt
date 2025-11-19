@@ -30,7 +30,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
       try {
         console.log(`📊 PERSONAL HEATMAP: Loading data for userId: ${userId}, year: ${year}`);
         
-        const response = await fetch(`/api/journal/load-all?userId=${userId}`);
+        const response = await fetch(`/api/user-journal/${userId}/all`);
         if (!response.ok) {
           throw new Error(`Failed to load personal data: ${response.status}`);
         }
