@@ -149,15 +149,15 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 select-none">
       {/* Heatmap Grid */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 select-none">
         {/* Day of week labels */}
-        <div className="flex flex-col gap-1 pt-6">
+        <div className="flex flex-col gap-1 pt-6 select-none">
           {dayLabels.map((label, index) => (
             <div 
               key={index} 
-              className="h-3 flex items-center justify-end text-[10px] font-medium text-gray-600 dark:text-gray-400 pr-1"
+              className="h-3 flex items-center justify-end text-[10px] font-medium text-gray-600 dark:text-gray-400 pr-1 select-none"
             >
               {label}
             </div>
@@ -165,12 +165,12 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
         </div>
 
         {/* Scrollable month grid with thin scrollbar */}
-        <div className="flex-1 overflow-x-auto thin-scrollbar">
-          <div className="flex gap-3 pb-2">
+        <div className="flex-1 overflow-x-auto thin-scrollbar select-none">
+          <div className="flex gap-3 pb-2 select-none">
             {months.map((monthData, monthIndex) => (
-              <div key={monthIndex} className="flex flex-col gap-1 min-w-fit">
+              <div key={monthIndex} className="flex flex-col gap-1 min-w-fit select-none">
                 {/* Month header */}
-                <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center h-5 flex items-center justify-center">
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center h-5 flex items-center justify-center select-none">
                   {monthData.name}
                 </div>
                 
@@ -217,7 +217,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                           <div
                             key={dayIndex}
                             className={`
-                              w-3 h-3 rounded-sm cursor-pointer transition-all duration-200
+                              w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 select-none
                               ${cellColor}
                             `}
                             onClick={() => {
@@ -225,8 +225,16 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                               onDateSelect(date);
                             }}
                             onMouseDown={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()}
                             data-testid={`personal-calendar-day-${date.getDate()}-${date.getMonth()}`}
-                            style={{ outline: 'none', border: 'none' }}
+                            style={{ 
+                              outline: 'none', 
+                              border: 'none',
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none',
+                              MozUserSelect: 'none',
+                              msUserSelect: 'none'
+                            }}
                           />
                         );
                       })}
