@@ -11004,17 +11004,65 @@ ${
                       </div>
                     </>
                   ) : (
-                    <TradeBlockEditor
-                      failedLine={importData.split('\n').find(line => line.trim()) || ''}
-                      brokerKey="custom"
-                      onSaveMapping={(mapping) => {
-                        console.log('Saved mapping:', mapping);
-                        setIsBlockEditorMode(false);
-                        // TODO: Apply mapping to import data
-                      }}
-                      onClose={() => setIsBlockEditorMode(false)}
-                      textareaRef={importDataTextareaRef}
-                    />
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold">Block Editor - Drag to Reorder</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsBlockEditorMode(false)}
+                          data-testid="button-close-block-editor"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      {/* Live Preview Table */}
+                      <div className="border rounded-md overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead className="bg-muted/50">
+                            <tr className="border-b">
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Time</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Order</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Symbol</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Type</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Qty</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Price</th>
+                            </tr>
+                          </thead>
+                        </table>
+                      </div>
+
+                      {/* Tiny Draggable Blocks Row */}
+                      <div className="bg-muted/30 border rounded-md p-3">
+                        <p className="text-xs text-muted-foreground mb-2">Drag blocks left/right to reorder:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {importData.split(/\s+/).filter(word => word.trim()).map((word, index) => (
+                            <div
+                              key={index}
+                              draggable
+                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50 hover-elevate active-elevate-2"
+                              data-testid={`block-${index}`}
+                            >
+                              {word}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-muted-foreground">
+                          💡 Drag blocks to match column order: Time → Order → Symbol → Type → Qty → Price
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => setIsBlockEditorMode(false)}
+                          data-testid="button-apply-block-format"
+                        >
+                          Apply Format
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </div>
 
