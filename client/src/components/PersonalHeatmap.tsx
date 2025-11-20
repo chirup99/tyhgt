@@ -101,19 +101,42 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         console.log("✅ PersonalHeatmap: Raw Firebase data received:", data);
         console.log("✅ PersonalHeatmap: Total dates:", Object.keys(data).length);
         
-        // Store the raw Firebase data - NO PROCESSING, NO FILTERING
-        setHeatmapData(data);
+        // ✅ CRITICAL FIX: Normalize keys to YYYY-MM-DD format for filtering compatibility
+        const normalizedData: Record<string, any> = {};
+        Object.keys(data).forEach(key => {
+          // Check if key is already in YYYY-MM-DD format
+          if (key.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            normalizedData[key] = data[key];
+          } else {
+            // Try to extract date from various formats
+            const dateMatch = key.match(/(\d{4}-\d{2}-\d{2})/);
+            if (dateMatch) {
+              normalizedData[dateMatch[1]] = data[key];
+            } else if (data[key].date && data[key].date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+              // Use the date field from the data itself
+              normalizedData[data[key].date] = data[key];
+            } else {
+              console.warn(`⚠️ PersonalHeatmap: Could not normalize key ${key}, skipping`);
+            }
+          }
+        });
+        
+        console.log(`📦 PersonalHeatmap: Normalized ${Object.keys(data).length} keys to ${Object.keys(normalizedData).length} YYYY-MM-DD format keys`);
+        
+        // Store the normalized data
+        setHeatmapData(normalizedData);
         setIsLoading(false);
         
         // Log each date for debugging
-        Object.keys(data).forEach(dateKey => {
-          const pnl = calculatePnL(data[dateKey]);
+        Object.keys(normalizedData).forEach(dateKey => {
+          const pnl = calculatePnL(normalizedData[dateKey]);
           console.log(`📊 PersonalHeatmap: ${dateKey} = ₹${pnl.toFixed(2)}`);
         });
         
-        // Emit data to parent component
+        // Emit normalized data to parent component
         if (onDataUpdate) {
-          onDataUpdate(data);
+          console.log(`📤 PersonalHeatmap: Emitting ${Object.keys(normalizedData).length} normalized dates to parent`);
+          onDataUpdate(normalizedData);
         }
       })
       .catch(error => {

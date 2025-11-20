@@ -3896,8 +3896,11 @@ ${
   
   // ✅ NEW: Filter heatmap data based on selected date range
   const getFilteredHeatmapData = () => {
+    const totalDates = Object.keys(heatmapDataFromComponent).length;
+    
     if (!selectedDateRange) {
       // No range selected - return all data
+      console.log(`🔍 No date range selected - returning all ${totalDates} dates`);
       return heatmapDataFromComponent;
     }
     
@@ -3905,14 +3908,30 @@ ${
     const fromTime = selectedDateRange.from.getTime();
     const toTime = selectedDateRange.to.getTime();
     
+    console.log(`🔍 Filtering ${totalDates} dates by range: ${selectedDateRange.from.toISOString().slice(0, 10)} to ${selectedDateRange.to.toISOString().slice(0, 10)}`);
+    
     Object.keys(heatmapDataFromComponent).forEach(dateKey => {
+      // Parse date key (expecting YYYY-MM-DD format)
       const dateTime = new Date(dateKey).getTime();
+      
+      if (isNaN(dateTime)) {
+        console.warn(`⚠️ Could not parse date key: ${dateKey}, skipping`);
+        return;
+      }
+      
       if (dateTime >= fromTime && dateTime <= toTime) {
         filtered[dateKey] = heatmapDataFromComponent[dateKey];
       }
     });
     
-    console.log(`🔍 Filtered heatmap data: ${Object.keys(filtered).length} dates (from ${Object.keys(heatmapDataFromComponent).length} total)`);
+    const filteredCount = Object.keys(filtered).length;
+    console.log(`🔍 Filtered heatmap data: ${filteredCount} dates (from ${totalDates} total)`);
+    
+    if (filteredCount === 0 && totalDates > 0) {
+      console.warn(`⚠️ WARNING: Filtering dropped all ${totalDates} entries! Check date key format compatibility.`);
+      console.log('Sample keys:', Object.keys(heatmapDataFromComponent).slice(0, 5));
+    }
+    
     return filtered;
   };
 
