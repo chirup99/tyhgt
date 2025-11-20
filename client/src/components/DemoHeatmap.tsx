@@ -7,6 +7,8 @@ interface DemoHeatmapProps {
   onDateSelect: (date: Date) => void;
   selectedDate: Date | null;
   tradingDataByDate?: Record<string, any>;
+  onDataUpdate?: (data: Record<string, any>) => void;
+  onRangeChange?: (range: { from: Date; to: Date } | null) => void;
 }
 
 // Simple function to calculate P&L from trade data
@@ -55,7 +57,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
+export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange }: DemoHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -91,6 +93,11 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
         console.log("✅ DemoHeatmap: Processed data:", processedData);
         setHeatmapData(processedData);
         setIsLoading(false);
+        
+        // Emit data to parent component
+        if (onDataUpdate) {
+          onDataUpdate(processedData);
+        }
       })
       .catch(error => {
         console.error("❌ DemoHeatmap: Fetch error:", error);
@@ -147,22 +154,33 @@ export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
     });
   };
 
-  // Auto-apply date range
+  // Auto-apply date range and emit to parent
   useEffect(() => {
     if (fromDate && toDate) {
       const from = new Date(fromDate);
       const to = new Date(toDate);
       if (from <= to) {
-        setSelectedRange({ from, to });
+        const newRange = { from, to };
+        setSelectedRange(newRange);
         setIsDateRangeOpen(false);
+        
+        // Emit range change to parent
+        if (onRangeChange) {
+          onRangeChange(newRange);
+        }
       }
     }
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate, onRangeChange]);
 
   const handleResetRange = () => {
     setSelectedRange(null);
     setFromDate("");
     setToDate("");
+    
+    // Emit range reset to parent
+    if (onRangeChange) {
+      onRangeChange(null);
+    }
   };
 
   return (

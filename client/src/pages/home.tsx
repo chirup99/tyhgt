@@ -3878,6 +3878,43 @@ ${
   const [toDate, setToDate] = useState<Date | null>(null);
   const [heatmapYear, setHeatmapYear] = useState(new Date().getFullYear());
   const [isCalendarDataFetched, setIsCalendarDataFetched] = useState(false);
+  
+  // ✅ NEW: Heatmap data and date range state for Performance Trend filtering
+  const [heatmapDataFromComponent, setHeatmapDataFromComponent] = useState<Record<string, any>>({});
+  const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(null);
+  
+  // ✅ NEW: Callbacks to receive heatmap data and date range
+  const handleHeatmapDataUpdate = (data: Record<string, any>) => {
+    console.log("📊 Received heatmap data update:", Object.keys(data).length, "dates");
+    setHeatmapDataFromComponent(data);
+  };
+  
+  const handleDateRangeChange = (range: { from: Date; to: Date } | null) => {
+    console.log("📅 Date range changed:", range);
+    setSelectedDateRange(range);
+  };
+  
+  // ✅ NEW: Filter heatmap data based on selected date range
+  const getFilteredHeatmapData = () => {
+    if (!selectedDateRange) {
+      // No range selected - return all data
+      return heatmapDataFromComponent;
+    }
+    
+    const filtered: Record<string, any> = {};
+    const fromTime = selectedDateRange.from.getTime();
+    const toTime = selectedDateRange.to.getTime();
+    
+    Object.keys(heatmapDataFromComponent).forEach(dateKey => {
+      const dateTime = new Date(dateKey).getTime();
+      if (dateTime >= fromTime && dateTime <= toTime) {
+        filtered[dateKey] = heatmapDataFromComponent[dateKey];
+      }
+    });
+    
+    console.log(`🔍 Filtered heatmap data: ${Object.keys(filtered).length} dates (from ${Object.keys(heatmapDataFromComponent).length} total)`);
+    return filtered;
+  };
 
   // Auto-set calendar data fetched when both dates are selected
   useEffect(() => {
@@ -8829,12 +8866,16 @@ ${
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
                               tradingDataByDate={tradingDataByDate}
+                              onDataUpdate={handleHeatmapDataUpdate}
+                              onRangeChange={handleDateRangeChange}
                             />
                           ) : (
                             <PersonalHeatmap
                               userId={getUserId()}
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
+                              onDataUpdate={handleHeatmapDataUpdate}
+                              onRangeChange={handleDateRangeChange}
                             />
                           )}
                         </div>
@@ -9017,9 +9058,40 @@ ${
                       };
                     };
 
-                    const insights = calculateTradingInsights();
-                    const totalPnL = insights.overallStats.totalPnL || 0;
+                    // ✅ NEW: Use filtered heatmap data directly instead of complex insights
+                    const filteredHeatmapData = getFilteredHeatmapData();
+                    const insights = calculateTradingInsights(); // Keep for other sections that still need it
+                    
+                    // Calculate metrics from filtered heatmap data
+                    const calculateHeatmapMetrics = () => {
+                      const dates = Object.keys(filteredHeatmapData);
+                      let totalPnL = 0;
+                      let totalTrades = 0;
+                      let winningTrades = 0;
+                      
+                      dates.forEach(dateKey => {
+                        const dayData = filteredHeatmapData[dateKey];
+                        
+                        // Handle both wrapped (Firebase) and unwrapped formats
+                        const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                        
+                        if (metrics) {
+                          totalPnL += metrics.netPnL || 0;
+                          totalTrades += metrics.totalTrades || 0;
+                          winningTrades += metrics.winningTrades || 0;
+                        }
+                      });
+                      
+                      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                      
+                      return { totalPnL, totalTrades, winRate, datesCount: dates.length };
+                    };
+                    
+                    const heatmapMetrics = calculateHeatmapMetrics();
+                    const totalPnL = heatmapMetrics.totalPnL;
                     const isProfitable = totalPnL >= 0;
+                    
+                    console.log(`📊 Performance Trend using ${selectedDateRange ? 'FILTERED' : 'ALL'} heatmap data: ${heatmapMetrics.datesCount} dates, Total P&L: ₹${totalPnL.toFixed(2)}`);
 
                     return (
                       <div className="space-y-6">
@@ -9035,7 +9107,7 @@ ${
                               </div>
                               <div className="text-right">
                                 <div className="text-sm opacity-80">
-                                  Total P&L
+                                  {selectedDateRange ? 'Range' : 'Total'} P&L
                                 </div>
                                 <div className="text-2xl md:text-3xl font-bold">
                                   {totalPnL >= 0 ? "+" : "-"}₹
@@ -9050,7 +9122,7 @@ ${
                                   Total Trades
                                 </span>
                                 <span className="font-semibold">
-                                  {insights.overallStats.totalTrades}
+                                  {heatmapMetrics.totalTrades}
                                 </span>
                               </div>
                               <div className="flex justify-between items-center">
@@ -9058,7 +9130,7 @@ ${
                                   Success Rate
                                 </span>
                                 <span className="font-semibold">
-                                  {insights.overallStats.winRate.toFixed(1)}%
+                                  {heatmapMetrics.winRate.toFixed(1)}%
                                 </span>
                               </div>
                               <div className="w-full bg-white/20 rounded-full h-2">
@@ -9066,7 +9138,7 @@ ${
                                   className="bg-white rounded-full h-2 transition-all duration-1000"
                                   style={{
                                     width: `${Math.min(
-                                      insights.overallStats.winRate,
+                                      heatmapMetrics.winRate,
                                       100,
                                     )}%`,
                                   }}
@@ -9082,20 +9154,6 @@ ${
                               Performance Trend
                             </h3>
                             {(() => {
-                              // Calculate total P&L across all trading days
-                              const allDates = Object.keys(tradingDataByDate);
-                              const totalPnL = allDates.reduce(
-                                (sum, dateStr) => {
-                                  const dayData = tradingDataByDate[dateStr];
-                                  const netPnL =
-                                    dayData?.performanceMetrics?.netPnL || 0;
-                                  return sum + netPnL;
-                                },
-                                0,
-                              );
-
-                              const isProfitable = totalPnL > 0;
-
                               return (
                                 <div className="flex items-center gap-2">
                                   <div
@@ -9115,29 +9173,23 @@ ${
                             })()}
                           </div>
 
-                          {insights.tradingDayAnalysis.length > 0 ? (
+                          {Object.keys(filteredHeatmapData).length > 0 ? (
                             <div className="h-64 w-full">
                               {(() => {
-                                // Get ALL trading data and prepare daily chart data
-                                const allDates =
-                                  Object.keys(tradingDataByDate).sort();
+                                // ✅ NEW: Get filtered heatmap data and prepare daily chart data
+                                const allDates = Object.keys(filteredHeatmapData).sort();
 
-                                // Convert to daily chart data format
+                                // ✅ NEW: Convert filtered heatmap data to daily chart data format
                                 const chartData = allDates.map(
                                   (dateStr, idx) => {
                                     const date = new Date(dateStr);
-                                    const dayData =
-                                      insights.tradingDayAnalysis.find(
-                                        (day: any) => day.date === dateStr,
-                                      ) || tradingDataByDate[dateStr];
+                                    const dayData = filteredHeatmapData[dateStr];
+                                    
+                                    // Handle both wrapped (Firebase) and unwrapped formats
+                                    const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
 
-                                    const netPnL =
-                                      dayData?.performanceMetrics?.netPnL ||
-                                      dayData?.netPnL ||
-                                      0;
-                                    const totalTrades =
-                                      dayData?.performanceMetrics
-                                        ?.totalTrades || 0;
+                                    const netPnL = metrics?.netPnL || 0;
+                                    const totalTrades = metrics?.totalTrades || 0;
 
                                     return {
                                       day: `${date.getDate()}/${

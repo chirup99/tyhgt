@@ -6,6 +6,8 @@ interface PersonalHeatmapProps {
   userId: string | null;
   onDateSelect: (date: Date, firebaseData: any) => void;
   selectedDate: Date | null;
+  onDataUpdate?: (data: Record<string, any>) => void;
+  onRangeChange?: (range: { from: Date; to: Date } | null) => void;
 }
 
 // Simple function to calculate P&L from trade data
@@ -76,7 +78,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: PersonalHeatmapProps) {
+export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpdate, onRangeChange }: PersonalHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +110,11 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
           const pnl = calculatePnL(data[dateKey]);
           console.log(`📊 PersonalHeatmap: ${dateKey} = ₹${pnl.toFixed(2)}`);
         });
+        
+        // Emit data to parent component
+        if (onDataUpdate) {
+          onDataUpdate(data);
+        }
       })
       .catch(error => {
         console.error("❌ PersonalHeatmap: Fetch error:", error);
