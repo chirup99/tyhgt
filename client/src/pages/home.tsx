@@ -10926,17 +10926,29 @@ ${
                   <div className="text-xs font-medium text-muted-foreground mb-2">
                     Expected Format (Headers + Sample Trade):
                   </div>
-                  <div className="space-y-1">
-                    <div className="font-mono text-xs bg-background p-2 rounded border border-blue-200 dark:border-blue-800">
-                      <div className="text-blue-600 dark:text-blue-400 font-semibold mb-1">
-                        Time | Order | Symbol | Type | Qty | Order
-                      </div>
-                    </div>
-                    <div className="font-mono text-xs bg-background p-2 rounded border">
-                      <div className="text-muted-foreground">
-                        10:51:21 AM   BUY     SENSEX 10th w JUN 82900 PE BFO  NRML    320     477.96
-                      </div>
-                    </div>
+                  <div className="bg-background rounded border overflow-hidden">
+                    <table className="w-full font-mono text-xs">
+                      <thead>
+                        <tr className="bg-blue-50 dark:bg-blue-950 border-b border-blue-200 dark:border-blue-800">
+                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Time</th>
+                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Order</th>
+                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Symbol</th>
+                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Type</th>
+                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Qty</th>
+                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b last:border-b-0">
+                          <td className="px-2 py-2 text-muted-foreground">10:51:21 AM</td>
+                          <td className="px-2 py-2 text-muted-foreground">BUY</td>
+                          <td className="px-2 py-2 text-muted-foreground">SENSEX 10th w JUN 82900 PE BFO</td>
+                          <td className="px-2 py-2 text-muted-foreground">NRML</td>
+                          <td className="px-2 py-2 text-muted-foreground">320</td>
+                          <td className="px-2 py-2 text-muted-foreground">477.96</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     Match your broker format to these headers when pasting trades
