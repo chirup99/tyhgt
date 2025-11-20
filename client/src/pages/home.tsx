@@ -3213,6 +3213,15 @@ ${
   const [importError, setImportError] = useState("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [isBlockEditorMode, setIsBlockEditorMode] = useState(false);
+  const [isBuildMode, setIsBuildMode] = useState(false);
+  const [buildModeData, setBuildModeData] = useState({
+    time: "",
+    order: "",
+    symbol: "",
+    type: "",
+    qty: "",
+    price: ""
+  });
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Broker Import State
@@ -10928,7 +10937,137 @@ ${
                 </p>
                 
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
-                  {!isBlockEditorMode ? (
+                  {isBuildMode ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-medium text-muted-foreground">
+                          🔨 Build Mode - Delete text by clicking X icons
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsBuildMode(false)}
+                          data-testid="button-close-build-mode"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <div className="bg-background rounded border overflow-hidden">
+                        <table className="w-full font-mono text-xs">
+                          <thead>
+                            <tr className="bg-blue-50 dark:bg-blue-950 border-b border-blue-200 dark:border-blue-800">
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Time</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Order</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Symbol</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Type</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Qty</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-b">
+                              {/* Time Column */}
+                              <td className="px-2 py-2">
+                                {buildModeData.time && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <span>{buildModeData.time}</span>
+                                    <button
+                                      onClick={() => setBuildModeData(prev => ({ ...prev, time: "" }))}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="delete-time"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Order Column */}
+                              <td className="px-2 py-2">
+                                {buildModeData.order && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <span>{buildModeData.order}</span>
+                                    <button
+                                      onClick={() => setBuildModeData(prev => ({ ...prev, order: "" }))}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="delete-order"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Symbol Column */}
+                              <td className="px-2 py-2">
+                                {buildModeData.symbol && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <span>{buildModeData.symbol}</span>
+                                    <button
+                                      onClick={() => setBuildModeData(prev => ({ ...prev, symbol: "" }))}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="delete-symbol"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Type Column */}
+                              <td className="px-2 py-2">
+                                {buildModeData.type && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <span>{buildModeData.type}</span>
+                                    <button
+                                      onClick={() => setBuildModeData(prev => ({ ...prev, type: "" }))}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="delete-type"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Qty Column */}
+                              <td className="px-2 py-2">
+                                {buildModeData.qty && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <span>{buildModeData.qty}</span>
+                                    <button
+                                      onClick={() => setBuildModeData(prev => ({ ...prev, qty: "" }))}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="delete-qty"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Price Column */}
+                              <td className="px-2 py-2">
+                                {buildModeData.price && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <span>{buildModeData.price}</span>
+                                    <button
+                                      onClick={() => setBuildModeData(prev => ({ ...prev, price: "" }))}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="delete-price"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : !isBlockEditorMode ? (
                     <>
                       <div className="text-xs font-medium text-muted-foreground mb-2">
                         Live Preview - How Your First Trade Will Import:
@@ -11007,6 +11146,33 @@ ${
                             variant="outline"
                             size="sm"
                             className="gap-1.5"
+                            onClick={() => {
+                              // Parse first trade and populate build mode
+                              const { trades } = parseBrokerTrades(importData);
+                              if (trades.length > 0) {
+                                const firstTrade = trades[0];
+                                setBuildModeData({
+                                  time: firstTrade.time || "",
+                                  order: firstTrade.order || "",
+                                  symbol: firstTrade.symbol || "",
+                                  type: firstTrade.type || "",
+                                  qty: firstTrade.qty?.toString() || "",
+                                  price: firstTrade.price?.toString() || ""
+                                });
+                              } else {
+                                // If no parsed trade, use raw data split
+                                const words = importData.split(/\s+/).filter(w => w.trim());
+                                setBuildModeData({
+                                  time: words.slice(0, 2).join(" "),
+                                  order: words[2] || "",
+                                  symbol: words.slice(3, 7).join(" "),
+                                  type: words[7] || "",
+                                  qty: words[8] || "",
+                                  price: words[9] || ""
+                                });
+                              }
+                              setIsBuildMode(true);
+                            }}
                             data-testid="button-build"
                           >
                             <Hammer className="w-3.5 h-3.5" />
