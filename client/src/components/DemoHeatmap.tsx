@@ -430,9 +430,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem data-testid="menu-item-modify">
-              Modify
-            </DropdownMenuItem>
             <DropdownMenuItem data-testid="menu-item-change-dates">
               Change dates
             </DropdownMenuItem>
