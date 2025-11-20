@@ -160,6 +160,7 @@ import {
   Eye,
   Blocks,
   Hammer,
+  Plus,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -10941,7 +10942,7 @@ ${
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-medium text-muted-foreground">
-                          🔨 Build Mode - Use arrows to move boxes between columns, X to delete
+                          🔨 Build Mode - Drag boxes to move between columns, X to delete
                         </div>
                         <Button
                           variant="ghost"
@@ -10968,40 +10969,32 @@ ${
                           <tbody>
                             <tr className="border-b">
                               {/* Time Column */}
-                              <td className="px-2 py-2">
-                                {buildModeData.time && (
-                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                    <button
-                                      onClick={() => {
-                                        // Move time to Price (leftmost wraps to rightmost)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          price: prev.price ? prev.price + " " + prev.time : prev.time,
-                                          time: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-time-left"
-                                      title="Move left"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </button>
+                              <td 
+                                className="px-2 py-2"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const sourceField = e.dataTransfer.getData("sourceField");
+                                  const sourceValue = e.dataTransfer.getData("sourceValue");
+                                  if (sourceField && sourceField !== "time") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      time: prev.time ? prev.time + " " + sourceValue : sourceValue,
+                                      [sourceField]: ""
+                                    }));
+                                  }
+                                }}
+                              >
+                                {buildModeData.time ? (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "time");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.time);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                  >
                                     <span>{buildModeData.time}</span>
-                                    <button
-                                      onClick={() => {
-                                        // Move time to Order (right)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          order: prev.order ? prev.order + " " + prev.time : prev.time,
-                                          time: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-time-right"
-                                      title="Move right"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, time: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11011,44 +11004,44 @@ ${
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
+                                ) : (
+                                  <button
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-time"
+                                    title="Drop data here"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
                               {/* Order Column */}
-                              <td className="px-2 py-2">
-                                {buildModeData.order && (
-                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                    <button
-                                      onClick={() => {
-                                        // Move order to Time (left)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          time: prev.time ? prev.time + " " + prev.order : prev.order,
-                                          order: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-order-left"
-                                      title="Move left"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </button>
+                              <td 
+                                className="px-2 py-2"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const sourceField = e.dataTransfer.getData("sourceField");
+                                  const sourceValue = e.dataTransfer.getData("sourceValue");
+                                  if (sourceField && sourceField !== "order") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      order: prev.order ? prev.order + " " + sourceValue : sourceValue,
+                                      [sourceField]: ""
+                                    }));
+                                  }
+                                }}
+                              >
+                                {buildModeData.order ? (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "order");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.order);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                  >
                                     <span>{buildModeData.order}</span>
-                                    <button
-                                      onClick={() => {
-                                        // Move order to Symbol (right)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          symbol: prev.symbol ? prev.symbol + " " + prev.order : prev.order,
-                                          order: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-order-right"
-                                      title="Move right"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, order: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11058,44 +11051,44 @@ ${
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
+                                ) : (
+                                  <button
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-order"
+                                    title="Drop data here"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
                               {/* Symbol Column */}
-                              <td className="px-2 py-2">
-                                {buildModeData.symbol && (
-                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                    <button
-                                      onClick={() => {
-                                        // Move symbol to Order (left)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          order: prev.order ? prev.order + " " + prev.symbol : prev.symbol,
-                                          symbol: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-symbol-left"
-                                      title="Move left"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </button>
+                              <td 
+                                className="px-2 py-2"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const sourceField = e.dataTransfer.getData("sourceField");
+                                  const sourceValue = e.dataTransfer.getData("sourceValue");
+                                  if (sourceField && sourceField !== "symbol") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      symbol: prev.symbol ? prev.symbol + " " + sourceValue : sourceValue,
+                                      [sourceField]: ""
+                                    }));
+                                  }
+                                }}
+                              >
+                                {buildModeData.symbol ? (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "symbol");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.symbol);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                  >
                                     <span>{buildModeData.symbol}</span>
-                                    <button
-                                      onClick={() => {
-                                        // Move symbol to Type (right)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          type: prev.type ? prev.type + " " + prev.symbol : prev.symbol,
-                                          symbol: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-symbol-right"
-                                      title="Move right"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, symbol: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11105,44 +11098,44 @@ ${
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
+                                ) : (
+                                  <button
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-symbol"
+                                    title="Drop data here"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
                               {/* Type Column */}
-                              <td className="px-2 py-2">
-                                {buildModeData.type && (
-                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                    <button
-                                      onClick={() => {
-                                        // Move type to Symbol (left)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          symbol: prev.symbol ? prev.symbol + " " + prev.type : prev.type,
-                                          type: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-type-left"
-                                      title="Move left"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </button>
+                              <td 
+                                className="px-2 py-2"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const sourceField = e.dataTransfer.getData("sourceField");
+                                  const sourceValue = e.dataTransfer.getData("sourceValue");
+                                  if (sourceField && sourceField !== "type") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      type: prev.type ? prev.type + " " + sourceValue : sourceValue,
+                                      [sourceField]: ""
+                                    }));
+                                  }
+                                }}
+                              >
+                                {buildModeData.type ? (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "type");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.type);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                  >
                                     <span>{buildModeData.type}</span>
-                                    <button
-                                      onClick={() => {
-                                        // Move type to Qty (right)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          qty: prev.qty ? prev.qty + " " + prev.type : prev.type,
-                                          type: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-type-right"
-                                      title="Move right"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, type: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11152,44 +11145,44 @@ ${
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
+                                ) : (
+                                  <button
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-type"
+                                    title="Drop data here"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
                               {/* Qty Column */}
-                              <td className="px-2 py-2">
-                                {buildModeData.qty && (
-                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                    <button
-                                      onClick={() => {
-                                        // Move qty to Type (left)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          type: prev.type ? prev.type + " " + prev.qty : prev.qty,
-                                          qty: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-qty-left"
-                                      title="Move left"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </button>
+                              <td 
+                                className="px-2 py-2"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const sourceField = e.dataTransfer.getData("sourceField");
+                                  const sourceValue = e.dataTransfer.getData("sourceValue");
+                                  if (sourceField && sourceField !== "qty") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      qty: prev.qty ? prev.qty + " " + sourceValue : sourceValue,
+                                      [sourceField]: ""
+                                    }));
+                                  }
+                                }}
+                              >
+                                {buildModeData.qty ? (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "qty");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.qty);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                  >
                                     <span>{buildModeData.qty}</span>
-                                    <button
-                                      onClick={() => {
-                                        // Move qty to Price (right)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          price: prev.price ? prev.price + " " + prev.qty : prev.qty,
-                                          qty: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-qty-right"
-                                      title="Move right"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, qty: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11199,44 +11192,44 @@ ${
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
+                                ) : (
+                                  <button
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-qty"
+                                    title="Drop data here"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
                               {/* Price Column */}
-                              <td className="px-2 py-2">
-                                {buildModeData.price && (
-                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                    <button
-                                      onClick={() => {
-                                        // Move price to Qty (left)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          qty: prev.qty ? prev.qty + " " + prev.price : prev.price,
-                                          price: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-price-left"
-                                      title="Move left"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </button>
+                              <td 
+                                className="px-2 py-2"
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const sourceField = e.dataTransfer.getData("sourceField");
+                                  const sourceValue = e.dataTransfer.getData("sourceValue");
+                                  if (sourceField && sourceField !== "price") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      price: prev.price ? prev.price + " " + sourceValue : sourceValue,
+                                      [sourceField]: ""
+                                    }));
+                                  }
+                                }}
+                              >
+                                {buildModeData.price ? (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "price");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.price);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                  >
                                     <span>{buildModeData.price}</span>
-                                    <button
-                                      onClick={() => {
-                                        // Move price to Time (rightmost wraps to leftmost)
-                                        setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          time: prev.time ? prev.time + " " + prev.price : prev.price,
-                                          price: "" 
-                                        }));
-                                      }}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="move-price-right"
-                                      title="Move right"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, price: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11246,6 +11239,14 @@ ${
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
+                                ) : (
+                                  <button
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-price"
+                                    title="Drop data here"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
                             </tr>

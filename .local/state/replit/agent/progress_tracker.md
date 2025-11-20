@@ -623,3 +623,32 @@
 [x] 1766. ✅ Workflow restarted successfully - arrow movement feature active
 [x] 1767. ✅✅✅ BUILD MODE ARROW RELOCATION FEATURE COMPLETED! ✅✅✅
 [x] 1768. 🎉🎉🎉 USERS CAN NOW MOVE DATA BOXES LEFT/RIGHT BETWEEN COLUMNS! 🎉🎉🎉
+
+[x] 1769. NOVEMBER 20, 2025 - DRAG-AND-DROP WITH + BUTTON PLACEHOLDERS
+[x] 1770. User requested: "remove arrow only drag geasture move to relocate and when any text is deleted its display + button block"
+[x] 1771. ✅ Removed all ChevronLeft and ChevronRight arrow buttons
+[x] 1772. ✅ Removed all arrow-based movement logic
+[x] 1773. ✅ Added Plus icon import from lucide-react
+[x] 1774. ✅ Implemented native HTML5 drag-and-drop functionality
+[x] 1775. ✅ Added draggable attribute to all data boxes
+[x] 1776. ✅ Implemented onDragStart handler to capture source field and value
+[x] 1777. ✅ Implemented onDragOver handler with e.preventDefault() to allow dropping
+[x] 1778. ✅ Implemented onDrop handler to move data between columns
+[x] 1779. ✅ Drop logic appends data if destination already has content
+[x] 1780. ✅ Drop logic clears source field after successful move
+[x] 1781. ✅ Prevents dropping on same column (sourceField !== targetField check)
+[x] 1782. ✅ Added cursor-move class to draggable boxes for visual feedback
+[x] 1783. ✅ Created + button placeholder when column is empty
+[x] 1784. ✅ + buttons display in empty columns with Plus icon
+[x] 1785. ✅ + button styling: gray background, rounded, hover effect
+[x] 1786. ✅ + button size: w-6 h-6 for consistent appearance
+[x] 1787. ✅ + button tooltip: "Drop data here"
+[x] 1788. ✅ All + buttons have proper data-testids (add-time, add-order, add-symbol, add-qty, add-price, add-type)
+[x] 1789. ✅ Conditional rendering: shows data box if field has value, else shows + button
+[x] 1790. ✅ Updated helper text: "🔨 Build Mode - Drag boxes to move between columns, X to delete"
+[x] 1791. ✅ Maintained X delete button functionality on all data boxes
+[x] 1792. ✅ Each column now acts as a drop zone
+[x] 1793. ✅ DataTransfer API used for passing field name and value during drag
+[x] 1794. ✅ Workflow restarted successfully - drag-and-drop feature active
+[x] 1795. ✅✅✅ DRAG-AND-DROP WITH + PLACEHOLDERS COMPLETED! ✅✅✅
+[x] 1796. 🎉🎉🎉 USERS CAN NOW DRAG BOXES BETWEEN COLUMNS AND SEE + BUTTONS IN EMPTY FIELDS! 🎉🎉🎉
