@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface PersonalHeatmapProps {
   userId: string | null;
-  onDateSelect: (date: Date) => void;
+  onDateSelect: (date: Date, firebaseData: any) => void;
   selectedDate: Date | null;
 }
 
@@ -57,14 +56,10 @@ function getPnLColor(pnl: number): string {
 
 export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: PersonalHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
-  const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // SIMPLE FETCH - No filters, no complications - PERSONAL DATA
+  // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT
   useEffect(() => {
     if (!userId) {
       console.log("🔥 PersonalHeatmap: No userId provided, skipping fetch");
@@ -73,7 +68,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
       return;
     }
 
-    console.log("🔥 PersonalHeatmap: Fetching personal data from Firebase for userId:", userId);
+    console.log("🔥 PersonalHeatmap: Fetching ALL personal data from Firebase for userId:", userId);
     setIsLoading(true);
     
     fetch(`/api/user-journal/${userId}/all`)
@@ -82,24 +77,53 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
         console.log("✅ PersonalHeatmap: Raw Firebase data received:", data);
         console.log("✅ PersonalHeatmap: Total dates:", Object.keys(data).length);
         
-        // Process each date to calculate P&L
-        const processedData: Record<string, any> = {};
+        // Store the raw Firebase data - NO PROCESSING, NO FILTERING
+        setHeatmapData(data);
+        setIsLoading(false);
+        
+        // Log each date for debugging
         Object.keys(data).forEach(dateKey => {
-          // dateKey is already in YYYY-MM-DD format from the API
-          processedData[dateKey] = data[dateKey];
           const pnl = calculatePnL(data[dateKey]);
           console.log(`📊 PersonalHeatmap: ${dateKey} = ₹${pnl.toFixed(2)}`);
         });
-        
-        console.log("✅ PersonalHeatmap: Processed data:", processedData);
-        setHeatmapData(processedData);
-        setIsLoading(false);
       })
       .catch(error => {
         console.error("❌ PersonalHeatmap: Fetch error:", error);
         setIsLoading(false);
       });
-  }, [userId]); // Re-fetch when userId changes
+  }, [userId]);
+
+  // HANDLE DATE CLICK - FETCH FRESH DATA FROM FIREBASE
+  const handleDateClick = async (date: Date) => {
+    if (!userId) return;
+    
+    // Format date as YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateKey = `${year}-${month}-${day}`;
+    
+    console.log(`🔥 PersonalHeatmap: Date clicked: ${dateKey}, fetching FRESH data from Firebase...`);
+    
+    try {
+      // FETCH FRESH DATA FROM FIREBASE FOR THIS SPECIFIC DATE
+      const response = await fetch(`/api/user-journal/${userId}/${dateKey}`);
+      const freshData = await response.json();
+      
+      console.log(`✅ PersonalHeatmap: Fresh Firebase data for ${dateKey}:`, freshData);
+      
+      // Update the selected date
+      setCurrentDate(date);
+      
+      // Pass the FRESH FIREBASE DATA to parent component
+      onDateSelect(date, freshData);
+      
+    } catch (error) {
+      console.error(`❌ PersonalHeatmap: Error fetching data for ${dateKey}:`, error);
+      // If fetch fails, pass empty data to parent
+      onDateSelect(date, {});
+    }
+  };
 
   // Generate calendar data for the year
   const generateMonthsData = () => {
@@ -148,24 +172,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
       day: 'numeric', 
       year: 'numeric' 
     });
-  };
-
-  // Auto-apply date range
-  useEffect(() => {
-    if (fromDate && toDate) {
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      if (from <= to) {
-        setSelectedRange({ from, to });
-        setIsDateRangeOpen(false);
-      }
-    }
-  }, [fromDate, toDate]);
-
-  const handleResetRange = () => {
-    setSelectedRange(null);
-    setFromDate("");
-    setToDate("");
   };
 
   if (!userId) {
@@ -222,10 +228,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateKey = `${year}-${month}-${day}`;
                           
-                          // Get data from heatmapData
+                          // Get data from heatmapData (ONLY FIREBASE DATA)
                           const data = heatmapData[dateKey];
                           
-                          // Calculate P&L
+                          // Calculate P&L from FIREBASE DATA ONLY
                           const netPnL = calculatePnL(data);
                           let cellColor = getPnLColor(netPnL);
                             
@@ -239,10 +245,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                             <div
                               key={colIndex}
                               className={`w-3 h-3 rounded-sm cursor-pointer transition-all ${cellColor}`}
-                              onClick={() => {
-                                setCurrentDate(date);
-                                onDateSelect(date);
-                              }}
+                              onClick={() => handleDateClick(date)}
                               title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
                               data-testid={`personal-heatmap-cell-${dateKey}`}
                             />
@@ -290,51 +293,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
           <ChevronLeft className="w-4 h-4" />
         </Button>
         
-        <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
-              <Calendar className="w-3 h-3 mr-2" />
-              <span className="text-xs">{formatDisplayDate()}</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" align="center">
-            <div className="space-y-2">
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                placeholder="From Date"
-                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                data-testid="input-from-date"
-              />
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                placeholder="To Date"
-                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                data-testid="input-to-date"
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {selectedRange && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-              Selected: {selectedRange.from.getFullYear()}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleResetRange}
-              className="h-5 w-5"
-              data-testid="button-reset-range"
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
-        )}
+        <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
+          <Calendar className="w-3 h-3 mr-2" />
+          <span className="text-xs">{formatDisplayDate()}</span>
+        </Button>
 
         <Button
           variant="ghost"

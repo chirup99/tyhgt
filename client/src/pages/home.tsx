@@ -4162,7 +4162,7 @@ ${
     localStorage.setItem("calendarData", JSON.stringify(data));
   };
 
-  const handleDateSelect = async (date: Date, forceMode?: 'demo' | 'personal') => {
+  const handleDateSelect = async (date: Date, firebaseData?: any, forceMode?: 'demo' | 'personal') => {
     // Update selected date IMMEDIATELY for instant visual feedback
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
@@ -4174,15 +4174,64 @@ ${
     setTradeHistoryData([]);
     setTradingImages([]);
 
+    // Use formatDateKey for consistency with save function
+    const dateKey = formatDateKey(date);
+    
+    // If firebaseData is provided (from PersonalHeatmap), use it directly - NO API FETCH
+    if (firebaseData !== undefined) {
+      console.log(`✅ Using FRESH Firebase data from PersonalHeatmap for ${dateKey}:`, firebaseData);
+      let journalData = firebaseData;
+
+      // Handle Firebase response format (has tradingData wrapper)
+      if (journalData && journalData.tradingData) {
+        journalData = journalData.tradingData;
+        console.log(`📦 Unwrapped Firebase tradingData:`, journalData);
+      }
+
+      if (journalData && Object.keys(journalData).length > 0) {
+        console.log("🎯 Populating UI with FRESH Firebase data:", journalData);
+
+        // Load the data into correct state variables
+        const notes = journalData.notes || journalData.tradingNotes || journalData.notesContent || "";
+        if (notes) {
+          setNotesContent(notes);
+          setTempNotesContent(notes);
+          console.log("📝 Loaded notes from Firebase:", notes);
+        }
+
+        const tags = journalData.tags || journalData.tradingTags || journalData.selectedTags || [];
+        if (Array.isArray(tags)) {
+          setSelectedTags(tags);
+          console.log("🏷️ Loaded tags from Firebase:", tags);
+        }
+
+        if (journalData.tradeHistory && Array.isArray(journalData.tradeHistory)) {
+          setTradeHistoryData(journalData.tradeHistory);
+          console.log("📊 Loaded trade history from Firebase:", journalData.tradeHistory.length, "trades");
+        }
+
+        const images = journalData.images || journalData.tradingImages || [];
+        if (Array.isArray(images)) {
+          setTradingImages(images);
+          console.log("🖼️ Loaded images from Firebase:", images.length, "images");
+        }
+
+        console.log("✅ Successfully loaded all FRESH Firebase data for:", dateKey);
+      } else {
+        console.log(`📭 No Firebase data for: ${dateKey}`);
+      }
+      console.log("✅ Date loading complete");
+      return; // Exit early - we used fresh Firebase data
+    }
+
+    // Otherwise, continue with normal API fetch logic
+    console.log(
+      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${forceMode || (isDemoMode ? 'demo' : 'personal')}]`,
+    );
+
     // Load trading data from appropriate source based on demo mode
     // Use forceMode if provided (to avoid state closure issues), otherwise use isDemoMode state
     const effectiveMode = forceMode !== undefined ? forceMode : (isDemoMode ? 'demo' : 'personal');
-    
-    // Use formatDateKey for consistency with save function
-    const dateKey = formatDateKey(date);
-    console.log(
-      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${effectiveMode}]`,
-    );
 
     try {
       // Choose endpoint based on demo mode
@@ -8822,7 +8871,6 @@ ${
                               userId={getUserId()}
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
-                              tradingDataByDate={tradingDataByDate}
                             />
                           )}
                         </div>
