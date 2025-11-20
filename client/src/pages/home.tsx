@@ -3301,9 +3301,17 @@ ${
       if (stored !== null) {
         return stored === "true";
       }
+      
+      // ✅ SMART DEFAULT: If no userId exists, automatically start in Demo mode
+      // This ensures heatmap loads instantly without needing to toggle
+      const userId = localStorage.getItem("currentUserId");
+      if (!userId) {
+        console.log("🎯 Auto-default: Demo mode ON (no userId found)");
+        return true; // Demo mode
+      }
     }
-    // Default to personal mode (false/OFF) - simpler and cleaner
-    console.log("🎯 Default: Personal mode (demo OFF)");
+    // If userId exists, default to personal mode
+    console.log("🎯 Default: Personal mode (userId found)");
     return false;
   });
 
@@ -4070,38 +4078,41 @@ ${
     setIsCalendarDataFetched(false);
   };
 
-  // Auto-load personal mode data when journal tab opens
+  // ✅ INSTANT AUTO-LOAD: Load heatmap data immediately when journal tab opens
+  // No delays, no complex logic - just instant data loading
   useEffect(() => {
-    if (!isDemoMode && activeTab === 'journal' && !fromDate && !toDate) {
-      // Longer delay to ensure heatmap DOM is ready before auto-clicking dates
-      const timer = setTimeout(() => {
-        console.log(`👤 Personal mode journal opened - loading personal data...`);
-        handleAutoClickPersonalDates();
-      }, 1500);
-      return () => clearTimeout(timer);
+    if (activeTab === 'journal') {
+      if (!isDemoMode) {
+        // Personal mode - load personal data instantly
+        const userId = getUserId();
+        if (userId) {
+          console.log(`👤 Personal mode - loading personal data instantly...`);
+          handleAutoClickPersonalDates();
+        } else {
+          console.log(`⚠️ No userId found - switching to Demo mode automatically`);
+          setIsDemoMode(true);
+          localStorage.setItem("tradingJournalDemoMode", "true");
+        }
+      } else {
+        // Demo mode - load demo data instantly
+        console.log(`📊 Demo mode - loading demo data instantly...`);
+        (async () => {
+          try {
+            const response = await fetch(getFullApiUrl('/api/journal/all-dates'));
+            if (response.ok) {
+              const allDatesData = await response.json();
+              setDemoTradingDataByDate(allDatesData);
+              setCalendarData(allDatesData);
+              localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
+              console.log(`✅ Demo data loaded instantly:`, Object.keys(allDatesData).length, "dates");
+            }
+          } catch (error) {
+            console.error("❌ Error loading demo data:", error);
+          }
+        })();
+      }
     }
   }, [isDemoMode, activeTab, heatmapYear]);
-
-  // Auto-load demo mode data when journal tab opens
-  useEffect(() => {
-    if (isDemoMode && activeTab === 'journal') {
-      const timer = setTimeout(async () => {
-        console.log(`📊 Demo mode journal opened - loading demo data...`);
-        try {
-          const response = await fetch(getFullApiUrl('/api/journal/all-dates'));
-          if (response.ok) {
-            const allDatesData = await response.json();
-            setDemoTradingDataByDate(allDatesData);
-            localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
-            console.log(`✅ Demo data loaded:`, Object.keys(allDatesData).length, "dates");
-          }
-        } catch (error) {
-          console.error("❌ Error loading demo data:", error);
-        }
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isDemoMode, activeTab]);
 
   // Calculate total duration of all closed trades
   const calculateTotalDuration = (trades: any[]) => {

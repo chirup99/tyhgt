@@ -2108,3 +2108,42 @@
 [x] 2400. ✅✅✅ NOVEMBER 20, 2025 (3:40 AM) MIGRATION COMPLETED SUCCESSFULLY! ✅✅✅
 [x] 2401. 🎉🎉🎉 PROJECT FULLY MIGRATED TO REPLIT ENVIRONMENT - READY TO BUILD! 🎉🎉🎉
 [x] 2402. 🚀🚀🚀 ALL 2402 MIGRATION TASKS COMPLETED - IMPORT SUCCESSFUL! 🚀🚀🚀
+
+[x] 2403. NOVEMBER 20, 2025 - INSTANT HEATMAP AUTO-LOAD FIX (3:51 AM)
+[x] 2404. User reported: Heatmap not loading instantly - requires toggling demo mode ON/OFF
+[x] 2405. User reported: Trade history and summary load instantly, but heatmap stays blank
+[x] 2406. User requested: Auto-load all heatmap colors without needing to toggle
+[x] 2407. Root cause identified: Default state was Personal mode (demo OFF)
+[x] 2408. Root cause: When no userId exists, Personal mode returns early without loading data
+[x] 2409. Root cause: User had to manually toggle to Demo mode to see heatmap colors
+[x] 2410. Solution: Smart default - automatically start in Demo mode when no userId exists
+[x] 2411. Solution: Load demo data instantly when journal tab opens (no delays)
+[x] 2412. Solution: If no userId in Personal mode, auto-switch to Demo mode
+[x] 2413. Modified isDemoMode initial state (lines 3300-3319):
+[x] 2414.   - Checks localStorage for tradingJournalDemoMode preference
+[x] 2415.   - If no preference, checks for currentUserId
+[x] 2416.   - If no userId → Auto-default to Demo mode (true)
+[x] 2417.   - If userId exists → Default to Personal mode (false)
+[x] 2418. Replaced two separate useEffect hooks with one unified instant loader (lines 4084-4118):
+[x] 2419.   - Removed 1500ms delay for Personal mode data loading
+[x] 2420.   - Removed 300ms delay for Demo mode data loading
+[x] 2421.   - Combined into single useEffect with instant execution
+[x] 2422.   - Personal mode: Loads data instantly if userId exists
+[x] 2423.   - Personal mode: Auto-switches to Demo if no userId
+[x] 2424.   - Demo mode: Loads demo data instantly via IIFE
+[x] 2425. Result: INSTANT heatmap loading without manual toggle
+[x] 2426. Result: Demo mode auto-enabled for users without Firebase accounts
+[x] 2427. Result: Trade history, summary, AND heatmap all load simultaneously
+[x] 2428. Result: No blank heatmap screen - colors appear immediately
+[x] 2429. Browser console verification:
+[x] 2430.   ✅ "🎯 Auto-default: Demo mode ON (no userId found)"
+[x] 2431.   ✅ "📊 Demo mode - loading demo data instantly..."
+[x] 2432.   ✅ "✅ Demo data loaded:", 19, "dates"
+[x] 2433.   ✅ "🔄 tradingDataByDate recomputed [Mode: DEMO, Revision: 0, Dates: 19]"
+[x] 2434. Modified file: client/src/pages/home.tsx
+[x] 2435. Restarted workflow 'Start application' to apply changes
+[x] 2436. Verified via screenshot - Trading Platform loads correctly
+[x] 2437. Verified via browser console - Demo mode auto-enabled
+[x] 2438. Verified via browser console - Heatmap data loads instantly
+[x] 2439. ✅ INSTANT HEATMAP AUTO-LOAD FIX COMPLETED! ✅
+[x] 2440. 🎉 NO MORE TOGGLING REQUIRED - HEATMAP LOADS INSTANTLY! 🎉
