@@ -4722,6 +4722,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Relocate user trading journal data from one date to another
+  app.post('/api/relocate-date', async (req, res) => {
+    try {
+      const { userId, sourceDate, targetDate } = req.body;
+      console.log(`🔄 Relocating trading journal: userId=${userId}, from ${sourceDate} to ${targetDate}`);
+      
+      if (!userId || !sourceDate || !targetDate) {
+        return res.status(400).json({ error: 'Missing required fields: userId, sourceDate, targetDate' });
+      }
+
+      // Get data from source date
+      const sourceData = await googleCloudService.getUserTradingJournal(userId, sourceDate);
+      
+      if (!sourceData || Object.keys(sourceData).length === 0) {
+        return res.status(404).json({ error: 'No data found at source date' });
+      }
+
+      // Save to target date
+      const tradingData = sourceData.tradingData || sourceData;
+      await googleCloudService.saveUserTradingJournal(userId, targetDate, tradingData);
+      
+      // Delete from source date
+      await googleCloudService.deleteUserTradingJournal(userId, sourceDate);
+      
+      console.log(`✅ Successfully relocated data from ${sourceDate} to ${targetDate}`);
+      res.json({ 
+        success: true, 
+        message: `Data relocated from ${sourceDate} to ${targetDate}` 
+      });
+    } catch (error) {
+      console.error('❌ Error relocating journal data:', error);
+      res.status(500).json({ error: 'Failed to relocate journal data' });
+    }
+  });
+
   // ==========================================
   // USER TRADING FORMATS (Simple Firebase Storage)
   // ==========================================

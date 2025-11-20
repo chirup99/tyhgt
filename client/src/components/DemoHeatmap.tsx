@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, X, MoreVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X, MoreVertical, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface DemoHeatmapProps {
   onDateSelect: (date: Date) => void;
@@ -71,6 +72,10 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isChangeDatesMode, setIsChangeDatesMode] = useState(false);
+  const [sourceDate, setSourceDate] = useState<Date | null>(null);
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const { toast } = useToast();
 
   // SIMPLE FETCH - No filters, no complications
   useEffect(() => {
@@ -430,7 +435,10 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem data-testid="menu-item-change-dates">
+            <DropdownMenuItem 
+              onClick={() => setIsChangeDatesMode(true)}
+              data-testid="menu-item-change-dates"
+            >
               Change dates
             </DropdownMenuItem>
             <DropdownMenuItem data-testid="menu-item-delete">
@@ -439,6 +447,135 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Change Dates UI - shown below calendar */}
+      {isChangeDatesMode && (
+        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md">
+            {/* Source Date */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="min-w-[180px] justify-start text-left font-normal"
+                  data-testid="button-select-source-date"
+                >
+                  <Calendar className="w-3 h-3 mr-2" />
+                  {sourceDate ? (
+                    <span className="text-xs">
+                      {sourceDate.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Current date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <input
+                  type="date"
+                  onChange={(e) => setSourceDate(e.target.value ? new Date(e.target.value) : null)}
+                  className="w-full px-3 py-2 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white dark:bg-gray-800"
+                  data-testid="input-source-date"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Purple Arrow */}
+            <ArrowRight className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+
+            {/* Target Date */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="min-w-[180px] justify-start text-left font-normal"
+                  data-testid="button-select-target-date"
+                >
+                  <Calendar className="w-3 h-3 mr-2" />
+                  {targetDate ? (
+                    <span className="text-xs">
+                      {targetDate.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Relocate date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <input
+                  type="date"
+                  onChange={(e) => setTargetDate(e.target.value ? new Date(e.target.value) : null)}
+                  className="w-full px-3 py-2 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white dark:bg-gray-800"
+                  data-testid="input-target-date"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-2 mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setIsChangeDatesMode(false);
+                setSourceDate(null);
+                setTargetDate(null);
+              }}
+              data-testid="button-cancel-change-dates"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={async () => {
+                if (!sourceDate || !targetDate) {
+                  toast({
+                    title: "Error",
+                    description: "Please select both dates",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                try {
+                  toast({
+                    title: "Success",
+                    description: "Date relocation feature coming soon!",
+                  });
+                  setIsChangeDatesMode(false);
+                  setSourceDate(null);
+                  setTargetDate(null);
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to relocate data",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={!sourceDate || !targetDate}
+              data-testid="button-save-change-dates"
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      )}
+      
 
       <style>{`
         .thin-scrollbar::-webkit-scrollbar {
