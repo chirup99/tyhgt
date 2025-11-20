@@ -3227,6 +3227,7 @@ ${
     const saved = localStorage.getItem("tradingFormats");
     return saved ? JSON.parse(saved) : {};
   });
+  const [activeFormat, setActiveFormat] = useState<typeof buildModeData | null>(null);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Broker Import State
@@ -5454,6 +5455,130 @@ ${
     return processedTrades;
   };
 
+  // Parse trades using saved format template
+  const parseTradesWithFormat = (data: string, format: typeof buildModeData): ParseResult => {
+    const result: ParseResult = {
+      trades: [],
+      errors: []
+    };
+
+    const lines = data.split("\n").filter(line => line.trim());
+    
+    if (lines.length === 0) {
+      result.errors.push({
+        line: 0,
+        content: "",
+        reason: "No data found"
+      });
+      return result;
+    }
+
+    // Build field order from format (which fields are not empty)
+    const fieldOrder: string[] = [];
+    if (format.time) fieldOrder.push("time");
+    if (format.order) fieldOrder.push("order");
+    if (format.symbol) fieldOrder.push("symbol");
+    if (format.type) fieldOrder.push("type");
+    if (format.qty) fieldOrder.push("qty");
+    if (format.price) fieldOrder.push("price");
+
+    // Parse each line
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const tokens = line.split(/\s+/).filter(t => t.trim());
+      
+      if (tokens.length < fieldOrder.length) {
+        result.errors.push({
+          line: i + 1,
+          content: line,
+          reason: `Not enough fields (expected ${fieldOrder.length}, got ${tokens.length})`
+        });
+        continue;
+      }
+
+      try {
+        const tradeData: any = {};
+        let tokenIndex = 0;
+
+        for (const field of fieldOrder) {
+          if (field === "time") {
+            // Time might be 2 tokens (e.g., "10:51:21 AM")
+            if (tokenIndex + 1 < tokens.length && /^(AM|PM)$/i.test(tokens[tokenIndex + 1])) {
+              tradeData.time = `${tokens[tokenIndex]} ${tokens[tokenIndex + 1]}`;
+              tokenIndex += 2;
+            } else {
+              tradeData.time = tokens[tokenIndex++];
+            }
+          } else if (field === "symbol") {
+            // Symbol might be multiple tokens
+            const symbolTokens: string[] = [];
+            // Count how many tokens the template symbol has
+            const templateSymbolTokens = format.symbol.split(/\s+/).filter(t => t.trim()).length;
+            for (let j = 0; j < templateSymbolTokens && tokenIndex < tokens.length; j++) {
+              symbolTokens.push(tokens[tokenIndex++]);
+            }
+            tradeData.symbol = symbolTokens.join(" ");
+          } else {
+            tradeData[field] = tokens[tokenIndex++];
+          }
+        }
+
+        // Validate and normalize
+        const order = tradeData.order?.toUpperCase();
+        if (order !== "BUY" && order !== "SELL") {
+          result.errors.push({
+            line: i + 1,
+            content: line,
+            reason: `Invalid order type: ${tradeData.order}`
+          });
+          continue;
+        }
+
+        const qty = parseFloat(tradeData.qty);
+        const price = parseFloat(tradeData.price?.replace(/[₹$,]/g, "") || "0");
+
+        if (isNaN(qty) || qty <= 0) {
+          result.errors.push({
+            line: i + 1,
+            content: line,
+            reason: `Invalid quantity: ${tradeData.qty}`
+          });
+          continue;
+        }
+
+        if (isNaN(price) || price <= 0) {
+          result.errors.push({
+            line: i + 1,
+            content: line,
+            reason: `Invalid price: ${tradeData.price}`
+          });
+          continue;
+        }
+
+        result.trades.push({
+          time: tradeData.time || "",
+          order: order as "BUY" | "SELL",
+          symbol: tradeData.symbol || "",
+          type: tradeData.type?.toUpperCase() || "MIS",
+          qty: Math.floor(qty),
+          price,
+          pnl: "-",
+          duration: "-"
+        });
+      } catch (err) {
+        result.errors.push({
+          line: i + 1,
+          content: line,
+          reason: err instanceof Error ? err.message : "Parsing error"
+        });
+      }
+    }
+
+    return result;
+  };
+
   const handleImportData = () => {
     try {
       setImportError("");
@@ -5464,8 +5589,10 @@ ${
         return;
       }
 
-      // Parse the trade data using the new robust parser
-      const { trades, errors } = parseBrokerTrades(importData);
+      // Use format-based parser if active format is set, otherwise use default parser
+      const { trades, errors } = activeFormat 
+        ? parseTradesWithFormat(importData, activeFormat)
+        : parseBrokerTrades(importData);
 
       // Store parse errors for detailed display
       setParseErrors(errors);
@@ -10936,9 +11063,19 @@ ${
               </div>
 
               <div>
-                <Label className="text-sm font-medium">Custom Data</Label>
+                <div className="flex items-center gap-2 mb-1">
+                  <Label className="text-sm font-medium">Custom Data</Label>
+                  {activeFormat && (
+                    <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
+                      ✓ Format Active
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1 mb-3">
-                  Paste your trade data in your broker's format. Our system will parse it automatically.
+                  {activeFormat 
+                    ? "Using custom format for import. Data will be parsed according to your saved template."
+                    : "Paste your trade data in your broker's format. Our system will parse it automatically."
+                  }
                 </p>
                 
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
@@ -10966,9 +11103,11 @@ ${
                               }
                               const newFormats = { ...savedFormats, [savedFormatLabel]: buildModeData };
                               setSavedFormats(newFormats);
+                              setActiveFormat(buildModeData);
                               localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
                               setSavedFormatLabel("");
-                              alert(`Format "${savedFormatLabel}" saved successfully!`);
+                              alert(`Format "${savedFormatLabel}" saved and activated successfully! Import data will now use this format.`);
+                              console.log("✅ Format saved and activated:", savedFormatLabel, buildModeData);
                             }}
                             data-testid="button-save-format"
                           >
@@ -11425,8 +11564,11 @@ ${
                               className="h-9 px-3 text-sm border rounded-md bg-background"
                               onChange={(e) => {
                                 if (e.target.value) {
-                                  setBuildModeData(savedFormats[e.target.value]);
+                                  const loadedFormat = savedFormats[e.target.value];
+                                  setBuildModeData(loadedFormat);
+                                  setActiveFormat(loadedFormat);
                                   setIsBuildMode(true);
+                                  console.log("✅ Format loaded and activated:", e.target.value, loadedFormat);
                                 }
                               }}
                               defaultValue=""
