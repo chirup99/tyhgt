@@ -317,3 +317,26 @@
 [x] 1546. ✅ Workflow restarted successfully - changes applied
 [x] 1547. ✅✅✅ CUSTOM DATA IMPORT WINDOW COMPLETED! ✅✅✅
 [x] 1548. 🎉🎉🎉 USERS CAN NOW PASTE TRADE DATA IN ANY BROKER FORMAT! 🎉🎉🎉
+
+[x] 1549. NOVEMBER 20, 2025 - ADDED SAMPLE TRADE BLOCK TO IMPORT WINDOW
+[x] 1550. User requested: "below display 1 trade block how import data is reading its matching header box not by this way new user can know there format"
+[x] 1551. Requirements identified:
+[x] 1552.   - Show visual example of header format matching actual trade data
+[x] 1553.   - Display sample trade block below headers
+[x] 1554.   - Help new users understand exact format expected
+[x] 1555. ✅ Updated header section title to "Expected Format (Headers + Sample Trade)"
+[x] 1556. ✅ Added two-row visual display with spacing
+[x] 1557. ✅ Header row highlighted in blue with semibold font
+[x] 1558. ✅ Header format: "Time | Order | Symbol | Type | Qty | Order"
+[x] 1559. ✅ Added sample trade row below headers
+[x] 1560. ✅ Sample trade: "10:51:21 AM   BUY     SENSEX 10th w JUN 82900 PE BFO  NRML    320     477.96"
+[x] 1561. ✅ Trade row uses muted foreground color for differentiation
+[x] 1562. ✅ Both rows use monospace font for alignment clarity
+[x] 1563. ✅ Header row has blue border (border-blue-200 / border-blue-800 dark)
+[x] 1564. ✅ Trade row has standard border matching background
+[x] 1565. ✅ Added helpful instruction: "Match your broker format to these headers when pasting trades"
+[x] 1566. ✅ Visual hierarchy shows header-to-data relationship clearly
+[x] 1567. ✅ New users can now see exactly how their data should match headers
+[x] 1568. ✅ Workflow restarted successfully - changes applied
+[x] 1569. ✅✅✅ SAMPLE TRADE BLOCK DISPLAY COMPLETED! ✅✅✅
+[x] 1570. 🎉🎉🎉 NEW USERS CAN NOW EASILY UNDERSTAND THE EXPECTED FORMAT! 🎉🎉🎉

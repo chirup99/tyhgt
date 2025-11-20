@@ -10924,11 +10924,23 @@ ${
                 
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
                   <div className="text-xs font-medium text-muted-foreground mb-2">
-                    Expected Format Headers:
+                    Expected Format (Headers + Sample Trade):
                   </div>
-                  <div className="font-mono text-xs bg-background p-2 rounded border">
-                    Time | Order | Symbol | Type | Qty | Order
+                  <div className="space-y-1">
+                    <div className="font-mono text-xs bg-background p-2 rounded border border-blue-200 dark:border-blue-800">
+                      <div className="text-blue-600 dark:text-blue-400 font-semibold mb-1">
+                        Time | Order | Symbol | Type | Qty | Order
+                      </div>
+                    </div>
+                    <div className="font-mono text-xs bg-background p-2 rounded border">
+                      <div className="text-muted-foreground">
+                        10:51:21 AM   BUY     SENSEX 10th w JUN 82900 PE BFO  NRML    320     477.96
+                      </div>
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Match your broker format to these headers when pasting trades
+                  </p>
                 </div>
 
                 <Textarea
