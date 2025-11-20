@@ -3401,57 +3401,7 @@ ${
             // Save to localStorage for offline access
             localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
 
-            // Auto-click all available dates to populate heatmap colors - ULTRA FAST
-            // This simulates clicking each date to ensure colors appear immediately
-            setTimeout(async () => {
-              console.log(
-                "🔄 Ultra-fast auto-clicking all available dates for heatmap colors...",
-              );
-
-              // Create all fetch promises in parallel for maximum speed
-              const fetchPromises = Object.keys(allDatesData).map(
-                async (dateStr) => {
-                  try {
-                    const response = await fetch(getFullApiUrl(`/api/journal/${dateStr}`));
-                    if (response.ok) {
-                      const journalData = await response.json();
-                      if (journalData && Object.keys(journalData).length > 0) {
-                        return { dateStr, journalData };
-                      }
-                    }
-                  } catch (error) {
-                    console.error(
-                      `❌ Error auto-loading date ${dateStr}:`,
-                      error,
-                    );
-                  }
-                  return null;
-                },
-              );
-
-              // Execute all requests simultaneously
-              const results = await Promise.all(fetchPromises);
-
-              // Update all data at once
-              const updatedData: any = {};
-              results.forEach((result) => {
-                if (result) {
-                  updatedData[result.dateStr] = result.journalData;
-                }
-              });
-
-              // Single state update with all data
-              setTradingDataByDate((prevData: any) => ({
-                ...prevData,
-                ...updatedData,
-              }));
-
-              console.log(
-                "✅ Ultra-fast auto-click completed - all heatmap colors should now be visible",
-              );
-            }, 10);
-
-            console.log("✅ DEMO heatmap data loaded successfully");
+            console.log("✅ DEMO heatmap data loaded successfully - all colors will display automatically");
 
             // Auto-select the latest date if no date is currently selected
             if (!selectedDate && Object.keys(allDatesData).length > 0) {
@@ -9052,63 +9002,7 @@ ${
                                           // AUTO-SELECT LATEST DATE if data exists, otherwise show empty but visible UI
                                           const personalDates = Object.keys(personalData);
                                           if (personalDates.length > 0) {
-                                            // ULTRA-FAST AUTO-CLICKING: Load all dates in parallel for heatmap colors
-                                            console.log(
-                                              "🔄 Ultra-fast auto-clicking all PERSONAL dates for heatmap colors...",
-                                            );
-
-                                            // Create all fetch promises in parallel for maximum speed
-                                            const fetchPromises = personalDates.map(async (dateStr) => {
-                                              try {
-                                                const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
-                                                if (response.ok) {
-                                                  let journalData = await response.json();
-                                                  
-                                                  // CRITICAL FIX: Unwrap Firebase response format (has tradingData wrapper)
-                                                  if (journalData && journalData.tradingData) {
-                                                    journalData = journalData.tradingData;
-                                                    console.log(`📦 Unwrapped Firebase tradingData for ${dateStr}`);
-                                                  }
-                                                  
-                                                  if (journalData && Object.keys(journalData).length > 0) {
-                                                    return { dateStr, journalData };
-                                                  }
-                                                }
-                                              } catch (error) {
-                                                console.error(
-                                                  `❌ Error auto-loading PERSONAL date ${dateStr}:`,
-                                                  error,
-                                                );
-                                              }
-                                              return null;
-                                            });
-
-                                            // Wait for all fetches to complete in parallel
-                                            const results = await Promise.all(fetchPromises);
-
-                                            // ✅ CRITICAL FIX: Update state with all loaded data + increment revision counter
-                                            const validResults = results.filter((r) => r !== null);
-                                            if (validResults.length > 0) {
-                                              // Create a BRAND NEW object so React detects the change
-                                              const updatedData = { ...personalData };
-                                              validResults.forEach((result: any) => {
-                                                if (result) {
-                                                  updatedData[result.dateStr] = result.journalData;
-                                                }
-                                              });
-                                              
-                                              // Update the personal heatmap data
-                                              setPersonalTradingDataByDate(updatedData);
-                                              localStorage.setItem("personalTradingDataByDate", JSON.stringify(updatedData));
-                                              
-                                              // ✅ INCREMENT REVISION COUNTER: This forces React to re-render heatmap
-                                              // Without this, the heatmap won't update because React doesn't detect object changes
-                                              setPersonalHeatmapRevision(prev => prev + 1);
-                                              
-                                              console.log(
-                                                `✅ Ultra-fast PERSONAL HEATMAP #2 population complete! Loaded ${validResults.length} dates in parallel. Heatmap colors should now be visible!`,
-                                              );
-                                            }
+                                            console.log("✅ Personal heatmap data loaded successfully - all colors will display automatically");
                                             
                                             // Sort dates and get the latest one
                                             const latestDateStr = personalDates.sort().reverse()[0];
@@ -9117,8 +9011,8 @@ ${
                                             console.log(`🎯 Auto-selecting latest PERSONAL date: ${latestDateStr}`);
                                             setSelectedDate(latestDate);
                                             
-                                            // Load the data for this date (should be already loaded from auto-clicking above)
-                                            await handleDateSelect(latestDate, 'personal'); // Force personal mode
+                                            // Load the data for this date
+                                            await handleDateSelect(latestDate, 'personal');
                                           } else {
                                             console.log("ℹ️ No personal data found - showing empty state");
                                             // DON'T clear UI - instead show empty state with helpful message
