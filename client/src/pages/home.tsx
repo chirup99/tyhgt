@@ -10917,45 +10917,26 @@ ${
               </div>
 
               <div>
-                <Label className="text-sm font-medium">Fetch from Broker</Label>
-                <Button
-                  variant="outline"
-                  className="w-full mt-2 justify-start"
-                  onClick={() => {
-                    setShowImportModal(false);
-                    setShowBrokerImportModal(true);
-                  }}
-                  data-testid="button-broker-import"
-                >
-                  <Briefcase className="mr-2 h-4 w-4" />
-                  Connect to Kite, Fyers, or Dhan
-                </Button>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Import trades directly from your broker account
+                <Label className="text-sm font-medium">Custom Data</Label>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">
+                  Paste your trade data in your broker's format. Our system will parse it automatically.
                 </p>
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                
+                <div className="border rounded-md bg-muted/30 p-3 mb-3">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">
+                    Expected Format Headers:
+                  </div>
+                  <div className="font-mono text-xs bg-background p-2 rounded border">
+                    Time | Order | Symbol | Type | Qty | Order
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or
-                  </span>
-                </div>
-              </div>
 
-              <div>
-                <Label htmlFor="paste-data" className="text-sm font-medium">
-                  Paste P&L Values or CSV Data
-                </Label>
                 <Textarea
                   id="paste-data"
-                  placeholder="Paste P&L Values or CSV Data&#10;&#10;Use this format:&#10;10:51:21 AM   BUY     SENSEX 10th w JUN 82900 PE BFO  NRML    320     477.96&#10;10:51:39 AM  SELL    SENSEX 10th w JUN 82900 PE BFO  NRML    320     551.26"
+                  placeholder="Paste your trade data here...&#10;&#10;Example:&#10;10:51:21 AM   BUY     SENSEX 10th w JUN 82900 PE BFO  NRML    320     477.96&#10;10:51:39 AM  SELL    SENSEX 10th w JUN 82900 PE BFO  NRML    320     551.26"
                   value={importData}
                   onChange={(e) => setImportData(e.target.value)}
-                  className="mt-2 min-h-32"
+                  className="min-h-48"
                   data-testid="textarea-paste-data"
                 />
               </div>
