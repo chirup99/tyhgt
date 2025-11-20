@@ -190,24 +190,23 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
 
                         const dateStr = formatDateKey(date);
                         const savedData = personalData[dateStr];
-                        const netPnL = savedData?.performanceMetrics?.netPnL || 0;
-
-                        const hasActualTradeData =
-                          savedData &&
-                          ((savedData.tradeHistory && savedData.tradeHistory.length > 0) ||
-                            (savedData.performanceMetrics && savedData.performanceMetrics.totalTrades > 0) ||
-                            savedData.tradingNotes ||
-                            savedData.notesContent);
-
-                        // ONLY show colors when Firebase data exists - NO hardcoded data
-                        let cellColor = "bg-gray-100 dark:bg-gray-700";
                         
-                        // Show color ONLY if real Firebase personal data exists
-                        if (hasActualTradeData) {
-                          cellColor = netPnL !== 0 ? getHeatmapColor(netPnL) : "bg-green-200 dark:bg-green-700";
+                        // Calculate color based on P&L data (INSTANT - no complex checks)
+                        let cellColor = "bg-gray-100 dark:bg-gray-700"; // Default: no data
+                        
+                        if (savedData) {
+                          // Get P&L from any available source
+                          const netPnL = 
+                            savedData?.performanceMetrics?.netPnL || 
+                            savedData?.netPnL || 
+                            (savedData?.totalProfit || 0) - (savedData?.totalLoss || 0) ||
+                            0;
+                          
+                          // Show color immediately based on P&L
+                          cellColor = getHeatmapColor(netPnL);
                         }
 
-                        // Selected date: gray-900 instead of blue
+                        // Override color for selected date
                         const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                         if (isSelected) {
                           cellColor = "bg-gray-900 dark:bg-gray-100";
