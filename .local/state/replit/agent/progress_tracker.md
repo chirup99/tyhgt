@@ -490,6 +490,29 @@
 [x] 1713. ✅ Restarted workflow successfully
 [x] 1714. ✅✅✅ TINY HORIZONTAL BLOCK EDITOR NOW LIVE! ✅✅✅
 
+[x] 1715. NOVEMBER 20, 2025 - REDESIGNED BLOCKS TO APPEAR IN TABLE ROW CELLS
+[x] 1716. User requested: "dont change design fromat in that live preview table only trade row trades text can move left and right based on specfic header and for text add x close icon"
+[x] 1717. ✅ Redesigned block editor - blocks now appear INSIDE table cells
+[x] 1718. ✅ Table structure maintained with all 6 column headers (Time, Order, Symbol, Type, Qty, Price)
+[x] 1719. ✅ Trade text split into tiny blocks placed in corresponding cells
+[x] 1720. ✅ Time column: First 2 words (10:25:20)
+[x] 1721. ✅ Order column: 1 word (BUY)
+[x] 1722. ✅ Symbol column: 4 words (BANKNIFTY SEP 39500 CE)
+[x] 1723. ✅ Type column: 1 word (MIS)
+[x] 1724. ✅ Qty column: 1 word (25)
+[x] 1725. ✅ Price column: 1 word (84.9)
+[x] 1726. ✅ Each block has X close icon (w-2.5 h-2.5)
+[x] 1727. ✅ X icon opacity-60 by default, opacity-100 on hover
+[x] 1728. ✅ Blocks are draggable left/right between cells
+[x] 1729. ✅ Extra tiny size: text-[10px] font-mono
+[x] 1730. ✅ Blocks appear directly under column headers for easy mapping
+[x] 1731. ✅ Clean design with gap-1 spacing between blocks
+[x] 1732. ✅ Each cell has min-h-[24px] for consistent height
+[x] 1733. ✅ Blue styling maintained: bg-blue-100 dark:bg-blue-900/30
+[x] 1734. ✅ Helper text: "Drag blocks left/right to match columns"
+[x] 1735. ✅ Restarted workflow successfully
+[x] 1736. ✅✅✅ IN-TABLE BLOCK EDITOR WITH X ICONS NOW LIVE! ✅✅✅
+
 [x] 1663. NOVEMBER 20, 2025 - FINAL MIGRATION SESSION & PROJECT IMPORT COMPLETION
 [x] 1664. User requested: "Mark all progress tracker items as done using [x] format"
 [x] 1665. ✅ Verified all 1,662 previous migration tasks marked with [x] checkbox
