@@ -6,24 +6,39 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface DemoHeatmapProps {
   onDateSelect: (date: Date) => void;
   selectedDate: Date | null;
-  tradingDataByDate: Record<string, any>; // SAME DATA AS TRADE WINDOW
+  tradingDataByDate?: Record<string, any>;
 }
 
-// EXACT SAME LOGIC AS TRADE WINDOW (home.tsx line 4505)
-function getNetPnL(data: any): number {
+// Simple function to calculate P&L from trade data
+function calculatePnL(data: any): number {
   if (!data) return 0;
   
-  // Use performanceMetrics.netPnL - EXACT SAME AS TRADE WINDOW
-  if (data.performanceMetrics) {
-    return data.performanceMetrics.netPnL || 0;
+  // Try performanceMetrics first
+  if (data.performanceMetrics?.netPnL !== undefined) {
+    return data.performanceMetrics.netPnL;
+  }
+  
+  // Try calculating from tradeHistory
+  if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
+    let totalPnL = 0;
+    data.tradeHistory.forEach((trade: any) => {
+      if (trade.pnl && typeof trade.pnl === 'string') {
+        // Remove ₹ symbol and commas, parse as number
+        const pnlValue = parseFloat(trade.pnl.replace(/[₹,]/g, ''));
+        if (!isNaN(pnlValue)) {
+          totalPnL += pnlValue;
+        }
+      }
+    });
+    return totalPnL;
   }
   
   return 0;
 }
 
-// SIMPLE: Get color based on P&L value
+// Get color based on P&L value - SIMPLE AND CLEAR
 function getPnLColor(pnl: number): string {
-  if (pnl === 0) return "bg-gray-100 dark:bg-gray-700";
+  if (pnl === 0) return "bg-gray-200 dark:bg-gray-700";
   
   const amount = Math.abs(pnl);
   
@@ -40,14 +55,48 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function DemoHeatmap({ onDateSelect, selectedDate, tradingDataByDate }: DemoHeatmapProps) {
+export function DemoHeatmap({ onDateSelect, selectedDate }: DemoHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
+  const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // NO FETCHING! Use tradingDataByDate prop (same as trade window)
+  // SIMPLE FETCH - No filters, no complications
+  useEffect(() => {
+    console.log("🔥 DemoHeatmap: Fetching ALL data from Firebase...");
+    setIsLoading(true);
+    
+    fetch('/api/journal/all-dates')
+      .then(res => res.json())
+      .then(data => {
+        console.log("✅ DemoHeatmap: Raw Firebase data received:", data);
+        console.log("✅ DemoHeatmap: Total dates:", Object.keys(data).length);
+        
+        // Process each date to calculate P&L
+        const processedData: Record<string, any> = {};
+        Object.keys(data).forEach(key => {
+          // Extract date from key (format: journal_YYYY-MM-DD)
+          const dateMatch = key.match(/(\d{4}-\d{2}-\d{2})/);
+          if (dateMatch) {
+            const dateKey = dateMatch[1];
+            processedData[dateKey] = data[key];
+            const pnl = calculatePnL(data[key]);
+            console.log(`📊 DemoHeatmap: ${dateKey} = ₹${pnl.toFixed(2)}`);
+          }
+        });
+        
+        console.log("✅ DemoHeatmap: Processed data:", processedData);
+        setHeatmapData(processedData);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error("❌ DemoHeatmap: Fetch error:", error);
+        setIsLoading(false);
+      });
+  }, []); // Run once on mount
 
   // Generate calendar data for the year
   const generateMonthsData = () => {
@@ -120,10 +169,10 @@ export function DemoHeatmap({ onDateSelect, selectedDate, tradingDataByDate }: D
     <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          Demo Trading Calendar {currentDate.getFullYear()}
+          Trading Calendar {currentDate.getFullYear()}
         </h3>
         <span className="text-xs text-gray-500">
-          {Object.keys(tradingDataByDate).length} dates
+          {isLoading ? "Loading..." : `${Object.keys(heatmapData).length} dates with data`}
         </span>
       </div>
 
@@ -158,29 +207,29 @@ export function DemoHeatmap({ onDateSelect, selectedDate, tradingDataByDate }: D
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateKey = `${year}-${month}-${day}`;
                           
-                          // Get data from tradingDataByDate (SAME AS TRADE WINDOW)
-                          const data = tradingDataByDate[dateKey];
+                          // Get data from heatmapData
+                          const data = heatmapData[dateKey];
                           
-                          // Use EXACT SAME LOGIC as trade window
-                          const netPnL = getNetPnL(data);
+                          // Calculate P&L
+                          const netPnL = calculatePnL(data);
                           let cellColor = getPnLColor(netPnL);
                             
                           // Override for selected date
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                           if (isSelected) {
-                            cellColor = "bg-gray-900 dark:bg-gray-100";
+                            cellColor = "bg-blue-500 dark:bg-blue-400 ring-2 ring-blue-600";
                           }
 
                           return (
                             <div
                               key={colIndex}
-                              className={`w-3 h-3 rounded-sm cursor-pointer ${cellColor}`}
+                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all ${cellColor}`}
                               onClick={() => {
                                 setCurrentDate(date);
                                 onDateSelect(date);
                               }}
                               title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
-                              data-testid={`demo-calendar-day-${date.getDate()}-${date.getMonth()}`}
+                              data-testid={`heatmap-cell-${dateKey}`}
                             />
                           );
                         })}
