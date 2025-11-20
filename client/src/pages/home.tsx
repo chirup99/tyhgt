@@ -10942,7 +10942,7 @@ ${
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-medium text-muted-foreground">
-                          🔨 Build Mode - Drag boxes to move between columns, X to delete
+                          🔨 Build Mode - Select text below, then click + to add | Drag boxes to swap | X to delete
                         </div>
                         <Button
                           variant="ghost"
@@ -11009,9 +11009,18 @@ ${
                                   </div>
                                 ) : (
                                   <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                        if (selectedText.trim()) {
+                                          setBuildModeData(prev => ({ ...prev, time: selectedText.trim() }));
+                                        }
+                                      }
+                                    }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-time"
-                                    title="Drop data here"
+                                    title="Select text from below and click to add"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11059,9 +11068,18 @@ ${
                                   </div>
                                 ) : (
                                   <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                        if (selectedText.trim()) {
+                                          setBuildModeData(prev => ({ ...prev, order: selectedText.trim() }));
+                                        }
+                                      }
+                                    }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-order"
-                                    title="Drop data here"
+                                    title="Select text from below and click to add"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11109,9 +11127,18 @@ ${
                                   </div>
                                 ) : (
                                   <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                        if (selectedText.trim()) {
+                                          setBuildModeData(prev => ({ ...prev, symbol: selectedText.trim() }));
+                                        }
+                                      }
+                                    }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-symbol"
-                                    title="Drop data here"
+                                    title="Select text from below and click to add"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11159,9 +11186,18 @@ ${
                                   </div>
                                 ) : (
                                   <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                        if (selectedText.trim()) {
+                                          setBuildModeData(prev => ({ ...prev, type: selectedText.trim() }));
+                                        }
+                                      }
+                                    }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-type"
-                                    title="Drop data here"
+                                    title="Select text from below and click to add"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11209,9 +11245,18 @@ ${
                                   </div>
                                 ) : (
                                   <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                        if (selectedText.trim()) {
+                                          setBuildModeData(prev => ({ ...prev, qty: selectedText.trim() }));
+                                        }
+                                      }
+                                    }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-qty"
-                                    title="Drop data here"
+                                    title="Select text from below and click to add"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11259,9 +11304,18 @@ ${
                                   </div>
                                 ) : (
                                   <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                        if (selectedText.trim()) {
+                                          setBuildModeData(prev => ({ ...prev, price: selectedText.trim() }));
+                                        }
+                                      }
+                                    }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-price"
-                                    title="Drop data here"
+                                    title="Select text from below and click to add"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>

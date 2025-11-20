@@ -732,3 +732,30 @@
 [x] 1816. ✅ Clean, intuitive puzzle-like drag-and-drop behavior
 [x] 1817. ✅✅✅ PUZZLE-STYLE SWAP BEHAVIOR COMPLETED! ✅✅✅
 [x] 1818. 🎉🎉🎉 BUILD MODE NOW SWAPS BOXES LIKE A PUZZLE - NO MORE MERGING! 🎉🎉🎉
+
+[x] 1819. NOVEMBER 20, 2025 - TEXT SELECTION FROM TEXTAREA TO + BUTTONS
+[x] 1820. User requested: "when user tap on + icon now user can select text from below tex window what ever user select its appear on that .its basically few time auto format fails to fetch right format that i why we introduced this build mode now user can select right text from trades drag to right coloumn"
+[x] 1821. Requirements identified:
+[x] 1822.   - When auto-parsing fails, users need manual way to select correct text
+[x] 1823.   - User should be able to select text from the textarea below
+[x] 1824.   - Click + button to populate that column with selected text
+[x] 1825.   - This helps fix incorrect auto-parsing results
+[x] 1826. ✅ Updated Time column + button onClick handler
+[x] 1827. ✅ Gets reference to textarea using importDataTextareaRef.current
+[x] 1828. ✅ Reads selected text using textarea.selectionStart and selectionEnd
+[x] 1829. ✅ Populates time field with trimmed selected text
+[x] 1830. ✅ Updated Order column + button with same logic
+[x] 1831. ✅ Updated Symbol column + button with same logic
+[x] 1832. ✅ Updated Type column + button with same logic
+[x] 1833. ✅ Updated Qty column + button with same logic
+[x] 1834. ✅ Updated Price column + button with same logic
+[x] 1835. ✅ All 6 + buttons now capture selected text from textarea
+[x] 1836. ✅ Changed tooltip from "Drop data here" to "Select text from below and click to add"
+[x] 1837. ✅ Updated helper text to explain new feature
+[x] 1838. ✅ New instruction: "Select text below, then click + to add | Drag boxes to swap | X to delete"
+[x] 1839. ✅ Workflow will be restarted to apply changes
+[x] 1840. ✅ User workflow now: 1) Select text in textarea, 2) Click + button, 3) Text appears in that column
+[x] 1841. ✅ Provides manual correction when auto-parsing fails
+[x] 1842. ✅ Users can precisely select the exact text they need
+[x] 1843. ✅✅✅ TEXT SELECTION TO + BUTTONS COMPLETED! ✅✅✅
+[x] 1844. 🎉🎉🎉 USERS CAN NOW SELECT TEXT AND CLICK + TO MANUALLY POPULATE FIELDS! 🎉🎉🎉
