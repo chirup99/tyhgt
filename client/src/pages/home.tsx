@@ -3214,7 +3214,25 @@ ${
   const [importError, setImportError] = useState("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [isBuildMode, setIsBuildMode] = useState(false);
-  const [buildModeData, setBuildModeData] = useState({
+  
+  // Define the format type with optional sampleLine
+  type FormatData = {
+    time: string;
+    order: string;
+    symbol: string;
+    type: string;
+    qty: string;
+    price: string;
+    sampleLine?: string;
+  };
+  
+  // Define ParseResult type for trade parsing
+  type ParseResult = {
+    trades: any[];
+    errors: ParseError[];
+  };
+  
+  const [buildModeData, setBuildModeData] = useState<FormatData>({
     time: "",
     order: "",
     symbol: "",
@@ -3223,11 +3241,11 @@ ${
     price: ""
   });
   const [savedFormatLabel, setSavedFormatLabel] = useState("");
-  const [savedFormats, setSavedFormats] = useState<Record<string, typeof buildModeData>>(() => {
+  const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>(() => {
     const saved = localStorage.getItem("tradingFormats");
     return saved ? JSON.parse(saved) : {};
   });
-  const [activeFormat, setActiveFormat] = useState<typeof buildModeData | null>(null);
+  const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-detect format when pasting data
@@ -5472,7 +5490,7 @@ ${
   };
 
   // Parse trades using saved format template
-  const parseTradesWithFormat = (data: string, format: typeof buildModeData): ParseResult => {
+  const parseTradesWithFormat = (data: string, format: FormatData): ParseResult => {
     const result: ParseResult = {
       trades: [],
       errors: []
@@ -11518,6 +11536,73 @@ ${
                           </tbody>
                         </table>
                       </div>
+
+                      {/* Saved Formats Table - Shows all saved formats with their original trade lines */}
+                      {Object.keys(savedFormats).length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <div className="text-xs font-medium text-muted-foreground">
+                            📚 Saved Formats ({Object.keys(savedFormats).length})
+                          </div>
+                          <div className="bg-background rounded border overflow-hidden">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="bg-muted/50 border-b">
+                                  <th className="px-3 py-2 text-left font-semibold">Format Label</th>
+                                  <th className="px-3 py-2 text-left font-semibold">Original Trade Line</th>
+                                  <th className="px-3 py-2 text-left font-semibold">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Object.entries(savedFormats).map(([label, format]) => (
+                                  <tr key={label} className="border-b last:border-b-0 hover-elevate">
+                                    <td className="px-3 py-2 font-medium">{label}</td>
+                                    <td className="px-3 py-2 font-mono text-muted-foreground truncate max-w-md">
+                                      {format.sampleLine || "No sample line saved"}
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 text-xs"
+                                          onClick={() => {
+                                            setBuildModeData(format);
+                                            setActiveFormat(format);
+                                            console.log("✅ Format loaded from table:", label, format);
+                                          }}
+                                          data-testid={`button-use-format-${label}`}
+                                        >
+                                          Use
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                          onClick={() => {
+                                            if (confirm(`Delete format "${label}"?`)) {
+                                              const newFormats = { ...savedFormats };
+                                              delete newFormats[label];
+                                              setSavedFormats(newFormats);
+                                              localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
+                                              if (activeFormat === format) {
+                                                setActiveFormat(null);
+                                              }
+                                              console.log("🗑️ Format deleted:", label);
+                                            }
+                                          }}
+                                          data-testid={`button-delete-format-${label}`}
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
