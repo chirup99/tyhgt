@@ -8899,17 +8899,121 @@ ${
                           )}
                         </div>
 
-                        {/* Position Sizing Info Banner */}
-                        <div className="mt-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 flex items-center gap-2" data-testid="banner-position-sizing">
-                          <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center flex-shrink-0">
-                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-white font-medium text-xs">Position Sizing: </span>
-                            <span className="text-white/90 text-xs">Use consistent position sizes based on account balance</span>
-                          </div>
+                        {/* Quick Stats Banner */}
+                        <div className="mt-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5" data-testid="banner-quick-stats">
+                          {(() => {
+                            // Calculate metrics from heatmap data
+                            const filteredData = getFilteredHeatmapData();
+                            const dates = Object.keys(filteredData);
+                            let totalPnL = 0;
+                            let totalTrades = 0;
+                            let winningTrades = 0;
+                            let fomoTrades = 0;
+                            let consecutiveWins = 0;
+                            let maxWinStreak = 0;
+                            const trendData: number[] = [];
+                            
+                            dates.sort().forEach(dateKey => {
+                              const dayData = filteredData[dateKey];
+                              const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                              const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                              
+                              if (metrics) {
+                                const netPnL = metrics.netPnL || 0;
+                                totalPnL += netPnL;
+                                totalTrades += metrics.totalTrades || 0;
+                                winningTrades += metrics.winningTrades || 0;
+                                trendData.push(netPnL);
+                                
+                                // Count FOMO trades
+                                if (tags.includes('FOMO')) {
+                                  fomoTrades += metrics.totalTrades || 0;
+                                }
+                                
+                                // Calculate win streak
+                                if (netPnL > 0) {
+                                  consecutiveWins++;
+                                  maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
+                                } else if (netPnL < 0) {
+                                  consecutiveWins = 0;
+                                }
+                              }
+                            });
+                            
+                            const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                            const isProfitable = totalPnL >= 0;
+                            
+                            // Create simple sparkline path
+                            const createSparkline = (data: number[]) => {
+                              if (data.length === 0) return '';
+                              const max = Math.max(...data);
+                              const min = Math.min(...data);
+                              const range = max - min || 1;
+                              const width = 40;
+                              const height = 16;
+                              
+                              const points = data.map((val, i) => {
+                                const x = (i / (data.length - 1 || 1)) * width;
+                                const y = height - ((val - min) / range) * height;
+                                return `${x},${y}`;
+                              }).join(' ');
+                              
+                              return `M ${points.split(' ').join(' L ')}`;
+                            };
+                            
+                            return (
+                              <div className="grid grid-cols-6 gap-2 text-white">
+                                {/* Total P&L */}
+                                <div className="flex flex-col items-center justify-center" data-testid="stat-total-pnl">
+                                  <div className="text-[10px] opacity-80">P&L</div>
+                                  <div className={`text-xs font-bold ${isProfitable ? 'text-green-200' : 'text-red-200'}`}>
+                                    {totalPnL >= 0 ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                                  </div>
+                                </div>
+                                
+                                {/* Performance Trend */}
+                                <div className="flex flex-col items-center justify-center" data-testid="stat-trend">
+                                  <div className="text-[10px] opacity-80">Trend</div>
+                                  <svg width="40" height="16" className="mt-0.5">
+                                    <path
+                                      d={createSparkline(trendData)}
+                                      fill="none"
+                                      stroke="white"
+                                      strokeWidth="1.5"
+                                      opacity="0.9"
+                                    />
+                                  </svg>
+                                </div>
+                                
+                                {/* FOMO Trades */}
+                                <div className="flex flex-col items-center justify-center" data-testid="stat-fomo">
+                                  <div className="text-[10px] opacity-80">FOMO</div>
+                                  <div className="text-xs font-bold">{fomoTrades}</div>
+                                </div>
+                                
+                                {/* Success Rate */}
+                                <div className="flex flex-col items-center justify-center" data-testid="stat-success-rate">
+                                  <div className="text-[10px] opacity-80">Win%</div>
+                                  <div className="text-xs font-bold">{winRate.toFixed(0)}%</div>
+                                </div>
+                                
+                                {/* Win Streak */}
+                                <div className="flex flex-col items-center justify-center" data-testid="stat-win-streak">
+                                  <div className="text-[10px] opacity-80">Streak</div>
+                                  <div className="text-xs font-bold">{maxWinStreak}</div>
+                                </div>
+                                
+                                {/* Share Icon */}
+                                <div className="flex items-center justify-center" data-testid="button-share">
+                                  <button className="w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </CardContent>
                     </Card>
