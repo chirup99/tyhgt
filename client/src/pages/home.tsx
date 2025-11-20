@@ -8815,12 +8815,14 @@ ${
                             <DemoHeatmap 
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
+                              tradingDataByDate={tradingDataByDate}
                             />
                           ) : (
                             <PersonalHeatmap
                               userId={getUserId()}
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
+                              tradingDataByDate={tradingDataByDate}
                             />
                           )}
                         </div>

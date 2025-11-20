@@ -7,32 +7,16 @@ interface PersonalHeatmapProps {
   userId: string | null;
   onDateSelect: (date: Date) => void;
   selectedDate: Date | null;
+  tradingDataByDate: Record<string, any>; // SAME DATA AS TRADE WINDOW
 }
 
-// SIMPLE: Get P&L from data - try all possible fields
-function getDataPnL(data: any): number {
+// EXACT SAME LOGIC AS TRADE WINDOW (home.tsx line 4505)
+function getNetPnL(data: any): number {
   if (!data) return 0;
   
-  // Try direct netPnL field
-  if (typeof data.netPnL === 'number') return data.netPnL;
-  
-  // Try profit/loss fields
-  if (typeof data.totalProfit === 'number' || typeof data.totalLoss === 'number') {
-    return (data.totalProfit || 0) - Math.abs(data.totalLoss || 0);
-  }
-  
-  // Try trade history
-  if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
-    let total = 0;
-    for (const trade of data.tradeHistory) {
-      if (trade.pnl) {
-        const pnl = typeof trade.pnl === 'string' 
-          ? parseFloat(trade.pnl.replace(/[₹,]/g, ''))
-          : trade.pnl;
-        if (!isNaN(pnl)) total += pnl;
-      }
-    }
-    return total;
+  // Use performanceMetrics.netPnL - EXACT SAME AS TRADE WINDOW
+  if (data.performanceMetrics) {
+    return data.performanceMetrics.netPnL || 0;
   }
   
   return 0;
@@ -57,62 +41,14 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: PersonalHeatmapProps) {
+export function PersonalHeatmap({ userId, onDateSelect, selectedDate, tradingDataByDate }: PersonalHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [personalData, setPersonalData] = useState<Record<string, any>>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
 
-  // Load personal data from Firebase
-  useEffect(() => {
-    if (!userId) {
-      console.log("⚠️ PERSONAL HEATMAP: No userId provided");
-      return;
-    }
-
-    const loadPersonalData = async () => {
-      setIsLoading(true);
-      
-      try {
-        console.log(`📊 PERSONAL HEATMAP: Loading data for userId: ${userId}`);
-        
-        const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-        const response = await fetch(`${API_BASE_URL}/api/user-journal/${userId}/all`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load personal data: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log(`✅ PERSONAL HEATMAP: Got data for`, Object.keys(data).length, "dates");
-        
-        // Debug: Log first entry to see structure
-        const firstKey = Object.keys(data)[0];
-        if (firstKey) {
-          const sample = data[firstKey];
-          const pnl = getDataPnL(sample);
-          console.log("📊 Sample date:", firstKey, "P&L:", pnl, "Color:", getPnLColor(pnl));
-        }
-        
-        setPersonalData(data);
-        localStorage.setItem("personalTradingDataByDate", JSON.stringify(data));
-      } catch (error) {
-        console.error("❌ PERSONAL HEATMAP: Failed to load data:", error);
-        const stored = localStorage.getItem("personalTradingDataByDate");
-        if (stored) {
-          setPersonalData(JSON.parse(stored));
-          console.log("📊 PERSONAL HEATMAP: Loaded from localStorage fallback");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPersonalData();
-  }, [userId]);
+  // NO FETCHING! Use tradingDataByDate prop (same as trade window)
 
   // Generate calendar data for the year
   const generateMonthsData = () => {
@@ -197,79 +133,75 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
           Personal Trading Calendar {currentDate.getFullYear()}
         </h3>
-        {isLoading && (
-          <span className="text-xs text-gray-500">Loading...</span>
-        )}
+        <span className="text-xs text-gray-500">
+          {Object.keys(tradingDataByDate).length} dates
+        </span>
       </div>
 
       <div className="flex flex-col gap-2">
         <div className="overflow-x-auto thin-scrollbar">
-          {isLoading ? (
-            <div className="text-center text-sm text-gray-500 py-4">Loading calendar...</div>
-          ) : (
-            <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
-              {months.map((month, monthIndex) => (
-                <div key={monthIndex} className="flex flex-col gap-0.5">
-                  <div className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1 text-center select-none">
-                    {month.name}
+          <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
+            {months.map((month, monthIndex) => (
+              <div key={monthIndex} className="flex flex-col gap-0.5">
+                <div className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1 text-center select-none">
+                  {month.name}
+                </div>
+                <div className="flex gap-1">
+                  <div className="flex flex-col gap-1 select-none">
+                    {dayLabels.map((label, index) => (
+                      <div
+                        key={index}
+                        className="w-3 h-3 flex items-center justify-center text-[8px] text-gray-500 dark:text-gray-500 select-none"
+                      >
+                        {label}
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex gap-1">
-                    <div className="flex flex-col gap-1 select-none">
-                      {dayLabels.map((label, index) => (
-                        <div
-                          key={index}
-                          className="w-3 h-3 flex items-center justify-center text-[8px] text-gray-500 dark:text-gray-500 select-none"
-                        >
-                          {label}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col gap-1 min-w-fit select-none">
-                      {month.dayRows.map((dayRow, dayIndex) => (
-                        <div key={dayIndex} className="flex gap-0.5 select-none">
-                          {dayRow.map((date, colIndex) => {
-                            if (!date) return <div key={colIndex} className="w-3 h-3" />;
+                  <div className="flex flex-col gap-1 min-w-fit select-none">
+                    {month.dayRows.map((dayRow, dayIndex) => (
+                      <div key={dayIndex} className="flex gap-0.5 select-none">
+                        {dayRow.map((date, colIndex) => {
+                          if (!date) return <div key={colIndex} className="w-3 h-3" />;
+                          
+                          // Format date key YYYY-MM-DD
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const dateKey = `${year}-${month}-${day}`;
+                          
+                          // Get data from tradingDataByDate (SAME AS TRADE WINDOW)
+                          const data = tradingDataByDate[dateKey];
+                          
+                          // Use EXACT SAME LOGIC as trade window
+                          const netPnL = getNetPnL(data);
+                          let cellColor = getPnLColor(netPnL);
                             
-                            // SIMPLE: Format date key YYYY-MM-DD
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const dateKey = `${year}-${month}-${day}`;
-                            
-                            // SIMPLE: Get data for this date
-                            const dayData = personalData[dateKey];
-                            
-                            // SIMPLE: Calculate P&L and get color
-                            const pnl = getDataPnL(dayData);
-                            let cellColor = getPnLColor(pnl);
-                            
-                            // Override for selected date
-                            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
-                            if (isSelected) {
-                              cellColor = "bg-gray-900 dark:bg-gray-100";
-                            }
+                          // Override for selected date
+                          const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+                          if (isSelected) {
+                            cellColor = "bg-gray-900 dark:bg-gray-100";
+                          }
 
-                            return (
-                              <div
-                                key={colIndex}
-                                className={`w-3 h-3 rounded-sm cursor-pointer ${cellColor}`}
-                                onClick={() => {
-                                  setCurrentDate(date);
-                                  onDateSelect(date);
-                                }}
-                                title={`${dateKey}: ₹${pnl.toFixed(2)}`}
-                                data-testid={`personal-calendar-day-${date.getDate()}-${date.getMonth()}`}
-                              />
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
+                          return (
+                            <div
+                              key={colIndex}
+                              className={`w-3 h-3 rounded-sm cursor-pointer ${cellColor}`}
+                              onClick={() => {
+                                setCurrentDate(date);
+                                onDateSelect(date);
+                              }}
+                              title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
+                              data-testid={`personal-calendar-day-${date.getDate()}-${date.getMonth()}`}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
