@@ -759,3 +759,34 @@
 [x] 1842. ✅ Users can precisely select the exact text they need
 [x] 1843. ✅✅✅ TEXT SELECTION TO + BUTTONS COMPLETED! ✅✅✅
 [x] 1844. 🎉🎉🎉 USERS CAN NOW SELECT TEXT AND CLICK + TO MANUALLY POPULATE FIELDS! 🎉🎉🎉
+
+[x] 1845. NOVEMBER 20, 2025 - SAVE & LOAD FORMAT TEMPLATES FEATURE
+[x] 1846. User requested: "add load save button with label save when user save the right format import button should understand the compare trade line complete with newly build format when user past uneven format based on he save load same format for its should analysis both saved build and past trades"
+[x] 1847. Requirements identified:
+[x] 1848.   - Add Save button with label input to save current format mapping
+[x] 1849.   - Add Load dropdown to select and load saved formats
+[x] 1850.   - Store saved formats in localStorage for persistence
+[x] 1851.   - Users can save their custom format mappings for reuse
+[x] 1852.   - When pasting uneven format data, load saved format to match correctly
+[x] 1853. ✅ Added savedFormatLabel state to track format label input
+[x] 1854. ✅ Added savedFormats state with localStorage persistence
+[x] 1855. ✅ Loads saved formats from localStorage on component mount
+[x] 1856. ✅ Added format label input field (placeholder: "Format label", w-32, text-xs)
+[x] 1857. ✅ Added Save button with Save icon from lucide-react
+[x] 1858. ✅ Save button validates label is not empty before saving
+[x] 1859. ✅ Saves buildModeData to savedFormats with user-provided label as key
+[x] 1860. ✅ Persists saved formats to localStorage ("tradingFormats" key)
+[x] 1861. ✅ Clears label input after successful save
+[x] 1862. ✅ Shows success alert: "Format [label] saved successfully!"
+[x] 1863. ✅ Added Load Format dropdown (only shows when savedFormats exist)
+[x] 1864. ✅ Dropdown populated with all saved format labels
+[x] 1865. ✅ Selecting format from dropdown loads it into buildModeData
+[x] 1866. ✅ Loaded format immediately populates all 6 fields (time, order, symbol, type, qty, price)
+[x] 1867. ✅ Users can now save custom format mappings for different broker formats
+[x] 1868. ✅ Users can switch between saved formats using dropdown
+[x] 1869. ✅ Imported Save icon from lucide-react
+[x] 1870. ✅ All UI elements have proper test IDs for testing
+[x] 1871. ✅ Format saves persist across browser sessions (localStorage)
+[x] 1872. ✅ Workflow will be restarted to apply changes
+[x] 1873. ✅✅✅ SAVE & LOAD FORMAT TEMPLATES FEATURE COMPLETED! ✅✅✅
+[x] 1874. 🎉🎉🎉 USERS CAN NOW SAVE AND REUSE CUSTOM FORMAT MAPPINGS! 🎉🎉🎉

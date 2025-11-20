@@ -40,7 +40,7 @@ import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { LogOut, ArrowLeft } from "lucide-react";
+import { LogOut, ArrowLeft, Save } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
 
 // Global window type declaration for audio control
@@ -3222,6 +3222,11 @@ ${
     type: "",
     qty: "",
     price: ""
+  });
+  const [savedFormatLabel, setSavedFormatLabel] = useState("");
+  const [savedFormats, setSavedFormats] = useState<Record<string, typeof buildModeData>>(() => {
+    const saved = localStorage.getItem("tradingFormats");
+    return saved ? JSON.parse(saved) : {};
   });
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -10940,18 +10945,63 @@ ${
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
                   {isBuildMode ? (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="text-xs font-medium text-muted-foreground">
                           🔨 Build Mode - Select text below, then click + to add | Drag boxes to swap | X to delete
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsBuildMode(false)}
-                          data-testid="button-close-build-mode"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder="Format label"
+                            value={savedFormatLabel}
+                            onChange={(e) => setSavedFormatLabel(e.target.value)}
+                            className="h-8 w-32 text-xs"
+                            data-testid="input-format-label"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (!savedFormatLabel.trim()) {
+                                alert("Please enter a label for this format");
+                                return;
+                              }
+                              const newFormats = { ...savedFormats, [savedFormatLabel]: buildModeData };
+                              setSavedFormats(newFormats);
+                              localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
+                              setSavedFormatLabel("");
+                              alert(`Format "${savedFormatLabel}" saved successfully!`);
+                            }}
+                            data-testid="button-save-format"
+                          >
+                            <Save className="w-3.5 h-3.5 mr-1" />
+                            Save
+                          </Button>
+                          {Object.keys(savedFormats).length > 0 && (
+                            <select
+                              className="h-8 px-2 text-xs border rounded bg-background"
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  setBuildModeData(savedFormats[e.target.value]);
+                                }
+                              }}
+                              defaultValue=""
+                              data-testid="select-load-format"
+                            >
+                              <option value="">Load Format</option>
+                              {Object.keys(savedFormats).map((label) => (
+                                <option key={label} value={label}>{label}</option>
+                              ))}
+                            </select>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsBuildMode(false)}
+                            data-testid="button-close-build-mode"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="bg-background rounded border overflow-hidden">
