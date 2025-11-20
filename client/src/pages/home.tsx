@@ -3246,6 +3246,7 @@ ${
     return saved ? JSON.parse(saved) : {};
   });
   const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
+  const [detectedFormatLabel, setDetectedFormatLabel] = useState<string | null>(null);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-detect format when pasting data
@@ -3257,10 +3258,18 @@ ${
       for (const [label, format] of Object.entries(savedFormats)) {
         if (format.sampleLine && firstLine === format.sampleLine) {
           setActiveFormat(format);
+          setDetectedFormatLabel(label);
           console.log("🎯 Auto-detected format:", label, "for line:", firstLine);
           return;
         }
       }
+      // No match found - clear active format
+      setActiveFormat(null);
+      setDetectedFormatLabel(null);
+    } else if (!importData.trim()) {
+      // Clear when data is cleared
+      setActiveFormat(null);
+      setDetectedFormatLabel(null);
     }
   }, [importData, savedFormats]);
 
@@ -5647,8 +5656,8 @@ ${
       // Calculate P&L for the successfully parsed trades
       const processedData = calculateSimplePnL(trades);
 
-      // Set trade history data
-      setTradeHistoryData(processedData);
+      // Add imported trades to existing trade history (not replace)
+      setTradeHistoryData((prev) => [...processedData, ...prev]);
 
       // Show success message with counts
       if (errors.length > 0) {
@@ -5658,7 +5667,13 @@ ${
         );
       } else {
         // Full success
-        console.log(`✅ Successfully imported all ${trades.length} trades!`);
+        const formatInfo = detectedFormatLabel ? ` using "${detectedFormatLabel}" format` : "";
+        console.log(`✅ Successfully imported ${trades.length} trades${formatInfo}! Added to existing trade history.`);
+      }
+      
+      // Log format detection info
+      if (activeFormat && detectedFormatLabel) {
+        console.log(`🎯 Used auto-detected "${detectedFormatLabel}" format for parsing!`);
       }
 
       // Close modal and show order modal only if no errors, otherwise keep modal open to show errors
@@ -11099,16 +11114,16 @@ ${
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Label className="text-sm font-medium">Custom Data</Label>
-                  {activeFormat && (
+                  {activeFormat && detectedFormatLabel && (
                     <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
-                      ✓ Format Active
+                      ✓ Detected: {detectedFormatLabel}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 mb-3">
                   {activeFormat 
-                    ? "Using custom format for import. Data will be parsed according to your saved template."
-                    : "Paste your trade data in your broker's format. Our system will parse it automatically."
+                    ? `Auto-detected "${detectedFormatLabel}" format. Import will add trades to your existing history using this format.`
+                    : "Paste your trade data in your broker's format. If you've saved this format before, it will be auto-detected."
                   }
                 </p>
                 
