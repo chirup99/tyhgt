@@ -4424,51 +4424,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Journal Database API endpoints with Firebase Google Cloud as primary storage
   // NO local memory storage - ONLY Firebase data
 
-  // Get all journal dates with data for heatmap color loading
+  // ✅ SIMPLIFIED: Get all journal dates ONLY from journal-database (Firebase real data)
+  // Filters out empty date entries - only returns dates with actual journal content
+  // NO localStorage, NO caching, NO multiple collections - Just pure Firebase data
   app.get('/api/journal/all-dates', async (req, res) => {
     try {
-      console.log('🔍 Fetching ALL journal data from ALL Google Cloud collections...');
+      console.log('📊 Fetching journal data from Firebase journal-database ONLY...');
       
-      const allJournalData: any = {};
-      let googleCloudWorking = false;
+      // Fetch ONLY from journal-database - the single source of truth
+      const allData = await googleCloudService.getAllCollectionData('journal-database');
       
-      // Check ALL possible Google Cloud collections for journal data
-      const collectionsToCheck = [
-        'journal-database',    // Primary journal collection
-        'cache',              // Cache collection
-        'trading-data',       // Trading data collection
-        'journal-entries',    // Alternative journal collection
-        'user-data',          // User data collection
-        'images',             // Images collection
-        'trading-journal',    // Alternative trading journal collection
-        'perala-data'         // Perala data collection
-      ];
-      
-      for (const collectionName of collectionsToCheck) {
-        try {
-          console.log(`🔍 Checking Google Cloud collection: '${collectionName}'...`);
-          const cloudData = await googleCloudService.getAllCollectionData(collectionName);
-          if (cloudData && Object.keys(cloudData).length > 0) {
-            Object.assign(allJournalData, cloudData);
-            console.log(`☁️ SUCCESS! Found ${Object.keys(cloudData).length} entries in '${collectionName}'`);
-            googleCloudWorking = true;
+      if (allData && Object.keys(allData).length > 0) {
+        // ✅ FILTER: Remove empty date entries - only keep dates with actual journal content
+        // Valid entry = has at least one of: tradeHistory, tradingNotes, or images
+        const validJournalData: Record<string, any> = {};
+        
+        Object.entries(allData).forEach(([date, entry]) => {
+          const hasTradeHistory = Array.isArray(entry?.tradeHistory) && entry.tradeHistory.length > 0;
+          const hasNotes = typeof entry?.tradingNotes === 'string' && entry.tradingNotes.trim().length > 0;
+          const hasImages = Array.isArray(entry?.images) && entry.images.length > 0;
+          
+          // Only include dates with meaningful content
+          if (hasTradeHistory || hasNotes || hasImages) {
+            validJournalData[date] = entry;
           } else {
-            console.log(`☁️ No data found in collection '${collectionName}'`);
+            console.log(`⏭️ Skipping empty date: ${date} (no trades/notes/images)`);
           }
-        } catch (error) {
-          console.log(`⚠️ Collection '${collectionName}' unavailable:`, error instanceof Error ? error.message : error);
-        }
+        });
+        
+        const totalDates = Object.keys(allData).length;
+        const validDates = Object.keys(validJournalData).length;
+        const skipped = totalDates - validDates;
+        
+        console.log(`✅ Firebase: ${totalDates} total dates, ${validDates} with data, ${skipped} empty (filtered out)`);
+        res.json(validJournalData);
+      } else {
+        console.log('⚠️ No journal data found in Firebase journal-database');
+        res.json({});
       }
-      
-      console.log(`📊 Total journal entries for heatmap: ${Object.keys(allJournalData).length}`);
-      
-      // Return the data (even if empty) with proper status
-      if (Object.keys(allJournalData).length === 0) {
-        console.log('⚠️ No journal data found, returning empty object with 200 status');
-      }
-      res.json(allJournalData);
     } catch (error) {
-      console.error('❌ Error fetching all journal dates:', error);
+      console.error('❌ Error fetching journal dates from Firebase:', error);
       res.status(500).json({ error: 'Failed to fetch journal dates', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });

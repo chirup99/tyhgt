@@ -3267,24 +3267,12 @@ ${
     },
   ]);
 
-  // ✅ TWO SEPARATE HEATMAP DATA STATES - NO MERGING!
-  // Demo heatmap data (Heatmap #1)
-  const [demoTradingDataByDate, setDemoTradingDataByDate] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("demoTradingDataByDate");
-      return stored ? JSON.parse(stored) : {};
-    }
-    return {};
-  });
+  // ✅ SIMPLIFIED: TWO SEPARATE HEATMAP DATA STATES - NO localStorage!
+  // Demo heatmap data (Heatmap #1) - loaded directly from Firebase
+  const [demoTradingDataByDate, setDemoTradingDataByDate] = useState<Record<string, any>>({});
 
-  // Personal heatmap data (Heatmap #2)
-  const [personalTradingDataByDate, setPersonalTradingDataByDate] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("personalTradingDataByDate");
-      return stored ? JSON.parse(stored) : {};
-    }
-    return {};
-  });
+  // Personal heatmap data (Heatmap #2) - loaded directly from Firebase
+  const [personalTradingDataByDate, setPersonalTradingDataByDate] = useState<Record<string, any>>({});
 
   // ✅ PERSONAL HEATMAP REVISION: Track updates to force React re-renders
   // This counter increments after personal auto-clicking completes
@@ -3364,75 +3352,33 @@ ${
         setIsLoadingHeatmapData(true);
 
         if (isDemoMode) {
-          // DEMO MODE: Fetch from /api/journal/all-dates (Google Cloud shared demo data)
-          console.log("📊 DEMO MODE: Fetching shared demo data from /api/journal/all-dates");
-          const url = getFullApiUrl("/api/journal/all-dates");
-          console.log("📡 Full URL:", url);
-          const response = await fetch(url);
-          console.log("📊 Response status:", response.status, response.statusText);
+          // ✅ SIMPLIFIED: Fetch ONLY from Firebase journal-database - NO localStorage!
+          console.log("📊 Fetching demo data from Firebase journal-database...");
+          const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
 
           if (response.ok) {
-            const allDatesData = await response.json();
-            console.log(
-              "✅ DEMO data loaded:",
-              Object.keys(allDatesData).length,
-              "dates",
-            );
+            const firebaseData = await response.json();
+            const dateCount = Object.keys(firebaseData).length;
+            console.log(`✅ Loaded ${dateCount} real dates from Firebase`);
 
-            // ✅ Update DEMO HEATMAP #1 with all the loaded data
-            setDemoTradingDataByDate(allDatesData);
+            // Update state with ONLY Firebase data
+            setDemoTradingDataByDate(firebaseData);
+            setCalendarData(firebaseData);
 
-            // CRITICAL: Also update calendarData to ensure heatmap functions work properly
-            setCalendarData(allDatesData);
-
-            // Save to localStorage for offline access
-            localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
-
-            console.log("✅ DEMO heatmap data loaded successfully - all colors will display automatically");
-
-            // Auto-select the latest date if no date is currently selected
-            if (!selectedDate && Object.keys(allDatesData).length > 0) {
-              const sortedDates = Object.keys(allDatesData).sort(
+            // Auto-select latest date if any dates exist
+            if (!selectedDate && dateCount > 0) {
+              const sortedDates = Object.keys(firebaseData).sort(
                 (a, b) => new Date(b).getTime() - new Date(a).getTime(),
               );
-              const latestDateStr = sortedDates[0];
-              const latestDate = new Date(latestDateStr);
-
-              console.log("🎯 Auto-selecting latest DEMO date:", latestDateStr);
+              const latestDate = new Date(sortedDates[0]);
+              console.log(`🎯 Auto-selecting latest Firebase date: ${sortedDates[0]}`);
               setSelectedDate(latestDate);
               await handleDateSelect(latestDate);
             }
           } else {
-            console.log(
-              "📭 No DEMO data found from API, trying localStorage fallback...",
-            );
-            // Use localStorage data as primary fallback
-            const localStorageData = localStorage.getItem("tradingDataByDate");
-            if (localStorageData) {
-              const parsedLocalData = JSON.parse(localStorageData);
-              console.log(
-                "💾 Found localStorage demo data:",
-                Object.keys(parsedLocalData).length,
-                "entries",
-              );
-              setTradingDataByDate(parsedLocalData);
-              setCalendarData(parsedLocalData);
-
-              // Auto-select latest date from localStorage
-              if (!selectedDate && Object.keys(parsedLocalData).length > 0) {
-                const sortedDates = Object.keys(parsedLocalData).sort(
-                  (a, b) => new Date(b).getTime() - new Date(a).getTime(),
-                );
-                const latestDateStr = sortedDates[0];
-                const latestDate = new Date(latestDateStr);
-                console.log(
-                  "🎯 Auto-selecting latest date from localStorage:",
-                  latestDateStr,
-                );
-                setSelectedDate(latestDate);
-                await handleDateSelect(latestDate);
-              }
-            }
+            console.log("⚠️ No data in Firebase journal-database");
+            setDemoTradingDataByDate({});
+            setCalendarData({});
           }
         } else {
           // PERSONAL MODE: Fetch user-specific data from Firebase
@@ -4094,20 +4040,20 @@ ${
           localStorage.setItem("tradingJournalDemoMode", "true");
         }
       } else {
-        // Demo mode - load demo data instantly
-        console.log(`📊 Demo mode - loading demo data instantly...`);
+        // ✅ SIMPLIFIED: Load demo data directly from Firebase - NO localStorage!
+        console.log(`📊 Demo mode - loading from Firebase journal-database...`);
         (async () => {
           try {
             const response = await fetch(getFullApiUrl('/api/journal/all-dates'));
             if (response.ok) {
-              const allDatesData = await response.json();
-              setDemoTradingDataByDate(allDatesData);
-              setCalendarData(allDatesData);
-              localStorage.setItem("demoTradingDataByDate", JSON.stringify(allDatesData));
-              console.log(`✅ Demo data loaded instantly:`, Object.keys(allDatesData).length, "dates");
+              const firebaseData = await response.json();
+              const dateCount = Object.keys(firebaseData).length;
+              setDemoTradingDataByDate(firebaseData);
+              setCalendarData(firebaseData);
+              console.log(`✅ Loaded ${dateCount} real dates from Firebase`);
             }
           } catch (error) {
-            console.error("❌ Error loading demo data:", error);
+            console.error("❌ Error loading from Firebase:", error);
           }
         })();
       }
