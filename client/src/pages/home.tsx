@@ -159,6 +159,7 @@ import {
   Radio,
   Eye,
   Blocks,
+  Hammer,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -10988,19 +10989,30 @@ ${
                         <p className="text-xs text-muted-foreground">
                           ✨ This preview updates automatically as you paste - check your format before importing
                         </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsBlockEditorMode(true)}
-                          className="gap-1.5"
-                          data-testid="button-open-block-editor"
-                        >
-                          <Blocks className="w-3.5 h-3.5" />
-                          {importData.trim() && parseBrokerTrades(importData).trades.length === 0 
-                            ? "Fix Format"
-                            : "Block Editor"
-                          }
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsBlockEditorMode(true)}
+                            className="gap-1.5"
+                            data-testid="button-open-block-editor"
+                          >
+                            <Blocks className="w-3.5 h-3.5" />
+                            {importData.trim() && parseBrokerTrades(importData).trades.length === 0 
+                              ? "Fix Format"
+                              : "Block Editor"
+                            }
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            data-testid="button-build"
+                          >
+                            <Hammer className="w-3.5 h-3.5" />
+                            Build
+                          </Button>
+                        </div>
                       </div>
                     </>
                   ) : (
