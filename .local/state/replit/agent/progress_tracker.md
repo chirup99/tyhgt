@@ -70,3 +70,29 @@
 [x] 1309. ✅ Workflow restarted successfully, application running on port 5000
 [x] 1310. ✅✅✅ HARDCODED TRADE DATA COMPLETELY REMOVED! ✅✅✅
 [x] 1311. 🎉🎉🎉 TRADE HISTORY NOW 100% FIREBASE DATA - NO MOCK/CONSTRUCTED DATA! 🎉🎉🎉
+
+[x] 1312. NOVEMBER 20, 2025 - CRITICAL PERSONAL HEATMAP FIXES
+[x] 1313. User requirement: "All progress tracker items must be marked as [x] done"
+[x] 1314. Issue identified: PersonalHeatmap showing ₹0.00 for all dates despite real Firebase data
+[x] 1315. Root cause 1: Express route collision - `/api/user-journal/:userId/:date` intercepting `/api/user-journal/:userId/all`
+[x] 1316. Root cause 2: Firestore subcollection access using wrong syntax - `collection(path)` instead of `doc().collection()`
+[x] 1317. Root cause 3: calculatePnL checking for `data.performanceMetrics` instead of `data.tradingData.performanceMetrics`
+[x] 1318. ✅ Fixed Express route ordering in server/routes.ts - moved `/all` route BEFORE `/:userId/:date` route
+[x] 1319. ✅ Fixed Firestore subcollection access in server/google-cloud-service.ts - using `doc(parentPath).collection(name)`
+[x] 1320. ✅ Fixed calculatePnL in PersonalHeatmap.tsx to handle wrapped Firebase data structure
+[x] 1321. ✅ P&L calculation now checks `data.tradingData?.performanceMetrics?.netPnL` first (wrapped Firebase format)
+[x] 1322. ✅ Fallback to unwrapped format for backward compatibility
+[x] 1323. ✅ Also checks wrapped/unwrapped tradeHistory for P&L calculation fallback
+[x] 1324. ✅ Architect reviewed all fixes - confirmed correct implementation
+[x] 1325. ✅ Browser console logs confirm fix working:
+[x] 1326.   - "📊 PersonalHeatmap: 2025-03-02 = ₹506.80"
+[x] 1327.   - "📊 PersonalHeatmap: 2025-03-03 = ₹1170.00"
+[x] 1328.   - "📊 PersonalHeatmap: 2025-03-04 = ₹2941.50"
+[x] 1329.   - "📊 PersonalHeatmap: 2025-09-19 = ₹-1612.80"
+[x] 1330. ✅ PersonalHeatmap now loads ALL 4 dates from Firebase (instead of 0)
+[x] 1331. ✅ P&L values now showing correctly instead of ₹0.00
+[x] 1332. ✅ Heatmap colors displaying correctly: Green for profits, Red for losses
+[x] 1333. ✅ All Express routes working correctly - no more route collision
+[x] 1334. ✅ Firestore subcollection queries now returning data successfully
+[x] 1335. ✅✅✅ PERSONAL HEATMAP CRITICAL FIXES COMPLETED! ✅✅✅
+[x] 1336. 🎉🎉🎉 PERSONAL HEATMAP NOW DISPLAYS REAL FIREBASE DATA WITH CORRECT COLORS! 🎉🎉🎉
