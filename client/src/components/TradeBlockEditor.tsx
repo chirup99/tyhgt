@@ -9,6 +9,7 @@ import {
   useSensor,
   useSensors,
   closestCenter,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -105,7 +106,7 @@ function DraggableBlock({
   );
 }
 
-// Column Drop Zone Component
+// Column Drop Zone Component with useDroppable
 function ColumnDropZone({
   headerKey,
   blockIds,
@@ -121,11 +122,19 @@ function ColumnDropZone({
   const hasBlocks = blockIds.length > 0;
   const isValid = !config.required || hasBlocks;
 
+  // Register as droppable zone
+  const { setNodeRef, isOver } = useDroppable({
+    id: headerKey, // This makes it a droppable target
+  });
+
   return (
     <div className="flex-1 min-w-[120px]" data-testid={`dropzone-${headerKey}`}>
       <div
-        className={`flex flex-col gap-2 border-2 border-dashed rounded-md p-3 min-h-[80px] ${
-          isValid
+        ref={setNodeRef}
+        className={`flex flex-col gap-2 border-2 border-dashed rounded-md p-3 min-h-[80px] transition-colors ${
+          isOver
+            ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-950'
+            : isValid
             ? 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'
             : 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950'
         }`}
@@ -160,6 +169,55 @@ function ColumnDropZone({
           </div>
         </SortableContext>
       </div>
+    </div>
+  );
+}
+
+// Unassigned Drop Zone Component with useDroppable
+function UnassignedDropZone({
+  blockIds,
+  blocks,
+  onDeleteBlock,
+}: {
+  blockIds: string[];
+  blocks: Record<string, Block>;
+  onDeleteBlock: (id: string) => void;
+}) {
+  // Register as droppable zone - ALWAYS rendered so it's always a valid drop target
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'unassigned', // This makes it a droppable target
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`border border-dashed rounded-md p-3 min-h-[60px] transition-colors ${
+        isOver
+          ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-950'
+          : 'border-gray-300 dark:border-gray-600'
+      }`}
+      data-testid="dropzone-unassigned"
+    >
+      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        Unassigned Blocks
+      </div>
+      <SortableContext items={blockIds} strategy={horizontalListSortingStrategy}>
+        <div className="flex flex-wrap gap-1.5">
+          {blockIds.length > 0 ? (
+            blockIds.map((blockId) => {
+              const block = blocks[blockId];
+              if (!block) return null;
+              return (
+                <DraggableBlock key={blockId} block={block} onDelete={onDeleteBlock} />
+              );
+            })
+          ) : (
+            <div className="text-xs text-gray-400 dark:text-gray-500 italic">
+              Drag blocks here to unassign them
+            </div>
+          )}
+        </div>
+      </SortableContext>
     </div>
   );
 }
@@ -215,19 +273,58 @@ export function TradeBlockEditor({
     useSensor(KeyboardSensor)
   );
 
-  // Load saved mapping from localStorage
+  // Load saved mapping from localStorage and rehydrate state
   useEffect(() => {
     const savedMapping = localStorage.getItem(`tradeBlockMapping_${brokerKey}`);
     if (savedMapping) {
       try {
         const mapping: Record<HeaderKey, number> = JSON.parse(savedMapping);
-        // Auto-assign blocks based on saved mapping
         console.log('📥 Loaded saved mapping for', brokerKey, mapping);
+        
+        // Auto-assign blocks based on saved mapping
+        setState((prev) => {
+          const tokens = failedLine.trim().split(/\s+/).filter(Boolean);
+          const newColumns = { ...prev.columns };
+          const newUnassigned = [...prev.unassigned];
+          const newBlocks = { ...prev.blocks };
+
+          // Apply mapping: move blocks from unassigned to columns
+          HEADER_ORDER.forEach((headerKey) => {
+            const tokenIndex = mapping[headerKey];
+            if (tokenIndex !== undefined && tokenIndex < tokens.length) {
+              // Find block with matching text at this position
+              const targetText = tokens[tokenIndex];
+              const blockId = newUnassigned.find(id => 
+                newBlocks[id]?.text === targetText
+              );
+              
+              if (blockId) {
+                // Move block to column
+                newColumns[headerKey] = [blockId];
+                newBlocks[blockId] = {
+                  ...newBlocks[blockId],
+                  column: headerKey,
+                };
+                // Remove from unassigned
+                const unassignedIndex = newUnassigned.indexOf(blockId);
+                if (unassignedIndex > -1) {
+                  newUnassigned.splice(unassignedIndex, 1);
+                }
+              }
+            }
+          });
+
+          return {
+            blocks: newBlocks,
+            columns: newColumns,
+            unassigned: newUnassigned,
+          };
+        });
       } catch (e) {
         console.error('Failed to load mapping:', e);
       }
     }
-  }, [brokerKey]);
+  }, [brokerKey, failedLine]);
 
   // Handle text selection from textarea
   const handleTextareaSelection = useCallback(() => {
@@ -387,19 +484,27 @@ export function TradeBlockEditor({
   const handleSaveMapping = () => {
     // Create mapping: column -> position in original line
     const mapping: Record<HeaderKey, number> = {} as any;
+    const tokens = failedLine.trim().split(/\s+/).filter(Boolean);
     
     HEADER_ORDER.forEach((key) => {
-      const blocks = state.columns[key];
-      if (blocks.length > 0) {
-        // Use first block's original index as position
-        mapping[key] = 0; // Simplified for now
+      const blockIds = state.columns[key];
+      if (blockIds.length > 0) {
+        // Get the first block's text
+        const firstBlock = state.blocks[blockIds[0]];
+        if (firstBlock) {
+          // Find this block's position in the original tokens array
+          const tokenIndex = tokens.indexOf(firstBlock.text);
+          if (tokenIndex !== -1) {
+            mapping[key] = tokenIndex;
+          }
+        }
       }
     });
 
     // Save to localStorage
     localStorage.setItem(`tradeBlockMapping_${brokerKey}`, JSON.stringify(mapping));
     
-    console.log('💾 Saved mapping:', mapping);
+    console.log('💾 Saved mapping with actual indices:', mapping);
     onSaveMapping(mapping);
   };
 
@@ -454,24 +559,11 @@ export function TradeBlockEditor({
         </div>
 
         {/* Unassigned Blocks */}
-        {state.unassigned.length > 0 && (
-          <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-3">
-            <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Unassigned Blocks
-            </div>
-            <SortableContext items={state.unassigned} strategy={horizontalListSortingStrategy}>
-              <div className="flex flex-wrap gap-1.5">
-                {state.unassigned.map((blockId) => {
-                  const block = state.blocks[blockId];
-                  if (!block) return null;
-                  return (
-                    <DraggableBlock key={blockId} block={block} onDelete={handleDeleteBlock} />
-                  );
-                })}
-              </div>
-            </SortableContext>
-          </div>
-        )}
+        <UnassignedDropZone
+          blockIds={state.unassigned}
+          blocks={state.blocks}
+          onDeleteBlock={handleDeleteBlock}
+        />
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-2 border-t">
