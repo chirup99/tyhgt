@@ -368,3 +368,39 @@
 [x] 1595. ✅ Workflow restarted successfully - changes applied
 [x] 1596. ✅✅✅ TABLE STRUCTURE IMPLEMENTATION COMPLETED! ✅✅✅
 [x] 1597. 🎉🎉🎉 HEADERS AND TRADE DATA NOW PERFECTLY ALIGNED IN TABLE COLUMNS! 🎉🎉🎉
+
+[x] 1598. NOVEMBER 20, 2025 - DYNAMIC LIVE PREVIEW OF PASTED TRADE DATA
+[x] 1599. User requested: "on table dont load trade load what is pasted below on text window this import data format basically few user past uneven format data those time our auto import fails to order in perfect format so when user past cust data window fectch 1st trade automatical disply how format look like after importing by this can corrct format"
+[x] 1600. Requirements identified:
+[x] 1601.   - Replace hardcoded sample trade with dynamic parsing from pasted data
+[x] 1602.   - Show live preview of how first pasted trade will be imported
+[x] 1603.   - Help users identify formatting issues BEFORE clicking import
+[x] 1604.   - Allow users to correct their format if preview shows errors
+[x] 1605. ✅ Implemented inline IIFE (Immediately Invoked Function Expression) in table body
+[x] 1606. ✅ Dynamically parses importData state using parseBrokerTrades() function
+[x] 1607. ✅ Three preview states implemented:
+[x] 1608.   1. Empty state: "Paste trade data below to see live preview..."
+[x] 1609.   2. Error state: "⚠️ Unable to parse - check format" (orange warning)
+[x] 1610.   3. Success state: Shows parsed first trade with green background highlight
+[x] 1611. ✅ Updated section title: "Live Preview - How Your First Trade Will Import:"
+[x] 1612. ✅ Preview updates automatically as user types/pastes
+[x] 1613. ✅ Reuses existing parseBrokerTrades() logic for consistency
+[x] 1614. ✅ Successfully parsed trade shows all 6 fields:
+[x] 1615.   - Time (from parsed data)
+[x] 1616.   - Order (BUY/SELL from parsed data)
+[x] 1617.   - Symbol (from parsed data)
+[x] 1618.   - Type (from parsed data)
+[x] 1619.   - Qty (from parsed data)
+[x] 1620.   - Price (from parsed data)
+[x] 1621. ✅ Green background highlight (bg-green-50/50 / bg-green-950/20) for valid trades
+[x] 1622. ✅ Orange warning color for unparseable data
+[x] 1623. ✅ Italic muted text for empty state placeholder
+[x] 1624. ✅ Added helpful footer text: "✨ This preview updates automatically as you paste - check your format before importing"
+[x] 1625. ✅ Users can now see formatting issues immediately
+[x] 1626. ✅ No need to click import to test if data format is correct
+[x] 1627. ✅ Prevents frustration from failed imports due to formatting
+[x] 1628. ✅ Works with all broker formats supported by parseBrokerTrades()
+[x] 1629. ✅ Handles uneven/inconsistent data gracefully
+[x] 1630. ✅ Workflow restarted successfully - changes applied
+[x] 1631. ✅✅✅ DYNAMIC LIVE PREVIEW FEATURE COMPLETED! ✅✅✅
+[x] 1632. 🎉🎉🎉 USERS CAN NOW SEE EXACTLY HOW THEIR TRADE DATA WILL IMPORT IN REAL-TIME! 🎉🎉🎉

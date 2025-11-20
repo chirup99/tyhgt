@@ -10924,7 +10924,7 @@ ${
                 
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
                   <div className="text-xs font-medium text-muted-foreground mb-2">
-                    Expected Format (Headers + Sample Trade):
+                    Live Preview - How Your First Trade Will Import:
                   </div>
                   <div className="bg-background rounded border overflow-hidden">
                     <table className="w-full font-mono text-xs">
@@ -10939,19 +10939,47 @@ ${
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="border-b last:border-b-0">
-                          <td className="px-2 py-2 text-muted-foreground">10:51:21 AM</td>
-                          <td className="px-2 py-2 text-muted-foreground">BUY</td>
-                          <td className="px-2 py-2 text-muted-foreground">SENSEX 10th w JUN 82900 PE BFO</td>
-                          <td className="px-2 py-2 text-muted-foreground">NRML</td>
-                          <td className="px-2 py-2 text-muted-foreground">320</td>
-                          <td className="px-2 py-2 text-muted-foreground">477.96</td>
-                        </tr>
+                        {(() => {
+                          // Parse first trade from pasted data
+                          if (!importData.trim()) {
+                            return (
+                              <tr className="border-b last:border-b-0">
+                                <td colSpan={6} className="px-2 py-3 text-center text-muted-foreground italic">
+                                  Paste trade data below to see live preview...
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          const { trades, errors } = parseBrokerTrades(importData);
+                          
+                          if (trades.length === 0) {
+                            return (
+                              <tr className="border-b last:border-b-0">
+                                <td colSpan={6} className="px-2 py-3 text-center text-orange-600 dark:text-orange-400">
+                                  ⚠️ Unable to parse - check format
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          const firstTrade = trades[0];
+                          return (
+                            <tr className="border-b last:border-b-0 bg-green-50/50 dark:bg-green-950/20">
+                              <td className="px-2 py-2 text-foreground">{firstTrade.time}</td>
+                              <td className="px-2 py-2 text-foreground">{firstTrade.order}</td>
+                              <td className="px-2 py-2 text-foreground">{firstTrade.symbol}</td>
+                              <td className="px-2 py-2 text-foreground">{firstTrade.type}</td>
+                              <td className="px-2 py-2 text-foreground">{firstTrade.qty}</td>
+                              <td className="px-2 py-2 text-foreground">{firstTrade.price}</td>
+                            </tr>
+                          );
+                        })()}
                       </tbody>
                     </table>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Match your broker format to these headers when pasting trades
+                    ✨ This preview updates automatically as you paste - check your format before importing
                   </p>
                 </div>
 
