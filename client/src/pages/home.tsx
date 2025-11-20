@@ -4073,10 +4073,11 @@ ${
   // Auto-load personal mode data when journal tab opens
   useEffect(() => {
     if (!isDemoMode && activeTab === 'journal' && !fromDate && !toDate) {
+      // Longer delay to ensure heatmap DOM is ready before auto-clicking dates
       const timer = setTimeout(() => {
         console.log(`👤 Personal mode journal opened - loading personal data...`);
         handleAutoClickPersonalDates();
-      }, 300);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [isDemoMode, activeTab, heatmapYear]);
