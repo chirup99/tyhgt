@@ -4661,20 +4661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER-SPECIFIC TRADING JOURNAL - FIREBASE
   // ==========================================
   
-  // Get user trading journal for a specific date
-  app.get('/api/user-journal/:userId/:date', async (req, res) => {
-    try {
-      const { userId, date } = req.params;
-      console.log(`📖 Fetching user trading journal: userId=${userId}, date=${date}`);
-      
-      const journalData = await googleCloudService.getUserTradingJournal(userId, date);
-      res.json(journalData || {});
-    } catch (error) {
-      console.error('❌ Error fetching user journal data:', error);
-      res.status(500).json({ error: 'Failed to fetch user journal data' });
-    }
-  });
-
+  // ✅ CRITICAL: This route MUST come BEFORE /:userId/:date to prevent Express from matching "all" as a date parameter
   // Get all trading journal entries for a user
   app.get('/api/user-journal/:userId/all', async (req, res) => {
     try {
@@ -4683,6 +4670,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const journals = await googleCloudService.getAllUserTradingJournals(userId);
       res.json(journals);
+    } catch (error) {
+      console.error('❌ Error fetching user journal data:', error);
+      res.status(500).json({ error: 'Failed to fetch user journal data' });
+    }
+  });
+
+  // Get user trading journal for a specific date
+  app.get('/api/user-journal/:userId/:date', async (req, res) => {
+    try {
+      const { userId, date } = req.params;
+      console.log(`📖 Fetching user trading journal: userId=${userId}, date=${date}`);
+      
+      const journalData = await googleCloudService.getUserTradingJournal(userId, date);
+      res.json(journalData || {});
     } catch (error) {
       console.error('❌ Error fetching user journal data:', error);
       res.status(500).json({ error: 'Failed to fetch user journal data' });
