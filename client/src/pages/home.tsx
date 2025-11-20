@@ -11392,7 +11392,7 @@ ${
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
-                                          positions: { ...prev.positions, order: null },
+                                          positions: { ...prev.positions, order: [] },
                                           displayValues: { ...prev.displayValues!, order: "" }
                                         }))}
                                         className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11458,7 +11458,7 @@ ${
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
-                                          positions: { ...prev.positions, symbol: null },
+                                          positions: { ...prev.positions, symbol: [] },
                                           displayValues: { ...prev.displayValues!, symbol: "" }
                                         }))}
                                         className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11524,7 +11524,7 @@ ${
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
-                                          positions: { ...prev.positions, type: null },
+                                          positions: { ...prev.positions, type: [] },
                                           displayValues: { ...prev.displayValues!, type: "" }
                                         }))}
                                         className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11590,7 +11590,7 @@ ${
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
-                                          positions: { ...prev.positions, qty: null },
+                                          positions: { ...prev.positions, qty: [] },
                                           displayValues: { ...prev.displayValues!, qty: "" }
                                         }))}
                                         className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11656,7 +11656,7 @@ ${
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
-                                          positions: { ...prev.positions, price: null },
+                                          positions: { ...prev.positions, price: [] },
                                           displayValues: { ...prev.displayValues!, price: "" }
                                         }))}
                                         className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11865,12 +11865,12 @@ ${
                               setBuildModeData({
                                 sampleLine: firstLine,
                                 positions: {
-                                  time: null,
+                                  time: [],
                                   order: [],
                                   symbol: [],
                                   type: [],
                                   qty: [],
-                                  price: null
+                                  price: []
                                 },
                                 displayValues: {
                                   time: "",
