@@ -4424,40 +4424,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Journal Database API endpoints with Firebase Google Cloud as primary storage
   // NO local memory storage - ONLY Firebase data
 
-  // ✅ SIMPLIFIED: Get all journal dates ONLY from journal-database (Firebase real data)
-  // Filters out empty date entries - only returns dates with actual journal content
-  // NO localStorage, NO caching, NO multiple collections - Just pure Firebase data
+  // ✅ SIMPLIFIED: Get ALL journal dates from Firebase - NO FILTERING
+  // Returns ALL data from Firebase so heatmaps and windows can display everything
+  // NO localStorage, NO caching, NO complex filtering - Just pure Firebase data
   app.get('/api/journal/all-dates', async (req, res) => {
     try {
-      console.log('📊 Fetching journal data from Firebase journal-database ONLY...');
+      console.log('📊 Fetching ALL journal data from Firebase journal-database (no filtering)...');
       
-      // Fetch ONLY from journal-database - the single source of truth
+      // Fetch ALL data from journal-database - the single source of truth
       const allData = await googleCloudService.getAllCollectionData('journal-database');
       
       if (allData && Object.keys(allData).length > 0) {
-        // ✅ FILTER: Remove empty date entries - only keep dates with actual journal content
-        // Valid entry = has at least one of: tradeHistory, tradingNotes, or images
-        const validJournalData: Record<string, any> = {};
-        
-        Object.entries(allData).forEach(([date, entry]) => {
-          const hasTradeHistory = Array.isArray(entry?.tradeHistory) && entry.tradeHistory.length > 0;
-          const hasNotes = typeof entry?.tradingNotes === 'string' && entry.tradingNotes.trim().length > 0;
-          const hasImages = Array.isArray(entry?.images) && entry.images.length > 0;
-          
-          // Only include dates with meaningful content
-          if (hasTradeHistory || hasNotes || hasImages) {
-            validJournalData[date] = entry;
-          } else {
-            console.log(`⏭️ Skipping empty date: ${date} (no trades/notes/images)`);
-          }
-        });
-        
-        const totalDates = Object.keys(allData).length;
-        const validDates = Object.keys(validJournalData).length;
-        const skipped = totalDates - validDates;
-        
-        console.log(`✅ Firebase: ${totalDates} total dates, ${validDates} with data, ${skipped} empty (filtered out)`);
-        res.json(validJournalData);
+        // ✅ NO FILTERING - Send ALL data from Firebase
+        // Heatmap and windows will handle what to display
+        console.log(`✅ Firebase: Loaded ${Object.keys(allData).length} dates (ALL data, no filtering)`);
+        res.json(allData);
       } else {
         console.log('⚠️ No journal data found in Firebase journal-database');
         res.json({});
