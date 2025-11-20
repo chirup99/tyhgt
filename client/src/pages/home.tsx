@@ -4294,59 +4294,23 @@ ${
             console.log("🏷️ Loaded tags from journal-database:", tags);
           }
 
-          // Handle trade history - either direct array or constructed from summary data
+          // ✅ ONLY USE REAL FIREBASE TRADE HISTORY - NO HARDCODED/CONSTRUCTED DATA
           if (
             journalData.tradeHistory &&
-            Array.isArray(journalData.tradeHistory)
+            Array.isArray(journalData.tradeHistory) &&
+            journalData.tradeHistory.length > 0
           ) {
             setTradeHistoryData(journalData.tradeHistory);
             console.log(
-              "📊 Loaded trade history from journal-database:",
+              "✅ Loaded REAL trade history from Firebase:",
               journalData.tradeHistory.length,
               "trades",
             );
-          } else if (journalData.totalTrades) {
-            // Construct trade history from summary data
-            const constructedTrades = [];
-            if (journalData.winningTrades > 0) {
-              for (let i = 0; i < journalData.winningTrades; i++) {
-                const profitAmount =
-                  journalData.totalProfit / journalData.winningTrades;
-                constructedTrades.push({
-                  time: "09:30:00 AM",
-                  order: "SELL",
-                  symbol: "NIFTY 50",
-                  type: "MIS",
-                  qty: 25,
-                  price: 0,
-                  pnl: `+₹${profitAmount.toFixed(0)}`,
-                  duration: "-",
-                });
-              }
-            }
-            if (journalData.losingTrades > 0) {
-              for (let i = 0; i < journalData.losingTrades; i++) {
-                const lossAmount = Math.abs(
-                  journalData.totalLoss / journalData.losingTrades,
-                );
-                constructedTrades.push({
-                  time: "10:15:00 AM",
-                  order: "SELL",
-                  symbol: "NIFTY 50",
-                  type: "MIS",
-                  qty: 25,
-                  price: 0,
-                  pnl: `-₹${lossAmount.toFixed(0)}`,
-                  duration: "-",
-                });
-              }
-            }
-            setTradeHistoryData(constructedTrades);
-            console.log(
-              "📊 Constructed trade history from summary data:",
-              constructedTrades.length,
-              "trades",
-            );
+            console.log("📊 Trade data source: FIREBASE (no hardcoded data)");
+          } else {
+            // No trade history in Firebase - keep empty state, DO NOT construct fake data
+            setTradeHistoryData([]);
+            console.log("📭 No trade history in Firebase for this date - showing empty state");
           }
 
           if (journalData.images && Array.isArray(journalData.images)) {
