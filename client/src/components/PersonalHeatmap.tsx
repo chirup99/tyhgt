@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { formatDateKey, getHeatmapColor } from "./heatmap-utils";
+import { formatDateKey, getHeatmapColor, getNetPnL } from "./heatmap-utils";
 
 interface PersonalHeatmapProps {
   userId: string | null;
@@ -195,12 +195,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: Personal
                         let cellColor = "bg-gray-100 dark:bg-gray-700"; // Default: no data
                         
                         if (savedData) {
-                          // Get P&L from any available source
-                          const netPnL = 
-                            savedData?.performanceMetrics?.netPnL || 
-                            savedData?.netPnL || 
-                            (savedData?.totalProfit || 0) - (savedData?.totalLoss || 0) ||
-                            0;
+                          // Get P&L from any available source (including trade history)
+                          const netPnL = getNetPnL(savedData);
                           
                           // Show color immediately based on P&L
                           cellColor = getHeatmapColor(netPnL);

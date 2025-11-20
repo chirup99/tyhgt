@@ -2,6 +2,49 @@ export const formatDateKey = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
+// Calculate net P&L from trade history when summary fields are missing
+export const calculateNetPnLFromTrades = (tradeHistory: any[]): number => {
+  if (!tradeHistory || !Array.isArray(tradeHistory) || tradeHistory.length === 0) {
+    return 0;
+  }
+
+  let totalPnL = 0;
+  
+  for (const trade of tradeHistory) {
+    if (trade.pnl && typeof trade.pnl === 'string' && trade.pnl !== '-') {
+      // Remove currency symbol (₹) and commas, then parse
+      const pnlStr = trade.pnl.replace(/[₹,]/g, '').trim();
+      const pnlValue = parseFloat(pnlStr);
+      
+      if (!isNaN(pnlValue)) {
+        totalPnL += pnlValue;
+      }
+    }
+  }
+  
+  return totalPnL;
+};
+
+// Get net P&L from data - try multiple sources
+export const getNetPnL = (data: any): number => {
+  // First try direct netPnL field
+  if (typeof data?.netPnL === 'number') {
+    return data.netPnL;
+  }
+  
+  // Try totalProfit - totalLoss
+  if (typeof data?.totalProfit === 'number' || typeof data?.totalLoss === 'number') {
+    return (data?.totalProfit || 0) - Math.abs(data?.totalLoss || 0);
+  }
+  
+  // Calculate from trade history
+  if (data?.tradeHistory && Array.isArray(data.tradeHistory)) {
+    return calculateNetPnLFromTrades(data.tradeHistory);
+  }
+  
+  return 0;
+};
+
 export const getHeatmapColor = (netPnL: number) => {
   if (netPnL === 0) return "bg-gray-100 dark:bg-gray-700";
 
