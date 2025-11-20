@@ -158,6 +158,7 @@ import {
   Trophy,
   Radio,
   Eye,
+  Share2,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -8898,6 +8899,179 @@ ${
                             />
                           )}
                         </div>
+
+                        {/* ✅ MODERN CALENDAR SUMMARY BOX */}
+                        {(() => {
+                          const filteredData = getFilteredHeatmapData();
+                          const dates = Object.keys(filteredData).sort();
+                          
+                          // Calculate metrics
+                          let totalPnL = 0;
+                          let totalTrades = 0;
+                          let winningTrades = 0;
+                          let fomoTrades = 0;
+                          let currentStreak = 0;
+                          let maxStreak = 0;
+                          let tempStreak = 0;
+                          const sparklineData: number[] = [];
+                          
+                          dates.forEach((dateKey, idx) => {
+                            const dayData = filteredData[dateKey];
+                            const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                            const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                            const trades = dayData?.tradingData?.tradeHistory || dayData?.tradeHistory || [];
+                            
+                            if (metrics) {
+                              const dayPnL = metrics.netPnL || 0;
+                              totalPnL += dayPnL;
+                              totalTrades += metrics.totalTrades || 0;
+                              winningTrades += metrics.winningTrades || 0;
+                              
+                              // Sparkline data
+                              sparklineData.push(dayPnL);
+                              
+                              // Win streak calculation
+                              if (dayPnL > 0) {
+                                tempStreak++;
+                                maxStreak = Math.max(maxStreak, tempStreak);
+                              } else if (dayPnL < 0) {
+                                tempStreak = 0;
+                              }
+                              
+                              // Count FOMO trades
+                              if (tags.some((tag: string) => tag.toLowerCase().includes('fomo'))) {
+                                fomoTrades += trades.length;
+                              }
+                            }
+                          });
+                          
+                          // Current streak is the latest streak
+                          currentStreak = tempStreak;
+                          
+                          const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                          const isProfitable = totalPnL >= 0;
+                          
+                          // Calculate min/max for sparkline scaling
+                          const minValue = Math.min(...sparklineData, 0);
+                          const maxValue = Math.max(...sparklineData, 0);
+                          const range = maxValue - minValue || 1;
+                          
+                          return (
+                            <div className="mt-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700 rounded-2xl p-6 shadow-xl">
+                              <div className="flex items-start justify-between mb-6">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                      <TrendingUp className="w-5 h-5 text-white" />
+                                    </div>
+                                    <h3 className="text-white font-semibold text-lg">
+                                      {selectedDateRange ? 'Range' : 'Calendar'} Summary
+                                    </h3>
+                                  </div>
+                                  <p className="text-white/80 text-sm">
+                                    {dates.length} trading {dates.length === 1 ? 'day' : 'days'}
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="bg-white/10 hover:bg-white/20 text-white border-0"
+                                  data-testid="button-share-summary"
+                                  onClick={() => {
+                                    // Share functionality
+                                    const summaryText = `Trading Summary:\nTotal P&L: ${totalPnL >= 0 ? '+' : ''}₹${Math.abs(totalPnL).toLocaleString('en-IN')}\nWin Rate: ${winRate.toFixed(1)}%\nWin Streak: ${maxStreak} days\nTotal Trades: ${totalTrades}`;
+                                    
+                                    if (navigator.share) {
+                                      navigator.share({
+                                        title: 'Trading Summary',
+                                        text: summaryText,
+                                      }).catch(() => {
+                                        navigator.clipboard.writeText(summaryText);
+                                        // Could add toast notification here
+                                      });
+                                    } else {
+                                      navigator.clipboard.writeText(summaryText);
+                                      // Could add toast notification here
+                                    }
+                                  }}
+                                >
+                                  <Share2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {/* Total P&L */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                  <div className="text-white/70 text-xs mb-1">Total P&L</div>
+                                  <div className={`text-2xl font-bold ${isProfitable ? 'text-emerald-300' : 'text-red-300'}`}>
+                                    {totalPnL >= 0 ? '+' : ''}₹{Math.abs(totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                  </div>
+                                  <div className="text-white/60 text-xs mt-1">
+                                    {winRate.toFixed(1)}% win rate
+                                  </div>
+                                </div>
+
+                                {/* Performance Graph */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                  <div className="text-white/70 text-xs mb-3">Performance</div>
+                                  {sparklineData.length > 0 ? (
+                                    <div className="flex items-end gap-0.5 h-12">
+                                      {sparklineData.slice(-20).map((value, idx) => {
+                                        const normalizedHeight = range > 0 
+                                          ? ((value - minValue) / range) * 100 
+                                          : 50;
+                                        const barHeight = Math.max(normalizedHeight, 2);
+                                        
+                                        return (
+                                          <div
+                                            key={idx}
+                                            className="flex-1 rounded-sm transition-all"
+                                            style={{
+                                              height: `${barHeight}%`,
+                                              backgroundColor: value >= 0 
+                                                ? 'rgba(110, 231, 183, 0.8)' 
+                                                : 'rgba(248, 113, 113, 0.8)',
+                                              minHeight: '2px'
+                                            }}
+                                            title={`₹${value.toFixed(0)}`}
+                                          />
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center h-12 text-white/40 text-xs">
+                                      No data
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Win Streak */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                  <div className="text-white/70 text-xs mb-1">Win Streak</div>
+                                  <div className="text-2xl font-bold text-amber-300 flex items-center gap-2">
+                                    <Zap className="w-5 h-5" />
+                                    {maxStreak}
+                                  </div>
+                                  <div className="text-white/60 text-xs mt-1">
+                                    {currentStreak > 0 ? `Current: ${currentStreak}` : 'days max'}
+                                  </div>
+                                </div>
+
+                                {/* FOMO Trades */}
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                  <div className="text-white/70 text-xs mb-1">FOMO Trades</div>
+                                  <div className="text-2xl font-bold text-orange-300 flex items-center gap-2">
+                                    <AlertCircle className="w-5 h-5" />
+                                    {fomoTrades}
+                                  </div>
+                                  <div className="text-white/60 text-xs mt-1">
+                                    {totalTrades > 0 ? `${((fomoTrades / totalTrades) * 100).toFixed(0)}% of total` : 'trades'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </CardContent>
                     </Card>
                   </div>
