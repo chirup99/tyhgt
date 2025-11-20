@@ -105,25 +105,74 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       });
   }, []); // Run once on mount
 
-  // Generate calendar data for the year
+  // Filter heatmap data based on selected range
+  const getFilteredData = () => {
+    if (!selectedRange) {
+      return heatmapData;
+    }
+
+    const filtered: Record<string, any> = {};
+    const startTime = selectedRange.from.getTime();
+    const endTime = selectedRange.to.getTime();
+
+    Object.keys(heatmapData).forEach(dateKey => {
+      const date = new Date(dateKey);
+      const dateTime = date.getTime();
+      
+      if (dateTime >= startTime && dateTime <= endTime) {
+        filtered[dateKey] = heatmapData[dateKey];
+      }
+    });
+
+    return filtered;
+  };
+
+  // Generate calendar data for the year (or date range)
   const generateMonthsData = () => {
-    const year = currentDate.getFullYear();
+    let startYear, endYear, startMonth, endMonth;
+
+    if (selectedRange) {
+      // Use the selected range
+      startYear = selectedRange.from.getFullYear();
+      endYear = selectedRange.to.getFullYear();
+      startMonth = selectedRange.from.getMonth();
+      endMonth = selectedRange.to.getMonth();
+    } else {
+      // Use current year
+      startYear = endYear = currentDate.getFullYear();
+      startMonth = 0;
+      endMonth = 11;
+    }
+
     const months = [];
     
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
-      const lastDay = new Date(year, monthIndex + 1, 0);
-      
-      // Create 7 rows (one for each day of week)
-      const dayRows: (Date | null)[][] = [[], [], [], [], [], [], []];
-      
-      for (let day = 1; day <= lastDay.getDate(); day++) {
-        const date = new Date(year, monthIndex, day);
-        const dayOfWeek = date.getDay();
-        dayRows[dayOfWeek].push(date);
+    for (let year = startYear; year <= endYear; year++) {
+      const firstMonth = (year === startYear) ? startMonth : 0;
+      const lastMonth = (year === endYear) ? endMonth : 11;
+
+      for (let monthIndex = firstMonth; monthIndex <= lastMonth; monthIndex++) {
+        const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
+        const lastDay = new Date(year, monthIndex + 1, 0);
+        
+        // Create 7 rows (one for each day of week)
+        const dayRows: (Date | null)[][] = [[], [], [], [], [], [], []];
+        
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+          const date = new Date(year, monthIndex, day);
+          
+          // If range is selected, only include dates within range
+          if (selectedRange) {
+            if (date < selectedRange.from || date > selectedRange.to) {
+              continue; // Skip dates outside the range
+            }
+          }
+          
+          const dayOfWeek = date.getDay();
+          dayRows[dayOfWeek].push(date);
+        }
+        
+        months.push({ name: monthName, dayRows });
       }
-      
-      months.push({ name: monthName, dayRows });
     }
     
     return months;
@@ -144,6 +193,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   };
   
   const months = generateMonthsData();
+  const filteredData = getFilteredData();
 
   const formatDisplayDate = () => {
     return currentDate.toLocaleDateString('en-US', { 
@@ -187,10 +237,16 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          Trading Calendar {currentDate.getFullYear()}
+          Trading Calendar {selectedRange 
+            ? `${selectedRange.from.getFullYear()}${selectedRange.from.getFullYear() !== selectedRange.to.getFullYear() ? `-${selectedRange.to.getFullYear()}` : ''}`
+            : currentDate.getFullYear()
+          }
         </h3>
         <span className="text-xs text-gray-500">
-          {isLoading ? "Loading..." : `${Object.keys(heatmapData).length} dates with data`}
+          {isLoading ? "Loading..." : selectedRange 
+            ? `${Object.keys(filteredData).length} of ${Object.keys(heatmapData).length} dates in range`
+            : `${Object.keys(heatmapData).length} dates with data`
+          }
         </span>
       </div>
 
