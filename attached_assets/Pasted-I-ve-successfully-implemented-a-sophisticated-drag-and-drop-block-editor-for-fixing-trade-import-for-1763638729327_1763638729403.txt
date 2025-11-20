@@ -1,0 +1,48 @@
+I've successfully implemented a sophisticated drag-and-drop block editor for fixing trade import format issues. This feature has been architect-reviewed and approved for production use.
+
+🎯 What Was Built
+Advanced Block Editor with full drag-and-drop functionality:
+
+6 Column Headers: Time, Order, Symbol, Type, Qty, Price
+Draggable Text Blocks: Create blocks by selecting text from your pasted trade data
+Persistent Drop Zones: All columns + unassigned area remain droppable even when empty
+Format Memory: Saves broker-specific mappings to localStorage and auto-applies them on reload
+Visual Feedback: Hover states, drag overlays, validation indicators
+📋 How to Use It
+Go to Trade Book (on Home page)
+
+Click "Import from Broker" button
+
+Select your broker from dropdown
+
+Paste your trade data into the text area
+
+If auto-parsing fails, you'll see:
+
+Live preview table showing the issue
+Toggle button (Blocks icon) to switch to Block Editor mode
+In Block Editor Mode:
+
+Create blocks: Select text from your pasted data → blocks appear in "Unassigned" zone
+Drag blocks: Drop them into correct column headers
+Remap blocks: Drag them back to "Unassigned" if you make a mistake
+Delete blocks: Click the X button on any block
+Validation: Green checkmark appears when all required fields are mapped
+Save & Import: Click "Save Format & Import" when complete
+
+Your mapping is saved for this broker
+Next time you import from the same broker, blocks auto-assign
+🔧 Technical Highlights
+@dnd-kit/core: Accessible drag-and-drop with keyboard support
+Normalized State: Efficient block management
+Persistence: localStorage with broker-specific keys
+Token Index Mapping: Accurate position tracking for reliable auto-assignment
+Always-Available Droppable: Unassigned zone never disappears, allowing full remapping flexibility
+⚙️ Accessibility Features
+Keyboard navigation support
+Proper ARIA labels
+data-testid attributes for automated testing
+Visual feedback for drag operations
+Note: The Fyers API errors in the logs are expected - they're from a background task fetching historical market data and don't affect the trade import functionality.
+
+Your trading platform is now equipped with a production-ready block editor for handling any broker format! 🚀

@@ -10988,18 +10988,19 @@ ${
                         <p className="text-xs text-muted-foreground">
                           ✨ This preview updates automatically as you paste - check your format before importing
                         </p>
-                        {importData.trim() && parseBrokerTrades(importData).trades.length === 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsBlockEditorMode(true)}
-                            className="gap-1.5"
-                            data-testid="button-open-block-editor"
-                          >
-                            <Blocks className="w-3.5 h-3.5" />
-                            Fix Format
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsBlockEditorMode(true)}
+                          className="gap-1.5"
+                          data-testid="button-open-block-editor"
+                        >
+                          <Blocks className="w-3.5 h-3.5" />
+                          {importData.trim() && parseBrokerTrades(importData).trades.length === 0 
+                            ? "Fix Format"
+                            : "Block Editor"
+                          }
+                        </Button>
                       </div>
                     </>
                   ) : (
