@@ -3215,15 +3215,26 @@ ${
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [isBuildMode, setIsBuildMode] = useState(false);
   
-  // Define the format type with optional sampleLine
+  // Define the format type with position-based structure
   type FormatData = {
-    time: string;
-    order: string;
-    symbol: string;
-    type: string;
-    qty: string;
-    price: string;
-    sampleLine?: string;
+    sampleLine: string;  // Original first line of trade data
+    positions: {
+      time: number | null;
+      order: number | null;
+      symbol: number | null;
+      type: number | null;
+      qty: number | null;
+      price: number | null;
+    };
+    // Keep string values for display in build table
+    displayValues: {
+      time: string;
+      order: string;
+      symbol: string;
+      type: string;
+      qty: string;
+      price: string;
+    };
   };
   
   // Define ParseResult type for trade parsing
@@ -3233,12 +3244,23 @@ ${
   };
   
   const [buildModeData, setBuildModeData] = useState<FormatData>({
-    time: "",
-    order: "",
-    symbol: "",
-    type: "",
-    qty: "",
-    price: ""
+    sampleLine: "",
+    positions: {
+      time: null,
+      order: null,
+      symbol: null,
+      type: null,
+      qty: null,
+      price: null
+    },
+    displayValues: {
+      time: "",
+      order: "",
+      symbol: "",
+      type: "",
+      qty: "",
+      price: ""
+    }
   });
   const [savedFormatLabel, setSavedFormatLabel] = useState("");
   const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>(() => {
@@ -5498,7 +5520,22 @@ ${
     return processedTrades;
   };
 
-  // Parse trades using saved format template
+  // Helper function to find position of selected text in first line
+  const findPositionInLine = (selectedText: string, firstLine: string): number | null => {
+    if (!selectedText || !firstLine) return null;
+    
+    // Split first line by tabs first, then by spaces
+    const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+    
+    // Find the exact match or partial match
+    const trimmedSelection = selectedText.trim();
+    const position = words.findIndex(word => word === trimmedSelection || word.includes(trimmedSelection) || trimmedSelection.includes(word));
+    
+    console.log("🔍 Position detection:", { selectedText: trimmedSelection, words, position, firstLine });
+    return position >= 0 ? position : null;
+  };
+
+  // Parse trades using saved format with position-based mapping
   const parseTradesWithFormat = (data: string, format: FormatData): ParseResult => {
     const result: ParseResult = {
       trades: [],
@@ -5516,56 +5553,45 @@ ${
       return result;
     }
 
-    // Build field order from format (which fields are not empty)
-    const fieldOrder: string[] = [];
-    if (format.time) fieldOrder.push("time");
-    if (format.order) fieldOrder.push("order");
-    if (format.symbol) fieldOrder.push("symbol");
-    if (format.type) fieldOrder.push("type");
-    if (format.qty) fieldOrder.push("qty");
-    if (format.price) fieldOrder.push("price");
-
-    // Parse each line
+    // Parse each line using position mapping
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
-      const tokens = line.split(/\s+/).filter(t => t.trim());
+      // Split by tabs first, then by spaces
+      const words = line.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
       
-      if (tokens.length < fieldOrder.length) {
-        result.errors.push({
-          line: i + 1,
-          content: line,
-          reason: `Not enough fields (expected ${fieldOrder.length}, got ${tokens.length})`
-        });
-        continue;
-      }
-
       try {
         const tradeData: any = {};
-        let tokenIndex = 0;
 
-        for (const field of fieldOrder) {
-          if (field === "time") {
-            // Time might be 2 tokens (e.g., "10:51:21 AM")
-            if (tokenIndex + 1 < tokens.length && /^(AM|PM)$/i.test(tokens[tokenIndex + 1])) {
-              tradeData.time = `${tokens[tokenIndex]} ${tokens[tokenIndex + 1]}`;
-              tokenIndex += 2;
-            } else {
-              tradeData.time = tokens[tokenIndex++];
-            }
-          } else if (field === "symbol") {
-            // Symbol might be multiple tokens
-            const symbolTokens: string[] = [];
-            // Count how many tokens the template symbol has
-            const templateSymbolTokens = format.symbol.split(/\s+/).filter(t => t.trim()).length;
-            for (let j = 0; j < templateSymbolTokens && tokenIndex < tokens.length; j++) {
-              symbolTokens.push(tokens[tokenIndex++]);
-            }
-            tradeData.symbol = symbolTokens.join(" ");
-          } else {
-            tradeData[field] = tokens[tokenIndex++];
-          }
+        // Extract fields based on saved positions
+        if (format.positions.time !== null && words[format.positions.time]) {
+          tradeData.time = words[format.positions.time];
+        }
+        if (format.positions.order !== null && words[format.positions.order]) {
+          tradeData.order = words[format.positions.order];
+        }
+        if (format.positions.symbol !== null && words[format.positions.symbol]) {
+          tradeData.symbol = words[format.positions.symbol];
+        }
+        if (format.positions.type !== null && words[format.positions.type]) {
+          tradeData.type = words[format.positions.type];
+        }
+        if (format.positions.qty !== null && words[format.positions.qty]) {
+          tradeData.qty = words[format.positions.qty];
+        }
+        if (format.positions.price !== null && words[format.positions.price]) {
+          tradeData.price = words[format.positions.price];
+        }
+
+        // Validate required fields
+        if (!tradeData.order || !tradeData.qty || !tradeData.price) {
+          result.errors.push({
+            line: i + 1,
+            content: line,
+            reason: "Missing required fields (order, qty, or price)"
+          });
+          continue;
         }
 
         // Validate and normalize
@@ -5619,6 +5645,7 @@ ${
       }
     }
 
+    console.log("✅ Parsed trades using positions:", format.positions, "Result:", result);
     return result;
   };
 
@@ -11150,19 +11177,14 @@ ${
                                 alert("Please enter a label for this format");
                                 return;
                               }
-                              // Get the first line from the textarea to save as sample
-                              const firstLine = importData.trim().split('\n')[0] || "";
-                              const formatWithSample = {
-                                ...buildModeData,
-                                sampleLine: firstLine
-                              };
-                              const newFormats = { ...savedFormats, [savedFormatLabel]: formatWithSample };
+                              // buildModeData already contains sampleLine and positions
+                              const newFormats = { ...savedFormats, [savedFormatLabel]: buildModeData };
                               setSavedFormats(newFormats);
-                              setActiveFormat(formatWithSample);
+                              setActiveFormat(buildModeData);
                               localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
                               setSavedFormatLabel("");
-                              alert(`Format "${savedFormatLabel}" saved and activated successfully! Import data will now use this format.`);
-                              console.log("✅ Format saved and activated with sample:", savedFormatLabel, formatWithSample);
+                              alert(`Format "${savedFormatLabel}" saved with position mapping! Import will now use these positions.`);
+                              console.log("✅ Format saved with positions:", savedFormatLabel, buildModeData.positions);
                             }}
                             data-testid="button-save-format"
                           >
@@ -11200,38 +11222,34 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  const sourceField = e.dataTransfer.getData("sourceField");
-                                  const sourceValue = e.dataTransfer.getData("sourceValue");
-                                  if (sourceField && sourceField !== "time") {
-                                    setBuildModeData(prev => {
-                                      const targetValue = prev.time;
-                                      return {
-                                        ...prev,
-                                        time: sourceValue,
-                                        [sourceField]: targetValue
-                                      };
-                                    });
-                                  }
+                                  // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.time ? (
+                                {buildModeData.displayValues?.time ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
                                       e.dataTransfer.setData("sourceField", "time");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.time);
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.time);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <span>{buildModeData.time}</span>
-                                    <button
-                                      onClick={() => setBuildModeData(prev => ({ ...prev, time: "" }))}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="delete-time"
-                                      title="Delete"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, time: null },
+                                          displayValues: { ...prev.displayValues!, time: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-time"
+                                        title="Delete"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium">{buildModeData.displayValues.time}</span>
                                   </div>
                                 ) : (
                                   <button
@@ -11239,8 +11257,19 @@ ${
                                       const textarea = importDataTextareaRef.current;
                                       if (textarea) {
                                         const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        if (selectedText.trim()) {
-                                          setBuildModeData(prev => ({ ...prev, time: selectedText.trim() }));
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText.trim() && firstLine) {
+                                          const position = findPositionInLine(selectedText, firstLine);
+                                          if (position !== null) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, time: position },
+                                              displayValues: { ...prev.displayValues!, time: selectedText.trim() }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
                                         }
                                       }
                                     }}
@@ -11259,38 +11288,34 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  const sourceField = e.dataTransfer.getData("sourceField");
-                                  const sourceValue = e.dataTransfer.getData("sourceValue");
-                                  if (sourceField && sourceField !== "order") {
-                                    setBuildModeData(prev => {
-                                      const targetValue = prev.order;
-                                      return {
-                                        ...prev,
-                                        order: sourceValue,
-                                        [sourceField]: targetValue
-                                      };
-                                    });
-                                  }
+                                  // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.order ? (
+                                {buildModeData.displayValues?.order ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
                                       e.dataTransfer.setData("sourceField", "order");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.order);
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.order);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <span>{buildModeData.order}</span>
-                                    <button
-                                      onClick={() => setBuildModeData(prev => ({ ...prev, order: "" }))}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="delete-order"
-                                      title="Delete"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, order: null },
+                                          displayValues: { ...prev.displayValues!, order: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-order"
+                                        title="Delete"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium">{buildModeData.displayValues.order}</span>
                                   </div>
                                 ) : (
                                   <button
@@ -11298,8 +11323,19 @@ ${
                                       const textarea = importDataTextareaRef.current;
                                       if (textarea) {
                                         const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        if (selectedText.trim()) {
-                                          setBuildModeData(prev => ({ ...prev, order: selectedText.trim() }));
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText.trim() && firstLine) {
+                                          const position = findPositionInLine(selectedText, firstLine);
+                                          if (position !== null) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, order: position },
+                                              displayValues: { ...prev.displayValues!, order: selectedText.trim() }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
                                         }
                                       }
                                     }}
@@ -11318,38 +11354,34 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  const sourceField = e.dataTransfer.getData("sourceField");
-                                  const sourceValue = e.dataTransfer.getData("sourceValue");
-                                  if (sourceField && sourceField !== "symbol") {
-                                    setBuildModeData(prev => {
-                                      const targetValue = prev.symbol;
-                                      return {
-                                        ...prev,
-                                        symbol: sourceValue,
-                                        [sourceField]: targetValue
-                                      };
-                                    });
-                                  }
+                                  // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.symbol ? (
+                                {buildModeData.displayValues?.symbol ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
                                       e.dataTransfer.setData("sourceField", "symbol");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.symbol);
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.symbol);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <span>{buildModeData.symbol}</span>
-                                    <button
-                                      onClick={() => setBuildModeData(prev => ({ ...prev, symbol: "" }))}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="delete-symbol"
-                                      title="Delete"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, symbol: null },
+                                          displayValues: { ...prev.displayValues!, symbol: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-symbol"
+                                        title="Delete"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium">{buildModeData.displayValues.symbol}</span>
                                   </div>
                                 ) : (
                                   <button
@@ -11357,8 +11389,19 @@ ${
                                       const textarea = importDataTextareaRef.current;
                                       if (textarea) {
                                         const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        if (selectedText.trim()) {
-                                          setBuildModeData(prev => ({ ...prev, symbol: selectedText.trim() }));
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText.trim() && firstLine) {
+                                          const position = findPositionInLine(selectedText, firstLine);
+                                          if (position !== null) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, symbol: position },
+                                              displayValues: { ...prev.displayValues!, symbol: selectedText.trim() }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
                                         }
                                       }
                                     }}
@@ -11377,38 +11420,34 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  const sourceField = e.dataTransfer.getData("sourceField");
-                                  const sourceValue = e.dataTransfer.getData("sourceValue");
-                                  if (sourceField && sourceField !== "type") {
-                                    setBuildModeData(prev => {
-                                      const targetValue = prev.type;
-                                      return {
-                                        ...prev,
-                                        type: sourceValue,
-                                        [sourceField]: targetValue
-                                      };
-                                    });
-                                  }
+                                  // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.type ? (
+                                {buildModeData.displayValues?.type ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
                                       e.dataTransfer.setData("sourceField", "type");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.type);
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.type);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <span>{buildModeData.type}</span>
-                                    <button
-                                      onClick={() => setBuildModeData(prev => ({ ...prev, type: "" }))}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="delete-type"
-                                      title="Delete"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, type: null },
+                                          displayValues: { ...prev.displayValues!, type: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-type"
+                                        title="Delete"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium">{buildModeData.displayValues.type}</span>
                                   </div>
                                 ) : (
                                   <button
@@ -11416,8 +11455,19 @@ ${
                                       const textarea = importDataTextareaRef.current;
                                       if (textarea) {
                                         const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        if (selectedText.trim()) {
-                                          setBuildModeData(prev => ({ ...prev, type: selectedText.trim() }));
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText.trim() && firstLine) {
+                                          const position = findPositionInLine(selectedText, firstLine);
+                                          if (position !== null) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, type: position },
+                                              displayValues: { ...prev.displayValues!, type: selectedText.trim() }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
                                         }
                                       }
                                     }}
@@ -11436,38 +11486,34 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  const sourceField = e.dataTransfer.getData("sourceField");
-                                  const sourceValue = e.dataTransfer.getData("sourceValue");
-                                  if (sourceField && sourceField !== "qty") {
-                                    setBuildModeData(prev => {
-                                      const targetValue = prev.qty;
-                                      return {
-                                        ...prev,
-                                        qty: sourceValue,
-                                        [sourceField]: targetValue
-                                      };
-                                    });
-                                  }
+                                  // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.qty ? (
+                                {buildModeData.displayValues?.qty ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
                                       e.dataTransfer.setData("sourceField", "qty");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.qty);
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.qty);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <span>{buildModeData.qty}</span>
-                                    <button
-                                      onClick={() => setBuildModeData(prev => ({ ...prev, qty: "" }))}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="delete-qty"
-                                      title="Delete"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, qty: null },
+                                          displayValues: { ...prev.displayValues!, qty: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-qty"
+                                        title="Delete"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium">{buildModeData.displayValues.qty}</span>
                                   </div>
                                 ) : (
                                   <button
@@ -11475,8 +11521,19 @@ ${
                                       const textarea = importDataTextareaRef.current;
                                       if (textarea) {
                                         const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        if (selectedText.trim()) {
-                                          setBuildModeData(prev => ({ ...prev, qty: selectedText.trim() }));
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText.trim() && firstLine) {
+                                          const position = findPositionInLine(selectedText, firstLine);
+                                          if (position !== null) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, qty: position },
+                                              displayValues: { ...prev.displayValues!, qty: selectedText.trim() }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
                                         }
                                       }
                                     }}
@@ -11495,38 +11552,34 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  const sourceField = e.dataTransfer.getData("sourceField");
-                                  const sourceValue = e.dataTransfer.getData("sourceValue");
-                                  if (sourceField && sourceField !== "price") {
-                                    setBuildModeData(prev => {
-                                      const targetValue = prev.price;
-                                      return {
-                                        ...prev,
-                                        price: sourceValue,
-                                        [sourceField]: targetValue
-                                      };
-                                    });
-                                  }
+                                  // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.price ? (
+                                {buildModeData.displayValues?.price ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
                                       e.dataTransfer.setData("sourceField", "price");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.price);
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.price);
                                     }}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <span>{buildModeData.price}</span>
-                                    <button
-                                      onClick={() => setBuildModeData(prev => ({ ...prev, price: "" }))}
-                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                      data-testid="delete-price"
-                                      title="Delete"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, price: null },
+                                          displayValues: { ...prev.displayValues!, price: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-price"
+                                        title="Delete"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium">{buildModeData.displayValues.price}</span>
                                   </div>
                                 ) : (
                                   <button
@@ -11534,8 +11587,19 @@ ${
                                       const textarea = importDataTextareaRef.current;
                                       if (textarea) {
                                         const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        if (selectedText.trim()) {
-                                          setBuildModeData(prev => ({ ...prev, price: selectedText.trim() }));
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText.trim() && firstLine) {
+                                          const position = findPositionInLine(selectedText, firstLine);
+                                          if (position !== null) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, price: position },
+                                              displayValues: { ...prev.displayValues!, price: selectedText.trim() }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
                                         }
                                       }
                                     }}
@@ -11710,31 +11774,29 @@ ${
                             size="sm"
                             className="gap-1.5"
                             onClick={() => {
-                              // Parse first trade and populate build mode
-                              const { trades } = parseBrokerTrades(importData);
-                              if (trades.length > 0) {
-                                const firstTrade = trades[0];
-                                setBuildModeData({
-                                  time: firstTrade.time || "",
-                                  order: firstTrade.order || "",
-                                  symbol: firstTrade.symbol || "",
-                                  type: firstTrade.type || "",
-                                  qty: firstTrade.qty?.toString() || "",
-                                  price: firstTrade.price?.toString() || ""
-                                });
-                              } else {
-                                // If no parsed trade, use raw data split
-                                const words = importData.split(/\s+/).filter(w => w.trim());
-                                setBuildModeData({
-                                  time: words.slice(0, 2).join(" "),
-                                  order: words[2] || "",
-                                  symbol: words.slice(3, 7).join(" "),
-                                  type: words[7] || "",
-                                  qty: words[8] || "",
-                                  price: words[9] || ""
-                                });
-                              }
+                              // Initialize with empty positions - user will select text manually
+                              const firstLine = importData.trim().split('\n')[0] || "";
+                              setBuildModeData({
+                                sampleLine: firstLine,
+                                positions: {
+                                  time: null,
+                                  order: null,
+                                  symbol: null,
+                                  type: null,
+                                  qty: null,
+                                  price: null
+                                },
+                                displayValues: {
+                                  time: "",
+                                  order: "",
+                                  symbol: "",
+                                  type: "",
+                                  qty: "",
+                                  price: ""
+                                }
+                              });
                               setIsBuildMode(true);
+                              console.log("🔨 Build mode activated - select text to map positions");
                             }}
                             data-testid="button-build"
                           >
