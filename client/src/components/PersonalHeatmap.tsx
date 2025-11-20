@@ -469,41 +469,19 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         ) : (
           // Show selected range with close button (no left/right navigation)
           <div className="flex items-center gap-2">
-            <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8"
-                  data-testid="button-edit-date-range"
-                >
-                  <CalendarIcon className="w-3 h-3 mr-2" />
-                  <span className="text-xs">
-                    {dateRange.from?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    {' '}-{' '}
-                    {dateRange.to?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  data-testid="calendar-range-picker"
-                />
-              </PopoverContent>
-            </Popover>
-            
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {dateRange.from?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              {' - '}
+              {dateRange.to?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
             <Button
               variant="ghost"
               size="icon"
               onClick={clearDateRange}
-              className="h-8 w-8"
+              className="h-5 w-5"
               data-testid="button-clear-date-range"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </Button>
           </div>
         )}

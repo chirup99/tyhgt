@@ -281,51 +281,67 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         </div>
       </div>
 
-      {/* Year Navigation */}
+      {/* Date Range / Year Navigation */}
       <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePreviousYear}
-          className="h-8 w-8"
-          data-testid="button-prev-year"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        
-        <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
-              <Calendar className="w-3 h-3 mr-2" />
-              <span className="text-xs">{formatDisplayDate()}</span>
+        {!selectedRange ? (
+          // Show year navigation when no range is selected
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousYear}
+              className="h-8 w-8"
+              data-testid="button-prev-year"
+            >
+              <ChevronLeft className="w-4 h-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" align="center">
-            <div className="space-y-2">
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                placeholder="From Date"
-                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                data-testid="input-from-date"
-              />
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                placeholder="To Date"
-                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                data-testid="input-to-date"
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
+            
+            <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
+                  <Calendar className="w-3 h-3 mr-2" />
+                  <span className="text-xs">{formatDisplayDate()}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2" align="center">
+                <div className="space-y-2">
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    placeholder="From Date"
+                    className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    data-testid="input-from-date"
+                  />
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    placeholder="To Date"
+                    className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    data-testid="input-to-date"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
 
-        {selectedRange && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8"
+              data-testid="button-next-year"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </>
+        ) : (
+          // Show selected range with close button (no left/right navigation)
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-              Selected: {selectedRange.from.getFullYear()}
+              {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              {' - '}
+              {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
             <Button
               variant="ghost"
@@ -338,16 +354,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </Button>
           </div>
         )}
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNextYear}
-          className="h-8 w-8"
-          data-testid="button-next-year"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
       </div>
 
       <style>{`
