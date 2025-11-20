@@ -3213,7 +3213,6 @@ ${
   const [importData, setImportData] = useState("");
   const [importError, setImportError] = useState("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
-  const [isBlockEditorMode, setIsBlockEditorMode] = useState(false);
   const [isBuildMode, setIsBuildMode] = useState(false);
   const [buildModeData, setBuildModeData] = useState({
     time: "",
@@ -10976,23 +10975,6 @@ ${
                             <Save className="w-3.5 h-3.5 mr-1" />
                             Save
                           </Button>
-                          {Object.keys(savedFormats).length > 0 && (
-                            <select
-                              className="h-8 px-2 text-xs border rounded bg-background"
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  setBuildModeData(savedFormats[e.target.value]);
-                                }
-                              }}
-                              defaultValue=""
-                              data-testid="select-load-format"
-                            >
-                              <option value="">Load Format</option>
-                              {Object.keys(savedFormats).map((label) => (
-                                <option key={label} value={label}>{label}</option>
-                              ))}
-                            </select>
-                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -11376,7 +11358,7 @@ ${
                         </table>
                       </div>
                     </div>
-                  ) : !isBlockEditorMode ? (
+                  ) : (
                     <>
                       <div className="text-xs font-medium text-muted-foreground mb-2">
                         Live Preview - How Your First Trade Will Import:
@@ -11438,19 +11420,24 @@ ${
                           ✨ This preview updates automatically as you paste - check your format before importing
                         </p>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsBlockEditorMode(true)}
-                            className="gap-1.5"
-                            data-testid="button-open-block-editor"
-                          >
-                            <Blocks className="w-3.5 h-3.5" />
-                            {importData.trim() && parseBrokerTrades(importData).trades.length === 0 
-                              ? "Fix Format"
-                              : "Block Editor"
-                            }
-                          </Button>
+                          {Object.keys(savedFormats).length > 0 && (
+                            <select
+                              className="h-9 px-3 text-sm border rounded-md bg-background"
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  setBuildModeData(savedFormats[e.target.value]);
+                                  setIsBuildMode(true);
+                                }
+                              }}
+                              defaultValue=""
+                              data-testid="select-load-format"
+                            >
+                              <option value="">Load Saved Format</option>
+                              {Object.keys(savedFormats).map((label) => (
+                                <option key={label} value={label}>{label}</option>
+                              ))}
+                            </select>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -11490,153 +11477,6 @@ ${
                         </div>
                       </div>
                     </>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">
-                          💡 Drag blocks left/right to match columns
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsBlockEditorMode(false)}
-                          data-testid="button-close-block-editor"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      {/* Live Preview Table with Draggable Blocks in Cells */}
-                      <div className="border rounded-md overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead className="bg-muted/50">
-                            <tr className="border-b">
-                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Time</th>
-                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Order</th>
-                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Symbol</th>
-                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Type</th>
-                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Qty</th>
-                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Price</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="border-b">
-                              {/* Time Column */}
-                              <td className="px-2 py-2 align-top">
-                                <div className="flex flex-wrap gap-1 min-h-[24px]">
-                                  {importData.split(/\s+/).filter(word => word.trim()).slice(0, 2).map((word, index) => (
-                                    <div
-                                      key={index}
-                                      draggable
-                                      className="group inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                      data-testid={`block-time-${index}`}
-                                    >
-                                      <span>{word}</span>
-                                      <X className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Order Column */}
-                              <td className="px-2 py-2 align-top">
-                                <div className="flex flex-wrap gap-1 min-h-[24px]">
-                                  {importData.split(/\s+/).filter(word => word.trim()).slice(2, 3).map((word, index) => (
-                                    <div
-                                      key={index}
-                                      draggable
-                                      className="group inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                      data-testid={`block-order-${index}`}
-                                    >
-                                      <span>{word}</span>
-                                      <X className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Symbol Column */}
-                              <td className="px-2 py-2 align-top">
-                                <div className="flex flex-wrap gap-1 min-h-[24px]">
-                                  {importData.split(/\s+/).filter(word => word.trim()).slice(3, 7).map((word, index) => (
-                                    <div
-                                      key={index}
-                                      draggable
-                                      className="group inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                      data-testid={`block-symbol-${index}`}
-                                    >
-                                      <span>{word}</span>
-                                      <X className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Type Column */}
-                              <td className="px-2 py-2 align-top">
-                                <div className="flex flex-wrap gap-1 min-h-[24px]">
-                                  {importData.split(/\s+/).filter(word => word.trim()).slice(7, 8).map((word, index) => (
-                                    <div
-                                      key={index}
-                                      draggable
-                                      className="group inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                      data-testid={`block-type-${index}`}
-                                    >
-                                      <span>{word}</span>
-                                      <X className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Qty Column */}
-                              <td className="px-2 py-2 align-top">
-                                <div className="flex flex-wrap gap-1 min-h-[24px]">
-                                  {importData.split(/\s+/).filter(word => word.trim()).slice(8, 9).map((word, index) => (
-                                    <div
-                                      key={index}
-                                      draggable
-                                      className="group inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                      data-testid={`block-qty-${index}`}
-                                    >
-                                      <span>{word}</span>
-                                      <X className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Price Column */}
-                              <td className="px-2 py-2 align-top">
-                                <div className="flex flex-wrap gap-1 min-h-[24px]">
-                                  {importData.split(/\s+/).filter(word => word.trim()).slice(9, 10).map((word, index) => (
-                                    <div
-                                      key={index}
-                                      draggable
-                                      className="group inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-mono border border-blue-200 dark:border-blue-800 cursor-move hover:bg-blue-200 dark:hover:bg-blue-900/50"
-                                      data-testid={`block-price-${index}`}
-                                    >
-                                      <span>{word}</span>
-                                      <X className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          onClick={() => setIsBlockEditorMode(false)}
-                          data-testid="button-apply-block-format"
-                        >
-                          Apply Format
-                        </Button>
-                      </div>
-                    </div>
                   )}
                 </div>
 
