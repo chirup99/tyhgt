@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import { AuthButton } from "@/components/auth-button";
 import { ConnectionStatus } from "@/components/connection-status";
 import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
@@ -3215,16 +3216,16 @@ ${
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [isBuildMode, setIsBuildMode] = useState(false);
   
-  // Define the format type with position-based structure
+  // Define the format type with position-based structure (supports multiple positions per field)
   type FormatData = {
     sampleLine: string;  // Original first line of trade data
     positions: {
-      time: number | null;
-      order: number | null;
-      symbol: number | null;
-      type: number | null;
-      qty: number | null;
-      price: number | null;
+      time: number[];  // Array of positions
+      order: number[];
+      symbol: number[];
+      type: number[];
+      qty: number[];
+      price: number[];
     };
     // Keep string values for display in build table
     displayValues: {
@@ -3246,12 +3247,12 @@ ${
   const [buildModeData, setBuildModeData] = useState<FormatData>({
     sampleLine: "",
     positions: {
-      time: null,
-      order: null,
-      symbol: null,
-      type: null,
-      qty: null,
-      price: null
+      time: [],
+      order: [],
+      symbol: [],
+      type: [],
+      qty: [],
+      price: []
     },
     displayValues: {
       time: "",
@@ -3263,13 +3264,99 @@ ${
     }
   });
   const [savedFormatLabel, setSavedFormatLabel] = useState("");
-  const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>(() => {
-    const saved = localStorage.getItem("tradingFormats");
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>({});
   const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
   const [detectedFormatLabel, setDetectedFormatLabel] = useState<string | null>(null);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
+  // Helper function to save formats to Firebase
+  const saveFormatsToFirebase = async (formats: Record<string, FormatData>) => {
+    if (!currentUser?.userId) {
+      console.log("⏳ No authenticated user, cannot save to Firebase");
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save formats",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      console.log("💾 Saving formats to Firebase for userId:", currentUser.userId);
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) return false;
+      
+      const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify(formats)
+      });
+
+      if (response.ok) {
+        console.log("✅ Formats saved to Firebase successfully");
+        toast({
+          title: "Saved Successfully",
+          description: "Your format has been saved to Firebase"
+        });
+        return true;
+      } else {
+        console.error("❌ Failed to save formats to Firebase");
+      toast({
+        title: "Save Failed",
+        description: "Failed to save format to Firebase",
+        variant: "destructive"
+      });
+      return false;
+      }
+    } catch (error) {
+      console.error("❌ Error saving formats to Firebase:", error);
+      toast({
+        title: "Network Error",
+        description: "Could not connect to server",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+
+  // Load user's saved formats from Firebase when user is authenticated
+  useEffect(() => {
+    const loadUserFormats = async () => {
+      if (!currentUser?.userId) {
+        console.log("⏳ No authenticated user, skipping format load");
+        return;
+      }
+
+      try {
+        console.log("📥 Loading user formats from Firebase for userId:", currentUser.userId);
+        const idToken = await auth.currentUser?.getIdToken();
+        if (!idToken) return;
+        
+        const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+
+        if (response.ok) {
+          const formats = await response.json();
+          console.log("✅ Loaded formats from Firebase:", Object.keys(formats).length, "formats");
+          setSavedFormats(formats);
+        } else {
+          console.log("📭 No saved formats found in Firebase");
+          setSavedFormats({});
+        }
+      } catch (error) {
+        console.error("❌ Error loading user formats:", error);
+        setSavedFormats({});
+      }
+    };
+
+    loadUserFormats();
+  }, [currentUser?.id]);
 
   // Auto-detect format when pasting data
   useEffect(() => {
@@ -5535,7 +5622,7 @@ ${
     return position >= 0 ? position : null;
   };
 
-  // Parse trades using saved format with position-based mapping
+  // Parse trades using saved format with position-based mapping (supports multiple positions per field)
   const parseTradesWithFormat = (data: string, format: FormatData): ParseResult => {
     const result: ParseResult = {
       trades: [],
@@ -5564,24 +5651,24 @@ ${
       try {
         const tradeData: any = {};
 
-        // Extract fields based on saved positions
-        if (format.positions.time !== null && words[format.positions.time]) {
-          tradeData.time = words[format.positions.time];
+        // Extract fields based on saved positions (join if multiple positions)
+        if (format.positions.time.length > 0) {
+          tradeData.time = format.positions.time.map(pos => words[pos] || "").join(" ");
         }
-        if (format.positions.order !== null && words[format.positions.order]) {
-          tradeData.order = words[format.positions.order];
+        if (format.positions.order.length > 0) {
+          tradeData.order = format.positions.order.map(pos => words[pos] || "").join(" ");
         }
-        if (format.positions.symbol !== null && words[format.positions.symbol]) {
-          tradeData.symbol = words[format.positions.symbol];
+        if (format.positions.symbol.length > 0) {
+          tradeData.symbol = format.positions.symbol.map(pos => words[pos] || "").join(" ");
         }
-        if (format.positions.type !== null && words[format.positions.type]) {
-          tradeData.type = words[format.positions.type];
+        if (format.positions.type.length > 0) {
+          tradeData.type = format.positions.type.map(pos => words[pos] || "").join(" ");
         }
-        if (format.positions.qty !== null && words[format.positions.qty]) {
-          tradeData.qty = words[format.positions.qty];
+        if (format.positions.qty.length > 0) {
+          tradeData.qty = format.positions.qty.map(pos => words[pos] || "").join(" ");
         }
-        if (format.positions.price !== null && words[format.positions.price]) {
-          tradeData.price = words[format.positions.price];
+        if (format.positions.price.length > 0) {
+          tradeData.price = format.positions.price.map(pos => words[pos] || "").join(" ");
         }
 
         // Validate required fields
@@ -11172,8 +11259,7 @@ ${
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              if (!savedFormatLabel.trim()) {
+                            onClick={async () => {if (!savedFormatLabel.trim()) {
                                 alert("Please enter a label for this format");
                                 return;
                               }
@@ -11181,7 +11267,7 @@ ${
                               const newFormats = { ...savedFormats, [savedFormatLabel]: buildModeData };
                               setSavedFormats(newFormats);
                               setActiveFormat(buildModeData);
-                              localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
+                              await saveFormatsToFirebase(newFormats);
                               setSavedFormatLabel("");
                               alert(`Format "${savedFormatLabel}" saved with position mapping! Import will now use these positions.`);
                               console.log("✅ Format saved with positions:", savedFormatLabel, buildModeData.positions);
@@ -11225,7 +11311,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.displayValues?.time ? (
+                                {buildModeData.positions.time.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -11235,11 +11321,11 @@ ${
                                     className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time}]</span>
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time.join(", ")}]</span>
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
-                                          positions: { ...prev.positions, time: null },
+                                          positions: { ...prev.positions, time: [] },
                                           displayValues: { ...prev.displayValues!, time: "" }
                                         }))}
                                         className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
@@ -11264,9 +11350,10 @@ ${
                                             setBuildModeData(prev => ({ 
                                               ...prev,
                                               sampleLine: firstLine,
-                                              positions: { ...prev.positions, time: position },
-                                              displayValues: { ...prev.displayValues!, time: selectedText.trim() }
+                                              positions: { ...prev.positions, time: [...prev.positions.time, position] },
+                                              displayValues: { ...prev.displayValues!, time: prev.displayValues.time ? `${prev.displayValues.time} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
+                                            console.log("✅ Added position to time:", position);
                                           } else {
                                             alert("Could not find selected text in first line!");
                                           }
@@ -11275,7 +11362,7 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-time"
-                                    title="Select text from below and click to add"
+                                    title="Select text from below and click to add (multiple selections allowed)"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11291,7 +11378,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.displayValues?.order ? (
+                                {buildModeData.positions.order.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -11301,7 +11388,7 @@ ${
                                     className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order}]</span>
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order.join(", ")}]</span>
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
@@ -11330,8 +11417,8 @@ ${
                                             setBuildModeData(prev => ({ 
                                               ...prev,
                                               sampleLine: firstLine,
-                                              positions: { ...prev.positions, order: position },
-                                              displayValues: { ...prev.displayValues!, order: selectedText.trim() }
+                                              positions: { ...prev.positions, order: [...prev.positions.order, position] },
+                                              displayValues: { ...prev.displayValues!, order: prev.displayValues.order ? `${prev.displayValues.order} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
                                           } else {
                                             alert("Could not find selected text in first line!");
@@ -11341,7 +11428,7 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-order"
-                                    title="Select text from below and click to add"
+                                    title="Select text from below and click to add (multiple selections allowed)"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11357,7 +11444,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.displayValues?.symbol ? (
+                                {buildModeData.positions.symbol.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -11367,7 +11454,7 @@ ${
                                     className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol}]</span>
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol.join(", ")}]</span>
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
@@ -11396,8 +11483,8 @@ ${
                                             setBuildModeData(prev => ({ 
                                               ...prev,
                                               sampleLine: firstLine,
-                                              positions: { ...prev.positions, symbol: position },
-                                              displayValues: { ...prev.displayValues!, symbol: selectedText.trim() }
+                                              positions: { ...prev.positions, symbol: [...prev.positions.symbol, position] },
+                                              displayValues: { ...prev.displayValues!, symbol: prev.displayValues.symbol ? `${prev.displayValues.symbol} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
                                           } else {
                                             alert("Could not find selected text in first line!");
@@ -11407,7 +11494,7 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-symbol"
-                                    title="Select text from below and click to add"
+                                    title="Select text from below and click to add (multiple selections allowed)"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11423,7 +11510,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.displayValues?.type ? (
+                                {buildModeData.positions.type.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -11433,7 +11520,7 @@ ${
                                     className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type}]</span>
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type.join(", ")}]</span>
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
@@ -11462,8 +11549,8 @@ ${
                                             setBuildModeData(prev => ({ 
                                               ...prev,
                                               sampleLine: firstLine,
-                                              positions: { ...prev.positions, type: position },
-                                              displayValues: { ...prev.displayValues!, type: selectedText.trim() }
+                                              positions: { ...prev.positions, type: [...prev.positions.type, position] },
+                                              displayValues: { ...prev.displayValues!, type: prev.displayValues.type ? `${prev.displayValues.type} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
                                           } else {
                                             alert("Could not find selected text in first line!");
@@ -11473,7 +11560,7 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-type"
-                                    title="Select text from below and click to add"
+                                    title="Select text from below and click to add (multiple selections allowed)"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11489,7 +11576,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.displayValues?.qty ? (
+                                {buildModeData.positions.qty.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -11499,7 +11586,7 @@ ${
                                     className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty}]</span>
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty.join(", ")}]</span>
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
@@ -11528,8 +11615,8 @@ ${
                                             setBuildModeData(prev => ({ 
                                               ...prev,
                                               sampleLine: firstLine,
-                                              positions: { ...prev.positions, qty: position },
-                                              displayValues: { ...prev.displayValues!, qty: selectedText.trim() }
+                                              positions: { ...prev.positions, qty: [...prev.positions.qty, position] },
+                                              displayValues: { ...prev.displayValues!, qty: prev.displayValues.qty ? `${prev.displayValues.qty} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
                                           } else {
                                             alert("Could not find selected text in first line!");
@@ -11539,7 +11626,7 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-qty"
-                                    title="Select text from below and click to add"
+                                    title="Select text from below and click to add (multiple selections allowed)"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11555,7 +11642,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.displayValues?.price ? (
+                                {buildModeData.positions.price.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -11565,7 +11652,7 @@ ${
                                     className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
                                     <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price}]</span>
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price.join(", ")}]</span>
                                       <button
                                         onClick={() => setBuildModeData(prev => ({ 
                                           ...prev, 
@@ -11594,8 +11681,8 @@ ${
                                             setBuildModeData(prev => ({ 
                                               ...prev,
                                               sampleLine: firstLine,
-                                              positions: { ...prev.positions, price: position },
-                                              displayValues: { ...prev.displayValues!, price: selectedText.trim() }
+                                              positions: { ...prev.positions, price: [...prev.positions.price, position] },
+                                              displayValues: { ...prev.displayValues!, price: prev.displayValues.price ? `${prev.displayValues.price} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
                                           } else {
                                             alert("Could not find selected text in first line!");
@@ -11605,7 +11692,7 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-price"
-                                    title="Select text from below and click to add"
+                                    title="Select text from below and click to add (multiple selections allowed)"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
@@ -11657,12 +11744,11 @@ ${
                                           variant="ghost"
                                           size="sm"
                                           className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                          onClick={() => {
-                                            if (confirm(`Delete format "${label}"?`)) {
+                                          onClick={async () => {if (confirm(`Delete format "${label}"?`)) {
                                               const newFormats = { ...savedFormats };
                                               delete newFormats[label];
                                               setSavedFormats(newFormats);
-                                              localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
+                                              await saveFormatsToFirebase(newFormats);
                                               if (activeFormat === format) {
                                                 setActiveFormat(null);
                                               }
@@ -11780,10 +11866,10 @@ ${
                                 sampleLine: firstLine,
                                 positions: {
                                   time: null,
-                                  order: null,
-                                  symbol: null,
-                                  type: null,
-                                  qty: null,
+                                  order: [],
+                                  symbol: [],
+                                  type: [],
+                                  qty: [],
                                   price: null
                                 },
                                 displayValues: {

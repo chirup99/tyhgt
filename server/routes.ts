@@ -4723,6 +4723,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================
+  // USER TRADING FORMATS (Simple Firebase Storage)
+  // ==========================================
+
+  // Get all trading formats for a user (authenticated)
+  app.get('/api/user-formats/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Verify authentication token
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: Missing authentication token' });
+      }
+      
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      
+      // Verify the authenticated user matches the requested userId
+      if (decodedToken.uid !== userId) {
+        console.warn(`⚠️ Auth mismatch: token uid=${decodedToken.uid} vs requested userId=${userId}`);
+        return res.status(403).json({ error: 'Forbidden: Cannot access another user\'s data' });
+      }
+      
+      console.log(`📥 Loading trading formats for authenticated userId: ${userId}`);
+      const formats = await googleCloudService.getCachedData(`user-formats-${userId}`, 'trading-formats') || {};
+      console.log(`✅ Loaded ${Object.keys(formats).length} formats for user ${userId}`);
+      res.json(formats);
+    } catch (error) {
+      console.error('❌ Error loading user formats:', error);
+      if (error.code === 'auth/id-token-expired') {
+        return res.status(401).json({ error: 'Authentication token expired' });
+      }
+      res.status(500).json({ error: 'Failed to load user formats' });
+    }
+  });
+
+  // Save all trading formats for a user (authenticated)
+  app.post('/api/user-formats/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const formats = req.body;
+      
+      // Verify authentication token
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: Missing authentication token' });
+      }
+      
+      const idToken = authHeader.split('Bearer ')[1];
+      const admin = await import('firebase-admin');
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      
+      // Verify the authenticated user matches the requested userId
+      if (decodedToken.uid !== userId) {
+        console.warn(`⚠️ Auth mismatch: token uid=${decodedToken.uid} vs requested userId=${userId}`);
+        return res.status(403).json({ error: 'Forbidden: Cannot save to another user\'s data' });
+      }
+      
+      console.log(`💾 Saving trading formats for authenticated userId: ${userId}`, Object.keys(formats).length, 'formats');
+      await googleCloudService.setCachedData(`user-formats-${userId}`, formats, 'trading-formats');
+      console.log(`✅ Saved formats for user ${userId}`);
+      res.json({ success: true, message: 'Formats saved successfully' });
+    } catch (error) {
+      console.error('❌ Error saving user formats:', error);
+      if (error.code === 'auth/id-token-expired') {
+        return res.status(401).json({ error: 'Authentication token expired' });
+      }
+      res.status(500).json({ error: 'Failed to save user formats' });
+    }
+  });
+
+  // ==========================================
   // END USER-SPECIFIC TRADING JOURNAL
   // ==========================================
 
