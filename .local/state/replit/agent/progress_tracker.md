@@ -709,3 +709,26 @@
 [x] 1794. ✅ Workflow restarted successfully - drag-and-drop feature active
 [x] 1795. ✅✅✅ DRAG-AND-DROP WITH + PLACEHOLDERS COMPLETED! ✅✅✅
 [x] 1796. 🎉🎉🎉 USERS CAN NOW DRAG BOXES BETWEEN COLUMNS AND SEE + BUTTONS IN EMPTY FIELDS! 🎉🎉🎉
+
+[x] 1797. NOVEMBER 20, 2025 - PUZZLE-STYLE SWAP BEHAVIOR FOR BUILD MODE
+[x] 1798. User requested: "dont merge with other box when i relocate to other coloum just like puzzule change postions"
+[x] 1799. Requirements identified:
+[x] 1800.   - Change drag-and-drop behavior from merge to swap
+[x] 1801.   - When dragging from one column to another, swap their values like puzzle pieces
+[x] 1802.   - No more concatenating values with spaces
+[x] 1803. ✅ Updated Time column onDrop handler to swap instead of merge
+[x] 1804. ✅ Changed logic from `time: prev.time + " " + sourceValue` to swap pattern
+[x] 1805. ✅ Now captures target value first: `const targetValue = prev.time`
+[x] 1806. ✅ Sets source value to target column: `time: sourceValue`
+[x] 1807. ✅ Moves target value back to source column: `[sourceField]: targetValue`
+[x] 1808. ✅ Updated Order column with same swap logic
+[x] 1809. ✅ Updated Symbol column with same swap logic
+[x] 1810. ✅ Updated Type column with same swap logic
+[x] 1811. ✅ Updated Qty column with same swap logic
+[x] 1812. ✅ Updated Price column with same swap logic
+[x] 1813. ✅ All 6 columns now use puzzle-style position swapping
+[x] 1814. ✅ Drag "BUY" from Order to Time → Time's value goes to Order, "BUY" goes to Time
+[x] 1815. ✅ Values exchange positions instead of concatenating
+[x] 1816. ✅ Clean, intuitive puzzle-like drag-and-drop behavior
+[x] 1817. ✅✅✅ PUZZLE-STYLE SWAP BEHAVIOR COMPLETED! ✅✅✅
+[x] 1818. 🎉🎉🎉 BUILD MODE NOW SWAPS BOXES LIKE A PUZZLE - NO MORE MERGING! 🎉🎉🎉

@@ -10977,11 +10977,14 @@ ${
                                   const sourceField = e.dataTransfer.getData("sourceField");
                                   const sourceValue = e.dataTransfer.getData("sourceValue");
                                   if (sourceField && sourceField !== "time") {
-                                    setBuildModeData(prev => ({
-                                      ...prev,
-                                      time: prev.time ? prev.time + " " + sourceValue : sourceValue,
-                                      [sourceField]: ""
-                                    }));
+                                    setBuildModeData(prev => {
+                                      const targetValue = prev.time;
+                                      return {
+                                        ...prev,
+                                        time: sourceValue,
+                                        [sourceField]: targetValue
+                                      };
+                                    });
                                   }
                                 }}
                               >
@@ -11024,11 +11027,14 @@ ${
                                   const sourceField = e.dataTransfer.getData("sourceField");
                                   const sourceValue = e.dataTransfer.getData("sourceValue");
                                   if (sourceField && sourceField !== "order") {
-                                    setBuildModeData(prev => ({
-                                      ...prev,
-                                      order: prev.order ? prev.order + " " + sourceValue : sourceValue,
-                                      [sourceField]: ""
-                                    }));
+                                    setBuildModeData(prev => {
+                                      const targetValue = prev.order;
+                                      return {
+                                        ...prev,
+                                        order: sourceValue,
+                                        [sourceField]: targetValue
+                                      };
+                                    });
                                   }
                                 }}
                               >
@@ -11071,11 +11077,14 @@ ${
                                   const sourceField = e.dataTransfer.getData("sourceField");
                                   const sourceValue = e.dataTransfer.getData("sourceValue");
                                   if (sourceField && sourceField !== "symbol") {
-                                    setBuildModeData(prev => ({
-                                      ...prev,
-                                      symbol: prev.symbol ? prev.symbol + " " + sourceValue : sourceValue,
-                                      [sourceField]: ""
-                                    }));
+                                    setBuildModeData(prev => {
+                                      const targetValue = prev.symbol;
+                                      return {
+                                        ...prev,
+                                        symbol: sourceValue,
+                                        [sourceField]: targetValue
+                                      };
+                                    });
                                   }
                                 }}
                               >
@@ -11118,11 +11127,14 @@ ${
                                   const sourceField = e.dataTransfer.getData("sourceField");
                                   const sourceValue = e.dataTransfer.getData("sourceValue");
                                   if (sourceField && sourceField !== "type") {
-                                    setBuildModeData(prev => ({
-                                      ...prev,
-                                      type: prev.type ? prev.type + " " + sourceValue : sourceValue,
-                                      [sourceField]: ""
-                                    }));
+                                    setBuildModeData(prev => {
+                                      const targetValue = prev.type;
+                                      return {
+                                        ...prev,
+                                        type: sourceValue,
+                                        [sourceField]: targetValue
+                                      };
+                                    });
                                   }
                                 }}
                               >
@@ -11165,11 +11177,14 @@ ${
                                   const sourceField = e.dataTransfer.getData("sourceField");
                                   const sourceValue = e.dataTransfer.getData("sourceValue");
                                   if (sourceField && sourceField !== "qty") {
-                                    setBuildModeData(prev => ({
-                                      ...prev,
-                                      qty: prev.qty ? prev.qty + " " + sourceValue : sourceValue,
-                                      [sourceField]: ""
-                                    }));
+                                    setBuildModeData(prev => {
+                                      const targetValue = prev.qty;
+                                      return {
+                                        ...prev,
+                                        qty: sourceValue,
+                                        [sourceField]: targetValue
+                                      };
+                                    });
                                   }
                                 }}
                               >
@@ -11212,11 +11227,14 @@ ${
                                   const sourceField = e.dataTransfer.getData("sourceField");
                                   const sourceValue = e.dataTransfer.getData("sourceValue");
                                   if (sourceField && sourceField !== "price") {
-                                    setBuildModeData(prev => ({
-                                      ...prev,
-                                      price: prev.price ? prev.price + " " + sourceValue : sourceValue,
-                                      [sourceField]: ""
-                                    }));
+                                    setBuildModeData(prev => {
+                                      const targetValue = prev.price;
+                                      return {
+                                        ...prev,
+                                        price: sourceValue,
+                                        [sourceField]: targetValue
+                                      };
+                                    });
                                   }
                                 }}
                               >
