@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { DateRange } from "react-day-picker";
 
 interface PersonalHeatmapProps {
@@ -419,7 +425,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       </div>
 
       {/* Date Range Picker */}
-      <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+      <div className="relative flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         {!dateRange ? (
           // Show year navigation when no range is selected
           <>
@@ -485,6 +491,31 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             </Button>
           </div>
         )}
+
+        {/* 3-dot menu in right corner */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 absolute right-0"
+              data-testid="button-calendar-menu"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem data-testid="menu-item-modify">
+              Modify
+            </DropdownMenuItem>
+            <DropdownMenuItem data-testid="menu-item-change-dates">
+              Change dates
+            </DropdownMenuItem>
+            <DropdownMenuItem data-testid="menu-item-delete">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <style>{`

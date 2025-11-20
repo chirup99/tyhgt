@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DemoHeatmapProps {
   onDateSelect: (date: Date) => void;
@@ -338,7 +344,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       </div>
 
       {/* Date Range / Year Navigation */}
-      <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+      <div className="relative flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         {!selectedRange ? (
           // Show year navigation when no range is selected
           <>
@@ -410,6 +416,31 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </Button>
           </div>
         )}
+
+        {/* 3-dot menu in right corner */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 absolute right-0"
+              data-testid="button-calendar-menu"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem data-testid="menu-item-modify">
+              Modify
+            </DropdownMenuItem>
+            <DropdownMenuItem data-testid="menu-item-change-dates">
+              Change dates
+            </DropdownMenuItem>
+            <DropdownMenuItem data-testid="menu-item-delete">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <style>{`
