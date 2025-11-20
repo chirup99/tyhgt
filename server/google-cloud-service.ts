@@ -1115,8 +1115,10 @@ export class GoogleCloudService {
    */
   async getAllUserTradingJournals(userId: string) {
     try {
-      const collectionPath = `users/${userId}/trading-journal`;
-      const snapshot = await this.firestore.collection(collectionPath).get();
+      // ✅ CRITICAL FIX: Access subcollection through parent document, not direct path
+      // Firebase subcollections MUST be accessed as: doc(parentPath).collection(subCollectionName)
+      // NOT: collection('parent/child') - this doesn't work for subcollections!
+      const snapshot = await this.firestore.doc(`users/${userId}`).collection('trading-journal').get();
       
       // ✅ FIX: Convert array to object with dates as keys (matches demo data format)
       // Frontend expects: { "2025-03-02": data, "2025-03-03": data }
