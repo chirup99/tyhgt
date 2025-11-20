@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import type { DateRange } from "react-day-picker";
 
 interface PersonalHeatmapProps {
   userId: string | null;
@@ -82,6 +85,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [currentDate, setCurrentDate] = useState(new Date());
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isRangePickerOpen, setIsRangePickerOpen] = useState(false);
 
   // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT
   useEffect(() => {
@@ -145,6 +150,59 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       });
   }, [userId]);
 
+  // Handle date range changes
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    
+    // Automatically close popover when both dates are selected
+    if (range?.from && range?.to) {
+      setIsRangePickerOpen(false);
+    }
+    
+    // Notify parent component
+    if (range?.from && range?.to && onRangeChange) {
+      console.log(`📅 Date range selected: ${range.from.toLocaleDateString()} to ${range.to.toLocaleDateString()}`);
+      onRangeChange({ from: range.from, to: range.to });
+    } else if (!range && onRangeChange) {
+      console.log('📅 Date range cleared');
+      onRangeChange(null);
+    }
+  };
+
+  // Clear date range
+  const clearDateRange = () => {
+    setDateRange(undefined);
+    if (onRangeChange) {
+      onRangeChange(null);
+    }
+    setIsRangePickerOpen(false);
+  };
+
+  // Filter heatmap data based on selected date range
+  const getFilteredData = (): Record<string, any> => {
+    if (!dateRange?.from || !dateRange?.to) {
+      return heatmapData; // No filtering if no range selected
+    }
+
+    const filtered: Record<string, any> = {};
+    const startTime = dateRange.from.getTime();
+    const endTime = dateRange.to.getTime();
+
+    Object.keys(heatmapData).forEach(dateKey => {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const dateTime = new Date(year, month - 1, day).getTime();
+      
+      if (dateTime >= startTime && dateTime <= endTime) {
+        filtered[dateKey] = heatmapData[dateKey];
+      }
+    });
+
+    console.log(`🔍 Filtered ${Object.keys(heatmapData).length} dates to ${Object.keys(filtered).length} dates within range`);
+    return filtered;
+  };
+
+  const filteredHeatmapData = getFilteredData();
+
   // HANDLE DATE CLICK - FETCH FRESH DATA FROM FIREBASE
   const handleDateClick = async (date: Date) => {
     if (!userId) return;
@@ -177,25 +235,52 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     }
   };
 
-  // Generate calendar data for the year
+  // Generate calendar data for the year or filtered range
   const generateMonthsData = () => {
-    const year = currentDate.getFullYear();
+    let startYear = currentDate.getFullYear();
+    let startMonth = 0;
+    let endYear = currentDate.getFullYear();
+    let endMonth = 11;
+
+    // If date range is selected, only show months within that range
+    if (dateRange?.from && dateRange?.to) {
+      startYear = dateRange.from.getFullYear();
+      startMonth = dateRange.from.getMonth();
+      endYear = dateRange.to.getFullYear();
+      endMonth = dateRange.to.getMonth();
+    }
+
     const months = [];
     
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
-      const lastDay = new Date(year, monthIndex + 1, 0);
+    // Generate months from start to end
+    for (let year = startYear; year <= endYear; year++) {
+      const firstMonth = (year === startYear) ? startMonth : 0;
+      const lastMonth = (year === endYear) ? endMonth : 11;
       
-      // Create 7 rows (one for each day of week)
-      const dayRows: (Date | null)[][] = [[], [], [], [], [], [], []];
-      
-      for (let day = 1; day <= lastDay.getDate(); day++) {
-        const date = new Date(year, monthIndex, day);
-        const dayOfWeek = date.getDay();
-        dayRows[dayOfWeek].push(date);
+      for (let monthIndex = firstMonth; monthIndex <= lastMonth; monthIndex++) {
+        const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
+        const lastDay = new Date(year, monthIndex + 1, 0);
+        
+        // Create 7 rows (one for each day of week)
+        const dayRows: (Date | null)[][] = [[], [], [], [], [], [], []];
+        
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+          const date = new Date(year, monthIndex, day);
+          
+          // Only include dates within the range if range is set
+          if (dateRange?.from && dateRange?.to) {
+            if (date >= dateRange.from && date <= dateRange.to) {
+              const dayOfWeek = date.getDay();
+              dayRows[dayOfWeek].push(date);
+            }
+          } else {
+            const dayOfWeek = date.getDay();
+            dayRows[dayOfWeek].push(date);
+          }
+        }
+        
+        months.push({ name: monthName, dayRows });
       }
-      
-      months.push({ name: monthName, dayRows });
     }
     
     return months;
@@ -242,10 +327,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          Personal Trading Calendar {currentDate.getFullYear()}
+          Personal Trading Calendar {dateRange ? `(${dateRange.from?.getFullYear()} - ${dateRange.to?.getFullYear()})` : currentDate.getFullYear()}
         </h3>
         <span className="text-xs text-gray-500">
-          {isLoading ? "Loading..." : `${Object.keys(heatmapData).length} dates with data`}
+          {isLoading ? "Loading..." : dateRange ? `${Object.keys(filteredHeatmapData).length} of ${Object.keys(heatmapData).length} dates in range` : `${Object.keys(heatmapData).length} dates with data`}
         </span>
       </div>
 
@@ -280,8 +365,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateKey = `${year}-${month}-${day}`;
                           
-                          // Get data from heatmapData (ONLY FIREBASE DATA)
-                          const data = heatmapData[dateKey];
+                          // Get data from FILTERED heatmapData (ONLY FIREBASE DATA in selected range)
+                          const data = filteredHeatmapData[dateKey];
                           
                           // Calculate P&L from FIREBASE DATA ONLY
                           const netPnL = calculatePnL(data);
@@ -333,32 +418,95 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         </div>
       </div>
 
-      {/* Year Navigation */}
+      {/* Date Range Picker */}
       <div className="flex items-center justify-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePreviousYear}
-          className="h-8 w-8"
-          data-testid="button-prev-year"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        
-        <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
-          <Calendar className="w-3 h-3 mr-2" />
-          <span className="text-xs">{formatDisplayDate()}</span>
-        </Button>
+        {!dateRange ? (
+          // Show year navigation when no range is selected
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousYear}
+              className="h-8 w-8"
+              data-testid="button-prev-year"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 min-w-[200px]"
+                  data-testid="button-select-date-range"
+                >
+                  <CalendarIcon className="w-3 h-3 mr-2" />
+                  <span className="text-xs">Select dates</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={handleDateRangeChange}
+                  numberOfMonths={2}
+                  data-testid="calendar-range-picker"
+                />
+              </PopoverContent>
+            </Popover>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNextYear}
-          className="h-8 w-8"
-          data-testid="button-next-year"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8"
+              data-testid="button-next-year"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </>
+        ) : (
+          // Show selected range with close button (no left/right navigation)
+          <div className="flex items-center gap-2">
+            <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8"
+                  data-testid="button-edit-date-range"
+                >
+                  <CalendarIcon className="w-3 h-3 mr-2" />
+                  <span className="text-xs">
+                    {dateRange.from?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {' '}-{' '}
+                    {dateRange.to?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={handleDateRangeChange}
+                  numberOfMonths={2}
+                  data-testid="calendar-range-picker"
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={clearDateRange}
+              className="h-8 w-8"
+              data-testid="button-clear-date-range"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <style>{`
