@@ -7,24 +7,38 @@ interface PersonalHeatmapProps {
   userId: string | null;
   onDateSelect: (date: Date) => void;
   selectedDate: Date | null;
-  tradingDataByDate: Record<string, any>; // SAME DATA AS TRADE WINDOW
 }
 
-// EXACT SAME LOGIC AS TRADE WINDOW (home.tsx line 4505)
-function getNetPnL(data: any): number {
+// Simple function to calculate P&L from trade data
+function calculatePnL(data: any): number {
   if (!data) return 0;
   
-  // Use performanceMetrics.netPnL - EXACT SAME AS TRADE WINDOW
-  if (data.performanceMetrics) {
-    return data.performanceMetrics.netPnL || 0;
+  // Try performanceMetrics first
+  if (data.performanceMetrics?.netPnL !== undefined) {
+    return data.performanceMetrics.netPnL;
+  }
+  
+  // Try calculating from tradeHistory
+  if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
+    let totalPnL = 0;
+    data.tradeHistory.forEach((trade: any) => {
+      if (trade.pnl && typeof trade.pnl === 'string') {
+        // Remove ₹ symbol and commas, parse as number
+        const pnlValue = parseFloat(trade.pnl.replace(/[₹,]/g, ''));
+        if (!isNaN(pnlValue)) {
+          totalPnL += pnlValue;
+        }
+      }
+    });
+    return totalPnL;
   }
   
   return 0;
 }
 
-// SIMPLE: Get color based on P&L value
+// Get color based on P&L value - SIMPLE AND CLEAR
 function getPnLColor(pnl: number): string {
-  if (pnl === 0) return "bg-gray-100 dark:bg-gray-700";
+  if (pnl === 0) return "bg-gray-200 dark:bg-gray-700";
   
   const amount = Math.abs(pnl);
   
@@ -41,14 +55,51 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function PersonalHeatmap({ userId, onDateSelect, selectedDate, tradingDataByDate }: PersonalHeatmapProps) {
+export function PersonalHeatmap({ userId, onDateSelect, selectedDate }: PersonalHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
+  const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
-  // NO FETCHING! Use tradingDataByDate prop (same as trade window)
+  // SIMPLE FETCH - No filters, no complications - PERSONAL DATA
+  useEffect(() => {
+    if (!userId) {
+      console.log("🔥 PersonalHeatmap: No userId provided, skipping fetch");
+      setHeatmapData({});
+      setIsLoading(false);
+      return;
+    }
+
+    console.log("🔥 PersonalHeatmap: Fetching personal data from Firebase for userId:", userId);
+    setIsLoading(true);
+    
+    fetch(`/api/user-journal/${userId}/all`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("✅ PersonalHeatmap: Raw Firebase data received:", data);
+        console.log("✅ PersonalHeatmap: Total dates:", Object.keys(data).length);
+        
+        // Process each date to calculate P&L
+        const processedData: Record<string, any> = {};
+        Object.keys(data).forEach(dateKey => {
+          // dateKey is already in YYYY-MM-DD format from the API
+          processedData[dateKey] = data[dateKey];
+          const pnl = calculatePnL(data[dateKey]);
+          console.log(`📊 PersonalHeatmap: ${dateKey} = ₹${pnl.toFixed(2)}`);
+        });
+        
+        console.log("✅ PersonalHeatmap: Processed data:", processedData);
+        setHeatmapData(processedData);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error("❌ PersonalHeatmap: Fetch error:", error);
+        setIsLoading(false);
+      });
+  }, [userId]); // Re-fetch when userId changes
 
   // Generate calendar data for the year
   const generateMonthsData = () => {
@@ -119,10 +170,12 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, tradingDat
 
   if (!userId) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-gray-500 dark:text-gray-400">
-          Please log in to view your personal trading heatmap
-        </p>
+      <div className="flex flex-col gap-2 p-6 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="py-12 text-center">
+          <p className="text-gray-500 dark:text-gray-400">
+            Please log in to view your personal trading heatmap
+          </p>
+        </div>
       </div>
     );
   }
@@ -134,7 +187,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, tradingDat
           Personal Trading Calendar {currentDate.getFullYear()}
         </h3>
         <span className="text-xs text-gray-500">
-          {Object.keys(tradingDataByDate).length} dates
+          {isLoading ? "Loading..." : `${Object.keys(heatmapData).length} dates with data`}
         </span>
       </div>
 
@@ -169,29 +222,29 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, tradingDat
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateKey = `${year}-${month}-${day}`;
                           
-                          // Get data from tradingDataByDate (SAME AS TRADE WINDOW)
-                          const data = tradingDataByDate[dateKey];
+                          // Get data from heatmapData
+                          const data = heatmapData[dateKey];
                           
-                          // Use EXACT SAME LOGIC as trade window
-                          const netPnL = getNetPnL(data);
+                          // Calculate P&L
+                          const netPnL = calculatePnL(data);
                           let cellColor = getPnLColor(netPnL);
                             
                           // Override for selected date
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                           if (isSelected) {
-                            cellColor = "bg-gray-900 dark:bg-gray-100";
+                            cellColor = "bg-blue-500 dark:bg-blue-400 ring-2 ring-blue-600";
                           }
 
                           return (
                             <div
                               key={colIndex}
-                              className={`w-3 h-3 rounded-sm cursor-pointer ${cellColor}`}
+                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all ${cellColor}`}
                               onClick={() => {
                                 setCurrentDate(date);
                                 onDateSelect(date);
                               }}
                               title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
-                              data-testid={`personal-calendar-day-${date.getDate()}-${date.getMonth()}`}
+                              data-testid={`personal-heatmap-cell-${dateKey}`}
                             />
                           );
                         })}
