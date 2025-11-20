@@ -158,9 +158,11 @@ import {
   Trophy,
   Radio,
   Eye,
+  Blocks,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
+import { TradeBlockEditor } from "@/components/TradeBlockEditor";
 import type { BrokerTrade } from "@shared/schema";
 
 // Type definitions for stock data and trading
@@ -3209,6 +3211,8 @@ ${
   const [importData, setImportData] = useState("");
   const [importError, setImportError] = useState("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
+  const [isBlockEditorMode, setIsBlockEditorMode] = useState(false);
+  const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
@@ -10923,67 +10927,98 @@ ${
                 </p>
                 
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
-                  <div className="text-xs font-medium text-muted-foreground mb-2">
-                    Live Preview - How Your First Trade Will Import:
-                  </div>
-                  <div className="bg-background rounded border overflow-hidden">
-                    <table className="w-full font-mono text-xs">
-                      <thead>
-                        <tr className="bg-blue-50 dark:bg-blue-950 border-b border-blue-200 dark:border-blue-800">
-                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Time</th>
-                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Order</th>
-                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Symbol</th>
-                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Type</th>
-                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Qty</th>
-                          <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Price</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(() => {
-                          // Parse first trade from pasted data
-                          if (!importData.trim()) {
-                            return (
-                              <tr className="border-b last:border-b-0">
-                                <td colSpan={6} className="px-2 py-3 text-center text-muted-foreground italic">
-                                  Paste trade data below to see live preview...
-                                </td>
-                              </tr>
-                            );
-                          }
-
-                          const { trades, errors } = parseBrokerTrades(importData);
-                          
-                          if (trades.length === 0) {
-                            return (
-                              <tr className="border-b last:border-b-0">
-                                <td colSpan={6} className="px-2 py-3 text-center text-orange-600 dark:text-orange-400">
-                                  ⚠️ Unable to parse - check format
-                                </td>
-                              </tr>
-                            );
-                          }
-
-                          const firstTrade = trades[0];
-                          return (
-                            <tr className="border-b last:border-b-0 bg-green-50/50 dark:bg-green-950/20">
-                              <td className="px-2 py-2 text-foreground">{firstTrade.time}</td>
-                              <td className="px-2 py-2 text-foreground">{firstTrade.order}</td>
-                              <td className="px-2 py-2 text-foreground">{firstTrade.symbol}</td>
-                              <td className="px-2 py-2 text-foreground">{firstTrade.type}</td>
-                              <td className="px-2 py-2 text-foreground">{firstTrade.qty}</td>
-                              <td className="px-2 py-2 text-foreground">{firstTrade.price}</td>
+                  {!isBlockEditorMode ? (
+                    <>
+                      <div className="text-xs font-medium text-muted-foreground mb-2">
+                        Live Preview - How Your First Trade Will Import:
+                      </div>
+                      <div className="bg-background rounded border overflow-hidden">
+                        <table className="w-full font-mono text-xs">
+                          <thead>
+                            <tr className="bg-blue-50 dark:bg-blue-950 border-b border-blue-200 dark:border-blue-800">
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Time</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Order</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Symbol</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Type</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Qty</th>
+                              <th className="px-2 py-2 text-left text-blue-600 dark:text-blue-400 font-semibold">Price</th>
                             </tr>
-                          );
-                        })()}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    ✨ This preview updates automatically as you paste - check your format before importing
-                  </p>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              // Parse first trade from pasted data
+                              if (!importData.trim()) {
+                                return (
+                                  <tr className="border-b last:border-b-0">
+                                    <td colSpan={6} className="px-2 py-3 text-center text-muted-foreground italic">
+                                      Paste trade data below to see live preview...
+                                    </td>
+                                  </tr>
+                                );
+                              }
+
+                              const { trades, errors } = parseBrokerTrades(importData);
+                              
+                              if (trades.length === 0) {
+                                return (
+                                  <tr className="border-b last:border-b-0">
+                                    <td colSpan={6} className="px-2 py-3 text-center text-orange-600 dark:text-orange-400">
+                                      ⚠️ Unable to parse - check format
+                                    </td>
+                                  </tr>
+                                );
+                              }
+
+                              const firstTrade = trades[0];
+                              return (
+                                <tr className="border-b last:border-b-0 bg-green-50/50 dark:bg-green-950/20">
+                                  <td className="px-2 py-2 text-foreground">{firstTrade.time}</td>
+                                  <td className="px-2 py-2 text-foreground">{firstTrade.order}</td>
+                                  <td className="px-2 py-2 text-foreground">{firstTrade.symbol}</td>
+                                  <td className="px-2 py-2 text-foreground">{firstTrade.type}</td>
+                                  <td className="px-2 py-2 text-foreground">{firstTrade.qty}</td>
+                                  <td className="px-2 py-2 text-foreground">{firstTrade.price}</td>
+                                </tr>
+                              );
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-muted-foreground">
+                          ✨ This preview updates automatically as you paste - check your format before importing
+                        </p>
+                        {importData.trim() && parseBrokerTrades(importData).trades.length === 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsBlockEditorMode(true)}
+                            className="gap-1.5"
+                            data-testid="button-open-block-editor"
+                          >
+                            <Blocks className="w-3.5 h-3.5" />
+                            Fix Format
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <TradeBlockEditor
+                      failedLine={importData.split('\n').find(line => line.trim()) || ''}
+                      brokerKey="custom"
+                      onSaveMapping={(mapping) => {
+                        console.log('Saved mapping:', mapping);
+                        setIsBlockEditorMode(false);
+                        // TODO: Apply mapping to import data
+                      }}
+                      onClose={() => setIsBlockEditorMode(false)}
+                      textareaRef={importDataTextareaRef}
+                    />
+                  )}
                 </div>
 
                 <Textarea
+                  ref={importDataTextareaRef}
                   id="paste-data"
                   placeholder="Paste your trade data here...&#10;&#10;Example:&#10;10:51:21 AM   BUY     SENSEX 10th w JUN 82900 PE BFO  NRML    320     477.96&#10;10:51:39 AM  SELL    SENSEX 10th w JUN 82900 PE BFO  NRML    320     551.26"
                   value={importData}
