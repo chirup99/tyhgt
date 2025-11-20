@@ -3230,6 +3230,22 @@ ${
   const [activeFormat, setActiveFormat] = useState<typeof buildModeData | null>(null);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-detect format when pasting data
+  useEffect(() => {
+    if (importData.trim() && Object.keys(savedFormats).length > 0) {
+      const firstLine = importData.trim().split('\n')[0];
+      
+      // Check if this line matches any saved format's sample line
+      for (const [label, format] of Object.entries(savedFormats)) {
+        if (format.sampleLine && firstLine === format.sampleLine) {
+          setActiveFormat(format);
+          console.log("🎯 Auto-detected format:", label, "for line:", firstLine);
+          return;
+        }
+      }
+    }
+  }, [importData, savedFormats]);
+
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
   const [selectedBroker, setSelectedBroker] = useState<string>("");
@@ -11101,13 +11117,19 @@ ${
                                 alert("Please enter a label for this format");
                                 return;
                               }
-                              const newFormats = { ...savedFormats, [savedFormatLabel]: buildModeData };
+                              // Get the first line from the textarea to save as sample
+                              const firstLine = importData.trim().split('\n')[0] || "";
+                              const formatWithSample = {
+                                ...buildModeData,
+                                sampleLine: firstLine
+                              };
+                              const newFormats = { ...savedFormats, [savedFormatLabel]: formatWithSample };
                               setSavedFormats(newFormats);
-                              setActiveFormat(buildModeData);
+                              setActiveFormat(formatWithSample);
                               localStorage.setItem("tradingFormats", JSON.stringify(newFormats));
                               setSavedFormatLabel("");
                               alert(`Format "${savedFormatLabel}" saved and activated successfully! Import data will now use this format.`);
-                              console.log("✅ Format saved and activated:", savedFormatLabel, buildModeData);
+                              console.log("✅ Format saved and activated with sample:", savedFormatLabel, formatWithSample);
                             }}
                             data-testid="button-save-format"
                           >
@@ -11527,7 +11549,10 @@ ${
                                 );
                               }
 
-                              const { trades, errors } = parseBrokerTrades(importData);
+                              // Use format-based parser if active format is set, otherwise use default parser
+                              const { trades, errors } = activeFormat 
+                                ? parseTradesWithFormat(importData, activeFormat)
+                                : parseBrokerTrades(importData);
                               
                               if (trades.length === 0) {
                                 return (
