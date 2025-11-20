@@ -10941,7 +10941,7 @@ ${
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-medium text-muted-foreground">
-                          🔨 Build Mode - Delete text by clicking X icons
+                          🔨 Build Mode - Use arrows to move boxes between columns, X to delete
                         </div>
                         <Button
                           variant="ghost"
@@ -10970,12 +10970,43 @@ ${
                               {/* Time Column */}
                               <td className="px-2 py-2">
                                 {buildModeData.time && (
-                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <button
+                                      onClick={() => {
+                                        // Move time to Price (leftmost wraps to rightmost)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          price: prev.price ? prev.price + " " + prev.time : prev.time,
+                                          time: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-time-left"
+                                      title="Move left"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </button>
                                     <span>{buildModeData.time}</span>
+                                    <button
+                                      onClick={() => {
+                                        // Move time to Order (right)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          order: prev.order ? prev.order + " " + prev.time : prev.time,
+                                          time: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-time-right"
+                                      title="Move right"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, time: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
                                       data-testid="delete-time"
+                                      title="Delete"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -10986,12 +11017,43 @@ ${
                               {/* Order Column */}
                               <td className="px-2 py-2">
                                 {buildModeData.order && (
-                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <button
+                                      onClick={() => {
+                                        // Move order to Time (left)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          time: prev.time ? prev.time + " " + prev.order : prev.order,
+                                          order: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-order-left"
+                                      title="Move left"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </button>
                                     <span>{buildModeData.order}</span>
+                                    <button
+                                      onClick={() => {
+                                        // Move order to Symbol (right)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          symbol: prev.symbol ? prev.symbol + " " + prev.order : prev.order,
+                                          order: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-order-right"
+                                      title="Move right"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, order: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
                                       data-testid="delete-order"
+                                      title="Delete"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -11002,12 +11064,43 @@ ${
                               {/* Symbol Column */}
                               <td className="px-2 py-2">
                                 {buildModeData.symbol && (
-                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <button
+                                      onClick={() => {
+                                        // Move symbol to Order (left)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          order: prev.order ? prev.order + " " + prev.symbol : prev.symbol,
+                                          symbol: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-symbol-left"
+                                      title="Move left"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </button>
                                     <span>{buildModeData.symbol}</span>
+                                    <button
+                                      onClick={() => {
+                                        // Move symbol to Type (right)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          type: prev.type ? prev.type + " " + prev.symbol : prev.symbol,
+                                          symbol: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-symbol-right"
+                                      title="Move right"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, symbol: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
                                       data-testid="delete-symbol"
+                                      title="Delete"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -11018,12 +11111,43 @@ ${
                               {/* Type Column */}
                               <td className="px-2 py-2">
                                 {buildModeData.type && (
-                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <button
+                                      onClick={() => {
+                                        // Move type to Symbol (left)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          symbol: prev.symbol ? prev.symbol + " " + prev.type : prev.type,
+                                          type: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-type-left"
+                                      title="Move left"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </button>
                                     <span>{buildModeData.type}</span>
+                                    <button
+                                      onClick={() => {
+                                        // Move type to Qty (right)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          qty: prev.qty ? prev.qty + " " + prev.type : prev.type,
+                                          type: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-type-right"
+                                      title="Move right"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, type: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
                                       data-testid="delete-type"
+                                      title="Delete"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -11034,12 +11158,43 @@ ${
                               {/* Qty Column */}
                               <td className="px-2 py-2">
                                 {buildModeData.qty && (
-                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <button
+                                      onClick={() => {
+                                        // Move qty to Type (left)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          type: prev.type ? prev.type + " " + prev.qty : prev.qty,
+                                          qty: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-qty-left"
+                                      title="Move left"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </button>
                                     <span>{buildModeData.qty}</span>
+                                    <button
+                                      onClick={() => {
+                                        // Move qty to Price (right)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          price: prev.price ? prev.price + " " + prev.qty : prev.qty,
+                                          qty: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-qty-right"
+                                      title="Move right"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, qty: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
                                       data-testid="delete-qty"
+                                      title="Delete"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -11050,12 +11205,43 @@ ${
                               {/* Price Column */}
                               <td className="px-2 py-2">
                                 {buildModeData.price && (
-                                  <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                  <div className="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                    <button
+                                      onClick={() => {
+                                        // Move price to Qty (left)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          qty: prev.qty ? prev.qty + " " + prev.price : prev.price,
+                                          price: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-price-left"
+                                      title="Move left"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </button>
                                     <span>{buildModeData.price}</span>
+                                    <button
+                                      onClick={() => {
+                                        // Move price to Time (rightmost wraps to leftmost)
+                                        setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          time: prev.time ? prev.time + " " + prev.price : prev.price,
+                                          price: "" 
+                                        }));
+                                      }}
+                                      className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                      data-testid="move-price-right"
+                                      title="Move right"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </button>
                                     <button
                                       onClick={() => setBuildModeData(prev => ({ ...prev, price: "" }))}
                                       className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
                                       data-testid="delete-price"
+                                      title="Delete"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>

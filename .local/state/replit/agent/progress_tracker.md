@@ -600,3 +600,26 @@
 [x] 1744. ✅ Workflow restarted successfully - changes applied
 [x] 1745. ✅✅✅ BUILD MODE WITH DELETABLE COLUMNS COMPLETED! ✅✅✅
 [x] 1746. 🎉🎉🎉 USERS CAN NOW DELETE COLUMN TEXT WITH X ICONS IN BUILD MODE! 🎉🎉🎉
+
+[x] 1747. NOVEMBER 20, 2025 - BUILD MODE LEFT/RIGHT MOVEMENT FUNCTIONALITY
+[x] 1748. User requested: "now this box can relocate left or right moving function can adjust move to different header cloumn"
+[x] 1749. ✅ Added ChevronLeft arrow button to left side of each data box
+[x] 1750. ✅ Added ChevronRight arrow button to right side of each data box
+[x] 1751. ✅ Left arrow moves data from current column to the column on the left
+[x] 1752. ✅ Right arrow moves data from current column to the column on the right
+[x] 1753. ✅ Movement logic appends text if destination column already has data
+[x] 1754. ✅ Movement logic uses space separator when combining data
+[x] 1755. ✅ Wrap-around functionality: Time column left arrow wraps to Price column
+[x] 1756. ✅ Wrap-around functionality: Price column right arrow wraps to Time column
+[x] 1757. ✅ Button layout: ChevronLeft | Text | ChevronRight | X (delete)
+[x] 1758. ✅ All arrow buttons have proper data-testids (move-time-left, move-time-right, etc.)
+[x] 1759. ✅ All arrow buttons have title tooltips ("Move left", "Move right", "Delete")
+[x] 1760. ✅ Hover effects on arrow buttons: hover:bg-blue-200 dark:hover:bg-blue-900/50
+[x] 1761. ✅ Updated helper text: "🔨 Build Mode - Use arrows to move boxes between columns, X to delete"
+[x] 1762. ✅ Movement implementation for all 6 columns: Time, Order, Symbol, Type, Qty, Price
+[x] 1763. ✅ State management uses setBuildModeData with spread operator and field updates
+[x] 1764. ✅ Source field cleared when moving data to destination column
+[x] 1765. ✅ Destination field preserves existing data by appending new data
+[x] 1766. ✅ Workflow restarted successfully - arrow movement feature active
+[x] 1767. ✅✅✅ BUILD MODE ARROW RELOCATION FEATURE COMPLETED! ✅✅✅
+[x] 1768. 🎉🎉🎉 USERS CAN NOW MOVE DATA BOXES LEFT/RIGHT BETWEEN COLUMNS! 🎉🎉🎉
