@@ -16,10 +16,6 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 38511
-externalPort = 3000
-
-[[ports]]
 localPort = 42767
 externalPort = 9000
 
@@ -99,7 +95,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "cd /home/runner/${REPL_SLUG} && npm run dev"
 waitForPort = 5000
 
 [agent]
