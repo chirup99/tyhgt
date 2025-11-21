@@ -1068,22 +1068,11 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 </Button>
               </>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                  {' - '}
-                  {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleResetRange}
-                  className="h-6 w-6"
-                  data-testid="button-reset-range"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                {' - '}
+                {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
             )}
 
             {/* 3-dot menu in right corner */}
