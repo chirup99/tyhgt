@@ -572,6 +572,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                               onClick={() => handleDateClick(date)}
                               title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
                               data-testid={`heatmap-cell-${dateKey}`}
+                              data-date={dateKey}
                             >
                               {isSelectedForEdit && (
                                 <div className="absolute inset-0 flex items-center justify-center">
