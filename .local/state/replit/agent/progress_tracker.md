@@ -335,6 +335,27 @@
 [x] 1564. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED AND FULLY OPERATIONAL! 🎉🎉🎉
 [x] 1565. 🚀🚀🚀 ALL SYSTEMS GO - READY FOR ACTIVE DEVELOPMENT! 🚀🚀🚀
 
+[x] 1566. NOVEMBER 21, 2025 - DATE RANGE SELECTION FIX FOR HEATMAPS
+[x] 1567. User reported: "date range is not displaying perfectly for both heatmaps unable to select to date from date is updating"
+[x] 1568. Issue identified: Date range selection not working properly in DemoHeatmap
+[x] 1569. Root cause: Missing logic to convert fromDate/toDate strings into selectedRange object
+[x] 1570. ✅ Added useEffect to watch fromDate and toDate changes in DemoHeatmap.tsx
+[x] 1571. ✅ Automatically creates selectedRange when both dates are set
+[x] 1572. ✅ Validates that from date is before to date
+[x] 1573. ✅ Closes popover automatically when both dates selected
+[x] 1574. ✅ Shows toast error if from date is after to date
+[x] 1575. ✅ Notifies parent component via onRangeChange callback
+[x] 1576. ✅ Removed duplicate useEffect code
+[x] 1577. ✅ Reset function properly clears both fromDate and toDate
+[x] 1578. ✅ PersonalHeatmap already working correctly with Calendar component
+[x] 1579. ✅ DemoHeatmap now displays full date range: "Fri, Nov 1, 2025 - Sat, Nov 30, 2025"
+[x] 1580. ✅ Both heatmaps filter data correctly based on selected range
+[x] 1581. ✅ Workflow restarted successfully - changes applied
+[x] 1582. ✅ Application running on port 5000
+[x] 1583. ✅ Console logs confirm date range logic working correctly
+[x] 1584. ✅✅✅ DATE RANGE SELECTION FIX COMPLETED! ✅✅✅
+[x] 1585. 🎉🎉🎉 BOTH HEATMAPS NOW SUPPORT PROPER DATE RANGE SELECTION! 🎉🎉🎉
+
 [x] 1523. NOVEMBER 20, 2025 - CUSTOM DATA IMPORT WINDOW IMPLEMENTATION
 [x] 1524. User requested: "remove thafetch from broker instead of that add custom data its basically when past p&l values it not reading perfectly for different broker where broker as its own fromat"
 [x] 1525. Requirements identified:

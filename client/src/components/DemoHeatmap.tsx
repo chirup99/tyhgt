@@ -116,6 +116,35 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       });
   }, []); // Run once on mount
 
+  // Update selectedRange when both fromDate and toDate are set
+  useEffect(() => {
+    if (fromDate && toDate) {
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      
+      // Make sure from is before to
+      if (from <= to) {
+        const range = { from, to };
+        setSelectedRange(range);
+        setIsDateRangeOpen(false); // Close the popover
+        
+        // Notify parent
+        if (onRangeChange) {
+          onRangeChange(range);
+        }
+        
+        console.log("📅 DemoHeatmap: Date range selected:", { from: from.toDateString(), to: to.toDateString() });
+      } else {
+        console.warn("⚠️ DemoHeatmap: From date must be before to date");
+        toast({
+          title: "Invalid Range",
+          description: "From date must be before to date",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [fromDate, toDate, onRangeChange]);
+
   // Filter heatmap data based on selected range
   const getFilteredData = () => {
     if (!selectedRange) {
@@ -214,24 +243,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       year: 'numeric' 
     });
   };
-
-  // Auto-apply date range and emit to parent
-  useEffect(() => {
-    if (fromDate && toDate) {
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      if (from <= to) {
-        const newRange = { from, to };
-        setSelectedRange(newRange);
-        setIsDateRangeOpen(false);
-        
-        // Emit range change to parent
-        if (onRangeChange) {
-          onRangeChange(newRange);
-        }
-      }
-    }
-  }, [fromDate, toDate, onRangeChange]);
 
   const handleResetRange = () => {
     setSelectedRange(null);
