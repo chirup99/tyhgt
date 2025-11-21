@@ -15,6 +15,10 @@ interface PersonalHeatmapProps {
   selectedDate: Date | null;
   onDataUpdate?: (data: Record<string, any>) => void;
   onRangeChange?: (range: { from: Date; to: Date } | null) => void;
+  highlightedDates?: {
+    tag: string;
+    dates: string[];
+  } | null;
 }
 
 // Simple function to calculate P&L from trade data
@@ -85,7 +89,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpdate, onRangeChange }: PersonalHeatmapProps) {
+export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates }: PersonalHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -947,13 +951,18 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                           // Check if date is selected for range filtering
                           const isSelectedForRange = selectedDatesForRange.includes(dateKey);
                           const rangeIndex = selectedDatesForRange.indexOf(dateKey);
+                          
+                          // Check if this date is highlighted by tag filter
+                          const isHighlighted = highlightedDates?.dates.includes(dateKey);
 
                           return (
                             <div
                               key={colIndex}
-                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all relative ${cellColor}`}
+                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all relative ${cellColor} ${
+                                isHighlighted ? 'ring-2 ring-yellow-400 dark:ring-yellow-300 animate-pulse shadow-lg shadow-yellow-400/50' : ''
+                              }`}
                               onClick={() => handleDateClick(date)}
-                              title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
+                              title={`${dateKey}: ₹${netPnL.toFixed(2)}${isHighlighted && highlightedDates ? ` • ${highlightedDates.tag.toUpperCase()} tag` : ''}`}
                               data-testid={`personal-heatmap-cell-${dateKey}`}
                               data-date={dateKey}
                             >

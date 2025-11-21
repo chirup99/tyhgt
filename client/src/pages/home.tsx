@@ -4045,6 +4045,12 @@ ${
     return {};
   });
 
+  // Tag highlighting state for curved line visualization
+  const [activeTagHighlight, setActiveTagHighlight] = useState<{
+    tag: string;
+    dates: string[];
+  } | null>(null);
+
   // Date range selection state
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -9196,6 +9202,7 @@ ${
                               tradingDataByDate={tradingDataByDate}
                               onDataUpdate={handleHeatmapDataUpdate}
                               onRangeChange={handleDateRangeChange}
+                              highlightedDates={activeTagHighlight}
                             />
                           ) : (
                             <PersonalHeatmap
@@ -9204,14 +9211,15 @@ ${
                               selectedDate={selectedDate}
                               onDataUpdate={handleHeatmapDataUpdate}
                               onRangeChange={handleDateRangeChange}
+                              highlightedDates={activeTagHighlight}
                             />
                           )}
                         </div>
 
                         {/* Quick Stats Banner */}
-                        <div className="mt-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5" data-testid="banner-quick-stats">
+                        <div className="mt-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative" data-testid="banner-quick-stats">
                           {(() => {
-                            // Calculate metrics from heatmap data
+                            // Calculate metrics from heatmap data and build tag-to-dates mapping
                             const filteredData = getFilteredHeatmapData();
                             const dates = Object.keys(filteredData);
                             let totalPnL = 0;
@@ -9221,6 +9229,7 @@ ${
                             let consecutiveWins = 0;
                             let maxWinStreak = 0;
                             const trendData: number[] = [];
+                            const fomoDates: string[] = []; // Track dates with FOMO tag
                             
                             dates.sort().forEach(dateKey => {
                               const dayData = filteredData[dateKey];
@@ -9240,6 +9249,7 @@ ${
                                   const normalizedTags = tags.map((t: string) => t.trim().toLowerCase());
                                   if (normalizedTags.includes('fomo')) {
                                     fomoTrades++;
+                                    fomoDates.push(dateKey); // Track this date
                                   }
                                   console.log(`📊 ${dateKey}: Tags: [${tags.join(', ')}] | Normalized: [${normalizedTags.join(', ')}] | FOMO count: ${fomoTrades}`);
                                 }
@@ -9299,11 +9309,28 @@ ${
                                   </svg>
                                 </div>
                                 
-                                {/* FOMO Trades */}
-                                <div className="flex flex-col items-center justify-center" data-testid="stat-fomo">
+                                {/* FOMO Trades - Clickable to highlight dates */}
+                                <button 
+                                  className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                                    activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                                  }`}
+                                  onClick={() => {
+                                    if (activeTagHighlight?.tag === 'fomo') {
+                                      // Toggle off if already active
+                                      setActiveTagHighlight(null);
+                                      console.log('📍 Deactivated FOMO tag highlighting');
+                                    } else {
+                                      // Activate FOMO highlighting
+                                      setActiveTagHighlight({ tag: 'fomo', dates: fomoDates });
+                                      console.log(`📍 Activated FOMO tag highlighting for ${fomoDates.length} dates:`, fomoDates);
+                                    }
+                                  }}
+                                  data-testid="stat-fomo"
+                                  title={`Click to ${activeTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
+                                >
                                   <div className="text-[10px] opacity-80">FOMO</div>
                                   <div className="text-xs font-bold">{fomoTrades}</div>
-                                </div>
+                                </button>
                                 
                                 {/* Success Rate */}
                                 <div className="flex flex-col items-center justify-center" data-testid="stat-success-rate">
