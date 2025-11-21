@@ -72,6 +72,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isRangeSelectMode, setIsRangeSelectMode] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const badgeContainerRef = useRef<HTMLDivElement>(null);
   const badge1Ref = useRef<HTMLDivElement>(null);
   const badge2Ref = useRef<HTMLDivElement>(null);
@@ -99,7 +100,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
 
   // SIMPLE FETCH - No filters, no complications
   useEffect(() => {
-    console.log("🔥 DemoHeatmap: Fetching ALL data from Firebase...");
+    console.log(`🔥 DemoHeatmap: Fetching ALL data from Firebase... (refreshKey: ${refreshKey})`);
     setIsLoading(true);
     
     fetch('/api/journal/all-dates')
@@ -134,7 +135,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         console.error("❌ DemoHeatmap: Fetch error:", error);
         setIsLoading(false);
       });
-  }, []); // Run once on mount
+  }, [refreshKey]); // Re-fetch when refreshKey changes
 
   // Calculate badge positions dynamically when badges render
   useEffect(() => {
@@ -514,8 +515,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     // selectedRange and filter persist after exiting mode
   };
 
-  // Handle save selected dates
-  const handleSaveEdit = () => {
+  // Handle save selected dates - Relocate demo data from first date to second date
+  const handleSaveEdit = async () => {
     if (selectedDatesForEdit.length !== 2) {
       toast({
         title: "Select Two Dates",
@@ -527,17 +528,82 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
 
     const [sourceDate, targetDate] = selectedDatesForEdit;
     
-    // Demo mode - just show info message
-    toast({
-      title: "Demo Mode",
-      description: `In real mode, this would move data from ${sourceDate} to ${targetDate}`,
-    });
-
-    console.log("📅 Demo: Would relocate data:", sourceDate, "→", targetDate);
+    console.log(`🔄 Relocating demo data: ${sourceDate} → ${targetDate}`);
     
-    // Exit edit mode
-    setIsEditMode(false);
-    setSelectedDatesForEdit([]);
+    try {
+      // Show loading toast
+      toast({
+        title: "Relocating Data...",
+        description: `Moving data from ${sourceDate} to ${targetDate}`,
+      });
+
+      // Step 1: Fetch data from source date
+      const sourceResponse = await fetch(`/api/journal/${sourceDate}`);
+      if (!sourceResponse.ok) {
+        throw new Error('Failed to fetch source data');
+      }
+      const sourceData = await sourceResponse.json();
+      
+      if (!sourceData || Object.keys(sourceData).length === 0) {
+        toast({
+          title: "No Data",
+          description: `No data found at ${sourceDate}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Step 2: Save data to target date
+      const saveResponse = await fetch(`/api/journal/${targetDate}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(sourceData),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save to target date');
+      }
+
+      // Step 3: Delete data from source date (set to empty object)
+      const deleteResponse = await fetch(`/api/journal/${sourceDate}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!deleteResponse.ok) {
+        console.warn('⚠️ Failed to delete source date, but data was copied successfully');
+      }
+
+      console.log('✅ Demo data relocated successfully');
+
+      // Show success message
+      toast({
+        title: "Success!",
+        description: `All data moved from ${sourceDate} to ${targetDate}`,
+      });
+
+      // Force heatmap refresh by incrementing refreshKey
+      // This triggers the useEffect to re-fetch all data from Firebase
+      console.log('🔄 Triggering heatmap refresh after relocation...');
+      setRefreshKey(prev => prev + 1);
+
+      // Exit edit mode
+      setIsEditMode(false);
+      setSelectedDatesForEdit([]);
+      
+    } catch (error) {
+      console.error('❌ Error relocating demo data:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to relocate data",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle save range selection
