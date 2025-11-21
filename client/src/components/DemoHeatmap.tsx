@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface DemoHeatmapProps {
   onDateSelect: (date: Date) => void;
@@ -64,6 +65,7 @@ function getPnLColor(pnl: number): string {
 }
 
 export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange }: DemoHeatmapProps) {
+  const { currentUser } = useCurrentUser();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
@@ -73,6 +75,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const badgeContainerRef = useRef<HTMLDivElement>(null);
   const badge1Ref = useRef<HTMLDivElement>(null);
   const badge2Ref = useRef<HTMLDivElement>(null);
+  
+  // Only allow chiranjeevi.perala99@gmail.com to edit demo trades
+  const canEditDemoTrades = currentUser.email === "chiranjeevi.perala99@gmail.com";
   const rangeBadge1Ref = useRef<HTMLDivElement>(null);
   const rangeBadge2Ref = useRef<HTMLDivElement>(null);
   const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
@@ -1064,8 +1069,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </Button>
             )}
 
-            {/* 3-dot menu - only show when not in range select mode */}
-            {!isRangeSelectMode && (
+            {/* 3-dot menu - only show when not in range select mode AND user is authorized */}
+            {!isRangeSelectMode && canEditDemoTrades && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
