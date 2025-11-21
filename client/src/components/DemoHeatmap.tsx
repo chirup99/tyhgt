@@ -982,69 +982,66 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={isRangeSelectMode ? undefined : handleSelectRangeClick}
-              className="h-8 px-3 hover-elevate flex-1"
-              data-testid="button-select-date-range"
-            >
-              <div className="flex items-center justify-center gap-1">
-                {isRangeSelectMode && selectedDatesForRange.length === 0 ? (
-                  <span className="text-xs text-gray-900 dark:text-gray-100 font-semibold">
-                    Select range
-                  </span>
-                ) : (
-                  <>
-                    <span className="text-xs text-gray-900 dark:text-gray-100">
-                      {isRangeSelectMode && selectedDatesForRange.length > 0
-                        ? (() => {
-                            const [date1, date2] = selectedDatesForRange.sort();
-                            const from = new Date(date1);
-                            const to = new Date(date2);
-                            const fromDate = from.toLocaleDateString('en-US', { 
-                              weekday: 'short', 
-                              month: 'short', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            });
-                            const toDate = to.toLocaleDateString('en-US', { 
-                              weekday: 'short', 
-                              month: 'short', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            });
-                            return `${fromDate} - ${toDate}`;
-                          })()
-                        : (selectedRange 
-                          ? formatDisplayDate()
-                          : currentDate.toLocaleDateString('en-US', { 
-                              weekday: 'long', 
-                              month: 'long', 
-                              day: 'numeric', 
-                              year: 'numeric' 
-                            })
-                        )
-                      }
-                    </span>
-                    {(isRangeSelectMode && selectedDatesForRange.length > 0 || (selectedRange && !isRangeSelectMode)) && (
-                      <X 
-                        className="w-3 h-3 ml-1 flex-shrink-0 cursor-pointer hover:opacity-70" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isRangeSelectMode) {
-                            handleExitRangeSelectMode();
-                          } else {
-                            handleResetRange();
-                          }
-                        }} 
-                        data-testid="button-clear-range" 
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            </Button>
+            <div className="flex-1 flex items-center justify-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={isRangeSelectMode ? undefined : handleSelectRangeClick}
+                className="h-8 px-3 hover-elevate flex-1"
+                data-testid="button-select-date-range"
+              >
+                <span className="text-xs text-gray-900 dark:text-gray-100">
+                  {isRangeSelectMode && selectedDatesForRange.length === 0 ? (
+                    "Select range"
+                  ) : isRangeSelectMode && selectedDatesForRange.length > 0 ? (
+                    (() => {
+                      const [date1, date2] = selectedDatesForRange.sort();
+                      const from = new Date(date1);
+                      const to = new Date(date2);
+                      const fromDate = from.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      const toDate = to.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      return `${fromDate} - ${toDate}`;
+                    })()
+                  ) : (
+                    selectedRange 
+                      ? formatDisplayDate()
+                      : currentDate.toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })
+                  )}
+                </span>
+              </Button>
+              {(isRangeSelectMode && selectedDatesForRange.length > 0 || (selectedRange && !isRangeSelectMode)) && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (isRangeSelectMode) {
+                      handleExitRangeSelectMode();
+                    } else {
+                      handleResetRange();
+                    }
+                  }}
+                  className="h-6 w-6 flex-shrink-0"
+                  data-testid="button-clear-range"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
 
             <div className="flex items-center gap-1">
               <Button
