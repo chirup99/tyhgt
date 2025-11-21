@@ -513,13 +513,15 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       return;
     }
 
+    const [sourceDate, targetDate] = selectedDatesForEdit;
+    
+    // Demo mode - just show info message
     toast({
-      title: "Dates Selected",
-      description: `Selected: ${selectedDatesForEdit[0]} and ${selectedDatesForEdit[1]}`,
+      title: "Demo Mode",
+      description: `In real mode, this would move data from ${sourceDate} to ${targetDate}`,
     });
 
-    // TODO: Implement actual edit logic here
-    console.log("📅 Selected dates for edit:", selectedDatesForEdit);
+    console.log("📅 Demo: Would relocate data:", sourceDate, "→", targetDate);
     
     // Exit edit mode
     setIsEditMode(false);

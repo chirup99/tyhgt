@@ -314,8 +314,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     // selectedRange and filter persist after exiting mode
   };
 
-  // Handle save selected dates
-  const handleSaveEdit = () => {
+  // Handle save selected dates - Relocate data from first date to second date
+  const handleSaveEdit = async () => {
     if (selectedDatesForEdit.length !== 2) {
       toast({
         title: "Select Two Dates",
@@ -325,17 +325,78 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       return;
     }
 
-    toast({
-      title: "Dates Selected",
-      description: `Selected: ${selectedDatesForEdit[0]} and ${selectedDatesForEdit[1]}`,
-    });
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // TODO: Implement actual edit logic here
-    console.log("📅 Selected dates for edit:", selectedDatesForEdit);
+    const [sourceDate, targetDate] = selectedDatesForEdit;
     
-    // Exit edit mode
-    setIsEditMode(false);
-    setSelectedDatesForEdit([]);
+    console.log(`🔄 Relocating data: ${sourceDate} → ${targetDate}`);
+    
+    try {
+      // Show loading toast
+      toast({
+        title: "Relocating Data...",
+        description: `Moving data from ${sourceDate} to ${targetDate}`,
+      });
+
+      // Call relocate endpoint
+      const response = await fetch('/api/relocate-date', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          sourceDate,
+          targetDate,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to relocate data');
+      }
+
+      const result = await response.json();
+      console.log('✅ Data relocated successfully:', result);
+
+      // Show success message
+      toast({
+        title: "Success!",
+        description: `All data moved from ${sourceDate} to ${targetDate}`,
+      });
+
+      // Refresh heatmap data by re-fetching from Firebase
+      console.log('🔄 Refreshing heatmap data after relocation...');
+      const allDataResponse = await fetch(`/api/user-journal/${userId}/all`);
+      if (allDataResponse.ok) {
+        const allData = await allDataResponse.json();
+        console.log('✅ Refreshed heatmap data:', Object.keys(allData).length, 'dates');
+        
+        // Update parent with fresh data
+        if (onDataUpdate) {
+          onDataUpdate(allData);
+        }
+      }
+
+      // Exit edit mode
+      setIsEditMode(false);
+      setSelectedDatesForEdit([]);
+      
+    } catch (error) {
+      console.error('❌ Error relocating data:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to relocate data",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle save range selection
