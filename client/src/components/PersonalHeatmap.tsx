@@ -703,10 +703,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
           }
         </h3>
         <span className="text-xs text-gray-500">
-          {isLoading ? "Loading..." : selectedRange 
-            ? `${Object.keys(filteredHeatmapData).length} of ${Object.keys(heatmapData).length} dates in range`
-            : `${Object.keys(heatmapData).length} dates with data`
-          }
+          {isLoading ? "Loading..." : `${Object.keys(heatmapData).length} dates with data`}
         </span>
       </div>
 
@@ -860,8 +857,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateKey = `${year}-${month}-${day}`;
                           
-                          // Get data from FILTERED heatmapData (ONLY FIREBASE DATA in selected range)
-                          const data = filteredHeatmapData[dateKey];
+                          // Get data from COMPLETE heatmapData (show all dates)
+                          const data = heatmapData[dateKey];
                           
                           // Calculate P&L from FIREBASE DATA ONLY
                           const netPnL = calculatePnL(data);
