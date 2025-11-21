@@ -4594,7 +4594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to save to Google Cloud 'journal-database' first (primary storage)
       try {
         console.log(`☁️ Attempting to save journal data to Google Cloud 'journal-database' for ${key}...`);
-        await googleCloudService.setCachedData(key, journalData, 'journal-database');
+        await googleCloudService.cacheData(key, journalData, 'journal-database');
         console.log(`✅ Google Cloud 'journal-database' save successful for ${key}`);
         saveSuccess = true;
       } catch (error) {
@@ -4604,7 +4604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (error instanceof Error && error.message.includes('quota')) {
           console.log(`🔄 Quota exceeded, trying backup 'cache' collection for journal data...`);
           try {
-            await googleCloudService.setCachedData(key, journalData, 'cache');
+            await googleCloudService.cacheData(key, journalData, 'cache');
             console.log(`✅ Backup 'cache' collection save successful for ${key}`);
             saveSuccess = true;
           } catch (backupError) {
@@ -4635,12 +4635,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Try Google Cloud 'journal-database' first, with quota handling
       try {
-        await googleCloudService.setCachedData(`journal_${date}`, journalData, 'journal-database');
+        await googleCloudService.cacheData(`journal_${date}`, journalData, 'journal-database');
         console.log(`✅ Google Cloud 'journal-database' update successful for ${date}`);
       } catch (error) {
         console.log(`⚠️ Google Cloud update failed, trying backup collection...`);
         if (error instanceof Error && error.message.includes('quota')) {
-          await googleCloudService.setCachedData(`journal_${date}`, journalData, 'cache');
+          await googleCloudService.cacheData(`journal_${date}`, journalData, 'cache');
           console.log(`✅ Backup 'cache' collection update successful for ${date}`);
         } else {
           throw error; // Re-throw if not quota issue
@@ -4818,7 +4818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`💾 Saving trading formats for authenticated userId: ${userId}`, Object.keys(formats).length, 'formats');
-      await googleCloudService.setCachedData(`user-formats-${userId}`, formats, 'trading-formats');
+      await googleCloudService.cacheData(`user-formats-${userId}`, formats, 'trading-formats');
       console.log(`✅ Saved formats for user ${userId}`);
       res.json({ success: true, message: 'Formats saved successfully' });
     } catch (error) {
