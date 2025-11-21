@@ -451,99 +451,28 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             const dy = y2 - y1;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Calculate smooth zig-zag (wave) path
+            // Create single smooth curve path
             let pathD;
             
-            // Number of waves based on distance
-            const waveCount = Math.max(2, Math.floor(distance / 40));
-            const amplitude = 15; // Height of waves
+            // Curve amplitude (how much the curve bends)
+            const curveAmount = Math.min(distance * 0.3, 50); // Gentle curve
             
-            if (Math.abs(dx) < 5) {
-              // Same column (vertical) - create horizontal wavy line
-              const segments = [];
-              for (let i = 0; i <= waveCount; i++) {
-                const t = i / waveCount;
-                const y = y1 + (y2 - y1) * t;
-                const waveOffset = Math.sin(i * Math.PI) * amplitude;
-                const x = x1 + waveOffset;
-                
-                if (i === 0) {
-                  segments.push(`M ${x1} ${y1}`);
-                } else {
-                  const prevT = (i - 1) / waveCount;
-                  const prevY = y1 + (y2 - y1) * prevT;
-                  const prevWaveOffset = Math.sin((i - 1) * Math.PI) * amplitude;
-                  const prevX = x1 + prevWaveOffset;
-                  
-                  const controlY = (prevY + y) / 2;
-                  const controlX1 = prevX + waveOffset / 2;
-                  const controlX2 = x - waveOffset / 2;
-                  
-                  segments.push(`C ${controlX1} ${prevY + (y - prevY) * 0.3}, ${controlX2} ${prevY + (y - prevY) * 0.7}, ${x} ${y}`);
-                }
-              }
-              pathD = segments.join(' ');
-              
-            } else if (Math.abs(dy) < 5) {
-              // Same row (horizontal) - create vertical wavy line
-              const segments = [];
-              for (let i = 0; i <= waveCount; i++) {
-                const t = i / waveCount;
-                const x = x1 + (x2 - x1) * t;
-                const waveOffset = Math.sin(i * Math.PI) * amplitude;
-                const y = y1 + waveOffset;
-                
-                if (i === 0) {
-                  segments.push(`M ${x1} ${y1}`);
-                } else {
-                  const prevT = (i - 1) / waveCount;
-                  const prevX = x1 + (x2 - x1) * prevT;
-                  const prevWaveOffset = Math.sin((i - 1) * Math.PI) * amplitude;
-                  const prevY = y1 + prevWaveOffset;
-                  
-                  const controlX = (prevX + x) / 2;
-                  const controlY1 = prevY + waveOffset / 2;
-                  const controlY2 = y - waveOffset / 2;
-                  
-                  segments.push(`C ${prevX + (x - prevX) * 0.3} ${controlY1}, ${prevX + (x - prevX) * 0.7} ${controlY2}, ${x} ${y}`);
-                }
-              }
-              pathD = segments.join(' ');
-              
-            } else {
-              // Diagonal - create diagonal wavy line
-              const segments = [];
-              const angle = Math.atan2(dy, dx);
-              const perpAngle = angle + Math.PI / 2;
-              
-              for (let i = 0; i <= waveCount; i++) {
-                const t = i / waveCount;
-                const baseX = x1 + dx * t;
-                const baseY = y1 + dy * t;
-                const waveOffset = Math.sin(i * Math.PI) * amplitude;
-                const x = baseX + Math.cos(perpAngle) * waveOffset;
-                const y = baseY + Math.sin(perpAngle) * waveOffset;
-                
-                if (i === 0) {
-                  segments.push(`M ${x1} ${y1}`);
-                } else {
-                  const prevT = (i - 1) / waveCount;
-                  const prevBaseX = x1 + dx * prevT;
-                  const prevBaseY = y1 + dy * prevT;
-                  const prevWaveOffset = Math.sin((i - 1) * Math.PI) * amplitude;
-                  const prevX = prevBaseX + Math.cos(perpAngle) * prevWaveOffset;
-                  const prevY = prevBaseY + Math.sin(perpAngle) * prevWaveOffset;
-                  
-                  const controlX1 = prevX + (x - prevX) * 0.33;
-                  const controlY1 = prevY + (y - prevY) * 0.33;
-                  const controlX2 = prevX + (x - prevX) * 0.67;
-                  const controlY2 = prevY + (y - prevY) * 0.67;
-                  
-                  segments.push(`C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${x} ${y}`);
-                }
-              }
-              pathD = segments.join(' ');
-            }
+            // Calculate the angle of the line
+            const angle = Math.atan2(dy, dx);
+            
+            // Perpendicular angle for curve offset
+            const perpAngle = angle + Math.PI / 2;
+            
+            // Midpoint of the line
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            
+            // Control point offset perpendicular to the line
+            const controlX = midX + Math.cos(perpAngle) * curveAmount;
+            const controlY = midY + Math.sin(perpAngle) * curveAmount;
+            
+            // Create smooth quadratic Bézier curve
+            pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
             
             return (
               <svg

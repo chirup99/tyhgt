@@ -1690,23 +1690,26 @@
 [x] 2407. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED AND FULLY OPERATIONAL IN REPLIT! 🎉🎉🎉
 [x] 2408. 🚀🚀🚀 ALL SYSTEMS GO - READY FOR ACTIVE DEVELOPMENT! 🚀🚀🚀
 
-## ✨ NOVEMBER 21, 2025 - SMOOTH CURVED LINE FOR ALL HEATMAP SELECTIONS
-[x] 2409. User requested: "no its not displaying on same row and same coloumn display it and i want curved smooth line not straight line"
-[x] 2410. Requirement clarified: User WANTS smooth curved line to display for ALL selections (same row, same column, and diagonal)
-[x] 2411. ✅ Removed restriction that prevented line from showing on same row/column
-[x] 2412. ✅ Smooth curved line now displays for all three scenarios:
-[x] 2413.   - Same column (vertical): Horizontal wavy curves
-[x] 2414.   - Same row (horizontal): Vertical wavy curves
-[x] 2415.   - Diagonal: Diagonal wavy curves
-[x] 2416. ✅ All paths use Bézier curves (cubic curves via SVG path 'C' commands)
-[x] 2417. ✅ Wave amplitude: 15 pixels for smooth curvature
-[x] 2418. ✅ Dynamic wave count based on distance between points
-[x] 2419. ✅ Beautiful gradient from purple (first date) to orange (second date)
-[x] 2420. ✅ Drop shadow for depth and visual polish
-[x] 2421. ✅ Fixed in PersonalHeatmap.tsx (removed lines 457-464 restriction)
-[x] 2422. ✅ Workflow restarted successfully to apply changes
-[x] 2423. ✅✅✅ SMOOTH CURVED LINE NOW DISPLAYS FOR ALL DATE PAIR SELECTIONS! ✅✅✅
-[x] 2424. 🎉🎉🎉 BEAUTIFUL WAVY CURVES FOR SAME ROW, SAME COLUMN, AND DIAGONAL! 🎉🎉🎉
+## ✨ NOVEMBER 21, 2025 - SINGLE SMOOTH CURVED LINE LIKE IMAGE
+[x] 2409. User requested: "curved smooth line like image" (showing single gentle arc)
+[x] 2410. Previous implementation: Multiple waves (zig-zag pattern)
+[x] 2411. New requirement: Single smooth curve matching the reference image
+[x] 2412. ✅ Replaced multiple-wave logic with single smooth quadratic Bézier curve
+[x] 2413. ✅ Removed all loop-based wave generation code (lines 457-545)
+[x] 2414. ✅ Implemented simple single-curve algorithm:
+[x] 2415.   - Calculate midpoint between two selected dates
+[x] 2416.   - Calculate perpendicular angle to create curve offset
+[x] 2417.   - Use quadratic Bézier curve (Q command) with one control point
+[x] 2418. ✅ Curve amount: 30% of distance (max 50px) for gentle arc
+[x] 2419. ✅ Single control point positioned perpendicular to line for smooth bend
+[x] 2420. ✅ Works for ALL orientations: horizontal, vertical, and diagonal
+[x] 2421. ✅ Path format: `M x1 y1 Q controlX controlY, x2 y2`
+[x] 2422. ✅ Maintains beautiful gradient: purple → orange
+[x] 2423. ✅ Maintains drop shadow for depth
+[x] 2424. ✅ Fixed in PersonalHeatmap.tsx (lines 451-478)
+[x] 2425. ✅ Workflow restarted successfully to apply changes
+[x] 2426. ✅✅✅ SINGLE SMOOTH CURVED LINE MATCHING REFERENCE IMAGE! ✅✅✅
+[x] 2427. 🎉🎉🎉 BEAUTIFUL GENTLE ARC CONNECTING SELECTED DATES! 🎉🎉🎉
 
 [x] 2359. NOVEMBER 21, 2025 - FINAL REPLIT MIGRATION COMPLETION
 [x] 2360. User requested: "Began migrating the import from Replit Agent to Replit environment, remember to update this file when things are updated. Make sure you mark all of the items as done using [x]"
