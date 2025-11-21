@@ -990,36 +990,53 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               data-testid="button-select-date-range"
             >
               <div className="flex items-center justify-center gap-1">
-                {isRangeSelectMode ? (
-                  <>
-                    <span className="text-xs text-gray-900 dark:text-gray-100 font-semibold">
-                      Select range
-                    </span>
-                    {selectedDatesForRange.length > 0 && (
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
-                        ({selectedDatesForRange.length}/2)
-                      </span>
-                    )}
-                  </>
+                {isRangeSelectMode && selectedDatesForRange.length === 0 ? (
+                  <span className="text-xs text-gray-900 dark:text-gray-100 font-semibold">
+                    Select range
+                  </span>
                 ) : (
                   <>
                     <span className="text-xs text-gray-900 dark:text-gray-100">
-                      {selectedRange 
-                        ? formatDisplayDate()
-                        : currentDate.toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            month: 'long', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          })
+                      {isRangeSelectMode && selectedDatesForRange.length > 0
+                        ? (() => {
+                            const [date1, date2] = selectedDatesForRange.sort();
+                            const from = new Date(date1);
+                            const to = new Date(date2);
+                            const fromDate = from.toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            });
+                            const toDate = to.toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            });
+                            return `${fromDate} - ${toDate}`;
+                          })()
+                        : (selectedRange 
+                          ? formatDisplayDate()
+                          : currentDate.toLocaleDateString('en-US', { 
+                              weekday: 'long', 
+                              month: 'long', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })
+                        )
                       }
                     </span>
-                    {selectedRange && (
+                    {(isRangeSelectMode && selectedDatesForRange.length > 0 || selectedRange) && (
                       <X 
                         className="w-3 h-3 ml-1 flex-shrink-0 cursor-pointer hover:opacity-70" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleResetRange();
+                          if (isRangeSelectMode) {
+                            setSelectedDatesForRange([]);
+                          } else {
+                            handleResetRange();
+                          }
                         }} 
                         data-testid="button-clear-range" 
                       />
