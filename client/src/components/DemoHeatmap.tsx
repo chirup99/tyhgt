@@ -454,8 +454,36 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
 
       <div className="flex flex-col gap-2">
         <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
-          {/* SVG Overlay for curved line connecting selected dates */}
-          {linePositions && (() => {
+          {/* SVG overlay for connecting line between selected dates */}
+          {linePositions && isEditMode && (() => {
+            const { x1, y1, x2, y2 } = linePositions;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Create single smooth curve path
+            let pathD;
+            
+            // Curve amplitude (how much the curve bends)
+            const curveAmount = Math.min(distance * 0.3, 50); // Gentle curve
+            
+            // Calculate the angle of the line
+            const angle = Math.atan2(dy, dx);
+            
+            // Perpendicular angle for curve offset (REVERSED - subtract instead of add)
+            const perpAngle = angle - Math.PI / 2;
+            
+            // Midpoint of the line
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            
+            // Control point offset perpendicular to the line (REVERSED DIRECTION)
+            const controlX = midX + Math.cos(perpAngle) * curveAmount;
+            const controlY = midY + Math.sin(perpAngle) * curveAmount;
+            
+            // Create smooth quadratic Bézier curve
+            pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
+            
             // ✅ FIX: Get full scrollable content dimensions
             const scrollWidth = heatmapContainerRef.current?.scrollWidth || 0;
             const scrollHeight = heatmapContainerRef.current?.scrollHeight || 0;
@@ -472,62 +500,23 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                   zIndex: 10,
                 }}
               >
-              <defs>
-                <linearGradient id="demo-lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="rgb(147, 51, 234)" />
-                  <stop offset="100%" stopColor="rgb(234, 88, 12)" />
-                </linearGradient>
-                <filter id="demo-dropShadow">
-                  <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
-                  <feOffset dx="0" dy="1" result="offsetblur" />
-                  <feFlood floodColor="#000" floodOpacity="0.3" />
-                  <feComposite in2="offsetblur" operator="in" />
-                  <feMerge>
-                    <feMergeNode />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {(() => {
-                const { x1, y1, x2, y2 } = linePositions;
-                const dx = x2 - x1;
-                const dy = y2 - y1;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Create single smooth curve path
-                let pathD;
-                
-                // Curve amplitude (how much the curve bends)
-                const curveAmount = Math.min(distance * 0.3, 50); // Gentle curve
-                
-                // Calculate the angle of the line
-                const angle = Math.atan2(dy, dx);
-                
-                // Perpendicular angle for curve offset (REVERSED)
-                const perpAngle = angle - Math.PI / 2;
-                
-                // Midpoint of the line
-                const midX = (x1 + x2) / 2;
-                const midY = (y1 + y2) / 2;
-                
-                // Control point offset perpendicular to the line (REVERSED DIRECTION)
-                const controlX = midX + Math.cos(perpAngle) * curveAmount;
-                const controlY = midY + Math.sin(perpAngle) * curveAmount;
-                
-                // Create smooth quadratic Bézier curve
-                pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
-                
-                return (
-                  <path
-                    d={pathD}
-                    stroke="url(#demo-lineGradient)"
-                    strokeWidth="2"
-                    fill="none"
-                    filter="url(#demo-dropShadow)"
-                  />
-                );
-              })()}
-            </svg>
+                <defs>
+                  <linearGradient id="demo-lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 0.6 }} />
+                    <stop offset="100%" style={{ stopColor: 'rgb(234, 88, 12)', stopOpacity: 0.6 }} />
+                  </linearGradient>
+                </defs>
+                {/* Smooth zig-zag wavy path */}
+                <path
+                  d={pathD}
+                  stroke="url(#demo-lineGradient)"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+                />
+              </svg>
             );
           })()}
           <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
