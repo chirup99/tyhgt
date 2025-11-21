@@ -501,7 +501,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 }}
               >
                 <defs>
-                  <linearGradient id="demo-lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 0.6 }} />
                     <stop offset="100%" style={{ stopColor: 'rgb(234, 88, 12)', stopOpacity: 0.6 }} />
                   </linearGradient>
@@ -509,7 +509,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 {/* Smooth zig-zag wavy path */}
                 <path
                   d={pathD}
-                  stroke="url(#demo-lineGradient)"
+                  stroke="url(#lineGradient)"
                   strokeWidth="2"
                   fill="none"
                   strokeLinecap="round"
