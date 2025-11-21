@@ -1063,20 +1063,9 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
             
-            {/* Single button - shows either "Select range" or selected dates with X icon */}
-            {!isRangeSelectMode ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSelectRangeClick}
-                className="h-8 px-2 hover-elevate flex-shrink"
-                data-testid="button-select-date-range"
-              >
-                <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                  Select range
-                </span>
-              </Button>
-            ) : (
+            {/* Single button - shows "Select range", selected dates, or in range select mode */}
+            {isRangeSelectMode ? (
+              // Range selection mode - show dates with X icon
               <Button
                 variant="ghost"
                 size="sm"
@@ -1120,6 +1109,32 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 >
                   <X className="w-4 h-4" />
                 </button>
+              </Button>
+            ) : selectedRange ? (
+              // Normal mode with selected range - show date range
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectRangeClick}
+                className="h-8 px-2 hover-elevate flex-shrink"
+                data-testid="button-select-date-range"
+              >
+                <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  {formatDisplayDate()}
+                </span>
+              </Button>
+            ) : (
+              // Normal mode without range - show "Select range"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectRangeClick}
+                className="h-8 px-2 hover-elevate flex-shrink"
+                data-testid="button-select-date-range"
+              >
+                <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  Select range
+                </span>
               </Button>
             )}
 
