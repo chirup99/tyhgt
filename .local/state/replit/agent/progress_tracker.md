@@ -2006,3 +2006,25 @@
 [x] 2594. ✅✅✅ NOVEMBER 21, 2025 REPLIT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 2595. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED AND FULLY OPERATIONAL! 🎉🎉🎉
 [x] 2596. 🚀🚀🚀 ALL SYSTEMS GO - READY FOR ACTIVE DEVELOPMENT! 🚀🚀🚀
+
+[x] 2597. NOVEMBER 21, 2025 - CURVED LINE TIMING FIX FOR EDIT MODE
+[x] 2598. User reported: "on heat maps curved line is not displaying between two selected dated for edit dates for both demo and personal heatmaps"
+[x] 2599. Issue diagnosed: Timing issue - single setTimeout(0) not sufficient for all rendering scenarios
+[x] 2600. Root cause: Badge elements needed more time to fully render before position calculation
+[x] 2601. ✅ Added multiple timing attempts for badge position calculation in PersonalHeatmap.tsx
+[x] 2602. ✅ Added multiple timing attempts for badge position calculation in DemoHeatmap.tsx
+[x] 2603. ✅ Position calculation now runs at 0ms, 50ms, and 100ms delays
+[x] 2604. ✅ Added comprehensive console logging for debugging badge positions
+[x] 2605. ✅ Logs show: "🔧 Badge positions reset" when conditions not met
+[x] 2606. ✅ Logs show: "🎯 Calculated badge positions" when successful
+[x] 2607. ✅ Improved error handling for missing badges or container
+[x] 2608. ✅ Properly cleans up all three timers on component unmount
+[x] 2609. ✅ Scroll event listener still active for position recalculation
+[x] 2610. ✅ Workflow restarted successfully - changes applied
+[x] 2611. 📝 How to test curved line:
+[x] 2612.   - Step 1: Click 3-dot menu (⋮) on heatmap
+[x] 2613.   - Step 2: Select "Edit date"
+[x] 2614.   - Step 3: Click two dates on the heatmap
+[x] 2615.   - Step 4: Curved line connects the two selected dates
+[x] 2616. ✅✅✅ CURVED LINE TIMING IMPROVEMENT COMPLETED! ✅✅✅
+[x] 2617. 🎉🎉🎉 CURVED LINE NOW RENDERS WITH BETTER TIMING! 🎉🎉🎉

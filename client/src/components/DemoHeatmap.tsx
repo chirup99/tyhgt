@@ -123,28 +123,42 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   // Calculate badge positions dynamically when badges render
   useEffect(() => {
     if (selectedDatesForEdit.length !== 2 || !badge1Ref.current || !badge2Ref.current) {
+      console.log("🔧 DemoHeatmap: Badge positions reset - conditions not met", {
+        selectedCount: selectedDatesForEdit.length,
+        badge1Exists: !!badge1Ref.current,
+        badge2Exists: !!badge2Ref.current
+      });
       setBadgePositions(null);
       return;
     }
 
     const calculatePositions = () => {
-      if (!badge1Ref.current || !badge2Ref.current) return;
+      if (!badge1Ref.current || !badge2Ref.current) {
+        console.log("🔧 DemoHeatmap: Badges not ready yet");
+        return;
+      }
       
       const badge1Rect = badge1Ref.current.getBoundingClientRect();
       const badge2Rect = badge2Ref.current.getBoundingClientRect();
       const containerRect = badge1Ref.current.parentElement?.getBoundingClientRect();
       
-      if (!containerRect) return;
+      if (!containerRect) {
+        console.log("🔧 DemoHeatmap: Container not found");
+        return;
+      }
       
       const x1 = badge1Rect.left - containerRect.left + badge1Rect.width / 2;
       const x2 = badge2Rect.left - containerRect.left + badge2Rect.width / 2;
       const y = badge1Rect.top - containerRect.top + badge1Rect.height / 2;
       
+      console.log("🎯 DemoHeatmap: Calculated badge positions", { x1, x2, y });
       setBadgePositions({ x1, x2, y });
     };
 
-    // Use a small delay to ensure badges are fully rendered
-    const timer = setTimeout(calculatePositions, 0);
+    // Use multiple calculation attempts to ensure badges are rendered
+    const timer1 = setTimeout(calculatePositions, 0);
+    const timer2 = setTimeout(calculatePositions, 50);
+    const timer3 = setTimeout(calculatePositions, 100);
     
     // Recalculate on scroll
     const scrollContainer = heatmapContainerRef.current;
@@ -153,7 +167,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     }
     
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
       if (scrollContainer) {
         scrollContainer.removeEventListener('scroll', calculatePositions);
       }
