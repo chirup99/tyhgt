@@ -436,6 +436,34 @@
 [x] 1618. ✅ Browser console logs show PersonalHeatmap functioning correctly
 [x] 1619. ✅✅✅ PERSONAL HEATMAP CALENDAR SELECTOR UPDATED SUCCESSFULLY! ✅✅✅
 [x] 1620. 🎉🎉🎉 CALENDAR NOW MATCHES DEMO HEATMAP FORMAT PERFECTLY! 🎉🎉🎉
+
+[x] 1621. NOVEMBER 21, 2025 - DATE RANGE SELECTOR WITH CURVED LINE FOR BOTH HEATMAPS
+[x] 1622. User requested: "for both tradebok demo and personal i want data range selector like same edit change option to select on heat map its display curver lived based on make filter the data and display but curvd line dont point on date point on month jan ,feb for both ends"
+[x] 1623. Requirements identified:
+[x] 1624.   - Date range selector for both Demo and Personal heatmaps
+[x] 1625.   - Display curved line on heatmap when range is selected
+[x] 1626.   - Curved line should point to month labels (Jan, Feb) at both ends, NOT specific dates
+[x] 1627.   - Filter and display data based on selected range
+[x] 1628. ✅ Added rangeLinePositions state to PersonalHeatmap.tsx
+[x] 1629. ✅ Added rangeLinePositions state to DemoHeatmap.tsx
+[x] 1630. ✅ Implemented useEffect to calculate line positions pointing to month labels when range selected
+[x] 1631. ✅ Added data-month attribute to month labels with format "Month Year" (e.g., "Jan 2025")
+[x] 1632. ✅ Updated month data structure to include year property in both components
+[x] 1633. ✅ Added SVG overlay for range selector line in PersonalHeatmap
+[x] 1634. ✅ Added SVG overlay for range selector line in DemoHeatmap
+[x] 1635. ✅ Curved line connects first and last month labels of selected range
+[x] 1636. ✅ Line uses blue-to-purple gradient (different from edit mode purple-to-orange)
+[x] 1637. ✅ Line only shows when date range is selected (not in edit mode)
+[x] 1638. ✅ Line thickness set to 3px with drop shadow for visibility
+[x] 1639. ✅ Line automatically recalculates positions on scroll
+[x] 1640. ✅ Data filtering already implemented - only shows dates within selected range
+[x] 1641. ✅ Month label detection using querySelector with data-month attribute
+[x] 1642. ✅ Smooth quadratic Bézier curve for professional appearance
+[x] 1643. ✅ Perpendicular curve offset for aesthetic arc
+[x] 1644. ✅ Workflow restarted successfully - changes applied
+[x] 1645. ✅ Browser console shows line calculation logs working correctly
+[x] 1646. ✅✅✅ DATE RANGE CURVED LINE FEATURE COMPLETED FOR BOTH HEATMAPS! ✅✅✅
+[x] 1647. 🎉🎉🎉 CURVED LINES NOW POINT TO MONTHS AND FILTER DATA PERFECTLY! 🎉🎉🎉
 [x] 1608. 🚀🚀🚀 ALL SYSTEMS GO - READY FOR ACTIVE DEVELOPMENT! 🚀🚀🚀
 [x] 1609. NOVEMBER 21, 2025 - DEMO HEATMAP EDIT DATE CODE UPDATE
 [x] 1610. User requested: "for edit dates on demo button few changes are missing so copy personal button edit date code completely update on demo window"

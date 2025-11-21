@@ -97,6 +97,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const [rangeLinePositions, setRangeLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
   const badgeContainerRef = useRef<HTMLDivElement>(null);
   const badge1Ref = useRef<HTMLDivElement>(null);
@@ -426,6 +427,64 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     };
   }, [selectedDatesForEdit, isEditMode]);
 
+  // Calculate line positions for date range selector (pointing to month labels)
+  useEffect(() => {
+    if (!selectedRange || !heatmapContainerRef.current) {
+      setRangeLinePositions(null);
+      return;
+    }
+
+    const calculateRangeLinePositions = () => {
+      const fromMonth = selectedRange.from.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+      const toMonth = selectedRange.to.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+      
+      // Find the DOM elements for both month labels
+      const fromMonthEl = heatmapContainerRef.current?.querySelector(`[data-month="${fromMonth}"]`) as HTMLElement;
+      const toMonthEl = heatmapContainerRef.current?.querySelector(`[data-month="${toMonth}"]`) as HTMLElement;
+      
+      if (!fromMonthEl || !toMonthEl || !heatmapContainerRef.current) {
+        console.log("🔧 PersonalHeatmap: Month labels not found yet", { fromMonth, toMonth });
+        return;
+      }
+      
+      const containerRect = heatmapContainerRef.current.getBoundingClientRect();
+      const fromRect = fromMonthEl.getBoundingClientRect();
+      const toRect = toMonthEl.getBoundingClientRect();
+      
+      const scrollLeft = heatmapContainerRef.current.scrollLeft;
+      const scrollTop = heatmapContainerRef.current.scrollTop;
+      
+      // Calculate center positions of month labels
+      const x1 = fromRect.left - containerRect.left + fromRect.width / 2 + scrollLeft;
+      const y1 = fromRect.top - containerRect.top + fromRect.height / 2 + scrollTop;
+      const x2 = toRect.left - containerRect.left + toRect.width / 2 + scrollLeft;
+      const y2 = toRect.top - containerRect.top + toRect.height / 2 + scrollTop;
+      
+      console.log("🎯 PersonalHeatmap: Range line positions (month labels)", { x1, y1, x2, y2, fromMonth, toMonth });
+      setRangeLinePositions({ x1, y1, x2, y2 });
+    };
+
+    // Calculate positions after render
+    const timer1 = setTimeout(calculateRangeLinePositions, 100);
+    const timer2 = setTimeout(calculateRangeLinePositions, 250);
+    const timer3 = setTimeout(calculateRangeLinePositions, 500);
+    
+    // Recalculate on scroll
+    const scrollContainer = heatmapContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', calculateRangeLinePositions);
+    }
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', calculateRangeLinePositions);
+      }
+    };
+  }, [selectedRange]);
+
   // Generate calendar data for the year or filtered range
   const generateMonthsData = () => {
     let startYear = currentDate.getFullYear();
@@ -470,7 +529,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
           }
         }
         
-        months.push({ name: monthName, dayRows });
+        months.push({ name: monthName, year, dayRows });
       }
     }
     
@@ -533,6 +592,57 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
 
       <div className="flex flex-col gap-2">
         <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
+          {/* SVG overlay for range selector line (pointing to month labels) */}
+          {rangeLinePositions && selectedRange && !isEditMode && (() => {
+            const { x1, y1, x2, y2 } = rangeLinePositions;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Create single smooth curve path
+            const curveAmount = Math.min(distance * 0.3, 50);
+            const angle = Math.atan2(dy, dx);
+            const perpAngle = angle - Math.PI / 2;
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const controlX = midX + Math.cos(perpAngle) * curveAmount;
+            const controlY = midY + Math.sin(perpAngle) * curveAmount;
+            const pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
+            
+            const scrollWidth = heatmapContainerRef.current?.scrollWidth || 0;
+            const scrollHeight = heatmapContainerRef.current?.scrollHeight || 0;
+            
+            return (
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: `${scrollWidth}px`,
+                  height: `${scrollHeight}px`,
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                }}
+              >
+                <defs>
+                  <linearGradient id="rangeLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{ stopColor: 'rgb(59, 130, 246)', stopOpacity: 0.7 }} />
+                    <stop offset="100%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 0.7 }} />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={pathD}
+                  stroke="url(#rangeLineGradient)"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ filter: 'drop-shadow(0 2px 6px rgba(59, 130, 246, 0.4))' }}
+                />
+              </svg>
+            );
+          })()}
+
           {/* SVG overlay for connecting line between selected dates */}
           {linePositions && isEditMode && (() => {
             const { x1, y1, x2, y2 } = linePositions;
@@ -601,7 +711,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
           <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
             {months.map((month, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-0.5">
-                <div className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1 text-center select-none">
+                <div 
+                  className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1 text-center select-none"
+                  data-month={`${month.name} ${month.year}`}
+                >
                   {month.name}
                 </div>
                 <div className="flex gap-1">
