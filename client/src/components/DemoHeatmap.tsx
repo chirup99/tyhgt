@@ -845,62 +845,160 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         </div>
       </div>
 
-      {/* Year Navigation */}
+      {/* Year Navigation / Edit Mode Control */}
       <div className="relative pt-2 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-center gap-2 w-full">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePreviousYear}
-            className="h-8 w-8"
-            data-testid="button-prev-year"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          
-          <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
-            <span className="text-xs">{formatDisplayDate()}</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNextYear}
-            className="h-8 w-8"
-            data-testid="button-next-year"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-
-          {/* 3-dot menu in right corner */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+        {isEditMode ? (
+          // Edit Mode: Show two-date selection interface (compact)
+          <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+            <div className="flex-1 min-w-0 flex justify-center">
+              {selectedDatesForEdit.length === 0 ? (
+                <p className="text-[10px] font-medium text-purple-900 dark:text-purple-100">
+                  Select 2 dates
+                </p>
+              ) : (
+                <div ref={badgeContainerRef} className="flex gap-1 relative">
+                  {selectedDatesForEdit.length === 2 && badgePositions && (
+                    <svg
+                      className="absolute pointer-events-none"
+                      style={{ 
+                        left: 0,
+                        top: 0,
+                        width: '100%', 
+                        height: `${badgePositions.containerHeight}px`,
+                        overflow: 'visible',
+                        zIndex: 0 
+                      }}
+                    >
+                      <defs>
+                        <linearGradient id="demo-badge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="rgb(147, 51, 234)" stopOpacity="0.6" />
+                          <stop offset="100%" stopColor="rgb(234, 88, 12)" stopOpacity="0.6" />
+                        </linearGradient>
+                      </defs>
+                      {(() => {
+                        const { x1, x2, y, containerHeight } = badgePositions;
+                        const dx = x2 - x1;
+                        const distance = Math.abs(dx);
+                        const curveAmount = Math.min(distance * 0.3, 20);
+                        const midX = (x1 + x2) / 2;
+                        const controlY = y + curveAmount;
+                        const pathD = `M ${x1} ${y} Q ${midX} ${controlY}, ${x2} ${y}`;
+                        
+                        return (
+                          <path
+                            d={pathD}
+                            stroke="url(#demo-badge-gradient)"
+                            strokeWidth="2"
+                            fill="none"
+                            strokeLinecap="round"
+                          />
+                        );
+                      })()}
+                    </svg>
+                  )}
+                  {selectedDatesForEdit.map((dateKey, index) => (
+                    <div
+                      key={dateKey}
+                      ref={index === 0 ? badge1Ref : badge2Ref}
+                      className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium relative z-10"
+                      style={{
+                        backgroundColor: index === 0 
+                          ? 'rgb(147 51 234 / 0.1)' 
+                          : 'rgb(234 88 12 / 0.1)',
+                        color: index === 0 
+                          ? 'rgb(147 51 234)' 
+                          : 'rgb(234 88 12)'
+                      }}
+                    >
+                      <div 
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          index === 0 
+                            ? 'bg-purple-600' 
+                            : 'bg-orange-600'
+                        }`}
+                      />
+                      <span className="truncate">{dateKey}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8 absolute right-0"
-                data-testid="button-calendar-menu"
+                size="sm"
+                onClick={handleCancelEdit}
+                className="h-6 px-2 text-[10px]"
+                data-testid="button-cancel-edit"
               >
-                <MoreVertical className="w-4 h-4" />
+                Cancel
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
-                Select range
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
-                Edit date
-              </DropdownMenuItem>
-              <DropdownMenuItem data-testid="menu-item-delete">
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        {/* Hidden container for refs needed by range/edit logic */}
-        <div ref={badgeContainerRef} className="hidden" />
-        <div ref={badge1Ref} className="hidden" />
-        <div ref={badge2Ref} className="hidden" />
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={selectedDatesForEdit.length !== 2}
+                className="h-6 px-2 text-[10px]"
+                data-testid="button-save-edit"
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          // Normal Mode: Show calendar navigation (also shown during range select)
+          <div className="flex items-center justify-center gap-2 w-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousYear}
+              className="h-8 w-8"
+              data-testid="button-prev-year"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+              <span className="text-xs">{formatDisplayDate()}</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8"
+              data-testid="button-next-year"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+
+            {/* 3-dot menu in right corner */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 absolute right-0"
+                  data-testid="button-calendar-menu"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
+                  Select range
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
+                  Edit date
+                </DropdownMenuItem>
+                <DropdownMenuItem data-testid="menu-item-delete">
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+        {/* Hidden refs for range badge calculations */}
         <div ref={rangeBadge1Ref} className="hidden" />
         <div ref={rangeBadge2Ref} className="hidden" />
       </div>
