@@ -2699,3 +2699,15 @@
 [x] 3036. ✅ Both heatmaps now display full curved line without clipping
 [x] 3037. ✅✅✅ CURVED LINE CLIPPING FIXED! ✅✅✅
 [x] 3038. 🎉🎉🎉 COMPLETE CURVED LINE NOW VISIBLE! 🎉🎉🎉
+
+[x] 3039. NOVEMBER 21, 2025 - YEAR HEADER OVERLAP FIX
+[x] 3040. User reported: "calender 2025 header is overlap line, link should flow outside not inside"
+[x] 3041. ✅ Updated DemoHeatmap.tsx main container with overflow-visible
+[x] 3042. ✅ Added z-20 to header to place it above curved line SVG
+[x] 3043. ✅ Added overflow-visible to flex container to allow SVG overflow
+[x] 3044. ✅ Set zIndex: 10 on heatmap container for proper layering
+[x] 3045. ✅ Updated PersonalHeatmap.tsx with identical overflow fixes
+[x] 3046. ✅ Both components now have proper z-index layering: header (z-20) > SVG (z-10)
+[x] 3047. ✅ Curved line now flows outside and below header without overlap
+[x] 3048. ✅✅✅ YEAR HEADER OVERLAP FIXED! ✅✅✅
+[x] 3049. 🎉🎉🎉 CURVED LINE NOW FLOWS CLEANLY OUTSIDE HEADER! 🎉🎉🎉

@@ -604,8 +604,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   };
 
   return (
-    <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none overflow-visible">
+      <div className="flex items-center justify-between relative z-20">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
           Trading Calendar {selectedRange 
             ? `${selectedRange.from.getFullYear()}${selectedRange.from.getFullYear() !== selectedRange.to.getFullYear() ? `-${selectedRange.to.getFullYear()}` : ''}`
@@ -620,8 +620,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
+      <div className="flex flex-col gap-2 overflow-visible">
+        <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative', zIndex: 10 }}>
           {/* SVG overlay for range selector line (pointing to month labels) */}
           {rangeLinePositions && selectedRange && !isEditMode && (() => {
             const { x1, y1, x2, y2 } = rangeLinePositions;
