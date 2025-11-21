@@ -1050,8 +1050,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         ) : (
           // Normal Mode: Show calendar navigation
           <div className="flex items-center justify-center gap-0 w-full">
-            {/* Left arrow - hide when range is selected */}
-            {!selectedRange && !isRangeSelectMode && (
+            {/* Left arrow - always show in normal mode */}
+            {!isRangeSelectMode && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -1101,8 +1101,13 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                     e.preventDefault();
                     e.stopPropagation();
                     closeButtonRef.current = true;
+                    // Close range selection mode AND clear selected range
                     setIsRangeSelectMode(false);
                     setSelectedDatesForRange([]);
+                    setSelectedRange(null);
+                    if (onRangeChange) {
+                      onRangeChange(null);
+                    }
                   }}
                   className="flex items-center justify-center w-4 h-4 hover:opacity-70"
                   data-testid="button-close-range-select"
@@ -1110,21 +1115,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   <X className="w-4 h-4" />
                 </button>
               </Button>
-            ) : selectedRange ? (
-              // Normal mode with selected range - show date range
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSelectRangeClick}
-                className="h-8 px-2 hover-elevate flex-shrink"
-                data-testid="button-select-date-range"
-              >
-                <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                  {formatDisplayDate()}
-                </span>
-              </Button>
             ) : (
-              // Normal mode without range - show "Select range"
+              // Normal mode - show "Select range" button
               <Button
                 variant="ghost"
                 size="sm"
@@ -1138,8 +1130,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
 
-            {/* Right arrow - hide when range is selected */}
-            {!selectedRange && !isRangeSelectMode && (
+            {/* Right arrow - always show in normal mode */}
+            {!isRangeSelectMode && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -1151,8 +1143,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
 
-            {/* 3-dot menu - only show when not in range select mode and no range selected */}
-            {!isRangeSelectMode && !selectedRange && (
+            {/* 3-dot menu - only show when not in range select mode */}
+            {!isRangeSelectMode && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
