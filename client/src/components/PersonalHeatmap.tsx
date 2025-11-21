@@ -1105,13 +1105,13 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                         )
                       }
                     </span>
-                    {(isRangeSelectMode && selectedDatesForRange.length > 0 || selectedRange) && (
+                    {(isRangeSelectMode && selectedDatesForRange.length > 0 || (selectedRange && !isRangeSelectMode)) && (
                       <X 
                         className="w-3 h-3 ml-1 flex-shrink-0 cursor-pointer hover:opacity-70" 
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isRangeSelectMode) {
-                            setSelectedDatesForRange([]);
+                            handleExitRangeSelectMode();
                           } else {
                             handleResetRange();
                           }
@@ -1136,18 +1136,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 <ChevronRight className="w-4 h-4" />
               </Button>
 
-              {/* 3-dot menu */}
-              {isRangeSelectMode ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleExitRangeSelectMode}
-                  className="h-8 w-8"
-                  data-testid="button-exit-range-select"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              ) : (
+              {/* 3-dot menu - only show when not in range select mode */}
+              {!isRangeSelectMode && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
