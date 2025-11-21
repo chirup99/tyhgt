@@ -519,18 +519,18 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       {/* Date Range Picker / Edit Mode Control */}
       <div className="relative pt-2 border-t border-gray-200 dark:border-gray-700">
         {isEditMode ? (
-          // Edit Mode: Show two-date selection interface
-          <div className="flex items-center justify-between gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-            <div className="flex-1">
-              <p className="text-xs font-medium text-purple-900 dark:text-purple-100">
-                Select two dates on the heatmap
+          // Edit Mode: Show two-date selection interface (compact)
+          <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-medium text-purple-900 dark:text-purple-100">
+                Select 2 dates
               </p>
               {selectedDatesForEdit.length > 0 && (
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-1 mt-0.5">
                   {selectedDatesForEdit.map((dateKey, index) => (
                     <div
                       key={dateKey}
-                      className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium"
+                      className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium"
                       style={{
                         backgroundColor: index === 0 
                           ? 'rgb(147 51 234 / 0.1)' 
@@ -541,23 +541,24 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                       }}
                     >
                       <div 
-                        className={`w-2 h-2 rounded-full ${
+                        className={`w-1.5 h-1.5 rounded-full ${
                           index === 0 
                             ? 'bg-purple-600' 
                             : 'bg-orange-600'
                         }`}
                       />
-                      {dateKey}
+                      <span className="truncate">{dateKey}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCancelEdit}
+                className="h-6 px-2 text-[10px]"
                 data-testid="button-cancel-edit"
               >
                 Cancel
@@ -567,6 +568,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 size="sm"
                 onClick={handleSaveEdit}
                 disabled={selectedDatesForEdit.length !== 2}
+                className="h-6 px-2 text-[10px]"
                 data-testid="button-save-edit"
               >
                 Save
