@@ -455,18 +455,23 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       <div className="flex flex-col gap-2">
         <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
           {/* SVG Overlay for curved line connecting selected dates */}
-          {linePositions && (
-            <svg
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                pointerEvents: 'none',
-                zIndex: 10,
-              }}
-            >
+          {linePositions && (() => {
+            // ✅ FIX: Get full scrollable content dimensions
+            const scrollWidth = heatmapContainerRef.current?.scrollWidth || 0;
+            const scrollHeight = heatmapContainerRef.current?.scrollHeight || 0;
+            
+            return (
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: `${scrollWidth}px`,
+                  height: `${scrollHeight}px`,
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                }}
+              >
               <defs>
                 <linearGradient id="demo-lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="rgb(147, 51, 234)" />
@@ -523,7 +528,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 );
               })()}
             </svg>
-          )}
+            );
+          })()}
           <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
             {months.map((month, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-0.5">

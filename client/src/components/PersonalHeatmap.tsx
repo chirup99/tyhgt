@@ -563,14 +563,18 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             // Create smooth quadratic Bézier curve
             pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
             
+            // ✅ FIX: Get full scrollable content dimensions
+            const scrollWidth = heatmapContainerRef.current?.scrollWidth || 0;
+            const scrollHeight = heatmapContainerRef.current?.scrollHeight || 0;
+            
             return (
               <svg
                 style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
-                  width: '100%',
-                  height: '100%',
+                  width: `${scrollWidth}px`,
+                  height: `${scrollHeight}px`,
                   pointerEvents: 'none',
                   zIndex: 10,
                 }}
