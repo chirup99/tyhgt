@@ -361,6 +361,20 @@
 [x] 1588. ✅✅✅ NOVEMBER 21, 2025 - REPLIT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 1589. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED TO REPLIT ENVIRONMENT! 🎉🎉🎉
 [x] 1590. 🚀🚀🚀 ALL SYSTEMS OPERATIONAL - READY FOR DEVELOPMENT! 🚀🚀🚀
+
+[x] 1591. NOVEMBER 21, 2025 - FIXED TRADING CALENDAR CURVED LINE OVERLAP
+[x] 1592. User reported: "curved line top layer not displaying may be trading calender 2025 header bar over lap"
+[x] 1593. Issue identified: Header bar with z-20 and semi-transparent background overlapping SVG curved lines
+[x] 1594. Root cause: Header had higher z-index (z-20) than curved SVG lines (zIndex: 10)
+[x] 1595. ✅ Removed semi-transparent background from DemoHeatmap header (bg-white/40 dark:bg-gray-800/40)
+[x] 1596. ✅ Removed semi-transparent background from PersonalHeatmap header (bg-white/40 dark:bg-gray-800/40)
+[x] 1597. ✅ Lowered header z-index from z-20 to z-5 in DemoHeatmap component
+[x] 1598. ✅ Lowered header z-index from z-20 to z-5 in PersonalHeatmap component
+[x] 1599. ✅ Header now transparent allowing curved SVG lines to show through
+[x] 1600. ✅ SVG decorative lines (zIndex: 10) now visible above header (z-5)
+[x] 1601. ✅ Workflow restarted successfully - changes applied
+[x] 1602. ✅✅✅ TRADING CALENDAR CURVED LINE OVERLAP FIXED! ✅✅✅
+[x] 1603. 🎉🎉🎉 DECORATIVE CURVED LINES NOW FULLY VISIBLE ON HEATMAP! 🎉🎉🎉
 [x] 1581. ✅ Firebase authentication system active and operational
 [x] 1582. ✅ All API routes working correctly
 [x] 1583. ✅ Market indices service functioning properly
