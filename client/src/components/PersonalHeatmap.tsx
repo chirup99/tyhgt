@@ -1049,16 +1049,18 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         ) : (
           // Normal Mode: Show calendar navigation
           <div className="flex items-center justify-center gap-0 w-full">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePreviousYear}
-              className="h-8 w-8 flex-shrink-0"
-              data-testid="button-prev-year"
-              disabled={isRangeSelectMode}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
+            {/* Left arrow - hide when range is selected */}
+            {!selectedRange && !isRangeSelectMode && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePreviousYear}
+                className="h-8 w-8 flex-shrink-0"
+                data-testid="button-prev-year"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            )}
             
             <Button
               variant="ghost"
@@ -1102,19 +1104,21 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </span>
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNextYear}
-              className="h-8 w-8 flex-shrink-0"
-              data-testid="button-next-year"
-              disabled={isRangeSelectMode}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            {/* Right arrow - hide when range is selected */}
+            {!selectedRange && !isRangeSelectMode && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNextYear}
+                className="h-8 w-8 flex-shrink-0"
+                data-testid="button-next-year"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
 
-            {/* Reset range X icon - show only when range is selected and not in select mode */}
-            {selectedRange && !isRangeSelectMode && (
+            {/* Reset range X icon - show only when range is selected */}
+            {selectedRange && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -1126,8 +1130,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
 
-            {/* 3-dot menu - only show when not in range select mode */}
-            {!isRangeSelectMode && (
+            {/* 3-dot menu - only show when not in range select mode and no range selected */}
+            {!isRangeSelectMode && !selectedRange && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
