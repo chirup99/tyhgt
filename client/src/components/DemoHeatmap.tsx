@@ -991,7 +991,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </Button>
             )}
             
-            {/* Single unified button - shows either "Select range" or selected dates */}
+            {/* Single button - shows either "Select range" or selected dates with X icon */}
             {!isRangeSelectMode ? (
               <Button
                 variant="ghost"
@@ -1001,23 +1001,14 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 data-testid="button-select-date-range"
               >
                 <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                  {selectedRange 
-                    ? formatDisplayDate()
-                    : currentDate.toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                      })
-                  }
+                  Select range
                 </span>
               </Button>
             ) : (
               <Button
                 variant="ghost"
                 size="sm"
-                disabled
-                className="h-8 px-2 flex-shrink"
+                className="h-8 px-2 flex-shrink flex items-center gap-1"
                 data-testid="button-select-date-range-mode"
               >
                 <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
@@ -1044,25 +1035,19 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                     })()
                   ) : "Select range"}
                 </span>
-              </Button>
-            )}
-
-            {/* X icon to close range select mode - show only when in range select mode */}
-            {isRangeSelectMode && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  closeButtonRef.current = true;
-                  setIsRangeSelectMode(false);
-                  setSelectedDatesForRange([]);
-                }}
-                className="h-8 w-8 flex-shrink-0"
-                data-testid="button-close-range-select"
-              >
-                <X className="w-4 h-4" />
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeButtonRef.current = true;
+                    setIsRangeSelectMode(false);
+                    setSelectedDatesForRange([]);
+                  }}
+                  className="flex items-center justify-center w-4 h-4 hover:opacity-70"
+                  data-testid="button-close-range-select"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </Button>
             )}
 
