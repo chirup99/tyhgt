@@ -2688,3 +2688,14 @@
 [x] 3026. ✅ Header shows: "7 of 19 dates in range" example
 [x] 3027. ✅✅✅ HEADER DATE COUNTER NOW FILTERS BY RANGE! ✅✅✅
 [x] 3028. 🎉🎉🎉 COMPLETE RANGE FILTERING: COLORS + DATA COUNT! 🎉🎉🎉
+
+[x] 3029. NOVEMBER 21, 2025 - CURVED LINE CLIPPING FIX
+[x] 3030. User reported: "curved line is not displaying properly top layer is cutting may be its inside visible total curved line"
+[x] 3031. ✅ Updated DemoHeatmap.tsx SVG container
+[x] 3032. ✅ Changed top from '0' to '-30px' to create space above
+[x] 3033. ✅ Extended height with calc() to add 60px extra space (30px above + 30px below)
+[x] 3034. ✅ Added overflow-visible class for better containment
+[x] 3035. ✅ Updated PersonalHeatmap.tsx SVG with identical fixes
+[x] 3036. ✅ Both heatmaps now display full curved line without clipping
+[x] 3037. ✅✅✅ CURVED LINE CLIPPING FIXED! ✅✅✅
+[x] 3038. 🎉🎉🎉 COMPLETE CURVED LINE NOW VISIBLE! 🎉🎉🎉

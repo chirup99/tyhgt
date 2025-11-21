@@ -876,13 +876,12 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 <div ref={badgeContainerRef} className="flex gap-1 relative">
                   {selectedDatesForEdit.length === 2 && badgePositions && (
                     <svg
-                      className="absolute pointer-events-none"
+                      className="absolute pointer-events-none overflow-visible"
                       style={{ 
                         left: 0,
-                        top: 0,
+                        top: '-30px',
                         width: '100%', 
-                        height: `${badgePositions.containerHeight}px`,
-                        overflow: 'visible',
+                        height: `calc(${badgePositions.containerHeight}px + 60px)`,
                         zIndex: 0 
                       }}
                     >
