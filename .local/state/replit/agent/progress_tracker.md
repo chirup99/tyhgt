@@ -1903,3 +1903,29 @@
 [x] 2495. ✅✅✅ NOVEMBER 21, 2025 REPLIT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 2496. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED AND FULLY OPERATIONAL! 🎉🎉🎉
 [x] 2497. 🚀🚀🚀 ALL SYSTEMS GO - READY FOR ACTIVE DEVELOPMENT! 🚀🚀🚀
+
+[x] 2498. NOVEMBER 21, 2025 - CURVED LINE FIX FOR HEATMAP EDIT MODE
+[x] 2499. User reported: "curved line is not working when i scroll heatmaps its display on different place"
+[x] 2500. Issue identified: Curved line had hardcoded positions (x1=40, x2=140) that didn't adjust on scroll
+[x] 2501. Root cause: SVG curved line used static coordinates instead of dynamic badge positions
+[x] 2502. ✅ Added refs to track badge element positions (badge1Ref, badge2Ref) in DemoHeatmap
+[x] 2503. ✅ Added refs to track badge element positions (badge1Ref, badge2Ref) in PersonalHeatmap
+[x] 2504. ✅ Created badgePositions state to store calculated positions (x1, x2, y)
+[x] 2505. ✅ Implemented useEffect to calculate badge positions dynamically:
+[x] 2506.   - Measures actual getBoundingClientRect() of each badge element
+[x] 2507.   - Calculates relative position to container
+[x] 2508.   - Finds center point of each badge (width/2, height/2)
+[x] 2509.   - Stores calculated positions in badgePositions state
+[x] 2510. ✅ Added scroll event listener to recalculate on heatmap scroll
+[x] 2511. ✅ Updated SVG curved line to use calculated badgePositions:
+[x] 2512.   - Changed from hardcoded x1=40, x2=140 to dynamic {x1, x2, y}
+[x] 2513.   - Line now follows actual badge positions
+[x] 2514.   - Curved line moves correctly when scrolling
+[x] 2515. ✅ Added conditional rendering: only show curve when badgePositions exists
+[x] 2516. ✅ Added refs to badge elements: ref={index === 0 ? badge1Ref : badge2Ref}
+[x] 2517. ✅ Applied fix to BOTH DemoHeatmap.tsx and PersonalHeatmap.tsx
+[x] 2518. ✅ Scroll event listener properly cleaned up on unmount
+[x] 2519. ✅ Position calculation includes proper bounds checking
+[x] 2520. ✅ Workflow restarted successfully - changes applied
+[x] 2521. ✅✅✅ CURVED LINE SCROLL FIX COMPLETED! ✅✅✅
+[x] 2522. 🎉🎉🎉 CURVED LINE NOW FOLLOWS BADGES CORRECTLY ON SCROLL! 🎉🎉🎉

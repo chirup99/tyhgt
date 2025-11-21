@@ -98,6 +98,9 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
+  const badge1Ref = useRef<HTMLDivElement>(null);
+  const badge2Ref = useRef<HTMLDivElement>(null);
+  const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number } | null>(null);
   const { toast } = useToast();
 
   // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT
@@ -312,28 +315,37 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     setSelectedDatesForEdit([]);
   };
 
-  // Calculate line positions when two dates are selected in edit mode
+  // Calculate badge positions dynamically when badges render
   useEffect(() => {
-    if (selectedDatesForEdit.length === 2 && heatmapContainerRef.current) {
-      // Find the DOM elements for both selected dates
-      const date1Element = heatmapContainerRef.current.querySelector(`[data-date="${selectedDatesForEdit[0]}"]`);
-      const date2Element = heatmapContainerRef.current.querySelector(`[data-date="${selectedDatesForEdit[1]}"]`);
+    if (selectedDatesForEdit.length !== 2 || !badge1Ref.current || !badge2Ref.current) {
+      setBadgePositions(null);
+      return;
+    }
+
+    const calculatePositions = () => {
+      if (!badge1Ref.current || !badge2Ref.current) return;
       
-      if (date1Element && date2Element) {
-        const containerRect = heatmapContainerRef.current.getBoundingClientRect();
-        const rect1 = date1Element.getBoundingClientRect();
-        const rect2 = date2Element.getBoundingClientRect();
-        
-        // Calculate center positions relative to container
-        const x1 = rect1.left - containerRect.left + rect1.width / 2;
-        const y1 = rect1.top - containerRect.top + rect1.height / 2;
-        const x2 = rect2.left - containerRect.left + rect2.width / 2;
-        const y2 = rect2.top - containerRect.top + rect2.height / 2;
-        
-        setLinePositions({ x1, y1, x2, y2 });
-      }
-    } else {
-      setLinePositions(null);
+      const badge1Rect = badge1Ref.current.getBoundingClientRect();
+      const badge2Rect = badge2Ref.current.getBoundingClientRect();
+      const containerRect = badge1Ref.current.parentElement?.parentElement?.getBoundingClientRect();
+      
+      if (!containerRect) return;
+      
+      const x1 = badge1Rect.left - containerRect.left + badge1Rect.width / 2;
+      const x2 = badge2Rect.left - containerRect.left + badge2Rect.width / 2;
+      const y = badge1Rect.top - containerRect.top + badge1Rect.height / 2;
+      
+      setBadgePositions({ x1, x2, y });
+    };
+
+    // Calculate initially
+    calculatePositions();
+    
+    // Recalculate on scroll
+    const scrollContainer = heatmapContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', calculatePositions);
+      return () => scrollContainer.removeEventListener('scroll', calculatePositions);
     }
   }, [selectedDatesForEdit]);
 
@@ -617,7 +629,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 </p>
               ) : (
                 <div className="flex gap-1 relative">
-                  {selectedDatesForEdit.length === 2 && (
+                  {selectedDatesForEdit.length === 2 && badgePositions && (
                     <svg
                       className="absolute inset-0 pointer-events-none"
                       style={{ width: '100%', height: '100%', zIndex: 0 }}
@@ -629,9 +641,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                         </linearGradient>
                       </defs>
                       {(() => {
-                        const y = 10;
-                        const x1 = 40;
-                        const x2 = 140;
+                        const { x1, x2, y } = badgePositions;
                         const dx = x2 - x1;
                         const distance = Math.abs(dx);
                         const curveAmount = Math.min(distance * 0.3, 20);
@@ -653,6 +663,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   {selectedDatesForEdit.map((dateKey, index) => (
                     <div
                       key={dateKey}
+                      ref={index === 0 ? badge1Ref : badge2Ref}
                       className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium relative z-10"
                       style={{
                         backgroundColor: index === 0 

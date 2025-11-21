@@ -73,6 +73,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
+  const badge1Ref = useRef<HTMLDivElement>(null);
+  const badge2Ref = useRef<HTMLDivElement>(null);
+  const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number } | null>(null);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
@@ -117,33 +120,39 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       });
   }, []); // Run once on mount
 
-  // Calculate line positions when two dates are selected in edit mode
+  // Calculate badge positions dynamically when badges render
   useEffect(() => {
-    if (!isEditMode || selectedDatesForEdit.length !== 2 || !heatmapContainerRef.current) {
-      setLinePositions(null);
+    if (selectedDatesForEdit.length !== 2 || !badge1Ref.current || !badge2Ref.current) {
+      setBadgePositions(null);
       return;
     }
 
-    const container = heatmapContainerRef.current;
-    const firstDateEl = container.querySelector(`[data-testid="heatmap-cell-${selectedDatesForEdit[0]}"]`);
-    const secondDateEl = container.querySelector(`[data-testid="heatmap-cell-${selectedDatesForEdit[1]}"]`);
+    const calculatePositions = () => {
+      if (!badge1Ref.current || !badge2Ref.current) return;
+      
+      const badge1Rect = badge1Ref.current.getBoundingClientRect();
+      const badge2Rect = badge2Ref.current.getBoundingClientRect();
+      const containerRect = badge1Ref.current.parentElement?.parentElement?.getBoundingClientRect();
+      
+      if (!containerRect) return;
+      
+      const x1 = badge1Rect.left - containerRect.left + badge1Rect.width / 2;
+      const x2 = badge2Rect.left - containerRect.left + badge2Rect.width / 2;
+      const y = badge1Rect.top - containerRect.top + badge1Rect.height / 2;
+      
+      setBadgePositions({ x1, x2, y });
+    };
 
-    if (!firstDateEl || !secondDateEl) {
-      setLinePositions(null);
-      return;
+    // Calculate initially
+    calculatePositions();
+    
+    // Recalculate on scroll
+    const scrollContainer = heatmapContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', calculatePositions);
+      return () => scrollContainer.removeEventListener('scroll', calculatePositions);
     }
-
-    const containerRect = container.getBoundingClientRect();
-    const firstRect = firstDateEl.getBoundingClientRect();
-    const secondRect = secondDateEl.getBoundingClientRect();
-
-    const x1 = firstRect.left - containerRect.left + firstRect.width / 2;
-    const y1 = firstRect.top - containerRect.top + firstRect.height / 2;
-    const x2 = secondRect.left - containerRect.left + secondRect.width / 2;
-    const y2 = secondRect.top - containerRect.top + secondRect.height / 2;
-
-    setLinePositions({ x1, y1, x2, y2 });
-  }, [isEditMode, selectedDatesForEdit, heatmapData, selectedRange]);
+  }, [selectedDatesForEdit]);
 
   // Update selectedRange when both fromDate and toDate are set
   useEffect(() => {
@@ -548,7 +557,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </p>
               {selectedDatesForEdit.length > 0 && (
                 <div className="flex gap-1 mt-0.5 relative">
-                  {selectedDatesForEdit.length === 2 && (
+                  {selectedDatesForEdit.length === 2 && badgePositions && (
                     <svg
                       className="absolute inset-0 pointer-events-none"
                       style={{ width: '100%', height: '100%', zIndex: 0 }}
@@ -560,9 +569,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                         </linearGradient>
                       </defs>
                       {(() => {
-                        const y = 10;
-                        const x1 = 40;
-                        const x2 = 140;
+                        const { x1, x2, y } = badgePositions;
                         const dx = x2 - x1;
                         const distance = Math.abs(dx);
                         const curveAmount = Math.min(distance * 0.3, 20);
@@ -584,6 +591,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                   {selectedDatesForEdit.map((dateKey, index) => (
                     <div
                       key={dateKey}
+                      ref={index === 0 ? badge1Ref : badge2Ref}
                       className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium relative z-10"
                       style={{
                         backgroundColor: index === 0 
