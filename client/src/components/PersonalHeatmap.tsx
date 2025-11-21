@@ -1086,27 +1086,15 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCancelRangeSelect}
-                className="h-6 px-2 text-[10px]"
-                data-testid="button-cancel-range-select"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleSaveRangeSelect}
-                disabled={selectedDatesForRange.length !== 2}
-                className="h-6 px-2 text-[10px]"
-                data-testid="button-save-range-select"
-              >
-                Apply
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancelRangeSelect}
+              className="h-6 w-6"
+              data-testid="button-cancel-range-select"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         ) : (
           // Normal Mode: Show calendar navigation
