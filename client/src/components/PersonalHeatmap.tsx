@@ -1054,30 +1054,33 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
-            <div className="flex items-center justify-center gap-1 flex-1">
-              <span className="text-xs text-gray-900 dark:text-gray-100">
-                {selectedRange 
-                  ? formatDisplayDate()
-                  : currentDate.toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      month: 'long', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    })
-                }
-              </span>
-              {selectedRange && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleResetRange}
-                  className="h-6 w-6 ml-1 flex-shrink-0"
-                  data-testid="button-clear-range"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSelectRangeClick}
+              className="h-8 px-3 hover-elevate flex-1"
+              data-testid="button-select-date-range"
+            >
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-xs text-gray-900 dark:text-gray-100">
+                  {selectedRange 
+                    ? formatDisplayDate()
+                    : currentDate.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })
+                  }
+                </span>
+                {selectedRange && (
+                  <X className="w-3 h-3 ml-1 flex-shrink-0" onClick={(e) => {
+                    e.stopPropagation();
+                    handleResetRange();
+                  }} data-testid="button-clear-range" />
+                )}
+              </div>
+            </Button>
 
             <div className="flex items-center gap-1">
               <Button
@@ -1103,9 +1106,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
-                    Select range
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
                     Edit date
                   </DropdownMenuItem>
