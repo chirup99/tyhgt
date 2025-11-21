@@ -7,14 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import type { DateRange } from "react-day-picker";
 
 interface PersonalHeatmapProps {
   userId: string | null;
@@ -97,8 +90,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [isRangePickerOpen, setIsRangePickerOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isRangeSelectMode, setIsRangeSelectMode] = useState(false);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
@@ -677,26 +668,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const handleResetRange = () => {
     setSelectedRange(null);
     setSelectedDatesForRange([]);
-    setDateRange(undefined);
     
     // Emit range reset to parent
     if (onRangeChange) {
       onRangeChange(null);
-    }
-  };
-
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setDateRange(range);
-    
-    // If both from and to dates are selected, apply the range
-    if (range?.from && range?.to) {
-      setSelectedRange({ from: range.from, to: range.to });
-      setIsRangePickerOpen(false);
-      
-      // Emit range change to parent
-      if (onRangeChange) {
-        onRangeChange({ from: range.from, to: range.to });
-      }
     }
   };
 
@@ -1066,60 +1041,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             </div>
           </div>
-        ) : selectedRange ? (
-          // Range Selected: Show range with X icon, no navigation arrows
-          <div className="flex items-center justify-center gap-2 w-full">
-            <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 min-w-[200px] justify-between" data-testid="button-date-range-display">
-                  <span className="text-xs flex-1">{formatDisplayDate()}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleResetRange}
-              className="h-8 w-8"
-              data-testid="button-clear-range"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-
-            {/* 3-dot menu in right corner */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 absolute right-0"
-                  data-testid="button-calendar-menu"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
-                  Edit date
-                </DropdownMenuItem>
-                <DropdownMenuItem data-testid="menu-item-delete">
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         ) : (
-          // Normal Mode: Show calendar navigation with clickable date display
+          // Normal Mode: Show calendar navigation (also shown during range select)
           <div className="flex items-center justify-center gap-2 w-full">
             <Button
               variant="ghost"
@@ -1131,22 +1054,27 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
-            <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
-                  <span className="text-xs">{formatDisplayDate()}</span>
+            <div className="flex-1 flex items-center justify-center gap-2">
+              <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+                <span className="text-xs">
+                  {selectedRange 
+                    ? formatDisplayDate()
+                    : currentDate.getFullYear()
+                  }
+                </span>
+              </Button>
+              {selectedRange && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleResetRange}
+                  className="h-8 w-8"
+                  data-testid="button-clear-range"
+                >
+                  <X className="w-4 h-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+              )}
+            </div>
 
             <Button
               variant="ghost"
@@ -1171,6 +1099,9 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
+                  Select range
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
                   Edit date
                 </DropdownMenuItem>
