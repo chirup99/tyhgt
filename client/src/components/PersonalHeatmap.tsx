@@ -1043,78 +1043,78 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
           </div>
         ) : (
           // Normal Mode: Show calendar navigation (also shown during range select)
-          <div className="flex items-center justify-center gap-2 w-full">
+          <div className="flex items-center justify-between w-full px-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePreviousYear}
-              className="h-8 w-8"
+              className="h-8 w-8 flex-shrink-0"
               data-testid="button-prev-year"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
-            <div className="flex-1 flex items-center justify-center gap-2">
-              <Button variant="ghost" size="sm" className="h-8 min-w-[240px]" data-testid="button-year-display">
-                <span className="text-xs">
-                  {selectedRange 
-                    ? formatDisplayDate()
-                    : currentDate.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                      })
-                  }
-                </span>
-              </Button>
+            <div className="flex items-center justify-center gap-1 flex-1">
+              <span className="text-xs text-gray-900 dark:text-gray-100">
+                {selectedRange 
+                  ? formatDisplayDate()
+                  : currentDate.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    })
+                }
+              </span>
               {selectedRange && (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleResetRange}
-                  className="h-8 w-8"
+                  className="h-6 w-6 ml-1 flex-shrink-0"
                   data-testid="button-clear-range"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3 h-3" />
                 </Button>
               )}
             </div>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNextYear}
-              className="h-8 w-8"
-              data-testid="button-next-year"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNextYear}
+                className="h-8 w-8 flex-shrink-0"
+                data-testid="button-next-year"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
 
-            {/* 3-dot menu in right corner */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 absolute right-0"
-                  data-testid="button-calendar-menu"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
-                  Select range
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
-                  Edit date
-                </DropdownMenuItem>
-                <DropdownMenuItem data-testid="menu-item-delete">
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              {/* 3-dot menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    data-testid="button-calendar-menu"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
+                    Select range
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
+                    Edit date
+                  </DropdownMenuItem>
+                  <DropdownMenuItem data-testid="menu-item-delete">
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         )}
         {/* Hidden refs for range badge calculations */}
