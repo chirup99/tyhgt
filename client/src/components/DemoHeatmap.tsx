@@ -945,32 +945,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </Button>
             </div>
           </div>
-        ) : selectedRange && !isRangeSelectMode ? (
-          // Range Applied: Show simple date range display with X reset icon
-          <div className="flex items-center justify-between gap-2 w-full px-2">
-            <span className="text-xs text-gray-700 dark:text-gray-300" data-testid="text-date-range">
-              {selectedRange.from.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-              })} - {selectedRange.to.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-              })}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleResetRange}
-              className="h-8 w-8"
-              data-testid="button-reset-range"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
         ) : (
           // Normal Mode: Show calendar navigation (also shown during range select)
           <div className="flex items-center justify-center gap-2 w-full">
