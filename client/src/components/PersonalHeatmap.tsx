@@ -521,12 +521,13 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         {isEditMode ? (
           // Edit Mode: Show two-date selection interface (compact)
           <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-medium text-purple-900 dark:text-purple-100">
-                Select 2 dates
-              </p>
-              {selectedDatesForEdit.length > 0 && (
-                <div className="flex gap-1 mt-0.5">
+            <div className="flex-1 min-w-0 flex justify-center">
+              {selectedDatesForEdit.length === 0 ? (
+                <p className="text-[10px] font-medium text-purple-900 dark:text-purple-100">
+                  Select 2 dates
+                </p>
+              ) : (
+                <div className="flex gap-1">
                   {selectedDatesForEdit.map((dateKey, index) => (
                     <div
                       key={dateKey}
