@@ -368,6 +368,60 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     };
   }, [selectedDatesForEdit]);
 
+  // Calculate line positions for heatmap calendar when 2 dates are selected
+  useEffect(() => {
+    if (selectedDatesForEdit.length !== 2 || !isEditMode || !heatmapContainerRef.current) {
+      setLinePositions(null);
+      return;
+    }
+
+    const calculateLinePositions = () => {
+      const [date1Key, date2Key] = selectedDatesForEdit;
+      
+      // Find the DOM elements for both selected dates
+      const cell1 = heatmapContainerRef.current?.querySelector(`[data-date="${date1Key}"]`) as HTMLElement;
+      const cell2 = heatmapContainerRef.current?.querySelector(`[data-date="${date2Key}"]`) as HTMLElement;
+      
+      if (!cell1 || !cell2 || !heatmapContainerRef.current) {
+        console.log("🔧 PersonalHeatmap: Calendar cells not found yet", { date1Key, date2Key });
+        return;
+      }
+      
+      const containerRect = heatmapContainerRef.current.getBoundingClientRect();
+      const cell1Rect = cell1.getBoundingClientRect();
+      const cell2Rect = cell2.getBoundingClientRect();
+      
+      // Calculate center positions relative to container
+      const x1 = cell1Rect.left - containerRect.left + cell1Rect.width / 2;
+      const y1 = cell1Rect.top - containerRect.top + cell1Rect.height / 2;
+      const x2 = cell2Rect.left - containerRect.left + cell2Rect.width / 2;
+      const y2 = cell2Rect.top - containerRect.top + cell2Rect.height / 2;
+      
+      console.log("🎯 PersonalHeatmap: Calculated heatmap line positions", { x1, y1, x2, y2 });
+      setLinePositions({ x1, y1, x2, y2 });
+    };
+
+    // Calculate positions after render
+    const timer1 = setTimeout(calculateLinePositions, 0);
+    const timer2 = setTimeout(calculateLinePositions, 50);
+    const timer3 = setTimeout(calculateLinePositions, 150);
+    
+    // Recalculate on scroll
+    const scrollContainer = heatmapContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', calculateLinePositions);
+    }
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', calculateLinePositions);
+      }
+    };
+  }, [selectedDatesForEdit, isEditMode]);
+
   // Generate calendar data for the year or filtered range
   const generateMonthsData = () => {
     let startYear = currentDate.getFullYear();
