@@ -1063,37 +1063,17 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={isRangeSelectMode ? undefined : handleSelectRangeClick}
-              className="h-8 px-2 hover-elevate flex-shrink"
-              data-testid="button-select-date-range"
-            >
-              <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                {isRangeSelectMode && selectedDatesForRange.length === 0 ? (
-                  "Select range"
-                ) : isRangeSelectMode && selectedDatesForRange.length > 0 ? (
-                  (() => {
-                    const [date1, date2] = selectedDatesForRange.sort();
-                    const from = new Date(date1);
-                    const to = new Date(date2);
-                    const fromDate = from.toLocaleDateString('en-US', { 
-                      weekday: 'short', 
-                      month: 'short', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    });
-                    const toDate = to.toLocaleDateString('en-US', { 
-                      weekday: 'short', 
-                      month: 'short', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    });
-                    return `${fromDate} - ${toDate}`;
-                  })()
-                ) : (
-                  selectedRange 
+            {/* Single unified button - shows either "Select range" or selected dates */}
+            {!isRangeSelectMode ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectRangeClick}
+                className="h-8 px-2 hover-elevate flex-shrink"
+                data-testid="button-select-date-range"
+              >
+                <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  {selectedRange 
                     ? formatDisplayDate()
                     : currentDate.toLocaleDateString('en-US', { 
                         weekday: 'short', 
@@ -1101,9 +1081,43 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                         day: 'numeric', 
                         year: 'numeric' 
                       })
-                )}
-              </span>
-            </Button>
+                  }
+                </span>
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                className="h-8 px-2 flex-shrink"
+                data-testid="button-select-date-range-mode"
+              >
+                <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  {selectedDatesForRange.length === 0 ? (
+                    "Select range"
+                  ) : selectedDatesForRange.length > 0 ? (
+                    (() => {
+                      const [date1, date2] = selectedDatesForRange.sort();
+                      const from = new Date(date1);
+                      const to = new Date(date2);
+                      const fromDate = from.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      const toDate = to.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      return `${fromDate} - ${toDate}`;
+                    })()
+                  ) : "Select range"}
+                </span>
+              </Button>
+            )}
 
             {/* X icon to close range select mode - show only when in range select mode */}
             {isRangeSelectMode && (
@@ -1113,6 +1127,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  closeButtonRef.current = true;
                   setIsRangeSelectMode(false);
                   setSelectedDatesForRange([]);
                 }}
