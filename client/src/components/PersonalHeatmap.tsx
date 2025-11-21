@@ -338,15 +338,21 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       setBadgePositions({ x1, x2, y });
     };
 
-    // Calculate initially
-    calculatePositions();
+    // Use a small delay to ensure badges are fully rendered
+    const timer = setTimeout(calculatePositions, 0);
     
     // Recalculate on scroll
     const scrollContainer = heatmapContainerRef.current;
     if (scrollContainer) {
       scrollContainer.addEventListener('scroll', calculatePositions);
-      return () => scrollContainer.removeEventListener('scroll', calculatePositions);
     }
+    
+    return () => {
+      clearTimeout(timer);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', calculatePositions);
+      }
+    };
   }, [selectedDatesForEdit]);
 
   // Generate calendar data for the year or filtered range

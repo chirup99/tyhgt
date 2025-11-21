@@ -1929,3 +1929,17 @@
 [x] 2520. ✅ Workflow restarted successfully - changes applied
 [x] 2521. ✅✅✅ CURVED LINE SCROLL FIX COMPLETED! ✅✅✅
 [x] 2522. 🎉🎉🎉 CURVED LINE NOW FOLLOWS BADGES CORRECTLY ON SCROLL! 🎉🎉🎉
+
+[x] 2523. NOVEMBER 21, 2025 - CURVED LINE TIMING FIX
+[x] 2524. User reported: "curved line is not displaying on both demo and personal heatmaps"
+[x] 2525. Issue diagnosed: Timing issue - badge positions calculated before badges fully rendered
+[x] 2526. ✅ Added setTimeout with 0 delay to ensure calculations happen after render cycle
+[x] 2527. ✅ Improved cleanup to clear both timer and scroll listener
+[x] 2528. ✅ Fixed in both DemoHeatmap.tsx and PersonalHeatmap.tsx
+[x] 2529. ✅ Workflow restarted - changes applied
+[x] 2530. 📝 NOTE: Curved line ONLY appears in EDIT MODE:
+[x] 2531.   - Step 1: Click 3-dot menu (⋮) on heatmap
+[x] 2532.   - Step 2: Select "Edit date"
+[x] 2533.   - Step 3: Select two dates on the heatmap
+[x] 2534.   - Step 4: Curved line connects the two selected dates
+[x] 2535. ✅✅✅ CURVED LINE TIMING FIX COMPLETED! ✅✅✅
