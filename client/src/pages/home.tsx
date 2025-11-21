@@ -9234,9 +9234,13 @@ ${
                                 winningTrades += metrics.winningTrades || 0;
                                 trendData.push(netPnL);
                                 
-                                // Count FOMO trades
-                                if (tags.includes('FOMO')) {
-                                  fomoTrades += metrics.totalTrades || 0;
+                                // Count FOMO trades - check if tags array includes 'FOMO'
+                                if (Array.isArray(tags) && tags.length > 0) {
+                                  // Count number of FOMO-tagged dates (not trades)
+                                  if (tags.includes('FOMO')) {
+                                    fomoTrades++;
+                                  }
+                                  console.log(`📊 ${dateKey}: Tags: [${tags.join(', ')}] | FOMO count: ${fomoTrades}`);
                                 }
                                 
                                 // Calculate win streak

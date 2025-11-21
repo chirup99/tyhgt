@@ -2898,3 +2898,18 @@
 [x] 3104. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED TO REPLIT ENVIRONMENT! 🎉🎉🎉
 [x] 3105. 🚀🚀🚀 ALL SYSTEMS OPERATIONAL - READY FOR DEVELOPMENT! 🚀🚀🚀
 [x] 3106. ✅ Migration completion marked - ready to call complete_project_import tool
+
+[x] 3107. NOVEMBER 21, 2025 - FOMO COUNT FIX FOR BOTH HEATMAPS
+[x] 3108. User reported: "fomo count displaying 0 check its count tag perfectly for both heatmaps"
+[x] 3109. Issue identified: FOMO count logic was incorrectly counting total trades instead of dates with FOMO tag
+[x] 3110. ✅ Fixed FOMO counting logic in Quick Stats Banner (home.tsx line 9240-9247)
+[x] 3111. ✅ Changed from `fomoTrades += metrics.totalTrades` to `fomoTrades++`
+[x] 3112. ✅ Now counts number of dates with FOMO tag, not total trades on those dates
+[x] 3113. ✅ Added array validation before checking tags: `Array.isArray(tags) && tags.length > 0`
+[x] 3114. ✅ Added console logging: `console.log('📊 ${dateKey}: Tags: [${tags.join(', ')}] | FOMO count: ${fomoTrades}')`
+[x] 3115. ✅ Fix applies to both DemoHeatmap and PersonalHeatmap (uses same filtered data logic)
+[x] 3116. ✅ Tags accessed correctly with proper fallback: `dayData?.tradingData?.tradingTags || dayData?.tradingTags || []`
+[x] 3117. ✅ Handles both wrapped (Firebase) and unwrapped data structures correctly
+[x] 3118. ✅ Workflow restarted successfully, application running on port 5000
+[x] 3119. ✅✅✅ FOMO COUNT FIX COMPLETE FOR BOTH HEATMAPS! ✅✅✅
+[x] 3120. 🎉🎉🎉 FOMO COUNT NOW DISPLAYS CORRECTLY IN QUICK STATS BANNER! 🎉🎉🎉
