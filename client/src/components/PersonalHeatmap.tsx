@@ -1055,11 +1055,16 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             </Button>
             
             <div className="flex-1 flex items-center justify-center gap-2">
-              <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+              <Button variant="ghost" size="sm" className="h-8 min-w-[240px]" data-testid="button-year-display">
                 <span className="text-xs">
                   {selectedRange 
                     ? formatDisplayDate()
-                    : currentDate.getFullYear()
+                    : currentDate.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })
                   }
                 </span>
               </Button>
