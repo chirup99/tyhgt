@@ -1151,19 +1151,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
 
-            {/* Reset range X icon - show only when range is selected */}
-            {selectedRange && !isRangeSelectMode && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleResetRange()}
-                className="h-8 w-8 flex-shrink-0"
-                data-testid="button-reset-range"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
-
             {/* 3-dot menu - only show when not in range select mode and no range selected */}
             {!isRangeSelectMode && !selectedRange && (
               <DropdownMenu>
