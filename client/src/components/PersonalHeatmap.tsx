@@ -106,6 +106,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [rangeBadgePositions, setRangeBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
   const closeButtonRef = useRef<boolean>(false);
   const { toast } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh trigger
 
   // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT
   useEffect(() => {
@@ -167,7 +168,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         console.error("❌ PersonalHeatmap: Fetch error:", error);
         setIsLoading(false);
       });
-  }, [userId]);
+  }, [userId, refreshKey]); // Add refreshKey to dependencies
 
   // Filter heatmap data based on selected date range
   const getFilteredData = (): Record<string, any> => {
@@ -372,18 +373,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         description: `All data moved from ${sourceDate} to ${targetDate}`,
       });
 
-      // Refresh heatmap data by re-fetching from Firebase
-      console.log('🔄 Refreshing heatmap data after relocation...');
-      const allDataResponse = await fetch(`/api/user-journal/${userId}/all`);
-      if (allDataResponse.ok) {
-        const allData = await allDataResponse.json();
-        console.log('✅ Refreshed heatmap data:', Object.keys(allData).length, 'dates');
-        
-        // Update parent with fresh data
-        if (onDataUpdate) {
-          onDataUpdate(allData);
-        }
-      }
+      // Force heatmap refresh by incrementing refreshKey
+      // This triggers the useEffect to re-fetch all data from Firebase
+      console.log('🔄 Triggering heatmap refresh after relocation...');
+      setRefreshKey(prev => prev + 1);
 
       // Exit edit mode
       setIsEditMode(false);
