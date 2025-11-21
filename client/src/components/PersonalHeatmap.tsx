@@ -703,7 +703,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
           }
         </h3>
         <span className="text-xs text-gray-500">
-          {isLoading ? "Loading..." : `${Object.keys(heatmapData).length} dates with data`}
+          {isLoading ? "Loading..." : selectedRange 
+            ? `${Object.keys(filteredHeatmapData).length} of ${Object.keys(heatmapData).length} dates in range`
+            : `${Object.keys(heatmapData).length} dates with data`
+          }
         </span>
       </div>
 

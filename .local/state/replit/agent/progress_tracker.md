@@ -2672,3 +2672,19 @@
 [x] 3011. ✅ Only visual color data is filtered, not the calendar layout
 [x] 3012. ✅✅✅ HEATMAP COLORS FILTERED BY RANGE SELECTION! ✅✅✅
 [x] 3013. 🎉🎉🎉 RANGE COLORS: ONLY SHOW PROFIT/LOSS FOR SELECTED DATES! 🎉🎉🎉
+
+[x] 3014. NOVEMBER 21, 2025 - HEADER DATE COUNT FILTERING
+[x] 3015. User requested: "even on top 19 dates with data also filter by 7 out 19 data"
+[x] 3016. Requirements identified:
+[x] 3017.   - Filter the date counter in header based on selected range
+[x] 3018.   - Show "7 of 19 dates in range" when range is selected
+[x] 3019.   - Show "19 dates with data" when no range is selected
+[x] 3020. ✅ Updated DemoHeatmap.tsx header text
+[x] 3021. ✅ Added conditional: selectedRange ? "X of Y dates in range" : "Y dates with data"
+[x] 3022. ✅ Uses filteredData.length for dates in range count
+[x] 3023. ✅ Updated PersonalHeatmap.tsx header text
+[x] 3024. ✅ Same conditional logic with filteredHeatmapData.length
+[x] 3025. ✅ Both components now show filtered count when range is selected
+[x] 3026. ✅ Header shows: "7 of 19 dates in range" example
+[x] 3027. ✅✅✅ HEADER DATE COUNTER NOW FILTERS BY RANGE! ✅✅✅
+[x] 3028. 🎉🎉🎉 COMPLETE RANGE FILTERING: COLORS + DATA COUNT! 🎉🎉🎉
