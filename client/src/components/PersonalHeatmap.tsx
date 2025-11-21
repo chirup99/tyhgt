@@ -1041,41 +1041,29 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         ) : (
           // Normal Mode: Show calendar navigation
           <div className="flex items-center justify-center gap-2">
-            {!selectedRange ? (
-              // Show year navigation when no range is selected
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handlePreviousYear}
-                  className="h-8 w-8"
-                  data-testid="button-prev-year"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                
-                <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
-                  <span className="text-xs">{formatDisplayDate()}</span>
-                </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousYear}
+              className="h-8 w-8"
+              data-testid="button-prev-year"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+              <span className="text-xs">{formatDisplayDate()}</span>
+            </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleNextYear}
-                  className="h-8 w-8"
-                  data-testid="button-next-year"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </>
-            ) : (
-              // Show selected range (no left/right navigation)
-              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                {' - '}
-                {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-              </span>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8"
+              data-testid="button-next-year"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
 
             {/* 3-dot menu in right corner */}
             <DropdownMenu>

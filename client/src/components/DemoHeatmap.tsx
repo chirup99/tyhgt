@@ -961,103 +961,31 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </Button>
           </div>
         ) : (
-          // Normal Mode: Show calendar navigation or selected range with badges
+          // Normal Mode: Show calendar navigation
           <div className="flex items-center justify-center gap-2 w-full">
-            {!selectedRange ? (
-              // Show year navigation when no range is selected
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handlePreviousYear}
-                  className="h-8 w-8"
-                  data-testid="button-prev-year"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                
-                <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
-                  <span className="text-xs">{formatDisplayDate()}</span>
-                </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousYear}
+              className="h-8 w-8"
+              data-testid="button-prev-year"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+              <span className="text-xs">{formatDisplayDate()}</span>
+            </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleNextYear}
-                  className="h-8 w-8"
-                  data-testid="button-next-year"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </>
-            ) : selectedRange && selectedDatesForRange.length === 2 ? (
-              // Show selected range with badges and curved line (ALWAYS visible when range exists)
-              <div className="flex items-center justify-between w-full gap-2">
-                <div className="flex-1 flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400">Range:</span>
-                  <div ref={badgeContainerRef} className="relative flex items-center gap-2 flex-wrap">
-                    {/* Range Curved Line SVG - ALWAYS visible when range exists */}
-                    {rangeBadgePositions && (
-                      <svg
-                        className="absolute top-0 left-0 pointer-events-none"
-                        style={{
-                          width: '100%',
-                          height: `${rangeBadgePositions.containerHeight}px`,
-                          overflow: 'visible'
-                        }}
-                      >
-                        <path
-                          d={(() => {
-                            const { x1, x2, y, containerHeight } = rangeBadgePositions;
-                            const curveAmount = Math.abs(x2 - x1) * 0.3;
-                            const controlY = y - curveAmount;
-                            const pathD = `M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`;
-                            console.log("🎨 DemoHeatmap: Drawing range curved line (normal mode)", { x1, x2, y, containerHeight, curveAmount, pathD });
-                            return pathD;
-                          })()}
-                          fill="none"
-                          stroke="rgb(59, 130, 246)"
-                          strokeWidth="2"
-                          strokeOpacity="0.6"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    )}
-                    {selectedDatesForRange.map((dateKey, index) => (
-                      <div
-                        key={dateKey}
-                        ref={index === 0 ? rangeBadge1Ref : rangeBadge2Ref}
-                        className="relative z-10 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap"
-                        style={{
-                          backgroundColor: index === 0 
-                            ? 'rgb(59 130 246 / 0.1)' 
-                            : 'rgb(16 185 129 / 0.1)',
-                          color: index === 0 
-                            ? 'rgb(59 130 246)' 
-                            : 'rgb(16 185 129)'
-                        }}
-                      >
-                        <div 
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            index === 0 
-                              ? 'bg-blue-500' 
-                              : 'bg-green-500'
-                          }`}
-                        />
-                        <span className="truncate">{dateKey}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // Fallback: Show selected range (if badges aren't available)
-              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                {' - '}
-                {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-              </span>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8"
+              data-testid="button-next-year"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
 
             {/* 3-dot menu in right corner */}
             <DropdownMenu>
