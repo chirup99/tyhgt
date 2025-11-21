@@ -969,8 +969,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </div>
           </div>
         ) : (
-          // Normal Mode: Show calendar navigation (also shown during range select)
-          <div className="flex items-center justify-between w-full px-2">
+          // Normal Mode: Show calendar navigation
+          <div className="flex items-center justify-center gap-0 w-full">
             <Button
               variant="ghost"
               size="icon"
@@ -982,103 +982,82 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
-            <div className="flex-1 flex items-center justify-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={isRangeSelectMode ? undefined : handleSelectRangeClick}
-                className="h-8 px-3 hover-elevate flex-1"
-                data-testid="button-select-date-range"
-              >
-                <span className="text-xs text-gray-900 dark:text-gray-100">
-                  {isRangeSelectMode && selectedDatesForRange.length === 0 ? (
-                    "Select range"
-                  ) : isRangeSelectMode && selectedDatesForRange.length > 0 ? (
-                    (() => {
-                      const [date1, date2] = selectedDatesForRange.sort();
-                      const from = new Date(date1);
-                      const to = new Date(date2);
-                      const fromDate = from.toLocaleDateString('en-US', { 
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={isRangeSelectMode ? undefined : handleSelectRangeClick}
+              className="h-8 px-2 hover-elevate flex-shrink"
+              data-testid="button-select-date-range"
+            >
+              <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                {isRangeSelectMode && selectedDatesForRange.length === 0 ? (
+                  "Select range"
+                ) : isRangeSelectMode && selectedDatesForRange.length > 0 ? (
+                  (() => {
+                    const [date1, date2] = selectedDatesForRange.sort();
+                    const from = new Date(date1);
+                    const to = new Date(date2);
+                    const fromDate = from.toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    });
+                    const toDate = to.toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    });
+                    return `${fromDate} - ${toDate}`;
+                  })()
+                ) : (
+                  selectedRange 
+                    ? formatDisplayDate()
+                    : currentDate.toLocaleDateString('en-US', { 
                         weekday: 'short', 
                         month: 'short', 
                         day: 'numeric', 
                         year: 'numeric' 
-                      });
-                      const toDate = to.toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                      });
-                      return `${fromDate} - ${toDate}`;
-                    })()
-                  ) : (
-                    selectedRange 
-                      ? formatDisplayDate()
-                      : currentDate.toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          month: 'long', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })
-                  )}
-                </span>
-              </Button>
-              {(isRangeSelectMode && selectedDatesForRange.length > 0 || (selectedRange && !isRangeSelectMode)) && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (isRangeSelectMode) {
-                      handleExitRangeSelectMode();
-                    } else {
-                      handleResetRange();
-                    }
-                  }}
-                  className="h-6 w-6 flex-shrink-0"
-                  data-testid="button-clear-range"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
+                      })
+                )}
+              </span>
+            </Button>
 
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNextYear}
-                className="h-8 w-8 flex-shrink-0"
-                data-testid="button-next-year"
-                disabled={isRangeSelectMode}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextYear}
+              className="h-8 w-8 flex-shrink-0"
+              data-testid="button-next-year"
+              disabled={isRangeSelectMode}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
 
-              {/* 3-dot menu - only show when not in range select mode */}
-              {!isRangeSelectMode && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      data-testid="button-calendar-menu"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
-                      Edit date
-                    </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-item-delete">
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+            {/* 3-dot menu - only show when not in range select mode */}
+            {!isRangeSelectMode && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 ml-1"
+                    data-testid="button-calendar-menu"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
+                    Edit date
+                  </DropdownMenuItem>
+                  <DropdownMenuItem data-testid="menu-item-delete">
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         )}
         {/* Hidden refs for range badge calculations */}
