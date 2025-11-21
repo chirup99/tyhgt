@@ -828,7 +828,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </svg>
             );
           })()}
-          <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
+          <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content', position: 'relative', zIndex: 1 }}>
             {months.map((month, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-0.5">
                 <div 
