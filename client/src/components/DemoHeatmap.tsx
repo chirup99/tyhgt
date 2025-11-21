@@ -948,66 +948,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
             </div>
           </div>
         ) : isRangeSelectMode ? (
-          // Range Selection Mode: Show selected range dates with curved line
-          <div className="flex items-center justify-between w-full gap-2 px-1">
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400">Select range on heatmap</span>
-              {selectedDatesForRange.length > 0 && (
-                <div ref={badgeContainerRef} className="relative flex items-center gap-2 flex-wrap">
-                  {/* Range Selection Curved Line SVG */}
-                  {rangeBadgePositions && selectedDatesForRange.length === 2 && (
-                    <svg
-                      className="absolute top-0 left-0 pointer-events-none"
-                      style={{
-                        width: '100%',
-                        height: `${rangeBadgePositions.containerHeight}px`,
-                        overflow: 'visible'
-                      }}
-                    >
-                      <path
-                        d={(() => {
-                          const { x1, x2, y, containerHeight } = rangeBadgePositions;
-                          const curveAmount = Math.abs(x2 - x1) * 0.3;
-                          const controlY = y - curveAmount;
-                          const pathD = `M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`;
-                          console.log("🎨 DemoHeatmap: Drawing range curved line", { x1, x2, y, containerHeight, curveAmount, pathD });
-                          return pathD;
-                        })()}
-                        fill="none"
-                        stroke="rgb(59, 130, 246)"
-                        strokeWidth="2"
-                        strokeOpacity="0.6"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  )}
-                  {selectedDatesForRange.map((dateKey, index) => (
-                    <div
-                      key={dateKey}
-                      ref={index === 0 ? rangeBadge1Ref : rangeBadge2Ref}
-                      className="relative z-10 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap"
-                      style={{
-                        backgroundColor: index === 0 
-                          ? 'rgb(59 130 246 / 0.1)' 
-                          : 'rgb(16 185 129 / 0.1)',
-                        color: index === 0 
-                          ? 'rgb(59 130 246)' 
-                          : 'rgb(16 185 129)'
-                      }}
-                    >
-                      <div 
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          index === 0 
-                            ? 'bg-blue-500' 
-                            : 'bg-green-500'
-                        }`}
-                      />
-                      <span className="truncate">{dateKey}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          // Range Selection Mode: Show only X button to close
+          <div className="flex items-center justify-end w-full px-1">
             <Button
               variant="ghost"
               size="icon"
