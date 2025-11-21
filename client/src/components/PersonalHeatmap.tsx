@@ -820,7 +820,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-select-date-range">
                       <CalendarIcon className="w-3 h-3 mr-2" />
-                      <span className="text-xs">Select dates</span>
+                      <span className="text-xs">{formatDisplayDate()}</span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-48 p-2" align="center">
