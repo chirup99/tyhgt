@@ -427,6 +427,19 @@
 [x] 1650. ✅✅✅ CURVED LINE DIRECTION ON DATE BADGES FIXED! ✅✅✅
 [x] 1651. 🎉🎉🎉 DATE BADGE CONNECTOR NOW DISPLAYS WITH CORRECT UPWARD ARC! 🎉🎉🎉
 
+[x] 1652. NOVEMBER 21, 2025 - ADJUSTED CURVED LINE POSITION TO SIT ON DATE BADGES
+[x] 1653. User reported: "its outside of date make it on date"
+[x] 1654. Issue identified: Curved line floating too far above date badges
+[x] 1655. Root cause: SVG positioned with top: '-30px' pushing curve too high
+[x] 1656. ✅ Changed SVG top position from '-30px' to '-8px' in PersonalHeatmap.tsx
+[x] 1657. ✅ Changed SVG top position from '-30px' to '-8px' in DemoHeatmap.tsx
+[x] 1658. ✅ Reduced SVG height from 'calc(containerHeight + 60px)' to 'calc(containerHeight + 20px)'
+[x] 1659. ✅ Curved line now sits properly on/near the top of date badges
+[x] 1660. ✅ Arc positioned to visually connect the two selected dates
+[x] 1661. ✅ Workflow restarted successfully - changes applied
+[x] 1662. ✅✅✅ CURVED LINE NOW POSITIONED CORRECTLY ON DATE BADGES! ✅✅✅
+[x] 1663. 🎉🎉🎉 DATE BADGE CONNECTOR PROPERLY ALIGNED WITH BADGES! 🎉🎉🎉
+
 [x] 1581. ✅ Firebase authentication system active and operational
 [x] 1582. ✅ All API routes working correctly
 [x] 1583. ✅ Market indices service functioning properly

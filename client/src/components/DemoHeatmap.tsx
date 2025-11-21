@@ -879,9 +879,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                       className="absolute pointer-events-none overflow-visible"
                       style={{ 
                         left: 0,
-                        top: '-30px',
+                        top: '-8px',
                         width: '100%', 
-                        height: `calc(${badgePositions.containerHeight}px + 60px)`,
+                        height: `calc(${badgePositions.containerHeight}px + 20px)`,
                         zIndex: 0 
                       }}
                     >
