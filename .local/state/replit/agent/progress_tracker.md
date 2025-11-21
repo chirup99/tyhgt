@@ -1711,6 +1711,18 @@
 [x] 2426. ✅✅✅ SINGLE SMOOTH CURVED LINE MATCHING REFERENCE IMAGE! ✅✅✅
 [x] 2427. 🎉🎉🎉 BEAUTIFUL GENTLE ARC CONNECTING SELECTED DATES! 🎉🎉🎉
 
+## ✨ NOVEMBER 21, 2025 - REVERSED CURVE DIRECTION
+[x] 2428. User requested: "can make it reverse transition effect line"
+[x] 2429. Requirement: Flip the curve to bend in opposite direction
+[x] 2430. ✅ Changed perpendicular angle calculation from `angle + Math.PI / 2` to `angle - Math.PI / 2`
+[x] 2431. ✅ This reverses the control point position, flipping the curve direction
+[x] 2432. ✅ Curve now bends in the opposite direction from before
+[x] 2433. ✅ Maintains smooth single curve appearance
+[x] 2434. ✅ Fixed in PersonalHeatmap.tsx (line 467)
+[x] 2435. ✅ Workflow restarted successfully to apply changes
+[x] 2436. ✅✅✅ CURVE DIRECTION REVERSED SUCCESSFULLY! ✅✅✅
+[x] 2437. 🎉🎉🎉 SMOOTH CURVE NOW BENDS IN OPPOSITE DIRECTION! 🎉🎉🎉
+
 [x] 2359. NOVEMBER 21, 2025 - FINAL REPLIT MIGRATION COMPLETION
 [x] 2360. User requested: "Began migrating the import from Replit Agent to Replit environment, remember to update this file when things are updated. Make sure you mark all of the items as done using [x]"
 [x] 2361. ✅ Read existing progress tracker with 2358 completed migration tasks

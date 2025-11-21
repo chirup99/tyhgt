@@ -460,14 +460,14 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             // Calculate the angle of the line
             const angle = Math.atan2(dy, dx);
             
-            // Perpendicular angle for curve offset
-            const perpAngle = angle + Math.PI / 2;
+            // Perpendicular angle for curve offset (REVERSED - subtract instead of add)
+            const perpAngle = angle - Math.PI / 2;
             
             // Midpoint of the line
             const midX = (x1 + x2) / 2;
             const midY = (y1 + y2) / 2;
             
-            // Control point offset perpendicular to the line
+            // Control point offset perpendicular to the line (REVERSED DIRECTION)
             const controlX = midX + Math.cos(perpAngle) * curveAmount;
             const controlY = midY + Math.sin(perpAngle) * curveAmount;
             
