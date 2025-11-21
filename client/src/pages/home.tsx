@@ -9234,13 +9234,14 @@ ${
                                 winningTrades += metrics.winningTrades || 0;
                                 trendData.push(netPnL);
                                 
-                                // Count FOMO trades - check if tags array includes 'FOMO'
+                                // ✅ Count FOMO trades with normalized tag matching
                                 if (Array.isArray(tags) && tags.length > 0) {
-                                  // Count number of FOMO-tagged dates (not trades)
-                                  if (tags.includes('FOMO')) {
+                                  // Normalize tags and check for FOMO (case-insensitive)
+                                  const normalizedTags = tags.map((t: string) => t.trim().toLowerCase());
+                                  if (normalizedTags.includes('fomo')) {
                                     fomoTrades++;
                                   }
-                                  console.log(`📊 ${dateKey}: Tags: [${tags.join(', ')}] | FOMO count: ${fomoTrades}`);
+                                  console.log(`📊 ${dateKey}: Tags: [${tags.join(', ')}] | Normalized: [${normalizedTags.join(', ')}] | FOMO count: ${fomoTrades}`);
                                 }
                                 
                                 // Calculate win streak
@@ -10016,7 +10017,7 @@ ${
                             };
 
                             allData.forEach((data: any) => {
-                              const tags = data.tradingTags;
+                              const rawTags = data.tradingTags || [];
                               const pnl = data.performanceMetrics.netPnL;
                               const trades =
                                 data.performanceMetrics.totalTrades;
@@ -10024,20 +10025,23 @@ ${
                               if (pnl < 0) {
                                 riskMetrics.totalLossingDays++;
 
-                                // Check for emotional trading patterns
-                                const emotionalTags = [
-                                  "fomo",
-                                  "fear",
-                                  "greedy",
-                                  "revenge",
-                                  "impatient",
-                                ];
-                                if (
-                                  tags.some((tag: string) =>
-                                    emotionalTags.includes(tag.toLowerCase())
-                                  )
-                                ) {
-                                  riskMetrics.emotionalTradingDays++;
+                                // ✅ Improved: Check for emotional trading patterns with array validation
+                                if (Array.isArray(rawTags) && rawTags.length > 0) {
+                                  const emotionalTags = [
+                                    "fomo",
+                                    "fear",
+                                    "greedy",
+                                    "revenge",
+                                    "impatient",
+                                  ];
+                                  const hasEmotionalTag = rawTags.some((tag: string) =>
+                                    emotionalTags.includes(tag.toLowerCase().trim())
+                                  );
+                                  
+                                  if (hasEmotionalTag) {
+                                    riskMetrics.emotionalTradingDays++;
+                                    console.log(`🚨 Loss Analysis: Emotional trading detected with tags: [${rawTags.join(', ')}] | P&L: ₹${pnl.toFixed(2)}`);
+                                  }
                                 }
 
                                 // Check for impulsive trading (high number of trades with losses)
@@ -10046,26 +10050,34 @@ ${
                                 }
                               }
 
-                              tags.forEach((tag: string) => {
-                                if (!tagLossAnalysis[tag]) {
-                                  tagLossAnalysis[tag] = {
-                                    tag,
-                                    totalPnL: 0,
-                                    lossDays: 0,
-                                    totalDays: 0,
-                                    avgLoss: 0,
-                                    lossFrequency: 0,
-                                  };
-                                }
+                              // ✅ Improved: Normalize tags to lowercase for consistent counting
+                              if (Array.isArray(rawTags) && rawTags.length > 0) {
+                                rawTags.forEach((rawTag: string) => {
+                                  // Normalize tag: trim and lowercase for dictionary key
+                                  const normalizedTag = rawTag.trim().toLowerCase();
+                                  
+                                  if (!tagLossAnalysis[normalizedTag]) {
+                                    tagLossAnalysis[normalizedTag] = {
+                                      tag: normalizedTag,
+                                      displayTag: rawTag, // Keep original for display
+                                      totalPnL: 0,
+                                      lossDays: 0,
+                                      totalDays: 0,
+                                      avgLoss: 0,
+                                      lossFrequency: 0,
+                                    };
+                                  }
 
-                                const analysis = tagLossAnalysis[tag];
-                                analysis.totalPnL += pnl;
-                                analysis.totalDays++;
+                                  const analysis = tagLossAnalysis[normalizedTag];
+                                  analysis.totalPnL += pnl;
+                                  analysis.totalDays++;
 
-                                if (pnl < 0) {
-                                  analysis.lossDays++;
-                                }
-                              });
+                                  if (pnl < 0) {
+                                    analysis.lossDays++;
+                                    console.log(`📊 Tag '${normalizedTag}': Loss day detected | P&L: ₹${pnl.toFixed(2)} | Total losses: ${analysis.lossDays}/${analysis.totalDays} days`);
+                                  }
+                                });
+                              }
                             });
 
                             // Calculate loss metrics
@@ -10148,7 +10160,7 @@ ${
                                             </div>
                                             <div className="flex-1">
                                               <div className="font-semibold text-lg">
-                                                {tag.tag.toUpperCase()}
+                                                {(tag.displayTag || tag.tag).toUpperCase()}
                                               </div>
                                               <div className="text-sm opacity-90 mb-2">
                                                 Avg Loss: ₹
