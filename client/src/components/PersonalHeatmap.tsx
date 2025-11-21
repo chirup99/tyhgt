@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -96,6 +96,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
+  const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const heatmapContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT
@@ -310,6 +312,31 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     setSelectedDatesForEdit([]);
   };
 
+  // Calculate line positions when two dates are selected in edit mode
+  useEffect(() => {
+    if (selectedDatesForEdit.length === 2 && heatmapContainerRef.current) {
+      // Find the DOM elements for both selected dates
+      const date1Element = heatmapContainerRef.current.querySelector(`[data-date="${selectedDatesForEdit[0]}"]`);
+      const date2Element = heatmapContainerRef.current.querySelector(`[data-date="${selectedDatesForEdit[1]}"]`);
+      
+      if (date1Element && date2Element) {
+        const containerRect = heatmapContainerRef.current.getBoundingClientRect();
+        const rect1 = date1Element.getBoundingClientRect();
+        const rect2 = date2Element.getBoundingClientRect();
+        
+        // Calculate center positions relative to container
+        const x1 = rect1.left - containerRect.left + rect1.width / 2;
+        const y1 = rect1.top - containerRect.top + rect1.height / 2;
+        const x2 = rect2.left - containerRect.left + rect2.width / 2;
+        const y2 = rect2.top - containerRect.top + rect2.height / 2;
+        
+        setLinePositions({ x1, y1, x2, y2 });
+      }
+    } else {
+      setLinePositions(null);
+    }
+  }, [selectedDatesForEdit]);
+
   // Generate calendar data for the year or filtered range
   const generateMonthsData = () => {
     let startYear = currentDate.getFullYear();
@@ -416,7 +443,36 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="overflow-x-auto thin-scrollbar">
+        <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
+          {/* SVG overlay for connecting line between selected dates */}
+          {linePositions && isEditMode && (
+            <svg
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 10,
+              }}
+            >
+              <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 0.6 }} />
+                  <stop offset="100%" style={{ stopColor: 'rgb(234, 88, 12)', stopOpacity: 0.6 }} />
+                </linearGradient>
+              </defs>
+              {/* Curved path using bezier curve */}
+              <path
+                d={`M ${linePositions.x1} ${linePositions.y1} Q ${(linePositions.x1 + linePositions.x2) / 2} ${Math.min(linePositions.y1, linePositions.y2) - 20} ${linePositions.x2} ${linePositions.y2}`}
+                stroke="url(#lineGradient)"
+                strokeWidth="2"
+                fill="none"
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+              />
+            </svg>
+          )}
           <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
             {months.map((month, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-0.5">
@@ -470,6 +526,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                               onClick={() => handleDateClick(date)}
                               title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
                               data-testid={`personal-heatmap-cell-${dateKey}`}
+                              data-date={dateKey}
                             >
                               {isSelectedForEdit && (
                                 <div className="absolute inset-0 flex items-center justify-center">

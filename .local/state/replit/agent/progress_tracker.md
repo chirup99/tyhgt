@@ -387,6 +387,25 @@
 [x] 1614. ✅ Cleaner, more intuitive UI for date selection in edit mode
 [x] 1615. ✅ Workflow restarted successfully - changes applied
 [x] 1616. ✅✅✅ PERSONAL HEATMAP DATE DISPLAY IMPROVED! ✅✅✅
+
+[x] 1617. NOVEMBER 21, 2025 - HEATMAP TRANSITION LINE BETWEEN SELECTED DATES
+[x] 1618. User requested: "on heat map when two dates are selected display transition line between two dates like image line"
+[x] 1619. ✅ Added useRef import to track heatmap container
+[x] 1620. ✅ Added state to store line positions (x1, y1, x2, y2)
+[x] 1621. ✅ Created heatmapContainerRef to reference the container element
+[x] 1622. ✅ Added useEffect to calculate positions when selectedDatesForEdit changes
+[x] 1623. ✅ Implemented DOM position calculation using getBoundingClientRect()
+[x] 1624. ✅ Added data-date attribute to each heatmap cell for tracking
+[x] 1625. ✅ Created SVG overlay with absolute positioning
+[x] 1626. ✅ Implemented curved bezier path connecting the two selected dates
+[x] 1627. ✅ Added gradient stroke from purple (first date) to orange (second date)
+[x] 1628. ✅ Applied drop shadow to the line for depth effect
+[x] 1629. ✅ Line appears automatically when exactly 2 dates are selected in edit mode
+[x] 1630. ✅ Line disappears when dates are deselected or edit mode is exited
+[x] 1631. ✅ SVG has pointerEvents: 'none' to not interfere with cell clicks
+[x] 1632. ✅ Smooth curved transition line similar to reference image provided
+[x] 1633. ✅ Workflow restarted successfully - changes applied
+[x] 1634. ✅✅✅ HEATMAP TRANSITION LINE FEATURE COMPLETED! ✅✅✅
 [x] 1572. ✅ Workflow status: RUNNING on port 5000
 [x] 1573. ✅ Express backend operational
 [x] 1574. ✅ Vite frontend compiling successfully
