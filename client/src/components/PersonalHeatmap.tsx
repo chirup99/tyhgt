@@ -1039,31 +1039,52 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             </Button>
           </div>
         ) : (
-          // Normal Mode: Show calendar navigation
+          // Normal Mode: Show calendar navigation or range with X
           <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePreviousYear}
-              className="h-8 w-8"
-              data-testid="button-prev-year"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            
-            <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
-              <span className="text-xs">{formatDisplayDate()}</span>
-            </Button>
+            {!selectedRange ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handlePreviousYear}
+                  className="h-8 w-8"
+                  data-testid="button-prev-year"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                
+                <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+                  <span className="text-xs">{formatDisplayDate()}</span>
+                </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNextYear}
-              className="h-8 w-8"
-              data-testid="button-next-year"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleNextYear}
+                  className="h-8 w-8"
+                  data-testid="button-next-year"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                  {' - '}
+                  {selectedRange.to.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleResetRange}
+                  className="h-6 w-6"
+                  data-testid="button-reset-range"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
 
             {/* 3-dot menu in right corner */}
             <DropdownMenu>
