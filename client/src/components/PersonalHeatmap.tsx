@@ -391,13 +391,17 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       const cell1Rect = cell1.getBoundingClientRect();
       const cell2Rect = cell2.getBoundingClientRect();
       
-      // Calculate center positions relative to container
-      const x1 = cell1Rect.left - containerRect.left + cell1Rect.width / 2;
-      const y1 = cell1Rect.top - containerRect.top + cell1Rect.height / 2;
-      const x2 = cell2Rect.left - containerRect.left + cell2Rect.width / 2;
-      const y2 = cell2Rect.top - containerRect.top + cell2Rect.height / 2;
+      // ✅ FIX: Add scroll position to make line stick to cells during scroll
+      const scrollLeft = heatmapContainerRef.current.scrollLeft;
+      const scrollTop = heatmapContainerRef.current.scrollTop;
       
-      console.log("🎯 PersonalHeatmap: Calculated heatmap line positions", { x1, y1, x2, y2 });
+      // Calculate center positions relative to container + scroll offset
+      const x1 = cell1Rect.left - containerRect.left + cell1Rect.width / 2 + scrollLeft;
+      const y1 = cell1Rect.top - containerRect.top + cell1Rect.height / 2 + scrollTop;
+      const x2 = cell2Rect.left - containerRect.left + cell2Rect.width / 2 + scrollLeft;
+      const y2 = cell2Rect.top - containerRect.top + cell2Rect.height / 2 + scrollTop;
+      
+      console.log("🎯 PersonalHeatmap: Calculated heatmap line positions", { x1, y1, x2, y2, scrollLeft, scrollTop });
       setLinePositions({ x1, y1, x2, y2 });
     };
 
