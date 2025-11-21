@@ -2711,3 +2711,14 @@
 [x] 3047. ✅ Curved line now flows outside and below header without overlap
 [x] 3048. ✅✅✅ YEAR HEADER OVERLAP FIXED! ✅✅✅
 [x] 3049. 🎉🎉🎉 CURVED LINE NOW FLOWS CLEANLY OUTSIDE HEADER! 🎉🎉🎉
+
+[x] 3050. NOVEMBER 21, 2025 - HEADER TRANSPARENCY FIX
+[x] 3051. User reported: "line is inside the header, make it transparent then it will be visible"
+[x] 3052. ✅ Updated DemoHeatmap.tsx header div with bg-white/40 dark:bg-gray-800/40
+[x] 3053. ✅ Added semi-transparent background (40% opacity) so curved line shows through
+[x] 3054. ✅ Added px-2 py-1 rounded for better styling with transparency
+[x] 3055. ✅ Updated PersonalHeatmap.tsx with identical transparency fix
+[x] 3056. ✅ Both components now have semi-transparent headers
+[x] 3057. ✅ Curved line now visible through the header background
+[x] 3058. ✅✅✅ HEADER TRANSPARENCY FIX COMPLETE! ✅✅✅
+[x] 3059. 🎉🎉🎉 CURVED LINE NOW VISIBLE THROUGH HEADER! 🎉🎉🎉
