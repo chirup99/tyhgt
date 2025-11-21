@@ -675,6 +675,11 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     }
   };
 
+  const handleExitRangeSelectMode = () => {
+    setIsRangeSelectMode(false);
+    setSelectedDatesForRange([]);
+  };
+
   if (!userId) {
     return (
       <div className="flex flex-col gap-2 p-6 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -1050,6 +1055,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               onClick={handlePreviousYear}
               className="h-8 w-8 flex-shrink-0"
               data-testid="button-prev-year"
+              disabled={isRangeSelectMode}
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -1057,27 +1063,46 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleSelectRangeClick}
+              onClick={isRangeSelectMode ? undefined : handleSelectRangeClick}
               className="h-8 px-3 hover-elevate flex-1"
               data-testid="button-select-date-range"
             >
               <div className="flex items-center justify-center gap-1">
-                <span className="text-xs text-gray-900 dark:text-gray-100">
-                  {selectedRange 
-                    ? formatDisplayDate()
-                    : currentDate.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                      })
-                  }
-                </span>
-                {selectedRange && (
-                  <X className="w-3 h-3 ml-1 flex-shrink-0" onClick={(e) => {
-                    e.stopPropagation();
-                    handleResetRange();
-                  }} data-testid="button-clear-range" />
+                {isRangeSelectMode ? (
+                  <>
+                    <span className="text-xs text-gray-900 dark:text-gray-100 font-semibold">
+                      Select range
+                    </span>
+                    {selectedDatesForRange.length > 0 && (
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        ({selectedDatesForRange.length}/2)
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs text-gray-900 dark:text-gray-100">
+                      {selectedRange 
+                        ? formatDisplayDate()
+                        : currentDate.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })
+                      }
+                    </span>
+                    {selectedRange && (
+                      <X 
+                        className="w-3 h-3 ml-1 flex-shrink-0 cursor-pointer hover:opacity-70" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleResetRange();
+                        }} 
+                        data-testid="button-clear-range" 
+                      />
+                    )}
+                  </>
                 )}
               </div>
             </Button>
@@ -1089,31 +1114,44 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 onClick={handleNextYear}
                 className="h-8 w-8 flex-shrink-0"
                 data-testid="button-next-year"
+                disabled={isRangeSelectMode}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
 
               {/* 3-dot menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    data-testid="button-calendar-menu"
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
-                    Edit date
-                  </DropdownMenuItem>
-                  <DropdownMenuItem data-testid="menu-item-delete">
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {isRangeSelectMode ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleExitRangeSelectMode}
+                  className="h-8 w-8"
+                  data-testid="button-exit-range-select"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      data-testid="button-calendar-menu"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
+                      Edit date
+                    </DropdownMenuItem>
+                    <DropdownMenuItem data-testid="menu-item-delete">
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         )}
