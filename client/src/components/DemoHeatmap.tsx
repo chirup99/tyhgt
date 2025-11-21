@@ -882,7 +882,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                         top: '-30px',
                         width: '100%', 
                         height: `calc(${badgePositions.containerHeight}px + 60px)`,
-                        zIndex: 0 
+                        zIndex: 50 
                       }}
                     >
                       <defs>
