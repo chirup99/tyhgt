@@ -361,18 +361,6 @@
 [x] 1588. ✅✅✅ NOVEMBER 21, 2025 - REPLIT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 1589. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED TO REPLIT ENVIRONMENT! 🎉🎉🎉
 [x] 1590. 🚀🚀🚀 ALL SYSTEMS OPERATIONAL - READY FOR DEVELOPMENT! 🚀🚀🚀
-
-[x] 1591. NOVEMBER 21, 2025 - CURVED LINE Z-INDEX FIX FOR HEATMAPS
-[x] 1592. User reported: "curved line top layer is not displaying may be trading calendar 2025 layer is overlap on curved line"
-[x] 1593. Issue identified: SVG curved line had z-index of 0, causing it to render behind the calendar heatmap
-[x] 1594. Root cause: In edit mode, the curved line connecting two selected dates was hidden behind calendar
-[x] 1595. ✅ Fixed PersonalHeatmap.tsx: Changed SVG z-index from 0 to 50 (line 978)
-[x] 1596. ✅ Fixed DemoHeatmap.tsx: Changed SVG z-index from 0 to 50 (line 888)
-[x] 1597. ✅ Curved line now displays properly above the calendar heatmap
-[x] 1598. ✅ Purple-to-orange gradient line is now visible when two dates are selected in edit mode
-[x] 1599. ✅ Workflow restarted successfully to apply changes
-[x] 1600. ✅✅✅ CURVED LINE Z-INDEX FIX COMPLETED! ✅✅✅
-[x] 1601. 🎉🎉🎉 HEATMAP EDIT MODE CURVED LINE NOW DISPLAYS CORRECTLY! 🎉🎉🎉
 [x] 1581. ✅ Firebase authentication system active and operational
 [x] 1582. ✅ All API routes working correctly
 [x] 1583. ✅ Market indices service functioning properly

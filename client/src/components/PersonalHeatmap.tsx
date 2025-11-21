@@ -972,7 +972,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                         top: '-30px',
                         width: '100%', 
                         height: `calc(${badgePositions.containerHeight}px + 60px)`,
-                        zIndex: 50 
+                        zIndex: 0 
                       }}
                     >
                       <defs>
