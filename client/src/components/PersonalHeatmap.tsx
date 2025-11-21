@@ -445,34 +445,60 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       <div className="flex flex-col gap-2">
         <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
           {/* SVG overlay for connecting line between selected dates */}
-          {linePositions && isEditMode && (
-            <svg
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                pointerEvents: 'none',
-                zIndex: 10,
-              }}
-            >
-              <defs>
-                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 0.6 }} />
-                  <stop offset="100%" style={{ stopColor: 'rgb(234, 88, 12)', stopOpacity: 0.6 }} />
-                </linearGradient>
-              </defs>
-              {/* Curved path using bezier curve */}
-              <path
-                d={`M ${linePositions.x1} ${linePositions.y1} Q ${(linePositions.x1 + linePositions.x2) / 2} ${Math.min(linePositions.y1, linePositions.y2) - 20} ${linePositions.x2} ${linePositions.y2}`}
-                stroke="url(#lineGradient)"
-                strokeWidth="2"
-                fill="none"
-                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
-              />
-            </svg>
-          )}
+          {linePositions && isEditMode && (() => {
+            const { x1, y1, x2, y2 } = linePositions;
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+            
+            // Calculate control point for bezier curve
+            let pathD;
+            
+            if (dx < 5) {
+              // Same column (vertical) - create horizontal arc
+              const midY = (y1 + y2) / 2;
+              const arcOffset = 30; // How far to the side the arc goes
+              pathD = `M ${x1} ${y1} Q ${x1 + arcOffset} ${midY} ${x2} ${y2}`;
+            } else if (dy < 5) {
+              // Same row (horizontal) - create vertical arc
+              const midX = (x1 + x2) / 2;
+              const arcOffset = 20; // How far up/down the arc goes
+              pathD = `M ${x1} ${y1} Q ${midX} ${y1 - arcOffset} ${x2} ${y2}`;
+            } else {
+              // Diagonal - create diagonal arc
+              const controlX = (x1 + x2) / 2;
+              const controlY = Math.min(y1, y2) - 20;
+              pathD = `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`;
+            }
+            
+            return (
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                }}
+              >
+                <defs>
+                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 0.6 }} />
+                    <stop offset="100%" style={{ stopColor: 'rgb(234, 88, 12)', stopOpacity: 0.6 }} />
+                  </linearGradient>
+                </defs>
+                {/* Curved path using bezier curve */}
+                <path
+                  d={pathD}
+                  stroke="url(#lineGradient)"
+                  strokeWidth="2"
+                  fill="none"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+                />
+              </svg>
+            );
+          })()}
           <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
             {months.map((month, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-0.5">

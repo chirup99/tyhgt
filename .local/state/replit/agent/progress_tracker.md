@@ -406,6 +406,21 @@
 [x] 1632. ✅ Smooth curved transition line similar to reference image provided
 [x] 1633. ✅ Workflow restarted successfully - changes applied
 [x] 1634. ✅✅✅ HEATMAP TRANSITION LINE FEATURE COMPLETED! ✅✅✅
+
+[x] 1635. NOVEMBER 21, 2025 - FIXED TRANSITION LINE FOR SAME ROW/COLUMN
+[x] 1636. User reported: "super its display but same coloum line not diplaying fix that even in same row same coloum should display line"
+[x] 1637. Issue identified: Line not displaying when dates are in same column or same row
+[x] 1638. Root cause: Bezier curve calculation didn't account for vertical/horizontal alignment
+[x] 1639. ✅ Added adaptive path calculation with three scenarios:
+[x] 1640.   - Same column (dx < 5): Creates horizontal arc to the side (arcOffset = 30px)
+[x] 1641.   - Same row (dy < 5): Creates vertical arc upward (arcOffset = 20px)
+[x] 1642.   - Diagonal: Uses original diagonal arc calculation
+[x] 1643. ✅ Same column now shows curved line extending horizontally to the right
+[x] 1644. ✅ Same row now shows curved line arcing upward
+[x] 1645. ✅ All diagonal cases continue to work as before
+[x] 1646. ✅ Line now displays correctly regardless of date positions
+[x] 1647. ✅ Workflow restarted successfully - fix applied
+[x] 1648. ✅✅✅ TRANSITION LINE NOW WORKS FOR ALL POSITIONS! ✅✅✅
 [x] 1572. ✅ Workflow status: RUNNING on port 5000
 [x] 1573. ✅ Express backend operational
 [x] 1574. ✅ Vite frontend compiling successfully
