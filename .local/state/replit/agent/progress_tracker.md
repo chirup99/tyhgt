@@ -1402,3 +1402,26 @@
 [x] 2232. ✅ Workflow restarted successfully - all changes applied
 [x] 2233. ✅✅✅ DATE RELOCATION FEATURE FULLY IMPLEMENTED! ✅✅✅
 [x] 2234. 🎉🎉🎉 USERS CAN NOW CORRECT DATE ENTRY MISTAKES! 🎉🎉🎉
+
+## ✨ NOVEMBER 21, 2025 - SIMPLIFIED EDIT DATE MENU ITEM
+[x] 2235. User requested: "on change dates remove old code completely just keep text as edit date"
+[x] 2236. Requirements identified:
+[x] 2237.   - Remove all complex date relocation UI code
+[x] 2238.   - Keep only "Edit date" text in dropdown menu
+[x] 2239.   - Simplify PersonalHeatmap component
+[x] 2240. ✅ Removed state variables: isChangeDatesMode, sourceDate, targetDate
+[x] 2241. ✅ Changed dropdown menu item text from "Change dates" to "Edit date"
+[x] 2242. ✅ Removed entire change dates UI section (lines 551-705):
+[x] 2243.   - Removed dual date picker popover UI
+[x] 2244.   - Removed purple arrow between date selectors
+[x] 2245.   - Removed source/target date buttons
+[x] 2246.   - Removed Cancel and Save action buttons
+[x] 2247.   - Removed date relocation fetch logic
+[x] 2248.   - Removed toast notifications for relocation
+[x] 2249. ✅ Removed unused ArrowRight icon import
+[x] 2250. ✅ Cleaned up extra blank lines in code
+[x] 2251. ✅ Updated data-testid from "menu-item-change-dates" to "menu-item-edit-date"
+[x] 2252. ✅ PersonalHeatmap component now cleaner and simpler
+[x] 2253. ✅ Workflow restarted successfully - changes applied
+[x] 2254. ✅✅✅ EDIT DATE MENU SIMPLIFIED SUCCESSFULLY! ✅✅✅
+[x] 2255. 🎉🎉🎉 MENU ITEM NOW CLEAN WITH JUST "EDIT DATE" TEXT! 🎉🎉🎉
