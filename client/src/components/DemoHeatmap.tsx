@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Calendar, X, MoreVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,18 +65,20 @@ function getPnLColor(pnl: number): string {
 
 export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange }: DemoHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isRangeSelectMode, setIsRangeSelectMode] = useState(false);
   const badgeContainerRef = useRef<HTMLDivElement>(null);
   const badge1Ref = useRef<HTMLDivElement>(null);
   const badge2Ref = useRef<HTMLDivElement>(null);
+  const rangeBadge1Ref = useRef<HTMLDivElement>(null);
+  const rangeBadge2Ref = useRef<HTMLDivElement>(null);
   const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
+  const [rangeBadgePositions, setRangeBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
+  const [selectedDatesForRange, setSelectedDatesForRange] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const [rangeLinePositions, setRangeLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
@@ -173,6 +174,52 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       }
     };
   }, [selectedDatesForEdit]);
+
+  // Calculate range badge positions dynamically when badges render (for range selection mode)
+  useEffect(() => {
+    if (selectedDatesForRange.length !== 2 || !rangeBadge1Ref.current || !rangeBadge2Ref.current) {
+      setRangeBadgePositions(null);
+      return;
+    }
+
+    const calculatePositions = () => {
+      if (!rangeBadge1Ref.current || !rangeBadge2Ref.current || !badgeContainerRef.current) {
+        return;
+      }
+      
+      const badge1Rect = rangeBadge1Ref.current.getBoundingClientRect();
+      const badge2Rect = rangeBadge2Ref.current.getBoundingClientRect();
+      const containerRect = badgeContainerRef.current.getBoundingClientRect();
+      
+      const x1 = badge1Rect.left - containerRect.left + badge1Rect.width / 2;
+      const x2 = badge2Rect.left - containerRect.left + badge2Rect.width / 2;
+      const y = badge1Rect.top - containerRect.top + badge1Rect.height / 2;
+      const containerHeight = containerRect.height;
+      
+      console.log("🎯 DemoHeatmap: Calculated range badge positions", { x1, x2, y, containerHeight });
+      setRangeBadgePositions({ x1, x2, y, containerHeight });
+    };
+
+    // Use multiple calculation attempts to ensure badges are rendered
+    const timer1 = setTimeout(calculatePositions, 0);
+    const timer2 = setTimeout(calculatePositions, 50);
+    const timer3 = setTimeout(calculatePositions, 100);
+    
+    // Recalculate on scroll
+    const scrollContainer = heatmapContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', calculatePositions);
+    }
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', calculatePositions);
+      }
+    };
+  }, [selectedDatesForRange]);
 
   // Calculate line positions for heatmap calendar when 2 dates are selected
   useEffect(() => {
@@ -290,34 +337,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     };
   }, [selectedRange]);
 
-  // Update selectedRange when both fromDate and toDate are set
-  useEffect(() => {
-    if (fromDate && toDate) {
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      
-      // Make sure from is before to
-      if (from <= to) {
-        const range = { from, to };
-        setSelectedRange(range);
-        setIsDateRangeOpen(false); // Close the popover
-        
-        // Notify parent
-        if (onRangeChange) {
-          onRangeChange(range);
-        }
-        
-        console.log("📅 DemoHeatmap: Date range selected:", { from: from.toDateString(), to: to.toDateString() });
-      } else {
-        console.warn("⚠️ DemoHeatmap: From date must be before to date");
-        toast({
-          title: "Invalid Range",
-          description: "From date must be before to date",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [fromDate, toDate, onRangeChange]);
 
   // Filter heatmap data based on selected range
   const getFilteredData = () => {
@@ -394,12 +413,55 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
 
   const dayLabels = ['S', 'M', 'T', 'W', 'TH', 'F', 'S'];
 
-  // Handle date click - either load date or select for edit
+  // Handle date click - either load date or select for edit/range
   const handleDateClick = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const dateKey = `${year}-${month}-${day}`;
+    
+    // If in range select mode, select the date for range filtering
+    if (isRangeSelectMode) {
+      setSelectedDatesForRange(prev => {
+        // If date already selected, remove it
+        if (prev.includes(dateKey)) {
+          return prev.filter(d => d !== dateKey);
+        }
+        // If less than 2 dates selected, add it
+        if (prev.length < 2) {
+          const newDates = [...prev, dateKey];
+          
+          // If we now have 2 dates, auto-apply the range filter
+          if (newDates.length === 2) {
+            const [date1, date2] = newDates.sort();
+            const from = new Date(date1);
+            const to = new Date(date2);
+            setSelectedRange({ from, to });
+            
+            if (onRangeChange) {
+              onRangeChange({ from, to });
+            }
+            
+            console.log("📅 Range auto-selected:", { from: from.toDateString(), to: to.toDateString() });
+          }
+          
+          return newDates;
+        }
+        // If 2 dates already selected, replace the second one
+        const newDates = [prev[0], dateKey];
+        const [date1, date2] = newDates.sort();
+        const from = new Date(date1);
+        const to = new Date(date2);
+        setSelectedRange({ from, to });
+        
+        if (onRangeChange) {
+          onRangeChange({ from, to });
+        }
+        
+        return newDates;
+      });
+      return;
+    }
     
     // If in edit mode, select the date for editing instead of loading
     if (isEditMode) {
@@ -426,13 +488,29 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   // Handle "Edit date" menu item click
   const handleEditDateClick = () => {
     setIsEditMode(true);
+    setIsRangeSelectMode(false);
     setSelectedDatesForEdit([]);
+  };
+
+  // Handle "Select range" menu item click
+  const handleSelectRangeClick = () => {
+    setIsRangeSelectMode(true);
+    setIsEditMode(false);
+    setSelectedDatesForRange([]);
+    // Don't clear selectedRange - allow user to adjust existing range
   };
 
   // Handle cancel edit mode
   const handleCancelEdit = () => {
     setIsEditMode(false);
     setSelectedDatesForEdit([]);
+  };
+
+  // Handle cancel range select mode
+  const handleCancelRangeSelect = () => {
+    setIsRangeSelectMode(false);
+    setSelectedDatesForRange([]);
+    // selectedRange and filter persist after exiting mode
   };
 
   // Handle save selected dates
@@ -457,6 +535,26 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     // Exit edit mode
     setIsEditMode(false);
     setSelectedDatesForEdit([]);
+  };
+
+  // Handle save range selection
+  const handleSaveRangeSelect = () => {
+    if (selectedDatesForRange.length !== 2) {
+      toast({
+        title: "Select Two Dates",
+        description: "Please select exactly two dates on the heatmap to create a range",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Exit range select mode (filter is already applied)
+    setIsRangeSelectMode(false);
+    
+    toast({
+      title: "Range Applied",
+      description: `Showing data from ${selectedRange?.from.toDateString()} to ${selectedRange?.to.toDateString()}`,
+    });
   };
 
   const handlePreviousYear = () => {
@@ -485,8 +583,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
 
   const handleResetRange = () => {
     setSelectedRange(null);
-    setFromDate("");
-    setToDate("");
+    setSelectedDatesForRange([]);
     
     // Emit range reset to parent
     if (onRangeChange) {
@@ -670,13 +767,17 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                             
                           // Override for selected date
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
-                          if (isSelected && !isEditMode) {
+                          if (isSelected && !isEditMode && !isRangeSelectMode) {
                             cellColor = "bg-blue-500 dark:bg-blue-400 ring-2 ring-blue-600";
                           }
 
                           // Check if date is selected for edit
                           const isSelectedForEdit = selectedDatesForEdit.includes(dateKey);
                           const editIndex = selectedDatesForEdit.indexOf(dateKey);
+                          
+                          // Check if date is selected for range filtering
+                          const isSelectedForRange = selectedDatesForRange.includes(dateKey);
+                          const rangeIndex = selectedDatesForRange.indexOf(dateKey);
 
                           return (
                             <div
@@ -696,6 +797,18 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                                         : 'bg-orange-600 dark:bg-orange-400'
                                     }`}
                                     data-testid={`edit-marker-${dateKey}`}
+                                  />
+                                </div>
+                              )}
+                              {isSelectedForRange && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div 
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      rangeIndex === 0 
+                                        ? 'bg-blue-500 dark:bg-blue-400' 
+                                        : 'bg-green-500 dark:bg-green-400'
+                                    }`}
+                                    data-testid={`range-marker-${dateKey}`}
                                   />
                                 </div>
                               )}
@@ -834,9 +947,92 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </Button>
             </div>
           </div>
+        ) : isRangeSelectMode ? (
+          // Range Selection Mode: Show selected range dates with curved line
+          <div className="flex items-center justify-between w-full gap-2 px-1">
+            <div className="flex-1 flex items-center gap-2">
+              <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400">Select range on heatmap</span>
+              {selectedDatesForRange.length > 0 && (
+                <div ref={badgeContainerRef} className="relative flex items-center gap-2 flex-wrap">
+                  {/* Range Selection Curved Line SVG */}
+                  {rangeBadgePositions && selectedDatesForRange.length === 2 && (
+                    <svg
+                      className="absolute top-0 left-0 pointer-events-none"
+                      style={{
+                        width: '100%',
+                        height: `${rangeBadgePositions.containerHeight}px`,
+                        overflow: 'visible'
+                      }}
+                    >
+                      <path
+                        d={(() => {
+                          const { x1, x2, y, containerHeight } = rangeBadgePositions;
+                          const curveAmount = Math.abs(x2 - x1) * 0.3;
+                          const controlY = y - curveAmount;
+                          const pathD = `M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`;
+                          console.log("🎨 DemoHeatmap: Drawing range curved line", { x1, x2, y, containerHeight, curveAmount, pathD });
+                          return pathD;
+                        })()}
+                        fill="none"
+                        stroke="rgb(59, 130, 246)"
+                        strokeWidth="2"
+                        strokeOpacity="0.6"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  )}
+                  {selectedDatesForRange.map((dateKey, index) => (
+                    <div
+                      key={dateKey}
+                      ref={index === 0 ? rangeBadge1Ref : rangeBadge2Ref}
+                      className="relative z-10 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap"
+                      style={{
+                        backgroundColor: index === 0 
+                          ? 'rgb(59 130 246 / 0.1)' 
+                          : 'rgb(16 185 129 / 0.1)',
+                        color: index === 0 
+                          ? 'rgb(59 130 246)' 
+                          : 'rgb(16 185 129)'
+                      }}
+                    >
+                      <div 
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          index === 0 
+                            ? 'bg-blue-500' 
+                            : 'bg-green-500'
+                        }`}
+                      />
+                      <span className="truncate">{dateKey}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelRangeSelect}
+                className="h-6 px-2 text-[10px]"
+                data-testid="button-cancel-range-select"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveRangeSelect}
+                disabled={selectedDatesForRange.length !== 2}
+                className="h-6 px-2 text-[10px]"
+                data-testid="button-save-range-select"
+              >
+                Apply
+              </Button>
+            </div>
+          </div>
         ) : (
-          // Normal Mode: Show calendar navigation and date range picker
-          <div className="flex items-center justify-center gap-2">
+          // Normal Mode: Show calendar navigation or selected range with badges
+          <div className="flex items-center justify-center gap-2 w-full">
             {!selectedRange ? (
               // Show year navigation when no range is selected
               <>
@@ -850,34 +1046,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
                 
-                <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 min-w-[200px]">
-                      <Calendar className="w-3 h-3 mr-2" />
-                      <span className="text-xs">{formatDisplayDate()}</span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2" align="center">
-                    <div className="space-y-2">
-                      <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        placeholder="From Date"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        data-testid="input-from-date"
-                      />
-                      <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        placeholder="To Date"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        data-testid="input-to-date"
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <Button variant="ghost" size="sm" className="h-8 min-w-[200px]" data-testid="button-year-display">
+                  <span className="text-xs">{formatDisplayDate()}</span>
+                </Button>
 
                 <Button
                   variant="ghost"
@@ -889,8 +1060,77 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </>
+            ) : selectedRange && selectedDatesForRange.length === 2 ? (
+              // Show selected range with badges and curved line (ALWAYS visible when range exists)
+              <div className="flex items-center justify-between w-full gap-2">
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400">Range:</span>
+                  <div ref={badgeContainerRef} className="relative flex items-center gap-2 flex-wrap">
+                    {/* Range Curved Line SVG - ALWAYS visible when range exists */}
+                    {rangeBadgePositions && (
+                      <svg
+                        className="absolute top-0 left-0 pointer-events-none"
+                        style={{
+                          width: '100%',
+                          height: `${rangeBadgePositions.containerHeight}px`,
+                          overflow: 'visible'
+                        }}
+                      >
+                        <path
+                          d={(() => {
+                            const { x1, x2, y, containerHeight } = rangeBadgePositions;
+                            const curveAmount = Math.abs(x2 - x1) * 0.3;
+                            const controlY = y - curveAmount;
+                            const pathD = `M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`;
+                            console.log("🎨 DemoHeatmap: Drawing range curved line (normal mode)", { x1, x2, y, containerHeight, curveAmount, pathD });
+                            return pathD;
+                          })()}
+                          fill="none"
+                          stroke="rgb(59, 130, 246)"
+                          strokeWidth="2"
+                          strokeOpacity="0.6"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    )}
+                    {selectedDatesForRange.map((dateKey, index) => (
+                      <div
+                        key={dateKey}
+                        ref={index === 0 ? rangeBadge1Ref : rangeBadge2Ref}
+                        className="relative z-10 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap"
+                        style={{
+                          backgroundColor: index === 0 
+                            ? 'rgb(59 130 246 / 0.1)' 
+                            : 'rgb(16 185 129 / 0.1)',
+                          color: index === 0 
+                            ? 'rgb(59 130 246)' 
+                            : 'rgb(16 185 129)'
+                        }}
+                      >
+                        <div 
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            index === 0 
+                              ? 'bg-blue-500' 
+                              : 'bg-green-500'
+                          }`}
+                        />
+                        <span className="truncate">{dateKey}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleResetRange}
+                  className="h-5 w-5"
+                  data-testid="button-reset-range"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
             ) : (
-              // Show selected range with close button (no left/right navigation)
+              // Fallback: Show selected range with close button (if badges aren't available)
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                   {selectedRange.from.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
@@ -922,6 +1162,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={handleSelectRangeClick} data-testid="menu-item-select-range">
+                  Select range
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
                   Edit date
                 </DropdownMenuItem>
