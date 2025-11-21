@@ -1026,6 +1026,22 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </span>
             </Button>
 
+            {/* X icon to close range select mode - show only when in range select mode */}
+            {isRangeSelectMode && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setIsRangeSelectMode(false);
+                  setSelectedDatesForRange([]);
+                }}
+                className="h-8 w-8 flex-shrink-0"
+                data-testid="button-close-range-select"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+
             {/* Right arrow - hide when range is selected */}
             {!selectedRange && !isRangeSelectMode && (
               <Button
