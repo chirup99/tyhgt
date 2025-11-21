@@ -897,7 +897,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                         const distance = Math.abs(dx);
                         const curveAmount = Math.min(distance * 0.3, 20);
                         const midX = (x1 + x2) / 2;
-                        const controlY = y + curveAmount;
+                        const controlY = y - curveAmount;
                         const pathD = `M ${x1} ${y} Q ${midX} ${controlY}, ${x2} ${y}`;
                         
                         return (
