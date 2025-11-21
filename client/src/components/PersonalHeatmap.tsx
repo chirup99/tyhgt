@@ -451,15 +451,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             const dy = y2 - y1;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Only show line if dates are diagonal (not same row AND not same column)
-            const isSameRow = Math.abs(dy) < 5;
-            const isSameColumn = Math.abs(dx) < 5;
-            
-            // Don't render line if in same row or same column
-            if (isSameRow || isSameColumn) {
-              return null;
-            }
-            
             // Calculate smooth zig-zag (wave) path
             let pathD;
             
