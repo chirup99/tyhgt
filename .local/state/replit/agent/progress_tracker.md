@@ -1578,3 +1578,32 @@
 [x] 2393. ✅✅✅ NOVEMBER 21, 2025 REPLIT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 2394. 🎉🎉🎉 ALL 2394 MIGRATION TASKS SUCCESSFULLY COMPLETED! 🎉🎉🎉
 [x] 2395. 🚀🚀🚀 PROJECT FULLY MIGRATED AND READY FOR DEVELOPMENT! 🚀🚀🚀
+
+[x] 2396. NOVEMBER 21, 2025 - EDIT MODE UI REPOSITIONED IN HEATMAP
+[x] 2397. User requested: "dont display select two dates on the heatmap on separe bottom instead of display it on calender window when edit date is active calender date replace with two dates window"
+[x] 2398. Requirements identified:
+[x] 2399.   - When edit mode is active, replace calendar navigation with two-date selection interface
+[x] 2400.   - Remove separate bottom section showing "Select two dates"
+[x] 2401.   - Show edit controls in the calendar area itself
+[x] 2402. ✅ Updated PersonalHeatmap.tsx calendar navigation section
+[x] 2403. ✅ Replaced conditional rendering logic:
+[x] 2404.   - When isEditMode is true: Shows two-date selection interface with Cancel/Save buttons
+[x] 2405.   - When isEditMode is false: Shows normal calendar navigation (year/date range picker)
+[x] 2406. ✅ Moved edit mode controls from separate bottom section into calendar navigation area
+[x] 2407. ✅ Removed standalone "Edit Mode Control Bar" section
+[x] 2408. ✅ Edit interface now displays:
+[x] 2409.   - "Select two dates on the heatmap" instruction text
+[x] 2410.   - Purple background to indicate edit mode active
+[x] 2411.   - Selected dates with color-coded badges (purple for first, orange for second)
+[x] 2412.   - Cancel button to exit edit mode
+[x] 2413.   - Save button (disabled until 2 dates selected)
+[x] 2414. ✅ Updated DemoHeatmap.tsx with same UI pattern for consistency
+[x] 2415. ✅ Replaced calendar navigation section in DemoHeatmap
+[x] 2416. ✅ Applied same conditional rendering logic to both heatmap components
+[x] 2417. ✅ Both heatmaps now have consistent edit mode UI behavior
+[x] 2418. ✅ Workflow restarted successfully - changes applied
+[x] 2419. ✅ Browser console logs confirm heatmap functionality working correctly
+[x] 2420. ✅ PersonalHeatmap loading 4 dates with P&L values
+[x] 2421. ✅ Application running on port 5000 with all features functional
+[x] 2422. ✅✅✅ EDIT MODE UI REPOSITIONING COMPLETED! ✅✅✅
+[x] 2423. 🎉🎉🎉 TWO-DATE SELECTION NOW APPEARS IN CALENDAR WINDOW! 🎉🎉🎉
