@@ -104,6 +104,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const rangeBadge2Ref = useRef<HTMLDivElement>(null);
   const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
   const [rangeBadgePositions, setRangeBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
+  const closeButtonRef = useRef<boolean>(false);
   const { toast } = useToast();
 
   // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT

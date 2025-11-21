@@ -82,6 +82,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const [rangeLinePositions, setRangeLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<boolean>(false);
   const { toast } = useToast();
 
   // SIMPLE FETCH - No filters, no complications
@@ -415,6 +416,12 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
 
   // Handle date click - either load date or select for edit/range
   const handleDateClick = (date: Date) => {
+    // Ignore clicks if we just closed the range select mode
+    if (closeButtonRef.current) {
+      closeButtonRef.current = false;
+      return;
+    }
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -1034,10 +1041,11 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  closeButtonRef.current = true;
                   setIsRangeSelectMode(false);
                   setSelectedDatesForRange([]);
                 }}
-                className="h-8 w-8 flex-shrink-0"
+                className="h-8 w-8 flex-shrink-0 relative z-50 pointer-events-auto"
                 data-testid="button-close-range-select"
               >
                 <X className="w-4 h-4" />
