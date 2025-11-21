@@ -735,6 +735,14 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     setSelectedDatesForRange([]);
   };
 
+  // Count only dates with actual trading data (non-zero P&L)
+  const countDatesWithData = (data: typeof heatmapData) => {
+    return Object.keys(data).filter(dateKey => {
+      const pnl = calculatePnL(data[dateKey]);
+      return pnl !== 0;
+    }).length;
+  };
+
   if (!userId) {
     return (
       <div className="flex flex-col gap-2 p-6 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -758,8 +766,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         </h3>
         <span className="text-xs text-gray-500">
           {isLoading ? "Loading..." : selectedRange 
-            ? `${Object.keys(filteredHeatmapData).length} of ${Object.keys(heatmapData).length} dates in range`
-            : `${Object.keys(heatmapData).length} dates with data`
+            ? `${countDatesWithData(filteredHeatmapData)} of ${countDatesWithData(heatmapData)} dates in range`
+            : `${countDatesWithData(heatmapData)} dates with data`
           }
         </span>
       </div>

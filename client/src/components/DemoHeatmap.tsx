@@ -683,6 +683,14 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     setSelectedDatesForRange([]);
   };
 
+  // Count only dates with actual trading data (non-zero P&L)
+  const countDatesWithData = (data: typeof heatmapData) => {
+    return Object.keys(data).filter(dateKey => {
+      const pnl = calculatePnL(data[dateKey]);
+      return pnl !== 0;
+    }).length;
+  };
+
   return (
     <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none overflow-visible">
       <div className="flex items-center justify-between relative z-5 px-2 py-1 rounded">
@@ -694,8 +702,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         </h3>
         <span className="text-xs text-gray-500">
           {isLoading ? "Loading..." : selectedRange 
-            ? `${Object.keys(filteredData).length} of ${Object.keys(heatmapData).length} dates in range`
-            : `${Object.keys(heatmapData).length} dates with data`
+            ? `${countDatesWithData(filteredData)} of ${countDatesWithData(heatmapData)} dates in range`
+            : `${countDatesWithData(heatmapData)} dates with data`
           }
         </span>
       </div>
