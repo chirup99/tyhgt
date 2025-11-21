@@ -1425,3 +1425,27 @@
 [x] 2253. ✅ Workflow restarted successfully - changes applied
 [x] 2254. ✅✅✅ EDIT DATE MENU SIMPLIFIED SUCCESSFULLY! ✅✅✅
 [x] 2255. 🎉🎉🎉 MENU ITEM NOW CLEAN WITH JUST "EDIT DATE" TEXT! 🎉🎉🎉
+
+## ✨ NOVEMBER 21, 2025 - SIMPLIFIED EDIT DATE FOR DEMOHEATMAP TOO
+[x] 2256. User requested: "for both heatmaps demo heat maps also change"
+[x] 2257. Requirements identified:
+[x] 2258.   - Apply same simplification to DemoHeatmap component
+[x] 2259.   - Remove all complex date relocation UI code from DemoHeatmap
+[x] 2260.   - Keep only "Edit date" text in dropdown menu
+[x] 2261. ✅ Removed state variables from DemoHeatmap: isChangeDatesMode, sourceDate, targetDate
+[x] 2262. ✅ Changed dropdown menu item text from "Change dates" to "Edit date"
+[x] 2263. ✅ Removed entire change dates UI section (126 lines of code):
+[x] 2264.   - Removed dual date picker popover UI
+[x] 2265.   - Removed purple arrow between date selectors
+[x] 2266.   - Removed source/target date buttons
+[x] 2267.   - Removed Cancel and Save action buttons
+[x] 2268.   - Removed placeholder relocation logic
+[x] 2269.   - Removed "coming soon" toast notifications
+[x] 2270. ✅ Removed unused ArrowRight icon import from DemoHeatmap
+[x] 2271. ✅ Cleaned up extra blank lines in code
+[x] 2272. ✅ Updated data-testid from "menu-item-change-dates" to "menu-item-edit-date"
+[x] 2273. ✅ DemoHeatmap component now cleaner and simpler
+[x] 2274. ✅ Both heatmaps now have consistent simplified interface
+[x] 2275. ✅ Workflow restarted successfully - all changes applied
+[x] 2276. ✅✅✅ BOTH HEATMAPS SIMPLIFIED SUCCESSFULLY! ✅✅✅
+[x] 2277. 🎉🎉🎉 DEMOHEATMAP AND PERSONALHEATMAP NOW CONSISTENT! 🎉🎉🎉
