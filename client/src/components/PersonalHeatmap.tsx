@@ -327,7 +327,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       
       const badge1Rect = badge1Ref.current.getBoundingClientRect();
       const badge2Rect = badge2Ref.current.getBoundingClientRect();
-      const containerRect = badge1Ref.current.parentElement?.parentElement?.getBoundingClientRect();
+      const containerRect = badge1Ref.current.parentElement?.getBoundingClientRect();
       
       if (!containerRect) return;
       

@@ -1943,3 +1943,22 @@
 [x] 2533.   - Step 3: Select two dates on the heatmap
 [x] 2534.   - Step 4: Curved line connects the two selected dates
 [x] 2535. ✅✅✅ CURVED LINE TIMING FIX COMPLETED! ✅✅✅
+
+[x] 2536. NOVEMBER 21, 2025 - CURVED LINE CONTAINER REFERENCE BUG FIX
+[x] 2537. User provided screenshot showing: "curved line between two points not displaying"
+[x] 2538. Issue diagnosed: Container reference was wrong - going too far up the DOM tree
+[x] 2539. Root cause found in calculatePositions():
+[x] 2540.   - Was using: `badge1Ref.current.parentElement?.parentElement?.getBoundingClientRect()`
+[x] 2541.   - This went TWO levels up in the DOM
+[x] 2542.   - But badges are DIRECT children of the relative container (ONE level up)
+[x] 2543. ✅ Fixed container reference to use only ONE parent level:
+[x] 2544.   - Changed to: `badge1Ref.current.parentElement?.getBoundingClientRect()`
+[x] 2545.   - Now correctly references the `<div className="flex gap-1 relative">` container
+[x] 2546. ✅ Applied fix to BOTH DemoHeatmap.tsx and PersonalHeatmap.tsx
+[x] 2547. ✅ Workflow restarted - fix applied
+[x] 2548. 📋 DOM Structure for reference:
+[x] 2549.   - Container: `<div className="flex gap-1 mt-0.5 relative">`
+[x] 2550.   - Children: `<svg>` + `<div ref={badge1Ref}>` + `<div ref={badge2Ref}>`
+[x] 2551.   - parentElement = correct container with relative positioning
+[x] 2552. ✅✅✅ CURVED LINE CONTAINER REFERENCE FIX COMPLETED! ✅✅✅
+[x] 2553. 🎉🎉🎉 CURVED LINE NOW RENDERS CORRECTLY! 🎉🎉🎉
