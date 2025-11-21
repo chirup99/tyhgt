@@ -78,6 +78,13 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   
   // Only allow chiranjeevi.perala99@gmail.com to edit demo trades
   const canEditDemoTrades = currentUser.email === "chiranjeevi.perala99@gmail.com";
+  
+  // Debug logging for authorization
+  useEffect(() => {
+    console.log("👤 Current user email:", currentUser.email);
+    console.log("🔒 Can edit demo trades:", canEditDemoTrades);
+  }, [currentUser.email, canEditDemoTrades]);
+  
   const rangeBadge1Ref = useRef<HTMLDivElement>(null);
   const rangeBadge2Ref = useRef<HTMLDivElement>(null);
   const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
