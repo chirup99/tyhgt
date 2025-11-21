@@ -2654,3 +2654,21 @@
 [x] 2994. ✅ Heatmap display always shows all dates - no visual filtering
 [x] 2995. ✅✅✅ COMPLETE HEATMAP DISPLAY WITH INTERNAL DATA FILTERING! ✅✅✅
 [x] 2996. 🎉🎉🎉 RANGE SELECT SHOWS ALL DATES, FILTERS ONLY CALCULATIONS! 🎉🎉🎉
+
+[x] 2997. NOVEMBER 21, 2025 - HEATMAP COLOR FILTERING BY RANGE
+[x] 2998. User requested: "heatmap data also update filter colors according to range dont display remaing color data"
+[x] 2999. Requirements identified:
+[x] 3000.   - Show complete calendar (all dates visible)
+[x] 3001.   - Only display P&L colors for dates within selected range
+[x] 3002.   - Dates outside range should show as empty/grey (no color)
+[x] 3003.   - Visual filtering of data colors based on range selection
+[x] 3004. ✅ Updated DemoHeatmap.tsx heatmap cell rendering
+[x] 3005. ✅ Added isWithinRange check: !selectedRange || (date >= from && date <= to)
+[x] 3006. ✅ Changed color logic: isWithinRange ? getPnLColor(netPnL) : "bg-gray-200 dark:bg-gray-700"
+[x] 3007. ✅ Dates outside range now show grey background
+[x] 3008. ✅ Updated PersonalHeatmap.tsx with same filtering logic
+[x] 3009. ✅ Both components now filter color display based on selectedRange
+[x] 3010. ✅ Calendar structure remains complete (all dates visible)
+[x] 3011. ✅ Only visual color data is filtered, not the calendar layout
+[x] 3012. ✅✅✅ HEATMAP COLORS FILTERED BY RANGE SELECTION! ✅✅✅
+[x] 3013. 🎉🎉🎉 RANGE COLORS: ONLY SHOW PROFIT/LOSS FOR SELECTED DATES! 🎉🎉🎉

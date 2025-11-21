@@ -767,12 +767,17 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateKey = `${year}-${month}-${day}`;
                           
+                          // Check if date is within selected range (if range is selected)
+                          const isWithinRange = !selectedRange || (date >= selectedRange.from && date <= selectedRange.to);
+                          
                           // Get data from heatmapData
                           const data = heatmapData[dateKey];
                           
                           // Calculate P&L
                           const netPnL = calculatePnL(data);
-                          let cellColor = getPnLColor(netPnL);
+                          
+                          // Only show P&L colors if date is within range, otherwise show grey
+                          let cellColor = isWithinRange ? getPnLColor(netPnL) : "bg-gray-200 dark:bg-gray-700";
                             
                           // Override for selected date
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
