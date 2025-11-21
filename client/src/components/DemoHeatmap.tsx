@@ -1033,7 +1033,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 size="icon"
                 onClick={() => {
                   setIsRangeSelectMode(false);
-                  setSelectedDatesForRange([]);
                 }}
                 className="h-8 w-8 flex-shrink-0"
                 data-testid="button-close-range-select"

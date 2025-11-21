@@ -1111,7 +1111,6 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                 size="icon"
                 onClick={() => {
                   setIsRangeSelectMode(false);
-                  setSelectedDatesForRange([]);
                 }}
                 className="h-8 w-8 flex-shrink-0"
                 data-testid="button-close-range-select"
