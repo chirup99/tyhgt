@@ -1109,8 +1109,11 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setIsRangeSelectMode(false);
+                  setSelectedDatesForRange([]);
                 }}
                 className="h-8 w-8 flex-shrink-0"
                 data-testid="button-close-range-select"
