@@ -421,6 +421,23 @@
 [x] 1646. ✅ Line now displays correctly regardless of date positions
 [x] 1647. ✅ Workflow restarted successfully - fix applied
 [x] 1648. ✅✅✅ TRANSITION LINE NOW WORKS FOR ALL POSITIONS! ✅✅✅
+
+[x] 1649. NOVEMBER 21, 2025 - SMOOTH ZIG-ZAG WAVY LINE BETWEEN DATES
+[x] 1650. User requested: "even between two dates add line smooth zig zag curved lines"
+[x] 1651. ✅ Replaced simple bezier curve with smooth wavy zig-zag pattern
+[x] 1652. ✅ Implemented dynamic wave calculation based on distance between dates
+[x] 1653. ✅ Wave count adapts: minimum 2 waves, adds more for longer distances (1 wave per 40px)
+[x] 1654. ✅ Wave amplitude set to 15px for smooth oscillation
+[x] 1655. ✅ Same column: Creates horizontal wavy pattern using sine wave
+[x] 1656. ✅ Same row: Creates vertical wavy pattern using sine wave
+[x] 1657. ✅ Diagonal: Creates perpendicular wavy pattern along the connection
+[x] 1658. ✅ Used cubic bezier curves (C command) for ultra-smooth wave transitions
+[x] 1659. ✅ Added strokeLinecap="round" and strokeLinejoin="round" for smooth edges
+[x] 1660. ✅ Wave flows naturally from purple (first date) to orange (second date)
+[x] 1661. ✅ Beautiful fluid animation-like effect connecting the dates
+[x] 1662. ✅ Works perfectly for all three scenarios (vertical, horizontal, diagonal)
+[x] 1663. ✅ Workflow restarted successfully - wavy line feature applied
+[x] 1664. ✅✅✅ SMOOTH ZIG-ZAG WAVY LINE COMPLETED! ✅✅✅
 [x] 1572. ✅ Workflow status: RUNNING on port 5000
 [x] 1573. ✅ Express backend operational
 [x] 1574. ✅ Vite frontend compiling successfully
