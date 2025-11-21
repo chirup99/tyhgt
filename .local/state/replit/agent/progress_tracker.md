@@ -1449,3 +1449,94 @@
 [x] 2275. ✅ Workflow restarted successfully - all changes applied
 [x] 2276. ✅✅✅ BOTH HEATMAPS SIMPLIFIED SUCCESSFULLY! ✅✅✅
 [x] 2277. 🎉🎉🎉 DEMOHEATMAP AND PERSONALHEATMAP NOW CONSISTENT! 🎉🎉🎉
+
+## ✨ NOVEMBER 21, 2025 - TWO-DATE SELECTION ON HEATMAP WITH VISUAL MARKERS
+[x] 2278. User requested: "edit date when user tap user can select two date on heatmap just mark select dot on heat maps"
+[x] 2279. Consulted architect for implementation plan
+[x] 2280. Requirements identified:
+[x] 2281.   - When user clicks "Edit date" menu, enter selection mode
+[x] 2282.   - User can tap two dates directly on heatmap cells  
+[x] 2283.   - Selected dates marked with visual dots (purple for first, orange for second)
+[x] 2284.   - Show inline control bar with Cancel/Save buttons
+[x] 2285.   - Apply to both PersonalHeatmap and DemoHeatmap consistently
+
+## PersonalHeatmap Component Updates:
+[x] 2286. ✅ Added edit mode state management:
+[x] 2287.   - Added isEditMode state (boolean)
+[x] 2288.   - Added selectedDatesForEdit state (string array, max 2 dates)
+[x] 2289. ✅ Implemented handleEditDateClick() - enters edit mode, clears selections
+[x] 2290. ✅ Implemented handleCancelEdit() - exits edit mode, clears selections
+[x] 2291. ✅ Implemented handleSaveEdit() - validates 2 dates selected, shows toast confirmation
+[x] 2292. ✅ Updated handleDateClick() to support edit mode:
+[x] 2293.   - In edit mode: toggles date selection (up to 2 dates)
+[x] 2294.   - In normal mode: fetches data from Firebase
+[x] 2295. ✅ Enhanced cell rendering with edit mode support:
+[x] 2296.   - Added relative positioning for marker overlay
+[x] 2297.   - First selected date: purple dot (bg-purple-600)
+[x] 2298.   - Second selected date: orange dot (bg-orange-600)
+[x] 2299.   - Dots are 1.5px × 1.5px rounded circles, centered in cell
+[x] 2300.   - Added data-testid="edit-marker-{dateKey}" for testing
+[x] 2301. ✅ Updated "Edit date" menu item with onClick handler
+[x] 2302. ✅ Created inline Edit Mode Control Bar UI:
+[x] 2303.   - Purple background (bg-purple-50 / dark:bg-purple-900/20)
+[x] 2304.   - Instructions text: "Select two dates on the heatmap"
+[x] 2305.   - Shows selected dates as colored badges with matching dot colors
+[x] 2306.   - Cancel button (variant="ghost")
+[x] 2307.   - Save button (variant="default", disabled until 2 dates selected)
+[x] 2308.   - All buttons have proper data-testid attributes
+
+## DemoHeatmap Component Updates:
+[x] 2309. ✅ Added identical edit mode state management:
+[x] 2310.   - Added isEditMode state (boolean)
+[x] 2311.   - Added selectedDatesForEdit state (string array, max 2 dates)
+[x] 2312. ✅ Implemented handleDateClick() - new function for date selection:
+[x] 2313.   - In edit mode: manages date selection array
+[x] 2314.   - In normal mode: calls onDateSelect(date)
+[x] 2315. ✅ Implemented handleEditDateClick() - enters edit mode
+[x] 2316. ✅ Implemented handleCancelEdit() - exits edit mode
+[x] 2317. ✅ Implemented handleSaveEdit() - validates and confirms selection
+[x] 2318. ✅ Enhanced cell rendering with edit mode markers:
+[x] 2319.   - Replaced inline onClick with handleDateClick call
+[x] 2320.   - Added same purple/orange dot system as PersonalHeatmap
+[x] 2321.   - Added relative positioning and marker overlay
+[x] 2322. ✅ Updated "Edit date" menu item with onClick handler
+[x] 2323. ✅ Created identical inline Edit Mode Control Bar UI
+[x] 2324. ✅ Both heatmaps now have perfectly consistent edit mode behavior
+
+## Visual Design Features:
+[x] 2325. ✅ Color-coded selection system:
+[x] 2326.   - First date: Purple (#7c3aed) - source date
+[x] 2327.   - Second date: Orange (#ea580c) - target date
+[x] 2328.   - Dot markers visible on heatmap cells
+[x] 2329.   - Matching colored badges in control bar
+[x] 2330. ✅ Control bar styling:
+[x] 2331.   - Subtle purple background to indicate edit mode active
+[x] 2332.   - Clear instructions text
+[x] 2333.   - Selected dates displayed with color-matched badges
+[x] 2334.   - Responsive button layout with proper spacing
+[x] 2335. ✅ User experience enhancements:
+[x] 2336.   - Clicking same date again deselects it
+[x] 2337.   - Third click replaces second selection
+[x] 2338.   - Save button disabled until 2 dates selected
+[x] 2339.   - Toast notifications for validation and confirmation
+[x] 2340.   - Clean exit from edit mode with Cancel
+
+## Technical Implementation:
+[x] 2341. ✅ State management approach:
+[x] 2342.   - Edit mode flag prevents normal date loading
+[x] 2343.   - Date array stores YYYY-MM-DD strings
+[x] 2344.   - Array manipulation ensures max 2 selections
+[x] 2345. ✅ Visual markers implementation:
+[x] 2346.   - Absolute positioned overlay div in cells
+[x] 2347.   - Centered using flex layout
+[x] 2348.   - Conditional rendering based on selection state
+[x] 2349.   - Index-based color differentiation
+[x] 2350. ✅ Control bar implementation:
+[x] 2351.   - Conditional rendering with {isEditMode && ...}
+[x] 2352.   - Inline styles for precise color matching
+[x] 2353.   - Proper button states and handlers
+[x] 2354.   - Full test ID coverage for UI testing
+[x] 2355. ✅ No LSP errors in either component
+[x] 2356. ✅ Workflow restarted successfully
+[x] 2357. ✅✅✅ TWO-DATE SELECTION FEATURE FULLY IMPLEMENTED! ✅✅✅
+[x] 2358. 🎉🎉🎉 USERS CAN NOW SELECT TWO DATES WITH VISUAL DOT MARKERS! 🎉🎉🎉

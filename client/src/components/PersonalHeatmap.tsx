@@ -94,6 +94,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [toDate, setToDate] = useState("");
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
   const { toast } = useToast();
 
   // FETCH ALL DATES FROM FIREBASE - SIMPLE AND DIRECT
@@ -223,7 +225,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
 
   const filteredHeatmapData = getFilteredData();
 
-  // HANDLE DATE CLICK - FETCH FRESH DATA FROM FIREBASE
+  // HANDLE DATE CLICK - FETCH FRESH DATA FROM FIREBASE OR SELECT FOR EDIT
   const handleDateClick = async (date: Date) => {
     if (!userId) return;
     
@@ -232,6 +234,23 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const dateKey = `${year}-${month}-${day}`;
+    
+    // If in edit mode, select the date for editing instead of loading
+    if (isEditMode) {
+      setSelectedDatesForEdit(prev => {
+        // If date already selected, remove it
+        if (prev.includes(dateKey)) {
+          return prev.filter(d => d !== dateKey);
+        }
+        // If less than 2 dates selected, add it
+        if (prev.length < 2) {
+          return [...prev, dateKey];
+        }
+        // If 2 dates already selected, replace the second one
+        return [prev[0], dateKey];
+      });
+      return;
+    }
     
     console.log(`🔥 PersonalHeatmap: Date clicked: ${dateKey}, fetching FRESH data from Firebase...`);
     
@@ -253,6 +272,42 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       // If fetch fails, pass empty data to parent
       onDateSelect(date, {});
     }
+  };
+
+  // Handle "Edit date" menu item click
+  const handleEditDateClick = () => {
+    setIsEditMode(true);
+    setSelectedDatesForEdit([]);
+  };
+
+  // Handle cancel edit mode
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setSelectedDatesForEdit([]);
+  };
+
+  // Handle save selected dates
+  const handleSaveEdit = () => {
+    if (selectedDatesForEdit.length !== 2) {
+      toast({
+        title: "Select Two Dates",
+        description: "Please select exactly two dates on the heatmap",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Dates Selected",
+      description: `Selected: ${selectedDatesForEdit[0]} and ${selectedDatesForEdit[1]}`,
+    });
+
+    // TODO: Implement actual edit logic here
+    console.log("📅 Selected dates for edit:", selectedDatesForEdit);
+    
+    // Exit edit mode
+    setIsEditMode(false);
+    setSelectedDatesForEdit([]);
   };
 
   // Generate calendar data for the year or filtered range
@@ -400,18 +455,35 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                             
                           // Override for selected date
                           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
-                          if (isSelected) {
+                          if (isSelected && !isEditMode) {
                             cellColor = "bg-blue-500 dark:bg-blue-400 ring-2 ring-blue-600";
                           }
+
+                          // Check if date is selected for edit
+                          const isSelectedForEdit = selectedDatesForEdit.includes(dateKey);
+                          const editIndex = selectedDatesForEdit.indexOf(dateKey);
 
                           return (
                             <div
                               key={colIndex}
-                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all ${cellColor}`}
+                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all relative ${cellColor}`}
                               onClick={() => handleDateClick(date)}
                               title={`${dateKey}: ₹${netPnL.toFixed(2)}`}
                               data-testid={`personal-heatmap-cell-${dateKey}`}
-                            />
+                            >
+                              {isSelectedForEdit && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div 
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      editIndex === 0 
+                                        ? 'bg-purple-600 dark:bg-purple-400' 
+                                        : 'bg-orange-600 dark:bg-orange-400'
+                                    }`}
+                                    data-testid={`edit-marker-${dateKey}`}
+                                  />
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
@@ -531,7 +603,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem data-testid="menu-item-edit-date">
+            <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
               Edit date
             </DropdownMenuItem>
             <DropdownMenuItem data-testid="menu-item-delete">
@@ -540,6 +612,65 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Edit Mode Control Bar */}
+      {isEditMode && (
+        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+            <div className="flex-1">
+              <p className="text-xs font-medium text-purple-900 dark:text-purple-100">
+                Select two dates on the heatmap
+              </p>
+              {selectedDatesForEdit.length > 0 && (
+                <div className="flex gap-2 mt-2">
+                  {selectedDatesForEdit.map((dateKey, index) => (
+                    <div
+                      key={dateKey}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium"
+                      style={{
+                        backgroundColor: index === 0 
+                          ? 'rgb(147 51 234 / 0.1)' 
+                          : 'rgb(234 88 12 / 0.1)',
+                        color: index === 0 
+                          ? 'rgb(147 51 234)' 
+                          : 'rgb(234 88 12)'
+                      }}
+                    >
+                      <div 
+                        className={`w-2 h-2 rounded-full ${
+                          index === 0 
+                            ? 'bg-purple-600' 
+                            : 'bg-orange-600'
+                        }`}
+                      />
+                      {dateKey}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelEdit}
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={selectedDatesForEdit.length !== 2}
+                data-testid="button-save-edit"
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .thin-scrollbar::-webkit-scrollbar {
