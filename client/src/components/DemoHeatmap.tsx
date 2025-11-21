@@ -1044,7 +1044,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 </button>
               </Button>
             ) : (
-              // Normal mode - show "Select range" button
+              // Normal mode - show formatted current date
               <Button
                 variant="ghost"
                 size="sm"
@@ -1053,7 +1053,12 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 data-testid="button-select-date-range"
               >
                 <span className="text-xs text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                  Select range
+                  {currentDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  })}
                 </span>
               </Button>
             )}

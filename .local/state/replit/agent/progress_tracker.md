@@ -2608,3 +2608,25 @@
 [x] 2950. ✅ Simple flow: Click "Select range" → Select dates on heatmap → Click X → Back to normal
 [x] 2951. ✅✅✅ HEATMAP RANGE SELECTION LOGIC SIMPLIFIED! ✅✅✅
 [x] 2952. 🎉🎉🎉 CLEAN, SIMPLE RANGE SELECTION - NO COMPLEX LOGIC! 🎉🎉🎉
+
+[x] 2953. NOVEMBER 21, 2025 - CALENDAR HEADER DATE FORMATTING
+[x] 2954. User requested: "for calender display like image day date ,year on normal page calender"
+[x] 2955. User provided image showing: "Thursday, February 13, 2025" format
+[x] 2956. Requirements identified:
+[x] 2957.   - Display current viewing date in calendar header
+[x] 2958.   - Format: "Weekday, Month Day, Year" (e.g., "Thursday, February 13, 2025")
+[x] 2959.   - Replace "Select range" text with formatted date
+[x] 2960.   - Keep button clickable to activate range selection mode
+[x] 2961. ✅ Updated DemoHeatmap.tsx center button display
+[x] 2962. ✅ Changed "Select range" text to formatted currentDate
+[x] 2963. ✅ Used toLocaleDateString with options: weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+[x] 2964. ✅ Button still clickable to activate range selection mode
+[x] 2965. ✅ Updated PersonalHeatmap.tsx center button display
+[x] 2966. ✅ Applied identical date formatting to PersonalHeatmap
+[x] 2967. ✅ Both heatmaps now show current date in readable format
+[x] 2968. ✅ Format examples: "Thursday, November 21, 2025" or "Friday, March 15, 2024"
+[x] 2969. ✅ Date updates when navigating with left/right chevrons
+[x] 2970. ✅ Comment updated: "Normal mode - show formatted current date"
+[x] 2971. ✅ Workflow restarted with changes applied
+[x] 2972. ✅✅✅ CALENDAR HEADER NOW DISPLAYS FORMATTED DATE! ✅✅✅
+[x] 2973. 🎉🎉🎉 BEAUTIFUL DATE DISPLAY: "Thursday, February 13, 2025"! 🎉🎉🎉
