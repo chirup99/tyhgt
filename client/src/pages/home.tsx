@@ -9507,12 +9507,13 @@ ${
                     const filteredHeatmapData = getFilteredHeatmapData();
                     const insights = calculateTradingInsights(); // Keep for other sections that still need it
                     
-                    // Calculate metrics from filtered heatmap data
+                    // Calculate metrics from filtered heatmap data - only include dates with actual trading (non-zero P&L)
                     const calculateHeatmapMetrics = () => {
                       const dates = Object.keys(filteredHeatmapData);
                       let totalPnL = 0;
                       let totalTrades = 0;
                       let winningTrades = 0;
+                      let datesWithTrading = 0;
                       
                       dates.forEach(dateKey => {
                         const dayData = filteredHeatmapData[dateKey];
@@ -9521,15 +9522,21 @@ ${
                         const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
                         
                         if (metrics) {
-                          totalPnL += metrics.netPnL || 0;
-                          totalTrades += metrics.totalTrades || 0;
-                          winningTrades += metrics.winningTrades || 0;
+                          const netPnL = metrics.netPnL || 0;
+                          
+                          // Only include dates with actual trading activity (non-zero P&L)
+                          if (netPnL !== 0) {
+                            totalPnL += netPnL;
+                            totalTrades += metrics.totalTrades || 0;
+                            winningTrades += metrics.winningTrades || 0;
+                            datesWithTrading++;
+                          }
                         }
                       });
                       
                       const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
                       
-                      return { totalPnL, totalTrades, winRate, datesCount: dates.length };
+                      return { totalPnL, totalTrades, winRate, datesCount: datesWithTrading };
                     };
                     
                     const heatmapMetrics = calculateHeatmapMetrics();
@@ -9859,10 +9866,11 @@ ${
                         {/* Strategy Summary Cards */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {(() => {
+                            // Filter to only include dates with actual trading activity (non-zero P&L)
                             const allData = Object.values(
                               tradingDataByDate,
                             ).filter(
-                              (data: any) => data && data.performanceMetrics,
+                              (data: any) => data && data.performanceMetrics && data.performanceMetrics.netPnL !== 0,
                             );
 
                             if (allData.length === 0) return null;
