@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Calendar, X, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -74,6 +74,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
+  const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const heatmapContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // SIMPLE FETCH - No filters, no complications
@@ -114,6 +116,34 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         setIsLoading(false);
       });
   }, []); // Run once on mount
+
+  // Calculate line positions when two dates are selected in edit mode
+  useEffect(() => {
+    if (!isEditMode || selectedDatesForEdit.length !== 2 || !heatmapContainerRef.current) {
+      setLinePositions(null);
+      return;
+    }
+
+    const container = heatmapContainerRef.current;
+    const firstDateEl = container.querySelector(`[data-testid="heatmap-cell-${selectedDatesForEdit[0]}"]`);
+    const secondDateEl = container.querySelector(`[data-testid="heatmap-cell-${selectedDatesForEdit[1]}"]`);
+
+    if (!firstDateEl || !secondDateEl) {
+      setLinePositions(null);
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const firstRect = firstDateEl.getBoundingClientRect();
+    const secondRect = secondDateEl.getBoundingClientRect();
+
+    const x1 = firstRect.left - containerRect.left + firstRect.width / 2;
+    const y1 = firstRect.top - containerRect.top + firstRect.height / 2;
+    const x2 = secondRect.left - containerRect.left + secondRect.width / 2;
+    const y2 = secondRect.top - containerRect.top + secondRect.height / 2;
+
+    setLinePositions({ x1, y1, x2, y2 });
+  }, [isEditMode, selectedDatesForEdit, heatmapData, selectedRange]);
 
   // Update selectedRange when both fromDate and toDate are set
   useEffect(() => {
@@ -337,7 +367,77 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="overflow-x-auto thin-scrollbar">
+        <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative' }}>
+          {/* SVG Overlay for curved line connecting selected dates */}
+          {linePositions && (
+            <svg
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 10,
+              }}
+            >
+              <defs>
+                <linearGradient id="demo-lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="rgb(147, 51, 234)" />
+                  <stop offset="100%" stopColor="rgb(234, 88, 12)" />
+                </linearGradient>
+                <filter id="demo-dropShadow">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+                  <feOffset dx="0" dy="1" result="offsetblur" />
+                  <feFlood floodColor="#000" floodOpacity="0.3" />
+                  <feComposite in2="offsetblur" operator="in" />
+                  <feMerge>
+                    <feMergeNode />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              {(() => {
+                const { x1, y1, x2, y2 } = linePositions;
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Create single smooth curve path
+                let pathD;
+                
+                // Curve amplitude (how much the curve bends)
+                const curveAmount = Math.min(distance * 0.3, 50); // Gentle curve
+                
+                // Calculate the angle of the line
+                const angle = Math.atan2(dy, dx);
+                
+                // Perpendicular angle for curve offset (REVERSED)
+                const perpAngle = angle - Math.PI / 2;
+                
+                // Midpoint of the line
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2;
+                
+                // Control point offset perpendicular to the line (REVERSED DIRECTION)
+                const controlX = midX + Math.cos(perpAngle) * curveAmount;
+                const controlY = midY + Math.sin(perpAngle) * curveAmount;
+                
+                // Create smooth quadratic Bézier curve
+                pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
+                
+                return (
+                  <path
+                    d={pathD}
+                    stroke="url(#demo-lineGradient)"
+                    strokeWidth="2"
+                    fill="none"
+                    filter="url(#demo-dropShadow)"
+                  />
+                );
+              })()}
+            </svg>
+          )}
           <div className="flex gap-3 pb-2 select-none" style={{ minWidth: 'fit-content' }}>
             {months.map((month, monthIndex) => (
               <div key={monthIndex} className="flex flex-col gap-0.5">
@@ -447,11 +547,44 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 Select 2 dates
               </p>
               {selectedDatesForEdit.length > 0 && (
-                <div className="flex gap-1 mt-0.5">
+                <div className="flex gap-1 mt-0.5 relative">
+                  {selectedDatesForEdit.length === 2 && (
+                    <svg
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ width: '100%', height: '100%', zIndex: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="demo-badge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="rgb(147, 51, 234)" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="rgb(234, 88, 12)" stopOpacity="0.4" />
+                        </linearGradient>
+                      </defs>
+                      {(() => {
+                        const y = 10;
+                        const x1 = 40;
+                        const x2 = 140;
+                        const dx = x2 - x1;
+                        const distance = Math.abs(dx);
+                        const curveAmount = Math.min(distance * 0.3, 20);
+                        const midX = (x1 + x2) / 2;
+                        const controlY = y + curveAmount;
+                        const pathD = `M ${x1} ${y} Q ${midX} ${controlY}, ${x2} ${y}`;
+                        
+                        return (
+                          <path
+                            d={pathD}
+                            stroke="url(#demo-badge-gradient)"
+                            strokeWidth="1.5"
+                            fill="none"
+                          />
+                        );
+                      })()}
+                    </svg>
+                  )}
                   {selectedDatesForEdit.map((dateKey, index) => (
                     <div
                       key={dateKey}
-                      className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium"
+                      className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium relative z-10"
                       style={{
                         backgroundColor: index === 0 
                           ? 'rgb(147 51 234 / 0.1)' 

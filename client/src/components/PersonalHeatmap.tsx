@@ -616,11 +616,44 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   Select 2 dates
                 </p>
               ) : (
-                <div className="flex gap-1">
+                <div className="flex gap-1 relative">
+                  {selectedDatesForEdit.length === 2 && (
+                    <svg
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ width: '100%', height: '100%', zIndex: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="personal-badge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="rgb(147, 51, 234)" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="rgb(234, 88, 12)" stopOpacity="0.4" />
+                        </linearGradient>
+                      </defs>
+                      {(() => {
+                        const y = 10;
+                        const x1 = 40;
+                        const x2 = 140;
+                        const dx = x2 - x1;
+                        const distance = Math.abs(dx);
+                        const curveAmount = Math.min(distance * 0.3, 20);
+                        const midX = (x1 + x2) / 2;
+                        const controlY = y + curveAmount;
+                        const pathD = `M ${x1} ${y} Q ${midX} ${controlY}, ${x2} ${y}`;
+                        
+                        return (
+                          <path
+                            d={pathD}
+                            stroke="url(#personal-badge-gradient)"
+                            strokeWidth="1.5"
+                            fill="none"
+                          />
+                        );
+                      })()}
+                    </svg>
+                  )}
                   {selectedDatesForEdit.map((dateKey, index) => (
                     <div
                       key={dateKey}
-                      className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium"
+                      className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium relative z-10"
                       style={{
                         backgroundColor: index === 0 
                           ? 'rgb(147 51 234 / 0.1)' 

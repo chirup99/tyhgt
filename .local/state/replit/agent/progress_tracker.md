@@ -1723,6 +1723,44 @@
 [x] 2436. ✅✅✅ CURVE DIRECTION REVERSED SUCCESSFULLY! ✅✅✅
 [x] 2437. 🎉🎉🎉 SMOOTH CURVE NOW BENDS IN OPPOSITE DIRECTION! 🎉🎉🎉
 
+## ✨ NOVEMBER 21, 2025 - CURVED LINES FOR CALENDAR SECTION & DEMOHEATMAP
+[x] 2438. User requested: "perfect in same bottom you can see calendar section not heatmap its display dates in between two dates also add same curved lines and demo heatmap add same curved line for heatmaps update both"
+[x] 2439. Requirements identified:
+[x] 2440.   1. Add curved lines to calendar date badges section (edit mode bottom bar)
+[x] 2441.   2. Add curved line feature to DemoHeatmap component (matching PersonalHeatmap)
+[x] 2442.   3. Update both PersonalHeatmap and DemoHeatmap
+[x] 2443. ✅ Added curved line to DemoHeatmap heatmap grid:
+[x] 2444.   - Added useRef for heatmapContainerRef
+[x] 2445.   - Added linePositions state for tracking curve endpoints
+[x] 2446.   - Added useEffect to calculate positions from selected date cells
+[x] 2447.   - Added SVG overlay with reversed curved line rendering
+[x] 2448.   - Uses same purple→orange gradient with drop shadow
+[x] 2449.   - Single smooth quadratic Bézier curve with reversed direction
+[x] 2450. ✅ Added visual curved line to DemoHeatmap edit mode section:
+[x] 2451.   - Connects the two date badges displayed at bottom
+[x] 2452.   - SVG with purple→orange gradient (40% opacity)
+[x] 2453.   - Smooth downward curve connecting badges
+[x] 2454.   - Only displays when 2 dates are selected
+[x] 2455. ✅ Added visual curved line to PersonalHeatmap edit mode section:
+[x] 2456.   - Connects the two date badges displayed at bottom
+[x] 2457.   - SVG with purple→orange gradient (40% opacity)
+[x] 2458.   - Smooth downward curve connecting badges
+[x] 2459.   - Only displays when 2 dates are selected
+[x] 2460. ✅ Technical implementation details:
+[x] 2461.   - Calendar badges curve: Simple horizontal curve between two fixed points
+[x] 2462.   - Curve formula: Q (quadratic Bézier) with midpoint control
+[x] 2463.   - 30% curve amount (max 20px) for subtle arc
+[x] 2464.   - Positioned absolutely behind badge elements (z-index 0)
+[x] 2465.   - Badge elements have z-10 to appear above curve
+[x] 2466. ✅ All three locations now have curved lines:
+[x] 2467.   - PersonalHeatmap heatmap grid ✅
+[x] 2468.   - PersonalHeatmap calendar badges ✅
+[x] 2469.   - DemoHeatmap heatmap grid ✅
+[x] 2470.   - DemoHeatmap calendar badges ✅
+[x] 2471. ✅ Workflow restarted successfully to apply changes
+[x] 2472. ✅✅✅ CURVED LINES ADDED TO ALL HEATMAPS & CALENDAR SECTIONS! ✅✅✅
+[x] 2473. 🎉🎉🎉 BEAUTIFUL CURVED TRANSITIONS THROUGHOUT THE APP! 🎉🎉🎉
+
 [x] 2359. NOVEMBER 21, 2025 - FINAL REPLIT MIGRATION COMPLETION
 [x] 2360. User requested: "Began migrating the import from Replit Agent to Replit environment, remember to update this file when things are updated. Make sure you mark all of the items as done using [x]"
 [x] 2361. ✅ Read existing progress tracker with 2358 completed migration tasks
