@@ -361,30 +361,18 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     return filtered;
   };
 
-  // Generate calendar data for the year (or date range)
+  // Generate calendar data for the year (ALWAYS show complete calendar, no filtering)
   const generateMonthsData = () => {
-    let startYear, endYear, startMonth, endMonth;
-
-    if (selectedRange) {
-      // Use the selected range
-      startYear = selectedRange.from.getFullYear();
-      endYear = selectedRange.to.getFullYear();
-      startMonth = selectedRange.from.getMonth();
-      endMonth = selectedRange.to.getMonth();
-    } else {
-      // Use current year
-      startYear = endYear = currentDate.getFullYear();
-      startMonth = 0;
-      endMonth = 11;
-    }
+    // Always use current year - show complete calendar regardless of range selection
+    const startYear = currentDate.getFullYear();
+    const endYear = currentDate.getFullYear();
+    const startMonth = 0;
+    const endMonth = 11;
 
     const months = [];
     
     for (let year = startYear; year <= endYear; year++) {
-      const firstMonth = (year === startYear) ? startMonth : 0;
-      const lastMonth = (year === endYear) ? endMonth : 11;
-
-      for (let monthIndex = firstMonth; monthIndex <= lastMonth; monthIndex++) {
+      for (let monthIndex = startMonth; monthIndex <= endMonth; monthIndex++) {
         const monthName = new Date(year, monthIndex, 1).toLocaleString('en-US', { month: 'short' });
         const lastDay = new Date(year, monthIndex + 1, 0);
         
@@ -394,13 +382,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         for (let day = 1; day <= lastDay.getDate(); day++) {
           const date = new Date(year, monthIndex, day);
           
-          // If range is selected, only include dates within range
-          if (selectedRange) {
-            if (date < selectedRange.from || date > selectedRange.to) {
-              continue; // Skip dates outside the range
-            }
-          }
-          
+          // Always include all dates - no filtering based on range
           const dayOfWeek = date.getDay();
           dayRows[dayOfWeek].push(date);
         }
