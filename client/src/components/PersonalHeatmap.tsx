@@ -695,23 +695,23 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
 
   return (
     <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none overflow-visible">
+      <div className="flex items-center justify-between relative z-5 px-2 py-1 rounded">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          Personal Trading Calendar {selectedRange 
+            ? `${selectedRange.from.getFullYear()}${selectedRange.from.getFullYear() !== selectedRange.to.getFullYear() ? `-${selectedRange.to.getFullYear()}` : ''}`
+            : currentDate.getFullYear()
+          }
+        </h3>
+        <span className="text-xs text-gray-500">
+          {isLoading ? "Loading..." : selectedRange 
+            ? `${Object.keys(filteredHeatmapData).length} of ${Object.keys(heatmapData).length} dates in range`
+            : `${Object.keys(heatmapData).length} dates with data`
+          }
+        </span>
+      </div>
+
       <div className="flex flex-col gap-2 overflow-visible">
         <div className="overflow-x-auto thin-scrollbar" ref={heatmapContainerRef} style={{ position: 'relative', zIndex: 10 }}>
-          {/* Title and count overlay inside heatmap */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-2 py-1 pointer-events-none z-5">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Personal Trading Calendar {selectedRange 
-                ? `${selectedRange.from.getFullYear()}${selectedRange.from.getFullYear() !== selectedRange.to.getFullYear() ? `-${selectedRange.to.getFullYear()}` : ''}`
-                : currentDate.getFullYear()
-              }
-            </h3>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {isLoading ? "Loading..." : selectedRange 
-                ? `${Object.keys(filteredHeatmapData).length} of ${Object.keys(heatmapData).length} dates in range`
-                : `${Object.keys(heatmapData).length} dates with data`
-              }
-            </span>
-          </div>
           {/* SVG overlay for range selector line (pointing to month labels) */}
           {rangeLinePositions && selectedRange && !isEditMode && (() => {
             const { x1, y1, x2, y2 } = rangeLinePositions;
