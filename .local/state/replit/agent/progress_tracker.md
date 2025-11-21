@@ -2028,3 +2028,29 @@
 [x] 2615.   - Step 4: Curved line connects the two selected dates
 [x] 2616. ✅✅✅ CURVED LINE TIMING IMPROVEMENT COMPLETED! ✅✅✅
 [x] 2617. 🎉🎉🎉 CURVED LINE NOW RENDERS WITH BETTER TIMING! 🎉🎉🎉
+
+[x] 2618. NOVEMBER 21, 2025 - CURVED LINE SVG DYNAMIC HEIGHT FIX
+[x] 2619. User reported: Curved line still not displaying on heatmaps after timing fix
+[x] 2620. ✅ Architect reviewed: SVG had fixed 40px height but badge container varies
+[x] 2621. Root cause identified: SVG viewport too small - curve clipped outside view
+[x] 2622. Issue: Badge position calculated at y≈9px, but SVG only 40px tall
+[x] 2623. Problem: When container >40px, curved line drawn outside SVG viewport
+[x] 2624. ✅ Solution: Calculate container height dynamically from containerRect
+[x] 2625. ✅ Added badgeContainerRef to both PersonalHeatmap and DemoHeatmap
+[x] 2626. ✅ Updated badgePositions type to include containerHeight property
+[x] 2627. ✅ Modified calculatePositions to capture containerRect.height
+[x] 2628. ✅ SVG height now dynamic: height={badgePositions.containerHeight}px
+[x] 2629. ✅ SVG maintains overflow:visible for curve to extend beyond bounds
+[x] 2630. ✅ Increased stroke opacity from 0.4 to 0.6 for better visibility
+[x] 2631. ✅ Increased strokeWidth from 1.5 to 2 for clearer line
+[x] 2632. ✅ Added strokeLinecap="round" for smoother curve endpoints
+[x] 2633. ✅ Enhanced console logging to debug path coordinates
+[x] 2634. ✅ Logs now show: x1, x2, y, containerHeight, curveAmount, pathD
+[x] 2635. ✅ Both heatmaps updated with identical fix implementation
+[x] 2636. ✅ Workflow restarted successfully - changes applied
+[x] 2637. 📝 Architect feedback implemented:
+[x] 2638.   - Replaced fixed-height SVG with dynamic dimensions
+[x] 2639.   - SVG height derived from containerRect measurements
+[x] 2640.   - Curve will now render correctly regardless of badge wrapping
+[x] 2641. ✅✅✅ CURVED LINE SVG DYNAMIC HEIGHT FIX COMPLETED! ✅✅✅
+[x] 2642. 🎉🎉🎉 CURVED LINE NOW SCALES WITH CONTAINER HEIGHT! 🎉🎉🎉

@@ -73,9 +73,10 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
+  const badgeContainerRef = useRef<HTMLDivElement>(null);
   const badge1Ref = useRef<HTMLDivElement>(null);
   const badge2Ref = useRef<HTMLDivElement>(null);
-  const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number } | null>(null);
+  const [badgePositions, setBadgePositions] = useState<{ x1: number; x2: number; y: number; containerHeight: number } | null>(null);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
@@ -133,26 +134,22 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     }
 
     const calculatePositions = () => {
-      if (!badge1Ref.current || !badge2Ref.current) {
-        console.log("🔧 DemoHeatmap: Badges not ready yet");
+      if (!badge1Ref.current || !badge2Ref.current || !badgeContainerRef.current) {
+        console.log("🔧 DemoHeatmap: Badges or container not ready yet");
         return;
       }
       
       const badge1Rect = badge1Ref.current.getBoundingClientRect();
       const badge2Rect = badge2Ref.current.getBoundingClientRect();
-      const containerRect = badge1Ref.current.parentElement?.getBoundingClientRect();
-      
-      if (!containerRect) {
-        console.log("🔧 DemoHeatmap: Container not found");
-        return;
-      }
+      const containerRect = badgeContainerRef.current.getBoundingClientRect();
       
       const x1 = badge1Rect.left - containerRect.left + badge1Rect.width / 2;
       const x2 = badge2Rect.left - containerRect.left + badge2Rect.width / 2;
       const y = badge1Rect.top - containerRect.top + badge1Rect.height / 2;
+      const containerHeight = containerRect.height;
       
-      console.log("🎯 DemoHeatmap: Calculated badge positions", { x1, x2, y });
-      setBadgePositions({ x1, x2, y });
+      console.log("🎯 DemoHeatmap: Calculated badge positions", { x1, x2, y, containerHeight });
+      setBadgePositions({ x1, x2, y, containerHeight });
     };
 
     // Use multiple calculation attempts to ensure badges are rendered
@@ -578,20 +575,27 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                 Select 2 dates
               </p>
               {selectedDatesForEdit.length > 0 && (
-                <div className="flex gap-1 mt-0.5 relative">
+                <div ref={badgeContainerRef} className="flex gap-1 mt-0.5 relative">
                   {selectedDatesForEdit.length === 2 && badgePositions && (
                     <svg
-                      className="absolute inset-0 pointer-events-none"
-                      style={{ width: '100%', height: '100%', zIndex: 0 }}
+                      className="absolute pointer-events-none"
+                      style={{ 
+                        left: 0,
+                        top: 0,
+                        width: '100%', 
+                        height: `${badgePositions.containerHeight}px`,
+                        overflow: 'visible',
+                        zIndex: 0 
+                      }}
                     >
                       <defs>
                         <linearGradient id="demo-badge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="rgb(147, 51, 234)" stopOpacity="0.4" />
-                          <stop offset="100%" stopColor="rgb(234, 88, 12)" stopOpacity="0.4" />
+                          <stop offset="0%" stopColor="rgb(147, 51, 234)" stopOpacity="0.6" />
+                          <stop offset="100%" stopColor="rgb(234, 88, 12)" stopOpacity="0.6" />
                         </linearGradient>
                       </defs>
                       {(() => {
-                        const { x1, x2, y } = badgePositions;
+                        const { x1, x2, y, containerHeight } = badgePositions;
                         const dx = x2 - x1;
                         const distance = Math.abs(dx);
                         const curveAmount = Math.min(distance * 0.3, 20);
@@ -599,12 +603,15 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                         const controlY = y + curveAmount;
                         const pathD = `M ${x1} ${y} Q ${midX} ${controlY}, ${x2} ${y}`;
                         
+                        console.log('🎨 DemoHeatmap: Drawing curved line', { x1, x2, y, containerHeight, curveAmount, pathD });
+                        
                         return (
                           <path
                             d={pathD}
                             stroke="url(#demo-badge-gradient)"
-                            strokeWidth="1.5"
+                            strokeWidth="2"
                             fill="none"
+                            strokeLinecap="round"
                           />
                         );
                       })()}
