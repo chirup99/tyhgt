@@ -12520,6 +12520,7 @@ ${
                     tradingDataByDate={tradingDataByDate}
                     onDataUpdate={() => {}}
                     isPublicView={true}
+                    activeTagHighlight={activeTagHighlight}
                   />
                 ) : (
                   <PersonalHeatmap 
@@ -12528,6 +12529,7 @@ ${
                     selectedDate={null}
                     onDataUpdate={() => {}}
                     isPublicView={true}
+                    activeTagHighlight={activeTagHighlight}
                   />
                 )}
               </div>
