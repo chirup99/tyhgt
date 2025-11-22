@@ -12533,13 +12533,23 @@ ${
                 
                 {/* Dual-axis scrollable heatmap container */}
                 <div className="max-h-96 overflow-auto thin-scrollbar">
-                  <PersonalHeatmap 
-                    userId={currentUser?.userId || null} 
-                    onDateSelect={() => {}} 
-                    selectedDate={null}
-                    onDataUpdate={() => {}}
-                    isPublicView={true}
-                  />
+                  {isDemoMode ? (
+                    <DemoHeatmap 
+                      onDateSelect={() => {}}
+                      selectedDate={null}
+                      tradingDataByDate={tradingDataByDate}
+                      onDataUpdate={() => {}}
+                      isPublicView={true}
+                    />
+                  ) : (
+                    <PersonalHeatmap 
+                      userId={currentUser?.userId || null} 
+                      onDateSelect={() => {}} 
+                      selectedDate={null}
+                      onDataUpdate={() => {}}
+                      isPublicView={true}
+                    />
+                  )}
                 </div>
               </div>
               

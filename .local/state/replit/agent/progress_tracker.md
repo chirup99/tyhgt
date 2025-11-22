@@ -413,6 +413,18 @@
 [x] 1849. ✅ Share dialog completely responsive and scrollable in all directions
 [x] 1850. ✅✅✅ SHARE DIALOG FULLY FIXED AND OPTIMIZED! ✅✅✅
 
+[x] 1851. NOVEMBER 22, 2025 - DEMO/PERSONAL HEATMAP SHARE FIX
+[x] 1852. User reported: Share button always shows Personal heatmap, ignoring demo mode toggle
+[x] 1853. Root cause: Share dialog hardcoded PersonalHeatmap component
+[x] 1854. ✅ Fixed share dialog to respect isDemoMode state variable
+[x] 1855. ✅ Updated DemoHeatmap interface to accept isPublicView prop
+[x] 1856. ✅ Updated DemoHeatmap function signature to destructure isPublicView
+[x] 1857. ✅ Conditional render in share dialog: {isDemoMode ? DemoHeatmap : PersonalHeatmap}
+[x] 1858. ✅ Hidden 3-dot menu in DemoHeatmap when isPublicView={true}
+[x] 1859. ✅ Share dialog now shows CURRENT heatmap (demo OR personal, not always personal)
+[x] 1860. ✅ Workflow restarted - application running and ready to test
+[x] 1861. ✅✅✅ SHARE DIALOG NOW RESPECTS DEMO/PERSONAL MODE SELECTION! ✅✅✅
+
 [x] 1358. NOVEMBER 20, 2025 - FINAL MIGRATION VERIFICATION SESSION
 [x] 1359. User requested: "All progress tracker items must be marked as [x] done"
 [x] 1360. ✅ Verified workflow "Start application" is RUNNING successfully

@@ -20,6 +20,7 @@ interface DemoHeatmapProps {
     tag: string;
     dates: string[];
   } | null;
+  isPublicView?: boolean;
 }
 
 // Simple function to calculate P&L from trade data
@@ -68,7 +69,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates }: DemoHeatmapProps) {
+export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates, isPublicView }: DemoHeatmapProps) {
   const { currentUser } = useCurrentUser();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
@@ -1159,8 +1160,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
               </Button>
             )}
 
-            {/* 3-dot menu - only show when not in range select mode AND user is authorized */}
-            {!isRangeSelectMode && canEditDemoTrades && (
+            {/* 3-dot menu - only show when not in range select mode AND user is authorized AND not in public view */}
+            {!isRangeSelectMode && canEditDemoTrades && !isPublicView && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
