@@ -76,12 +76,16 @@ Preferred communication style: Simple, everyday language.
 ### Market Data Providers
 
 **Global Market Indices (World Map)**:
-- **Data Source**: Google Finance real-time market data
+- **Data Source**: Web search-based market data (like Replit Agent) with smart caching
 - **Indices Tracked**: S&P 500 (USA), S&P/TSX (CANADA), Nifty 50 (INDIA), Nikkei 225 (TOKYO), Hang Seng (HONG KONG)
-- **Smart Caching Strategy**: 
-  - **15-minute updates** when market is OPEN (NYSE: 9:30 AM - 4:00 PM EST, Mon-Fri)
-  - **60-minute updates** when market is CLOSED (weekends/after hours)
-- **Service Location**: `server/market-indices-service.ts` - Market status detection, caching logic, and fallback values
+- **Smart Caching & Closing Prices**: 
+  - **Real-time fetching** when market is OPEN (NYSE: 9:30 AM - 4:00 PM EST, Mon-Fri)
+  - **Last closing prices** when market is CLOSED (weekends/after hours)
+  - **15-minute refresh** during trading hours, **60-minute refresh** during off-hours
+- **Service Location**: `server/market-indices-service.ts`
+  - Attempts Yahoo Finance API and DuckDuckGo web search for real market data
+  - Stores last closing prices for when market is closed
+  - Falls back to realistic market data if web sources unavailable
 - **Frontend Hook**: `client/src/hooks/useMarketData.ts` - Provides market data to world map component
 - **Market Status**: Automatically detects NYSE trading hours and adjusts refresh frequency accordingly
 
