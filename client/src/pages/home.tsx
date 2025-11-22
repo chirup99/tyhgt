@@ -4062,31 +4062,61 @@ ${
   useEffect(() => {
     if (!activeTagHighlight || activeTagHighlight.tag !== 'fomo') return;
     
-    const heatmapContainer = heatmapContainerRef.current;
-    if (!heatmapContainer) return;
+    const heatmapWrapper = heatmapContainerRef.current;
+    if (!heatmapWrapper) return;
     
-    let rafId: number | null = null;
-    
-    const handleScroll = () => {
-      // Cancel any pending RAF
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      // Find the actual scrollable element inside the heatmap component
+      // It has overflow-x-auto class
+      const scrollableElement = heatmapWrapper.querySelector('.overflow-x-auto');
+      if (!scrollableElement) {
+        console.warn('⚠️ Scrollable heatmap element not found');
+        return;
       }
       
-      // Schedule update on next frame (throttled)
-      rafId = requestAnimationFrame(() => {
-        setScrollTrigger(prev => prev + 1);
-        rafId = null;
-      });
-    };
-    
-    // Listen to scroll events on the heatmap container
-    heatmapContainer.addEventListener('scroll', handleScroll, { passive: true });
+      let rafId: number | null = null;
+      
+      const handleScroll = () => {
+        // Cancel any pending RAF
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+        
+        // Schedule update on next frame for smooth real-time updates
+        rafId = requestAnimationFrame(() => {
+          setScrollTrigger(prev => prev + 1);
+          rafId = null;
+        });
+      };
+      
+      // Listen to scroll events on the ACTUAL scrollable element inside heatmap
+      scrollableElement.addEventListener('scroll', handleScroll, { passive: true });
+      
+      // Also listen for resize events to update line positions
+      window.addEventListener('resize', handleScroll, { passive: true });
+      
+      console.log('🎯 Attached real-time scroll listener to heatmap scrollable element');
+      
+      // Cleanup function
+      const cleanup = () => {
+        scrollableElement.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+      };
+      
+      // Store cleanup in the wrapper element for later access
+      (heatmapWrapper as any).__scrollCleanup = cleanup;
+    }, 50);
     
     return () => {
-      heatmapContainer.removeEventListener('scroll', handleScroll);
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
+      // Call stored cleanup if it exists
+      if ((heatmapWrapper as any).__scrollCleanup) {
+        (heatmapWrapper as any).__scrollCleanup();
+        delete (heatmapWrapper as any).__scrollCleanup;
       }
     };
   }, [activeTagHighlight]);
