@@ -24,15 +24,21 @@ interface DemoHeatmapProps {
 }
 
 // Simple function to calculate P&L from trade data
-function calculatePnL(data: any): number {
+// SECURITY: In public mode, ONLY use performanceMetrics, NEVER tradeHistory
+function calculatePnL(data: any, isPublicMode: boolean = false): number {
   if (!data) return 0;
   
-  // Try performanceMetrics first
+  // ALWAYS try performanceMetrics first
   if (data.performanceMetrics?.netPnL !== undefined) {
     return data.performanceMetrics.netPnL;
   }
   
-  // Try calculating from tradeHistory
+  // SECURITY: In public/secure mode, do NOT access tradeHistory
+  if (isPublicMode) {
+    return 0;
+  }
+  
+  // Only in private mode: Try calculating from tradeHistory
   if (data.tradeHistory && Array.isArray(data.tradeHistory)) {
     let totalPnL = 0;
     data.tradeHistory.forEach((trade: any) => {
@@ -69,7 +75,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates, isPublicView }: DemoHeatmapProps) {
+export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates, isPublicView, tradingDataByDate }: DemoHeatmapProps) {
   const { currentUser } = useCurrentUser();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
@@ -106,8 +112,23 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   // FOMO highlighted dates curved lines support
   const [fomoLinePositions, setFomoLinePositions] = useState<Array<{ x1: number; y1: number; x2: number; y2: number }> | null>(null);
 
-  // SIMPLE FETCH - No filters, no complications
+  // Fetch data OR use provided tradingDataByDate - SECURE for public view
   useEffect(() => {
+    // If external data is provided (public view), use it directly without fetching
+    if (tradingDataByDate) {
+      console.log("🔓 DemoHeatmap: Using provided tradingDataByDate (public/secure mode)");
+      console.log(`✅ DemoHeatmap: ${Object.keys(tradingDataByDate).length} dates provided externally`);
+      setHeatmapData(tradingDataByDate);
+      setIsLoading(false);
+      
+      // Emit data to parent component
+      if (onDataUpdate) {
+        onDataUpdate(tradingDataByDate);
+      }
+      return;
+    }
+    
+    // Otherwise, fetch from API (normal demo mode)
     console.log(`🔥 DemoHeatmap: Fetching ALL data from Firebase... (refreshKey: ${refreshKey})`);
     setIsLoading(true);
     
@@ -143,7 +164,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
         console.error("❌ DemoHeatmap: Fetch error:", error);
         setIsLoading(false);
       });
-  }, [refreshKey]); // Re-fetch when refreshKey changes
+  }, [refreshKey, tradingDataByDate]); // Re-fetch when refreshKey changes or when tradingDataByDate is provided
 
   // Calculate badge positions dynamically when badges render
   useEffect(() => {
@@ -752,7 +773,7 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   // Count only dates with actual trading data (non-zero P&L)
   const countDatesWithData = (data: typeof heatmapData) => {
     return Object.keys(data).filter(dateKey => {
-      const pnl = calculatePnL(data[dateKey]);
+      const pnl = calculatePnL(data[dateKey], !!tradingDataByDate);
       return pnl !== 0;
     }).length;
   };
@@ -987,8 +1008,8 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                           // Get data from heatmapData
                           const data = heatmapData[dateKey];
                           
-                          // Calculate P&L
-                          const netPnL = calculatePnL(data);
+                          // Calculate P&L (SECURITY: pass public mode flag to prevent tradeHistory access)
+                          const netPnL = calculatePnL(data, !!tradingDataByDate);
                           
                           // Only show P&L colors if date is within range, otherwise show grey
                           let cellColor = isWithinRange ? getPnLColor(netPnL) : "bg-gray-200 dark:bg-gray-700";

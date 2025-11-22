@@ -3364,7 +3364,7 @@ ${
     };
 
     loadUserFormats();
-  }, [currentUser?.id]);
+  }, [currentUser?.userId]);
 
   // Auto-detect format when pasting data
   useEffect(() => {
@@ -12629,7 +12629,8 @@ ${
                         
                         {/* FOMO - Interactive */}
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (activeTagHighlight?.tag === 'fomo') {
                               setActiveTagHighlight(null);
                             } else {

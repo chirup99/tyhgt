@@ -6,6 +6,7 @@ import { fyersApi } from "./fyers-api";
 import { AnalysisProcessor } from "./analysis-processor";
 import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, socialPostLikes, socialPostComments, socialPostReposts, userFollows, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse } from "@shared/schema";
 import { fetchBrokerTrades } from "./services/broker-integrations";
+import { z } from "zod";
 import { desc, sql, eq } from "drizzle-orm";
 import { intradayAnalyzer } from "./intraday-market-session";
 import { googleCloudService } from './google-cloud-service';
@@ -4661,8 +4662,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER-SPECIFIC TRADING JOURNAL - FIREBASE
   // ==========================================
   
-  // ✅ CRITICAL: This route MUST come BEFORE /:userId/:date to prevent Express from matching "all" as a date parameter
-  // Get all trading journal entries for a user
+  // Zod schema for validating RAW source data - STRIPS ALL unrecognized keys at EVERY level
+  const rawSourceDataSchema = z.object({
+    tradingData: z.object({
+      performanceMetrics: z.object({
+        netPnL: z.number(),
+        totalTrades: z.number(),
+        winningTrades: z.number(),
+        losingTrades: z.number()
+      }).strip().partial(),  // .strip() removes unknown keys at this level
+      tradingTags: z.array(
+        z.union([
+          z.string(),
+          z.object({ tag: z.string() }).strip()  // .strip() removes notes/motives from tag objects
+        ])
+      ).optional()
+    }).strip().optional(),  // .strip() removes tradeHistory, notes, reflections from tradingData
+    performanceMetrics: z.object({
+      netPnL: z.number(),
+      totalTrades: z.number(),
+      winningTrades: z.number(),
+      losingTrades: z.number()
+    }).strip().partial().optional(),  // .strip() removes unknown keys at this level
+    tradingTags: z.array(
+      z.union([
+        z.string(),
+        z.object({ tag: z.string() }).strip()  // .strip() removes notes/motives from tag objects
+      ])
+    ).optional()
+  }).strip();  // SECURITY: .strip() at ROOT level removes ALL extra top-level keys
+
+  // Zod schema for strict validation of public OUTPUT data - ONLY whitelisted fields
+  const publicDayDataSchema = z.object({
+    performanceMetrics: z.object({
+      netPnL: z.number(),
+      totalTrades: z.number(),
+      winningTrades: z.number(),
+      losingTrades: z.number()
+    }).strict(),
+    tradingTags: z.array(z.string())
+  }).strict();
+
+  // ✅ CRITICAL: This route MUST come BEFORE /:userId/:date to prevent Express from matching "all" or "public" as a date parameter
+  // Get PUBLIC (sanitized) trading journal data for sharing - only aggregate metrics, no sensitive details
+  app.get('/api/user-journal/:userId/public', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log(`🔓 Fetching PUBLIC trading calendar data for userId=${userId}`);
+      
+      const journals = await googleCloudService.getAllUserTradingJournals(userId);
+      
+      // Build response from EXPLICIT WHITELIST ONLY - validate source FIRST
+      const sanitizedData: Record<string, z.infer<typeof publicDayDataSchema>> = {};
+      
+      Object.keys(journals).forEach(dateKey => {
+        try {
+          const dayData = journals[dateKey];
+          
+          // SECURITY: Validate RAW source data with Zod FIRST - reject malformed data
+          const validatedSource = rawSourceDataSchema.parse(dayData);
+          
+          // Extract from VALIDATED source only
+          const metricsSource = validatedSource.tradingData?.performanceMetrics || validatedSource.performanceMetrics;
+          const tagsSource = validatedSource.tradingData?.tradingTags || validatedSource.tradingTags || [];
+          
+          // SECURITY: Extract ONLY scalar primitives - build fresh object
+          const netPnL = Number(metricsSource?.netPnL) || 0;
+          const totalTrades = Number(metricsSource?.totalTrades) || 0;
+          const winningTrades = Number(metricsSource?.winningTrades) || 0;
+          const losingTrades = Number(metricsSource?.losingTrades) || 0;
+          
+          // Sanitize tags to simple strings only
+          const sanitizedTags: string[] = [];
+          tagsSource.forEach((tag) => {
+            if (typeof tag === 'string') {
+              sanitizedTags.push(tag);
+            } else if (tag && typeof tag === 'object' && typeof tag.tag === 'string') {
+              sanitizedTags.push(tag.tag);
+            }
+          });
+          
+          // SECURITY: Build output from scratch - no object spreading
+          const outputEntry = {
+            performanceMetrics: {
+              netPnL,
+              totalTrades,
+              winningTrades,
+              losingTrades
+            },
+            tradingTags: sanitizedTags
+          };
+          
+          // SECURITY: Validate output with strict schema
+          const validatedOutput = publicDayDataSchema.parse(outputEntry);
+          sanitizedData[dateKey] = validatedOutput;
+        } catch (zodError) {
+          console.error(`⚠️ Validation failed for date ${dateKey}, skipping:`, zodError);
+          // Skip invalid entries - do not include them in response
+        }
+      });
+      
+      console.log(`✅ Returning sanitized public data: ${Object.keys(sanitizedData).length} dates (double Zod-validated)`);
+      res.json(sanitizedData);
+    } catch (error) {
+      console.error('❌ Error fetching public journal data:', error);
+      res.status(500).json({ error: 'Failed to fetch public journal data' });
+    }
+  });
+  
+  // Get all trading journal entries for a user (PRIVATE - includes all details)
   app.get('/api/user-journal/:userId/all', async (req, res) => {
     try {
       const { userId } = req.params;
