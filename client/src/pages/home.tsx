@@ -37,12 +37,14 @@ import { TradingMaster } from "@/components/trading-master";
 import { WorldMap } from "@/components/world-map";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
 import { PersonalHeatmap } from "@/components/PersonalHeatmap";
+import { ReportCardComposer } from "@/components/ReportCardComposer";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft, Save } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
+import { toPng } from "html-to-image";
 
 // Global window type declaration for audio control
 declare global {
@@ -1895,6 +1897,11 @@ export default function Home() {
   // Trading Master Coming Soon Modal State
   const [showTradingMasterComingSoon, setShowTradingMasterComingSoon] = useState(false);
 
+  // Social Media Report Card Share State
+  const [isSharing, setIsSharing] = useState(false);
+  const [reportCardData, setReportCardData] = useState<any>(null);
+  const { toast } = useToast();
+
   // Centralized authentication check helper - ALL tab switches MUST use this
   const setTabWithAuthCheck = (tabName: string) => {
     const userId = localStorage.getItem('currentUserId');
@@ -1937,6 +1944,165 @@ export default function Home() {
     } else {
       // Unauthorized user - show coming soon modal
       setShowTradingMasterComingSoon(true);
+    }
+  };
+
+  // Prepare Report Card Data from Trading Data
+  const prepareReportCardData = useCallback((journalData: any) => {
+    try {
+      
+      // Calculate total performance metrics
+      let totalPnL = 0;
+      let totalTrades = 0;
+      let winningTrades = 0;
+      let datesCount = 0;
+      const trendData: Array<{ date: string; pnl: number; formattedDate: string }> = [];
+      const lossTagsMap: Map<string, { count: number; totalLoss: number }> = new Map();
+      
+      Object.entries(journalData).forEach(([dateKey, dayData]: [string, any]) => {
+        const metrics = dayData?.performanceMetrics;
+        
+        if (metrics) {
+          const netPnL = metrics.netPnL || 0;
+          
+          // Only include dates with actual trading activity
+          if (netPnL !== 0) {
+            totalPnL += netPnL;
+            totalTrades += metrics.totalTrades || 0;
+            winningTrades += metrics.winningTrades || 0;
+            datesCount++;
+            
+            // Add to trend data
+            const date = new Date(dateKey);
+            trendData.push({
+              date: dateKey,
+              pnl: netPnL,
+              formattedDate: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+            });
+            
+            // Analyze loss tags
+            if (netPnL < 0) {
+              const tags = dayData?.tradingTags || [];
+              tags.forEach((tag: string) => {
+                const existing = lossTagsMap.get(tag) || { count: 0, totalLoss: 0 };
+                lossTagsMap.set(tag, {
+                  count: existing.count + 1,
+                  totalLoss: existing.totalLoss + Math.abs(netPnL),
+                });
+              });
+            }
+          }
+        }
+      });
+      
+      // Convert loss tags map to array and sort by total loss
+      const lossTags = Array.from(lossTagsMap.entries())
+        .map(([tag, data]) => ({ tag, ...data }))
+        .sort((a, b) => b.totalLoss - a.totalLoss);
+      
+      // Sort trend data by date
+      trendData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+      const isProfitable = totalPnL >= 0;
+      
+      return {
+        totalPnL,
+        winRate,
+        totalTrades,
+        datesCount,
+        lossTags,
+        trendData,
+        isProfitable,
+      };
+    } catch (error) {
+      console.error('Error preparing report card data:', error);
+      return null;
+    }
+  }, []);
+
+  // Social Media Report Card Share Handler
+  const handleShareReportCard = async () => {
+    try {
+      setIsSharing(true);
+      toast({
+        title: "Generating Report Card",
+        description: "Creating your trading performance report card...",
+      });
+
+      // Prepare report card data (get tradingDataByDate from localStorage as fallback)
+      let journalData = {};
+      try {
+        const allDatesResponse = await fetch(getFullApiUrl("/api/journal/all-dates"));
+        if (allDatesResponse.ok) {
+          journalData = await allDatesResponse.json();
+        }
+      } catch (error) {
+        const localData = localStorage.getItem("tradingDataByDate");
+        if (localData) {
+          journalData = JSON.parse(localData);
+        }
+      }
+      
+      const cardData = prepareReportCardData(journalData);
+      if (!cardData || cardData.datesCount === 0) {
+        throw new Error('No trading data available for report card');
+      }
+      
+      setReportCardData(cardData);
+      
+      // Wait for the component to render with the new data
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const reportCardElement = document.getElementById('report-card-container');
+      if (!reportCardElement) {
+        throw new Error('Report card container not found');
+      }
+
+      // Generate the image
+      const dataUrl = await toPng(reportCardElement, {
+        cacheBust: true,
+        pixelRatio: 2, // Higher quality
+        backgroundColor: '#f8fafc',
+      });
+
+      // Convert data URL to blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+
+      // Create a download link as fallback
+      const link = document.createElement('a');
+      link.download = 'trading-report-card.png';
+      link.href = dataUrl;
+      link.click();
+
+      // Prepare Twitter share text
+      const twitterText = encodeURIComponent(
+        "📊 Check out my trading performance!\n\n" +
+        "🚀 Advanced Trading Journal - Track emotions & behavior with realistic data\n" +
+        "💹 Works on ALL markets: NSE | Crypto | Forex | Commodity\n" +
+        "✨ 100% FREE\n\n" +
+        "#Trading #StockMarket #TradingJournal"
+      );
+
+      // Open Twitter share intent
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${twitterText}`;
+      window.open(twitterUrl, '_blank');
+
+      toast({
+        title: "Success!",
+        description: "Report card generated! Image downloaded and Twitter opened.",
+      });
+
+    } catch (error) {
+      console.error('Error generating report card:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate report card. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -9522,10 +9688,19 @@ ${
                                 
                                 {/* Share Icon */}
                                 <div className="flex items-center justify-center" data-testid="button-share">
-                                  <button className="w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors flex items-center justify-center">
-                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                                    </svg>
+                                  <button 
+                                    className="w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors flex items-center justify-center disabled:opacity-50"
+                                    onClick={handleShareReportCard}
+                                    disabled={isSharing}
+                                    title="Share trading report card"
+                                  >
+                                    {isSharing ? (
+                                      <RotateCcw className="w-3.5 h-3.5 text-white animate-spin" />
+                                    ) : (
+                                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                      </svg>
+                                    )}
                                   </button>
                                 </div>
                               </div>
@@ -12463,6 +12638,11 @@ ${
               </div>
             </div>
           </div>
+        )}
+        
+        {/* Report Card Composer - Hidden off-screen for image generation */}
+        {reportCardData && (
+          <ReportCardComposer data={reportCardData} />
         )}
       </div>
     </div>

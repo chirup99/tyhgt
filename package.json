@@ -75,6 +75,7 @@
     "firebase-admin": "^13.4.0",
     "firebase-tools": "^14.25.0",
     "framer-motion": "^11.13.1",
+    "html-to-image": "^1.11.13",
     "input-otp": "^1.4.2",
     "install": "^0.13.0",
     "lightweight-charts": "^5.0.8",
