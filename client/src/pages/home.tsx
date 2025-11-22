@@ -12553,6 +12553,138 @@ ${
                 </div>
               </div>
               
+              {/* Total P&L, Performance Trend, Losses Tags Card */}
+              <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                {(() => {
+                  const filteredData = getFilteredHeatmapData();
+                  const dates = Object.keys(filteredData).sort();
+                  
+                  let totalPnL = 0;
+                  let totalTrades = 0;
+                  let winningTrades = 0;
+                  let losingTrades = 0;
+                  let consecutiveWins = 0;
+                  let maxWinStreak = 0;
+                  const trendData: number[] = [];
+                  const lossTagsMap = new Map<string, number>();
+                  
+                  dates.forEach(dateKey => {
+                    const dayData = filteredData[dateKey];
+                    const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                    const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                    
+                    if (metrics) {
+                      const netPnL = metrics.netPnL || 0;
+                      totalPnL += netPnL;
+                      totalTrades += metrics.totalTrades || 0;
+                      winningTrades += metrics.winningTrades || 0;
+                      trendData.push(netPnL);
+                      
+                      if (netPnL > 0) {
+                        consecutiveWins++;
+                        maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
+                      } else if (netPnL < 0) {
+                        losingTrades += 1;
+                        consecutiveWins = 0;
+                        
+                        // Track tags from loss days
+                        if (Array.isArray(tags) && tags.length > 0) {
+                          tags.forEach((tag: string) => {
+                            const normalizedTag = tag.trim().toLowerCase();
+                            lossTagsMap.set(normalizedTag, (lossTagsMap.get(normalizedTag) || 0) + 1);
+                          });
+                        }
+                      }
+                    }
+                  });
+                  
+                  const isProfitable = totalPnL >= 0;
+                  const lossTags = Array.from(lossTagsMap.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([tag, count]) => ({ tag, count }));
+                  
+                  // Create performance trend path
+                  const createTrendPath = (data: number[]) => {
+                    if (data.length === 0) return '';
+                    const max = Math.max(...data, 0);
+                    const min = Math.min(...data, 0);
+                    const range = max - min || 1;
+                    const width = 120;
+                    const height = 40;
+                    
+                    const points = data.map((val, i) => {
+                      const x = (i / (data.length - 1 || 1)) * width;
+                      const y = height - ((val - min) / range) * height;
+                      return `${x},${y}`;
+                    }).join(' L ');
+                    
+                    return `M ${points}`;
+                  };
+                  
+                  return (
+                    <div className="space-y-4">
+                      {/* Total P&L Section */}
+                      <div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 uppercase font-semibold mb-1">Total P&L</div>
+                        <div className={`text-3xl font-bold ${isProfitable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {isProfitable ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {totalTrades} trades • {winningTrades} wins • {losingTrades} losses
+                        </div>
+                      </div>
+                      
+                      {/* Performance Trend Chart */}
+                      <div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 uppercase font-semibold mb-2">Performance Trend</div>
+                        <svg viewBox="0 0 120 40" className="w-full h-16 bg-gray-50 dark:bg-gray-800 rounded">
+                          {/* Baseline */}
+                          <line x1="0" y1="20" x2="120" y2="20" stroke="#d1d5db" strokeWidth="0.5" strokeDasharray="2,2" />
+                          
+                          {/* Trend line */}
+                          <path
+                            d={createTrendPath(trendData)}
+                            fill="none"
+                            stroke={isProfitable ? '#16a34a' : '#dc2626'}
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          
+                          {/* Fill under line */}
+                          <path
+                            d={`${createTrendPath(trendData)} L 120 40 L 0 40 Z`}
+                            fill={isProfitable ? '#16a34a' : '#dc2626'}
+                            opacity="0.1"
+                          />
+                        </svg>
+                      </div>
+                      
+                      {/* Losses Tags Window */}
+                      {lossTags.length > 0 && (
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 uppercase font-semibold mb-2">Loss Tags</div>
+                          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded p-3">
+                            <div className="flex flex-wrap gap-2">
+                              {lossTags.map(({ tag, count }) => (
+                                <div
+                                  key={tag}
+                                  className="px-2.5 py-1 bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700 rounded text-xs font-medium text-red-800 dark:text-red-300 flex items-center gap-1"
+                                  data-testid={`tag-loss-${tag}`}
+                                >
+                                  <span>{tag}</span>
+                                  <span className="text-[10px] opacity-70">({count})</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+              
               {/* Stats Bar - Same as in the journal view */}
               <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative flex-shrink-0">
                 <div className="flex items-center justify-around text-white gap-1">
