@@ -1950,6 +1950,8 @@ export default function Home() {
   // Prepare Report Card Data from Trading Data
   const prepareReportCardData = useCallback((journalData: any) => {
     try {
+      const totalDatesInInput = Object.keys(journalData).length;
+      console.log(`📊 prepareReportCardData received ${totalDatesInInput} dates`);
       
       // Calculate total performance metrics
       let totalPnL = 0;
@@ -1960,36 +1962,36 @@ export default function Home() {
       const lossTagsMap: Map<string, { count: number; totalLoss: number }> = new Map();
       
       Object.entries(journalData).forEach(([dateKey, dayData]: [string, any]) => {
+        // Include ALL trading days (even if they don't have performanceMetrics)
         const metrics = dayData?.performanceMetrics;
+        const netPnL = metrics?.netPnL || 0;
+        const trades = metrics?.totalTrades || 0;
+        const winning = metrics?.winningTrades || 0;
         
-        // Include ALL trading days (even zero P&L days) for complete heatmap summary
-        if (metrics) {
-          const netPnL = metrics.netPnL || 0;
-          
-          totalPnL += netPnL;
-          totalTrades += metrics.totalTrades || 0;
-          winningTrades += metrics.winningTrades || 0;
-          datesCount++;
-          
-          // Add to trend data
-          const date = new Date(dateKey);
-          trendData.push({
-            date: dateKey,
-            pnl: netPnL,
-            formattedDate: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-          });
-          
-          // Analyze loss tags (only for losing days)
-          if (netPnL < 0) {
-            const tags = dayData?.tradingTags || [];
-            tags.forEach((tag: string) => {
-              const existing = lossTagsMap.get(tag) || { count: 0, totalLoss: 0 };
-              lossTagsMap.set(tag, {
-                count: existing.count + 1,
-                totalLoss: existing.totalLoss + Math.abs(netPnL),
-              });
+        // Count all dates, process all P&L values
+        totalPnL += netPnL;
+        totalTrades += trades;
+        winningTrades += winning;
+        datesCount++;
+        
+        // Add to trend data (all dates, even zero P&L)
+        const date = new Date(dateKey);
+        trendData.push({
+          date: dateKey,
+          pnl: netPnL,
+          formattedDate: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        });
+        
+        // Analyze loss tags (only for losing days)
+        if (netPnL < 0) {
+          const tags = dayData?.tradingTags || [];
+          tags.forEach((tag: string) => {
+            const existing = lossTagsMap.get(tag) || { count: 0, totalLoss: 0 };
+            lossTagsMap.set(tag, {
+              count: existing.count + 1,
+              totalLoss: existing.totalLoss + Math.abs(netPnL),
             });
-          }
+          });
         }
       });
       
@@ -2000,6 +2002,9 @@ export default function Home() {
       
       // Sort trend data by date
       trendData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      console.log(`📊 prepareReportCardData processed ${datesCount} dates (${trendData.length} in trend data)`);
+      console.log(`📊 Sample dates in trendData:`, trendData.slice(0, 5).map(d => d.date));
       
       const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
       const isProfitable = totalPnL >= 0;
@@ -12642,6 +12647,9 @@ ${
             </div>
           </div>
         )}
+        
+        {/* Report Card Composer - Always rendered (hidden off-screen) for image generation */}
+        <ReportCardComposer data={reportCardData} />
       </div>
     </div>
   );

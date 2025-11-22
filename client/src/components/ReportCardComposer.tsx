@@ -13,10 +13,21 @@ interface ReportCardData {
 }
 
 interface ReportCardComposerProps {
-  data: ReportCardData;
+  data: ReportCardData | null;
 }
 
 export function ReportCardComposer({ data }: ReportCardComposerProps) {
+  // Handle null data gracefully - render empty container
+  if (!data) {
+    return (
+      <div 
+        id="report-card-container"
+        className="w-[1080px] h-[1350px]"
+        style={{ position: 'fixed', left: '-9999px', top: '0', visibility: 'hidden' }}
+      />
+    );
+  }
+  
   const { totalPnL, winRate, totalTrades, datesCount, lossTags, trendData, isProfitable } = data;
 
   return (
