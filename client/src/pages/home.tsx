@@ -12558,7 +12558,7 @@ ${
                 <div className="flex items-center justify-around text-white gap-1">
                   {(() => {
                     const filteredData = getFilteredHeatmapData();
-                    const dates = Object.keys(filteredData);
+                    const dates = Object.keys(filteredData).sort();
                     
                     let totalPnL = 0;
                     let totalTrades = 0;
@@ -12566,6 +12566,8 @@ ${
                     let fomoTrades = 0;
                     let consecutiveWins = 0;
                     let maxWinStreak = 0;
+                    const trendData: number[] = [];
+                    const fomoDates: string[] = [];
                     
                     dates.forEach(dateKey => {
                       const dayData = filteredData[dateKey];
@@ -12574,27 +12576,47 @@ ${
                       
                       if (metrics) {
                         const netPnL = metrics.netPnL || 0;
-                        if (netPnL !== 0) {
-                          totalPnL += netPnL;
-                          totalTrades += metrics.totalTrades || 0;
-                          winningTrades += metrics.winningTrades || 0;
-                          
-                          if (netPnL > 0) {
-                            consecutiveWins++;
-                            maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
-                          } else {
-                            consecutiveWins = 0;
-                          }
+                        totalPnL += netPnL;
+                        totalTrades += metrics.totalTrades || 0;
+                        winningTrades += metrics.winningTrades || 0;
+                        trendData.push(netPnL);
+                        
+                        if (netPnL > 0) {
+                          consecutiveWins++;
+                          maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
+                        } else {
+                          consecutiveWins = 0;
                         }
                       }
                       
-                      if (tags.includes('fomo')) {
+                      // Normalize tag matching
+                      const normalizedTags = Array.isArray(tags) ? tags.map((t: string) => t.trim().toLowerCase()) : [];
+                      if (normalizedTags.includes('fomo')) {
                         fomoTrades++;
+                        fomoDates.push(dateKey);
                       }
                     });
                     
                     const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
                     const isProfitable = totalPnL >= 0;
+                    
+                    // Create trend path from data
+                    const createTrendPath = (data: number[]) => {
+                      if (data.length === 0) return '';
+                      const max = Math.max(...data, 0);
+                      const min = Math.min(...data, 0);
+                      const range = max - min || 1;
+                      const width = 40;
+                      const height = 20;
+                      
+                      const points = data.map((val, i) => {
+                        const x = (i / (data.length - 1 || 1)) * width;
+                        const y = height - ((val - min) / range) * height;
+                        return `${x},${y}`;
+                      }).join(' L ');
+                      
+                      return `M ${points}`;
+                    };
                     
                     return (
                       <>
@@ -12606,27 +12628,42 @@ ${
                           </div>
                         </div>
                         
-                        {/* Trend */}
+                        {/* Trend - Real data visualization */}
                         <div className="flex flex-col items-center justify-center">
                           <div className="text-[10px] opacity-80">Trend</div>
                           <div className="w-8 h-4">
                             <svg viewBox="0 0 40 20" className="w-full h-full">
                               <path
-                                d="M 0 15 Q 10 10 20 12 T 40 8"
+                                d={createTrendPath(trendData)}
                                 fill="none"
                                 stroke="white"
                                 strokeWidth="1.5"
                                 opacity="0.9"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                               />
                             </svg>
                           </div>
                         </div>
                         
-                        {/* FOMO */}
-                        <div className="flex flex-col items-center justify-center">
+                        {/* FOMO - Interactive */}
+                        <button
+                          onClick={() => {
+                            if (activeTagHighlight?.tag === 'fomo') {
+                              setActiveTagHighlight(null);
+                            } else {
+                              setActiveTagHighlight({ tag: 'fomo', dates: fomoDates });
+                            }
+                          }}
+                          className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                            activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                          }`}
+                          data-testid="stat-fomo-share"
+                          title={`Click to ${activeTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
+                        >
                           <div className="text-[10px] opacity-80">FOMO</div>
                           <div className="text-xs font-bold">{fomoTrades}</div>
-                        </div>
+                        </button>
                         
                         {/* Win% */}
                         <div className="flex flex-col items-center justify-center">
