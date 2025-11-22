@@ -12682,7 +12682,7 @@ ${
                 </div>
               </div>
               
-              {/* Total P&L, Performance Trend, Losses Tags - Side by Side Below Purple Bar */}
+              {/* Analytics Row: Total P&L, Performance Trend, Top Tags */}
               <div className="grid grid-cols-3 gap-3">
                 {(() => {
                   const filteredData = getFilteredHeatmapData();
@@ -12691,9 +12691,8 @@ ${
                   let totalPnL = 0;
                   let totalTrades = 0;
                   let winningTrades = 0;
-                  let losingTrades = 0;
                   const trendData: number[] = [];
-                  const lossTagsMap = new Map<string, number>();
+                  const tagStatsMap = new Map<string, { count: number; winningTrades: number; totalTrades: number }>();
                   
                   dates.forEach(dateKey => {
                     const dayData = filteredData[dateKey];
@@ -12707,22 +12706,32 @@ ${
                       winningTrades += metrics.winningTrades || 0;
                       trendData.push(netPnL);
                       
-                      if (netPnL < 0) {
-                        losingTrades += 1;
-                        if (Array.isArray(tags) && tags.length > 0) {
-                          tags.forEach((tag: string) => {
-                            const normalizedTag = tag.trim().toLowerCase();
-                            lossTagsMap.set(normalizedTag, (lossTagsMap.get(normalizedTag) || 0) + 1);
-                          });
-                        }
+                      // Track tag statistics
+                      if (Array.isArray(tags) && tags.length > 0) {
+                        tags.forEach((tag: string) => {
+                          const normalizedTag = tag.trim().toLowerCase();
+                          const current = tagStatsMap.get(normalizedTag) || { count: 0, winningTrades: 0, totalTrades: 0 };
+                          current.count += 1;
+                          current.totalTrades += metrics.totalTrades || 0;
+                          current.winningTrades += metrics.winningTrades || 0;
+                          tagStatsMap.set(normalizedTag, current);
+                        });
                       }
                     }
                   });
                   
                   const isProfitable = totalPnL >= 0;
-                  const lossTags = Array.from(lossTagsMap.entries())
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([tag, count]) => ({ tag, count }));
+                  const successRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                  
+                  const topTags = Array.from(tagStatsMap.entries())
+                    .map(([tag, stats]) => ({
+                      tag,
+                      count: stats.count,
+                      successRate: stats.totalTrades > 0 ? (stats.winningTrades / stats.totalTrades) * 100 : 0,
+                      pnl: stats.totalTrades * (successRate / 100)
+                    }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5);
                   
                   const createTrendPath = (data: number[]) => {
                     if (data.length === 0) return '';
@@ -12743,61 +12752,87 @@ ${
                   
                   return (
                     <>
-                      {/* Column 1: Total P&L */}
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                        <div className="text-[10px] text-gray-600 dark:text-gray-400 uppercase font-semibold mb-2">Total P&L</div>
-                        <div className={`text-2xl font-bold ${isProfitable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {isProfitable ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                      {/* Column 1: Total P&L - Red Card */}
+                      <div className={`rounded-lg p-4 text-white ${isProfitable ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-red-500 to-red-600'}`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="text-[11px] opacity-90 uppercase font-semibold">Total P&L</div>
+                          <div className="w-6 h-6 rounded-full border-2 border-white/50 flex items-center justify-center">
+                            <span className="text-[10px]">₹</span>
+                          </div>
                         </div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2 space-y-1">
-                          <div>{totalTrades} trades</div>
-                          <div className="text-green-600 dark:text-green-400">{winningTrades} wins</div>
-                          <div className="text-red-600 dark:text-red-400">{losingTrades} losses</div>
+                        <div className={`text-3xl font-bold mb-3`}>
+                          {isProfitable ? '+' : ''}₹{(Math.abs(totalPnL) / 1000).toFixed(1)}K
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[12px]">
+                            <span>Total Trades</span>
+                            <span className="font-semibold">{totalTrades}</span>
+                          </div>
+                          <div className="flex justify-between text-[12px]">
+                            <span>Success Rate</span>
+                            <span className="font-semibold">{successRate.toFixed(1)}%</span>
+                          </div>
+                          <div className="mt-2">
+                            <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-white/80 rounded-full transition-all"
+                                style={{ width: `${successRate}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
                       {/* Column 2: Performance Trend */}
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                        <div className="text-[10px] text-gray-600 dark:text-gray-400 uppercase font-semibold mb-2">Performance Trend</div>
-                        <svg viewBox="0 0 100 35" className="w-full bg-gray-50 dark:bg-gray-800 rounded">
-                          <line x1="0" y1="17.5" x2="100" y2="17.5" stroke="#d1d5db" strokeWidth="0.5" strokeDasharray="2,2" />
+                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="text-[11px] text-gray-600 dark:text-gray-400 uppercase font-semibold">Performance Trend</div>
+                          <div className={`text-[10px] px-2 py-1 rounded ${isProfitable ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
+                            {isProfitable ? 'Profitable' : 'Not Profitable'}
+                          </div>
+                        </div>
+                        <svg viewBox="0 0 100 45" className="w-full" style={{ height: '120px' }}>
+                          <line x1="0" y1="22.5" x2="100" y2="22.5" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.2" />
                           <path
                             d={createTrendPath(trendData)}
                             fill="none"
                             stroke={isProfitable ? '#16a34a' : '#dc2626'}
-                            strokeWidth="1.5"
+                            strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                          />
-                          <path
-                            d={`${createTrendPath(trendData)} L 100 35 L 0 35 Z`}
-                            fill={isProfitable ? '#16a34a' : '#dc2626'}
-                            opacity="0.1"
                           />
                         </svg>
                       </div>
                       
-                      {/* Column 3: Loss Tags */}
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                        <div className="text-[10px] text-gray-600 dark:text-gray-400 uppercase font-semibold mb-2">Loss Tags</div>
-                        {lossTags.length > 0 ? (
-                          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-2 max-h-20 overflow-y-auto">
-                            <div className="space-y-1">
-                              {lossTags.map(({ tag, count }) => (
-                                <div
-                                  key={tag}
-                                  className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 rounded text-[10px] font-medium text-red-800 dark:text-red-300 flex items-center justify-between"
-                                  data-testid={`tag-loss-${tag}`}
-                                >
-                                  <span className="truncate">{tag}</span>
-                                  <span className="ml-1 flex-shrink-0">({count})</span>
-                                </div>
-                              ))}
-                            </div>
+                      {/* Column 3: Top Tags */}
+                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                            <span className="text-purple-600 dark:text-purple-400 text-sm">📊</span>
                           </div>
-                        ) : (
-                          <div className="text-[11px] text-gray-500 dark:text-gray-400 italic">No loss tags</div>
-                        )}
+                          <div className="text-[11px] text-gray-600 dark:text-gray-400 uppercase font-semibold">Top Tags</div>
+                          <div className="text-[10px] text-gray-500 dark:text-gray-500">Strategy Performance</div>
+                        </div>
+                        <div className="space-y-2">
+                          {topTags.length > 0 ? (
+                            topTags.map(({ tag, successRate }) => (
+                              <div key={tag} className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                <div className="text-[12px] text-gray-700 dark:text-gray-300 capitalize font-medium">{tag}</div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-12 h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-green-500 rounded-full"
+                                      style={{ width: `${Math.min(successRate, 100)}%` }}
+                                    />
+                                  </div>
+                                  <div className="text-[11px] text-green-600 dark:text-green-400 font-semibold min-w-fit">+₹{((successRate / 100) * 1000).toFixed(0)}</div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-[12px] text-gray-500 dark:text-gray-400 italic py-2">No tags data</div>
+                          )}
+                        </div>
                       </div>
                     </>
                   );
