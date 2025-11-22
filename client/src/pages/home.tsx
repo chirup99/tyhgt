@@ -9222,85 +9222,104 @@ ${
                         </div>
                         
                         {/* Curved Lines Overlay - connects FOMO tag block to highlighted dates */}
-                        {activeTagHighlight?.tag === 'fomo' && activeTagHighlight.dates.length > 0 && (
-                          <svg 
-                            className="absolute inset-0 pointer-events-none z-10"
-                            style={{ width: '100%', height: '100%' }}
-                          >
-                            {(() => {
-                              // Calculate curved paths from FOMO button to each highlighted date cell
-                              const paths: JSX.Element[] = [];
+                        {activeTagHighlight?.tag === 'fomo' && activeTagHighlight.dates.length > 0 && (() => {
+                          // Calculate curved paths from FOMO button to each highlighted date cell
+                          const paths: JSX.Element[] = [];
+                          
+                          if (!fomoButtonRef.current || !heatmapContainerRef.current) {
+                            return null;
+                          }
+                          
+                          // Get scrollable dimensions (like DemoHeatmap does)
+                          const scrollWidth = heatmapContainerRef.current.scrollWidth || 0;
+                          const scrollHeight = heatmapContainerRef.current.scrollHeight || 0;
+                          const scrollLeft = heatmapContainerRef.current.scrollLeft || 0;
+                          const scrollTop = heatmapContainerRef.current.scrollTop || 0;
+                          
+                          // Get positions relative to the heatmap's scrollable content
+                          const containerRect = heatmapContainerRef.current.getBoundingClientRect();
+                          const buttonRect = fomoButtonRef.current.getBoundingClientRect();
+                          
+                          // Calculate button position relative to scrollable content
+                          const buttonCenterX = buttonRect.left - containerRect.left + scrollLeft + buttonRect.width / 2;
+                          const buttonCenterY = buttonRect.top - containerRect.top + scrollTop + buttonRect.height / 2;
+                          
+                          // Find all highlighted date cells and draw curved lines to them
+                          activeTagHighlight.dates.forEach((date, index) => {
+                            // Find the heatmap cell for this date
+                            const cellElement = heatmapContainerRef.current?.querySelector(
+                              `[data-date="${date}"]`
+                            );
+                            
+                            if (cellElement) {
+                              const cellRect = cellElement.getBoundingClientRect();
                               
-                              if (!fomoButtonRef.current || !heatmapContainerRef.current) {
-                                return null;
-                              }
+                              // Calculate cell position relative to scrollable content
+                              const cellCenterX = cellRect.left - containerRect.left + scrollLeft + cellRect.width / 2;
+                              const cellCenterY = cellRect.top - containerRect.top + scrollTop + cellRect.height / 2;
                               
-                              // Get FOMO button position relative to heatmap container
-                              const buttonRect = fomoButtonRef.current.getBoundingClientRect();
-                              const containerRect = heatmapContainerRef.current.getBoundingClientRect();
+                              // Create quadratic Bezier curve (Q command)
+                              // Control point is positioned to create a nice arc
+                              const controlX = (buttonCenterX + cellCenterX) / 2;
+                              const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
                               
-                              const buttonCenterX = buttonRect.left + buttonRect.width / 2 - containerRect.left;
-                              const buttonCenterY = buttonRect.top + buttonRect.height / 2 - containerRect.top;
+                              const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
                               
-                              // Find all highlighted date cells and draw curved lines to them
-                              activeTagHighlight.dates.forEach((date, index) => {
-                                // Find the heatmap cell for this date
-                                const cellElement = heatmapContainerRef.current?.querySelector(
-                                  `[data-date="${date}"]`
-                                );
-                                
-                                if (cellElement) {
-                                  const cellRect = cellElement.getBoundingClientRect();
-                                  const cellCenterX = cellRect.left + cellRect.width / 2 - containerRect.left;
-                                  const cellCenterY = cellRect.top + cellRect.height / 2 - containerRect.top;
-                                  
-                                  // Create quadratic Bezier curve (Q command)
-                                  // Control point is positioned to create a nice arc
-                                  const controlX = (buttonCenterX + cellCenterX) / 2;
-                                  const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
-                                  
-                                  const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
-                                  
-                                  paths.push(
-                                    <g key={`connection-${date}-${index}`}>
-                                      {/* Line with gradient and animation */}
-                                      <path
-                                        d={pathD}
-                                        fill="none"
-                                        stroke="url(#curvedLineGradient)"
-                                        strokeWidth="2"
-                                        strokeDasharray="5,5"
-                                        className="animate-pulse"
-                                        opacity="0.6"
-                                      />
-                                      {/* Dot at the end of each line */}
-                                      <circle
-                                        cx={cellCenterX}
-                                        cy={cellCenterY}
-                                        r="3"
-                                        fill="#fbbf24"
-                                        className="animate-pulse"
-                                      />
-                                    </g>
-                                  );
-                                }
-                              });
-                              
-                              return (
-                                <>
-                                  {/* Define gradient for the curved lines */}
-                                  <defs>
-                                    <linearGradient id="curvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                      <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
-                                      <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.8" />
-                                    </linearGradient>
-                                  </defs>
-                                  {paths}
-                                </>
+                              paths.push(
+                                <g key={`connection-${date}-${index}`}>
+                                  {/* Bright colored line with dashed pattern */}
+                                  <path
+                                    d={pathD}
+                                    fill="none"
+                                    stroke="url(#curvedLineGradient)"
+                                    strokeWidth="2.5"
+                                    strokeDasharray="6,4"
+                                    opacity="0.95"
+                                  />
+                                  {/* Glowing dot at the end of each line */}
+                                  <circle
+                                    cx={cellCenterX}
+                                    cy={cellCenterY}
+                                    r="4"
+                                    fill="#fcd34d"
+                                    opacity="0.9"
+                                  />
+                                  <circle
+                                    cx={cellCenterX}
+                                    cy={cellCenterY}
+                                    r="3"
+                                    fill="#fbbf24"
+                                    className="animate-pulse"
+                                  />
+                                </g>
                               );
-                            })()}
-                          </svg>
-                        )}
+                            }
+                          });
+                          
+                          return (
+                            <svg
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: `${scrollWidth}px`,
+                                height: `${scrollHeight}px`,
+                                pointerEvents: 'none',
+                                zIndex: 10,
+                              }}
+                            >
+                              {/* Define bright gradient for the curved lines */}
+                              <defs>
+                                <linearGradient id="curvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                  <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
+                                  <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
+                                  <stop offset="100%" stopColor="#fbbf24" stopOpacity="1" />
+                                </linearGradient>
+                              </defs>
+                              {paths}
+                            </svg>
+                          );
+                        })()}
                         </div>
 
                         {/* Quick Stats Banner */}
