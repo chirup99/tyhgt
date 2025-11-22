@@ -4050,6 +4050,10 @@ ${
     tag: string;
     dates: string[];
   } | null>(null);
+  
+  // Refs for curved line connections from tag block to heatmap dates
+  const fomoButtonRef = useRef<HTMLButtonElement>(null);
+  const heatmapContainerRef = useRef<HTMLDivElement>(null);
 
   // Date range selection state
   const [fromDate, setFromDate] = useState<Date | null>(null);
@@ -9194,7 +9198,8 @@ ${
                         </div>
 
                         {/* ✅ NEW CLEAN HEATMAP IMPLEMENTATION - Separate components for Demo & Personal */}
-                         <div className="pt-2">
+                        <div className="relative">
+                         <div ref={heatmapContainerRef} className="pt-2">
                           {isDemoMode ? (
                             <DemoHeatmap 
                               onDateSelect={handleDateSelect}
@@ -9214,6 +9219,88 @@ ${
                               highlightedDates={activeTagHighlight}
                             />
                           )}
+                        </div>
+                        
+                        {/* Curved Lines Overlay - connects FOMO tag block to highlighted dates */}
+                        {activeTagHighlight?.tag === 'fomo' && activeTagHighlight.dates.length > 0 && (
+                          <svg 
+                            className="absolute inset-0 pointer-events-none z-10"
+                            style={{ width: '100%', height: '100%' }}
+                          >
+                            {(() => {
+                              // Calculate curved paths from FOMO button to each highlighted date cell
+                              const paths: JSX.Element[] = [];
+                              
+                              if (!fomoButtonRef.current || !heatmapContainerRef.current) {
+                                return null;
+                              }
+                              
+                              // Get FOMO button position relative to heatmap container
+                              const buttonRect = fomoButtonRef.current.getBoundingClientRect();
+                              const containerRect = heatmapContainerRef.current.getBoundingClientRect();
+                              
+                              const buttonCenterX = buttonRect.left + buttonRect.width / 2 - containerRect.left;
+                              const buttonCenterY = buttonRect.top + buttonRect.height / 2 - containerRect.top;
+                              
+                              // Find all highlighted date cells and draw curved lines to them
+                              activeTagHighlight.dates.forEach((date, index) => {
+                                // Find the heatmap cell for this date
+                                const cellElement = heatmapContainerRef.current?.querySelector(
+                                  `[data-date="${date}"]`
+                                );
+                                
+                                if (cellElement) {
+                                  const cellRect = cellElement.getBoundingClientRect();
+                                  const cellCenterX = cellRect.left + cellRect.width / 2 - containerRect.left;
+                                  const cellCenterY = cellRect.top + cellRect.height / 2 - containerRect.top;
+                                  
+                                  // Create quadratic Bezier curve (Q command)
+                                  // Control point is positioned to create a nice arc
+                                  const controlX = (buttonCenterX + cellCenterX) / 2;
+                                  const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
+                                  
+                                  const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
+                                  
+                                  paths.push(
+                                    <g key={`connection-${date}-${index}`}>
+                                      {/* Line with gradient and animation */}
+                                      <path
+                                        d={pathD}
+                                        fill="none"
+                                        stroke="url(#curvedLineGradient)"
+                                        strokeWidth="2"
+                                        strokeDasharray="5,5"
+                                        className="animate-pulse"
+                                        opacity="0.6"
+                                      />
+                                      {/* Dot at the end of each line */}
+                                      <circle
+                                        cx={cellCenterX}
+                                        cy={cellCenterY}
+                                        r="3"
+                                        fill="#fbbf24"
+                                        className="animate-pulse"
+                                      />
+                                    </g>
+                                  );
+                                }
+                              });
+                              
+                              return (
+                                <>
+                                  {/* Define gradient for the curved lines */}
+                                  <defs>
+                                    <linearGradient id="curvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                      <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
+                                      <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.8" />
+                                    </linearGradient>
+                                  </defs>
+                                  {paths}
+                                </>
+                              );
+                            })()}
+                          </svg>
+                        )}
                         </div>
 
                         {/* Quick Stats Banner */}
@@ -9311,6 +9398,7 @@ ${
                                 
                                 {/* FOMO Trades - Clickable to highlight dates */}
                                 <button 
+                                  ref={fomoButtonRef}
                                   className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
                                     activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
                                   }`}
