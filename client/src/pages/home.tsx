@@ -1899,6 +1899,9 @@ export default function Home() {
   // Trading Master Coming Soon Modal State
   const [showTradingMasterComingSoon, setShowTradingMasterComingSoon] = useState(false);
   const { toast } = useToast();
+  
+  // Share tradebook modal state
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Centralized authentication check helper - ALL tab switches MUST use this
   const setTabWithAuthCheck = (tabName: string) => {
@@ -9524,6 +9527,16 @@ ${
                                   <div className="text-[10px] opacity-80">Streak</div>
                                   <div className="text-xs font-bold">{maxWinStreak}</div>
                                 </div>
+                                
+                                {/* Share Icon */}
+                                <button
+                                  className="flex items-center justify-center w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors"
+                                  onClick={() => setShowShareDialog(true)}
+                                  data-testid="button-share-tradebook"
+                                  title="Share tradebook"
+                                >
+                                  <Share2 className="w-3.5 h-3.5 text-white" />
+                                </button>
                               </div>
                             );
                           })()}
@@ -12460,6 +12473,126 @@ ${
             </div>
           </div>
         )}
+        
+        {/* Share Tradebook Dialog */}
+        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+          <DialogContent className="max-w-2xl" data-testid="dialog-share-tradebook">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">trade book</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Trading Calendar Heatmap */}
+              <div className="bg-white dark:bg-slate-900 rounded-lg p-4">
+                <h3 className="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
+                  Trading Calendar 2025
+                </h3>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  {Object.keys(getFilteredHeatmapData()).length} dates with data
+                </div>
+                {/* Use the existing PersonalHeatmap component */}
+                <PersonalHeatmap 
+                  userId={currentUser?.userId || null} 
+                  onDateSelect={() => {}} 
+                  selectedDate={null}
+                  onDataUpdate={() => {}}
+                />
+              </div>
+              
+              {/* Stats Bar - Same as in the journal view */}
+              <div className="mt-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative">
+                <div className="flex items-center justify-around text-white gap-1">
+                  {(() => {
+                    const filteredData = getFilteredHeatmapData();
+                    const dates = Object.keys(filteredData);
+                    
+                    let totalPnL = 0;
+                    let totalTrades = 0;
+                    let winningTrades = 0;
+                    let fomoTrades = 0;
+                    let consecutiveWins = 0;
+                    let maxWinStreak = 0;
+                    
+                    dates.forEach(dateKey => {
+                      const dayData = filteredData[dateKey];
+                      const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                      const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                      
+                      if (metrics) {
+                        const netPnL = metrics.netPnL || 0;
+                        if (netPnL !== 0) {
+                          totalPnL += netPnL;
+                          totalTrades += metrics.totalTrades || 0;
+                          winningTrades += metrics.winningTrades || 0;
+                          
+                          if (netPnL > 0) {
+                            consecutiveWins++;
+                            maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
+                          } else {
+                            consecutiveWins = 0;
+                          }
+                        }
+                      }
+                      
+                      if (tags.includes('fomo')) {
+                        fomoTrades++;
+                      }
+                    });
+                    
+                    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                    const isProfitable = totalPnL >= 0;
+                    
+                    return (
+                      <>
+                        {/* P&L */}
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="text-[10px] opacity-80">P&L</div>
+                          <div className="text-xs font-bold">
+                            {isProfitable ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                          </div>
+                        </div>
+                        
+                        {/* Trend */}
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="text-[10px] opacity-80">Trend</div>
+                          <div className="w-8 h-4">
+                            <svg viewBox="0 0 40 20" className="w-full h-full">
+                              <path
+                                d="M 0 15 Q 10 10 20 12 T 40 8"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                opacity="0.9"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        
+                        {/* FOMO */}
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="text-[10px] opacity-80">FOMO</div>
+                          <div className="text-xs font-bold">{fomoTrades}</div>
+                        </div>
+                        
+                        {/* Win% */}
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="text-[10px] opacity-80">Win%</div>
+                          <div className="text-xs font-bold">{winRate.toFixed(0)}%</div>
+                        </div>
+                        
+                        {/* Streak */}
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="text-[10px] opacity-80">Streak</div>
+                          <div className="text-xs font-bold">{maxWinStreak}</div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
