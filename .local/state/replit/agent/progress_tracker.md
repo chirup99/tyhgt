@@ -531,6 +531,19 @@
 [x] 1959. ✅ Workflow running successfully
 [x] 1960. ✅✅✅ FOMO CURVED LINES NOW WORKING IN SHARE DIALOG! ✅✅✅
 
+[x] 1961. NOVEMBER 22, 2025 - FOMO DASHED CURVED LINES IMPLEMENTED
+[x] 1962. Added curved dashed line feature to both heatmap components
+[x] 1963. ✅ Added highlightedLinePositions state to PersonalHeatmap
+[x] 1964. ✅ Added highlightedLinePositions state to DemoHeatmap
+[x] 1965. ✅ Added useEffect to calculate positions for all highlighted dates
+[x] 1966. ✅ Added SVG rendering with dashed curves (strokeDasharray="5,5")
+[x] 1967. ✅ Pink-to-purple gradient for FOMO lines matching trade book style
+[x] 1968. ✅ Lines connect all highlighted dates with smooth quadratic bezier curves
+[x] 1969. ✅ Full scroll support with event listeners
+[x] 1970. ✅ Works for both DemoHeatmap and PersonalHeatmap in share dialog
+[x] 1971. ✅ Workflow running successfully
+[x] 1972. ✅✅✅ FOMO DASHED CURVED LINES FULLY IMPLEMENTED! ✅✅✅
+
 [x] 1358. NOVEMBER 20, 2025 - FINAL MIGRATION VERIFICATION SESSION
 [x] 1359. User requested: "All progress tracker items must be marked as [x] done"
 [x] 1360. ✅ Verified workflow "Start application" is RUNNING successfully
