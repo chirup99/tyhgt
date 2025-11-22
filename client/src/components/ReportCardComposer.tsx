@@ -23,7 +23,14 @@ export function ReportCardComposer({ data }: ReportCardComposerProps) {
       <div 
         id="report-card-container"
         className="w-[1080px] h-[1350px]"
-        style={{ position: 'fixed', left: '-9999px', top: '0', visibility: 'hidden' }}
+        style={{ 
+          position: 'fixed', 
+          left: '0', 
+          top: '0', 
+          opacity: 0,
+          pointerEvents: 'none',
+          zIndex: -9999
+        }}
       />
     );
   }
@@ -34,7 +41,14 @@ export function ReportCardComposer({ data }: ReportCardComposerProps) {
     <div 
       id="report-card-container"
       className="w-[1080px] h-[1350px] bg-gradient-to-br from-slate-50 to-slate-100 p-12 flex flex-col"
-      style={{ position: 'fixed', left: '-9999px', top: '0' }}
+      style={{ 
+        position: 'fixed', 
+        left: '0', 
+        top: '0', 
+        opacity: 0,
+        pointerEvents: 'none',
+        zIndex: -9999
+      }}
     >
       {/* Header Section */}
       <div className="mb-8">
