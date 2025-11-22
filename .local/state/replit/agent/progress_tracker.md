@@ -521,6 +521,16 @@
 [x] 1950. ✅ Workflow running with updated dialog layout
 [x] 1951. ✅✅✅ TRADING CALENDAR HEADER BOX REMOVED - SHARE DIALOG CLEANER! ✅✅✅
 
+[x] 1952. NOVEMBER 22, 2025 - FOMO CURVED LINES FIXED IN SHARE DIALOG
+[x] 1953. Issue: FOMO button wasn't showing curved lines on heatmap
+[x] 1954. Root cause: Passed wrong prop name to heatmap components
+[x] 1955. ✅ Changed from activeTagHighlight={activeTagHighlight} to highlightedDates={activeTagHighlight}
+[x] 1956. ✅ Both DemoHeatmap and PersonalHeatmap expect prop called "highlightedDates"
+[x] 1957. ✅ activeTagHighlight state has correct structure: { tag: string, dates: string[] }
+[x] 1958. ✅ Works exactly like trade book window now
+[x] 1959. ✅ Workflow running successfully
+[x] 1960. ✅✅✅ FOMO CURVED LINES NOW WORKING IN SHARE DIALOG! ✅✅✅
+
 [x] 1358. NOVEMBER 20, 2025 - FINAL MIGRATION VERIFICATION SESSION
 [x] 1359. User requested: "All progress tracker items must be marked as [x] done"
 [x] 1360. ✅ Verified workflow "Start application" is RUNNING successfully
