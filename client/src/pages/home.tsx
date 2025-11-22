@@ -12511,46 +12511,25 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* Trading Calendar Heatmap - Dual-axis Scrollable */}
-              <div className="bg-white dark:bg-slate-900 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      Trading Calendar 2025
-                    </h3>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      {Object.keys(getFilteredHeatmapData()).length} dates with data
-                    </div>
-                  </div>
-                  {/* Perala watermark */}
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 animate-pulse"></div>
-                    <span className="text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                      perala
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Dual-axis scrollable heatmap container */}
-                <div className="max-h-96 overflow-auto thin-scrollbar">
-                  {isDemoMode ? (
-                    <DemoHeatmap 
-                      onDateSelect={() => {}}
-                      selectedDate={null}
-                      tradingDataByDate={tradingDataByDate}
-                      onDataUpdate={() => {}}
-                      isPublicView={true}
-                    />
-                  ) : (
-                    <PersonalHeatmap 
-                      userId={currentUser?.userId || null} 
-                      onDateSelect={() => {}} 
-                      selectedDate={null}
-                      onDataUpdate={() => {}}
-                      isPublicView={true}
-                    />
-                  )}
-                </div>
+              {/* Dual-axis scrollable heatmap container */}
+              <div className="max-h-96 overflow-auto thin-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
+                {isDemoMode ? (
+                  <DemoHeatmap 
+                    onDateSelect={() => {}}
+                    selectedDate={null}
+                    tradingDataByDate={tradingDataByDate}
+                    onDataUpdate={() => {}}
+                    isPublicView={true}
+                  />
+                ) : (
+                  <PersonalHeatmap 
+                    userId={currentUser?.userId || null} 
+                    onDateSelect={() => {}} 
+                    selectedDate={null}
+                    onDataUpdate={() => {}}
+                    isPublicView={true}
+                  />
+                )}
               </div>
               
               {/* Stats Bar - Same as in the journal view */}

@@ -509,6 +509,18 @@
 [x] 1939. ✅ Workflow running successfully with smooth trend visualization
 [x] 1940. ✅✅✅ REAL LOSS TAGS + SMOOTH TREND LINE FULLY IMPLEMENTED! ✅✅✅
 
+[x] 1941. NOVEMBER 22, 2025 - TRADING CALENDAR HEADER BOX REMOVED
+[x] 1942. User requested: Remove "Trading Calendar 2025" header box from share dialog
+[x] 1943. ✅ Removed wrapper div with Trading Calendar title
+[x] 1944. ✅ Removed "dates with data" subtitle text
+[x] 1945. ✅ Removed perala watermark badge section
+[x] 1946. ✅ Kept heatmap container with subtle border (gray-200/gray-700)
+[x] 1947. ✅ Share dialog now shows only heatmap + stats bar + analytics
+[x] 1948. ✅ Cleaner, less cluttered interface for sharing
+[x] 1949. ✅ No LSP errors - code clean and safe
+[x] 1950. ✅ Workflow running with updated dialog layout
+[x] 1951. ✅✅✅ TRADING CALENDAR HEADER BOX REMOVED - SHARE DIALOG CLEANER! ✅✅✅
+
 [x] 1358. NOVEMBER 20, 2025 - FINAL MIGRATION VERIFICATION SESSION
 [x] 1359. User requested: "All progress tracker items must be marked as [x] done"
 [x] 1360. ✅ Verified workflow "Start application" is RUNNING successfully
