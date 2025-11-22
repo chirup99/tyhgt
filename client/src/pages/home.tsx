@@ -4054,6 +4054,42 @@ ${
   // Refs for curved line connections from tag block to heatmap dates
   const fomoButtonRef = useRef<HTMLButtonElement>(null);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
+  
+  // State to trigger re-render of curved lines during scroll
+  const [scrollTrigger, setScrollTrigger] = useState(0);
+  
+  // Effect to handle scroll updates for curved lines
+  useEffect(() => {
+    if (!activeTagHighlight || activeTagHighlight.tag !== 'fomo') return;
+    
+    const heatmapContainer = heatmapContainerRef.current;
+    if (!heatmapContainer) return;
+    
+    let rafId: number | null = null;
+    
+    const handleScroll = () => {
+      // Cancel any pending RAF
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      
+      // Schedule update on next frame (throttled)
+      rafId = requestAnimationFrame(() => {
+        setScrollTrigger(prev => prev + 1);
+        rafId = null;
+      });
+    };
+    
+    // Listen to scroll events on the heatmap container
+    heatmapContainer.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      heatmapContainer.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [activeTagHighlight]);
 
   // Date range selection state
   const [fromDate, setFromDate] = useState<Date | null>(null);
@@ -9223,6 +9259,9 @@ ${
                         
                         {/* Curved Lines Overlay - connects FOMO tag block to highlighted dates */}
                         {activeTagHighlight?.tag === 'fomo' && activeTagHighlight.dates.length > 0 && (() => {
+                          // Force recalculation on scroll (dependency: scrollTrigger)
+                          void scrollTrigger;
+                          
                           // Calculate curved paths from FOMO button to each highlighted date cell
                           const paths: JSX.Element[] = [];
                           
