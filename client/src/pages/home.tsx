@@ -1962,35 +1962,33 @@ export default function Home() {
       Object.entries(journalData).forEach(([dateKey, dayData]: [string, any]) => {
         const metrics = dayData?.performanceMetrics;
         
+        // Include ALL trading days (even zero P&L days) for complete heatmap summary
         if (metrics) {
           const netPnL = metrics.netPnL || 0;
           
-          // Only include dates with actual trading activity
-          if (netPnL !== 0) {
-            totalPnL += netPnL;
-            totalTrades += metrics.totalTrades || 0;
-            winningTrades += metrics.winningTrades || 0;
-            datesCount++;
-            
-            // Add to trend data
-            const date = new Date(dateKey);
-            trendData.push({
-              date: dateKey,
-              pnl: netPnL,
-              formattedDate: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-            });
-            
-            // Analyze loss tags
-            if (netPnL < 0) {
-              const tags = dayData?.tradingTags || [];
-              tags.forEach((tag: string) => {
-                const existing = lossTagsMap.get(tag) || { count: 0, totalLoss: 0 };
-                lossTagsMap.set(tag, {
-                  count: existing.count + 1,
-                  totalLoss: existing.totalLoss + Math.abs(netPnL),
-                });
+          totalPnL += netPnL;
+          totalTrades += metrics.totalTrades || 0;
+          winningTrades += metrics.winningTrades || 0;
+          datesCount++;
+          
+          // Add to trend data
+          const date = new Date(dateKey);
+          trendData.push({
+            date: dateKey,
+            pnl: netPnL,
+            formattedDate: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          });
+          
+          // Analyze loss tags (only for losing days)
+          if (netPnL < 0) {
+            const tags = dayData?.tradingTags || [];
+            tags.forEach((tag: string) => {
+              const existing = lossTagsMap.get(tag) || { count: 0, totalLoss: 0 };
+              lossTagsMap.set(tag, {
+                count: existing.count + 1,
+                totalLoss: existing.totalLoss + Math.abs(netPnL),
               });
-            }
+            });
           }
         }
       });
@@ -2059,6 +2057,10 @@ export default function Home() {
         throw new Error('Report card container not found');
       }
 
+      // Wait for fonts and images to load
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       // Generate the image
       const dataUrl = await toPng(reportCardElement, {
         cacheBust: true,
@@ -2066,15 +2068,16 @@ export default function Home() {
         backgroundColor: '#f8fafc',
       });
 
-      // Convert data URL to blob
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
-
-      // Create a download link as fallback
+      // Download the image
       const link = document.createElement('a');
       link.download = 'trading-report-card.png';
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the data URL to avoid memory leaks
+      setTimeout(() => URL.revokeObjectURL(dataUrl), 100);
 
       // Prepare Twitter share text
       const twitterText = encodeURIComponent(
@@ -12638,11 +12641,6 @@ ${
               </div>
             </div>
           </div>
-        )}
-        
-        {/* Report Card Composer - Hidden off-screen for image generation */}
-        {reportCardData && (
-          <ReportCardComposer data={reportCardData} />
         )}
       </div>
     </div>
