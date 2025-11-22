@@ -76,11 +76,14 @@ Preferred communication style: Simple, everyday language.
 ### Market Data Providers
 
 **Global Market Indices (World Map)**:
-- **Yahoo Finance v3**: Real-time global market index data for world map display
+- **Data Source**: Google Finance real-time market data
 - **Indices Tracked**: S&P 500 (USA), S&P/TSX (CANADA), Nifty 50 (INDIA), Nikkei 225 (TOKYO), Hang Seng (HONG KONG)
-- **Caching Strategy**: 5-minute cache duration for efficient updates while respecting API rate limits
-- **Service Location**: `server/market-indices-service.ts` - Handles quote fetching, error handling, and fallback values
-- **Frontend Hook**: `client/src/hooks/useMarketData.ts` - Provides real-time market data to world map component
+- **Smart Caching Strategy**: 
+  - **15-minute updates** when market is OPEN (NYSE: 9:30 AM - 4:00 PM EST, Mon-Fri)
+  - **60-minute updates** when market is CLOSED (weekends/after hours)
+- **Service Location**: `server/market-indices-service.ts` - Market status detection, caching logic, and fallback values
+- **Frontend Hook**: `client/src/hooks/useMarketData.ts` - Provides market data to world map component
+- **Market Status**: Automatically detects NYSE trading hours and adjusts refresh frequency accordingly
 
 **Indian Market Data**:
 - **Fyers API v3**: Primary source for real-time and historical Indian market data (NSE/BSE)

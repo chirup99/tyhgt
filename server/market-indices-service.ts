@@ -120,37 +120,72 @@ function getFallbackData(): Record<string, MarketIndex> {
 // Cache management
 let cachedData: Record<string, MarketIndex> | null = null;
 let lastFetchTime: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes - more frequent updates for real-time feel
+
+/**
+ * Determines if market is currently open
+ * Markets typically open at 9:30 AM EST (14:30 UTC) and close at 4:00 PM EST (21:00 UTC)
+ * Monday to Friday
+ */
+function isMarketOpen(): boolean {
+  const now = new Date();
+  const dayOfWeek = now.getUTCDay();
+  const hours = now.getUTCHours();
+  const minutes = now.getUTCMinutes();
+  
+  // Monday (1) to Friday (5)
+  if (dayOfWeek === 0 || dayOfWeek === 6) return false; // Weekend
+  
+  // Market opens at 9:30 AM EST = 14:30 UTC
+  // Market closes at 4:00 PM EST = 21:00 UTC
+  const currentMinutes = hours * 60 + minutes;
+  const openTime = 14 * 60 + 30; // 14:30 UTC
+  const closeTime = 21 * 60;     // 21:00 UTC
+  
+  return currentMinutes >= openTime && currentMinutes < closeTime;
+}
+
+/**
+ * Gets cache duration based on market status
+ * - 15 minutes when market is open
+ * - 60 minutes when market is closed
+ */
+function getCacheDuration(): number {
+  return isMarketOpen() ? 15 * 60 * 1000 : 60 * 60 * 1000;
+}
 
 /**
  * Gets market indices with intelligent caching
- * - Fetches fresh real-time data every 5 minutes from Yahoo Finance
+ * - Fetches fresh data every 15 minutes when market is open
+ * - Fetches fresh data every 60 minutes when market is closed
  * - Returns last known values while fetching in background
  */
 export async function getCachedMarketIndices(): Promise<Record<string, MarketIndex>> {
   const now = Date.now();
+  const cacheDuration = getCacheDuration();
+  const marketStatus = isMarketOpen() ? '🟢 OPEN' : '🔴 CLOSED';
   
-  // Check if cache is still valid (less than 5 minutes old)
-  const isCacheValid = cachedData && (now - lastFetchTime) < CACHE_DURATION;
+  // Check if cache is still valid
+  const isCacheValid = cachedData && (now - lastFetchTime) < cacheDuration;
   
   if (isCacheValid) {
     const ageMinutes = Math.round((now - lastFetchTime) / 1000 / 60);
     const ageSeconds = Math.round(((now - lastFetchTime) / 1000) % 60);
-    console.log(`📦 Returning cached market data (${ageMinutes}m ${ageSeconds}s old - REAL-TIME from Yahoo Finance)`);
+    const updateInterval = isMarketOpen() ? '15 min' : '60 min';
+    console.log(`📦 Cached market data (${ageMinutes}m ${ageSeconds}s old | Market: ${marketStatus} | Updates: every ${updateInterval})`);
     return cachedData!;
   }
   
-  // Fetch fresh data from Yahoo Finance
-  console.log('🌐 Refreshing market data from Yahoo Finance (every 5 minutes)...');
+  // Fetch fresh data
+  const updateInterval = isMarketOpen() ? '15 minutes' : '60 minutes';
+  console.log(`🌐 Refreshing market data (Market: ${marketStatus} | Updates every ${updateInterval})...`);
   try {
     const freshData = await getMarketIndices();
     cachedData = freshData;
     lastFetchTime = now;
-    console.log('✅ Market data successfully refreshed from Yahoo Finance');
+    console.log(`✅ Market data refreshed (next update in ${updateInterval})`);
     return freshData;
   } catch (error) {
-    console.error('❌ Error fetching fresh data from Yahoo Finance:', error);
-    // Return stale cache if available, otherwise fallback
+    console.error('❌ Error fetching fresh market data:', error);
     return cachedData || getFallbackData();
   }
 }
