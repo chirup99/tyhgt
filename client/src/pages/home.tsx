@@ -12692,7 +12692,7 @@ ${
                   let totalTrades = 0;
                   let winningTrades = 0;
                   const trendData: number[] = [];
-                  const tagStatsMap = new Map<string, { count: number; winningTrades: number; totalTrades: number }>();
+                  const lossTagsMap = new Map<string, number>();
                   
                   dates.forEach(dateKey => {
                     const dayData = filteredData[dateKey];
@@ -12706,15 +12706,11 @@ ${
                       winningTrades += metrics.winningTrades || 0;
                       trendData.push(netPnL);
                       
-                      // Track tag statistics
-                      if (Array.isArray(tags) && tags.length > 0) {
+                      // Only track tags from losing trades
+                      if (netPnL < 0 && Array.isArray(tags) && tags.length > 0) {
                         tags.forEach((tag: string) => {
                           const normalizedTag = tag.trim().toLowerCase();
-                          const current = tagStatsMap.get(normalizedTag) || { count: 0, winningTrades: 0, totalTrades: 0 };
-                          current.count += 1;
-                          current.totalTrades += metrics.totalTrades || 0;
-                          current.winningTrades += metrics.winningTrades || 0;
-                          tagStatsMap.set(normalizedTag, current);
+                          lossTagsMap.set(normalizedTag, (lossTagsMap.get(normalizedTag) || 0) + 1);
                         });
                       }
                     }
@@ -12723,15 +12719,9 @@ ${
                   const isProfitable = totalPnL >= 0;
                   const successRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
                   
-                  const topTags = Array.from(tagStatsMap.entries())
-                    .map(([tag, stats]) => ({
-                      tag,
-                      count: stats.count,
-                      successRate: stats.totalTrades > 0 ? (stats.winningTrades / stats.totalTrades) * 100 : 0,
-                      pnl: stats.totalTrades * (successRate / 100)
-                    }))
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 5);
+                  const lossTags = Array.from(lossTagsMap.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([tag, count]) => ({ tag, count }));
                   
                   const createTrendPath = (data: number[]) => {
                     if (data.length === 0) return '';
@@ -12739,15 +12729,35 @@ ${
                     const min = Math.min(...data, 0);
                     const range = max - min || 1;
                     const width = 100;
-                    const height = 35;
+                    const height = 45;
                     
+                    if (data.length === 1) {
+                      const x = width / 2;
+                      const y = height - ((data[0] - min) / range) * height;
+                      return `M ${x} ${y}`;
+                    }
+                    
+                    // Create smooth bezier curve
+                    let path = '';
                     const points = data.map((val, i) => {
-                      const x = (i / (data.length - 1 || 1)) * width;
+                      const x = (i / (data.length - 1)) * width;
                       const y = height - ((val - min) / range) * height;
-                      return `${x},${y}`;
-                    }).join(' L ');
+                      return { x, y };
+                    });
                     
-                    return `M ${points}`;
+                    // Start path
+                    path += `M ${points[0].x} ${points[0].y}`;
+                    
+                    // Use quadratic bezier curves for smoothness
+                    for (let i = 1; i < points.length; i++) {
+                      const current = points[i];
+                      const prev = points[i - 1];
+                      const cpX = (prev.x + current.x) / 2;
+                      const cpY = (prev.y + current.y) / 2;
+                      path += ` Q ${cpX} ${cpY}, ${current.x} ${current.y}`;
+                    }
+                    
+                    return path;
                   };
                   
                   return (
@@ -12804,35 +12814,25 @@ ${
                         </svg>
                       </div>
                       
-                      {/* Column 3: Top Tags */}
+                      {/* Column 3: Loss Tags */}
                       <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                            <span className="text-purple-600 dark:text-purple-400 text-sm">📊</span>
-                          </div>
-                          <div className="text-[11px] text-gray-600 dark:text-gray-400 uppercase font-semibold">Top Tags</div>
-                          <div className="text-[10px] text-gray-500 dark:text-gray-500">Strategy Performance</div>
-                        </div>
-                        <div className="space-y-2">
-                          {topTags.length > 0 ? (
-                            topTags.map(({ tag, successRate }) => (
-                              <div key={tag} className="flex items-center justify-between py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-0">
-                                <div className="text-[12px] text-gray-700 dark:text-gray-300 capitalize font-medium">{tag}</div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-12 h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-green-500 rounded-full"
-                                      style={{ width: `${Math.min(successRate, 100)}%` }}
-                                    />
-                                  </div>
-                                  <div className="text-[11px] text-green-600 dark:text-green-400 font-semibold min-w-fit">+₹{((successRate / 100) * 1000).toFixed(0)}</div>
-                                </div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-400 uppercase font-semibold mb-3">Loss Tags</div>
+                        {lossTags.length > 0 ? (
+                          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md p-3 space-y-2 max-h-32 overflow-y-auto">
+                            {lossTags.map(({ tag, count }) => (
+                              <div
+                                key={tag}
+                                className="flex items-center justify-between px-2.5 py-1.5 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 rounded-md"
+                                data-testid={`tag-loss-${tag}`}
+                              >
+                                <span className="text-[12px] font-medium text-red-800 dark:text-red-300 capitalize truncate">{tag}</span>
+                                <span className="text-[11px] font-bold text-red-600 dark:text-red-400 ml-2 flex-shrink-0">-₹{(count * 100).toFixed(0)}</span>
                               </div>
-                            ))
-                          ) : (
-                            <div className="text-[12px] text-gray-500 dark:text-gray-400 italic py-2">No tags data</div>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-[12px] text-gray-500 dark:text-gray-400 italic py-3">No loss tags</div>
+                        )}
                       </div>
                     </>
                   );
