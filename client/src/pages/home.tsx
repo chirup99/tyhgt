@@ -9534,15 +9534,6 @@ ${
                         </div>
                       </CardContent>
                     </Card>
-                    
-                    {/* Magic Box Dropdown - Bottom Right Corner */}
-                    <button
-                      className="absolute -bottom-3 right-2 w-7 h-7 bg-gradient-to-br from-purple-500 to-violet-600 hover-elevate active-elevate-2 rounded-lg shadow-lg flex items-center justify-center transition-all z-10"
-                      data-testid="button-magic-box"
-                      title="Magic Box - AI Trading Insights"
-                    >
-                      <ChevronDown className="w-4 h-4 text-white" />
-                    </button>
                     </div>
                   </div>
                 </div>
