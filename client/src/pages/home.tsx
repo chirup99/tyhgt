@@ -4058,65 +4058,64 @@ ${
   // State to trigger re-render of curved lines during scroll
   const [scrollTrigger, setScrollTrigger] = useState(0);
   
-  // Effect to handle scroll updates for curved lines
+  // Effect to handle scroll updates for curved lines - ULTRA FAST VERSION
   useEffect(() => {
     if (!activeTagHighlight || activeTagHighlight.tag !== 'fomo') return;
     
     const heatmapWrapper = heatmapContainerRef.current;
     if (!heatmapWrapper) return;
     
-    // Small delay to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
-      // Find the actual scrollable element inside the heatmap component
-      // It has overflow-x-auto class
-      const scrollableElement = heatmapWrapper.querySelector('.overflow-x-auto');
-      if (!scrollableElement) {
-        console.warn('⚠️ Scrollable heatmap element not found');
-        return;
+    // Find the actual scrollable element inside the heatmap component immediately
+    const scrollableElement = heatmapWrapper.querySelector('.overflow-x-auto');
+    if (!scrollableElement) {
+      // Retry after a tiny delay if not found
+      const retryTimeout = setTimeout(() => {
+        const element = heatmapWrapper.querySelector('.overflow-x-auto');
+        if (element) {
+          attachScrollListener(element);
+        }
+      }, 10);
+      
+      return () => clearTimeout(retryTimeout);
+    }
+    
+    let rafId: number | null = null;
+    
+    const handleScroll = () => {
+      // Immediate update for instant response
+      setScrollTrigger(prev => prev + 1);
+      
+      // Cancel any pending RAF
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
       }
       
-      let rafId: number | null = null;
+      // Also schedule RAF for next frame to ensure smooth rendering
+      rafId = requestAnimationFrame(() => {
+        setScrollTrigger(prev => prev + 1);
+        rafId = null;
+      });
+    };
+    
+    const attachScrollListener = (element: Element) => {
+      // Listen to scroll events with passive for best performance
+      element.addEventListener('scroll', handleScroll, { passive: true });
       
-      const handleScroll = () => {
-        // Cancel any pending RAF
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-        }
-        
-        // Schedule update on next frame for smooth real-time updates
-        rafId = requestAnimationFrame(() => {
-          setScrollTrigger(prev => prev + 1);
-          rafId = null;
-        });
-      };
-      
-      // Listen to scroll events on the ACTUAL scrollable element inside heatmap
-      scrollableElement.addEventListener('scroll', handleScroll, { passive: true });
-      
-      // Also listen for resize events to update line positions
+      // Also listen for resize events
       window.addEventListener('resize', handleScroll, { passive: true });
       
-      console.log('🎯 Attached real-time scroll listener to heatmap scrollable element');
-      
-      // Cleanup function
-      const cleanup = () => {
-        scrollableElement.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleScroll);
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-        }
-      };
-      
-      // Store cleanup in the wrapper element for later access
-      (heatmapWrapper as any).__scrollCleanup = cleanup;
-    }, 50);
+      console.log('⚡ Attached ULTRA-FAST scroll listener to heatmap');
+    };
     
+    // Attach immediately
+    attachScrollListener(scrollableElement);
+    
+    // Cleanup
     return () => {
-      clearTimeout(timeoutId);
-      // Call stored cleanup if it exists
-      if ((heatmapWrapper as any).__scrollCleanup) {
-        (heatmapWrapper as any).__scrollCleanup();
-        delete (heatmapWrapper as any).__scrollCleanup;
+      scrollableElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
       }
     };
   }, [activeTagHighlight]);
