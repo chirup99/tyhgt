@@ -99,7 +99,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const [selectedDatesForRange, setSelectedDatesForRange] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const [rangeLinePositions, setRangeLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
-  const [highlightedLinePositions, setHighlightedLinePositions] = useState<Array<{ x: number; y: number }>>([]);
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<boolean>(false);
   const { toast } = useToast();
@@ -298,59 +297,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       }
     };
   }, [selectedDatesForEdit, isEditMode]);
-
-  // Calculate line positions for highlighted dates (e.g., FOMO tag)
-  useEffect(() => {
-    if (!highlightedDates || highlightedDates.dates.length === 0 || !heatmapContainerRef.current) {
-      setHighlightedLinePositions([]);
-      return;
-    }
-
-    const calculateHighlightedLinePositions = () => {
-      const positions: Array<{ x: number; y: number }> = [];
-      
-      // Find all highlighted date cells and get their positions
-      highlightedDates.dates.forEach(dateKey => {
-        const cell = heatmapContainerRef.current?.querySelector(`[data-date="${dateKey}"]`) as HTMLElement;
-        if (cell && heatmapContainerRef.current) {
-          const containerRect = heatmapContainerRef.current.getBoundingClientRect();
-          const cellRect = cell.getBoundingClientRect();
-          const scrollLeft = heatmapContainerRef.current.scrollLeft;
-          const scrollTop = heatmapContainerRef.current.scrollTop;
-          
-          const x = cellRect.left - containerRect.left + cellRect.width / 2 + scrollLeft;
-          const y = cellRect.top - containerRect.top + cellRect.height / 2 + scrollTop;
-          
-          positions.push({ x, y });
-        }
-      });
-      
-      if (positions.length > 0) {
-        console.log("🎯 DemoHeatmap: Calculated highlighted line positions", { count: positions.length, positions });
-        setHighlightedLinePositions(positions);
-      }
-    };
-
-    // Calculate positions after render
-    const timer1 = setTimeout(calculateHighlightedLinePositions, 0);
-    const timer2 = setTimeout(calculateHighlightedLinePositions, 50);
-    const timer3 = setTimeout(calculateHighlightedLinePositions, 150);
-    
-    // Recalculate on scroll
-    const scrollContainer = heatmapContainerRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', calculateHighlightedLinePositions);
-    }
-    
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('scroll', calculateHighlightedLinePositions);
-      }
-    };
-  }, [highlightedDates]);
 
   // Calculate line positions for date range selector (pointing to month labels)
   useEffect(() => {
@@ -881,74 +827,6 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
-                />
-              </svg>
-            );
-          })()}
-
-          {/* SVG overlay for highlighted dates curved dashed lines (e.g., FOMO tag) */}
-          {highlightedLinePositions && highlightedLinePositions.length > 1 && (() => {
-            const positions = highlightedLinePositions;
-            let pathD = '';
-            
-            // Create smooth connected path through all highlighted positions
-            if (positions.length === 1) {
-              pathD = `M ${positions[0].x} ${positions[0].y}`;
-            } else {
-              pathD = `M ${positions[0].x} ${positions[0].y}`;
-              
-              // Connect all positions with smooth bezier curves
-              for (let i = 1; i < positions.length; i++) {
-                const prev = positions[i - 1];
-                const curr = positions[i];
-                const dx = curr.x - prev.x;
-                const dy = curr.y - prev.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const curveAmount = Math.min(distance * 0.25, 40);
-                
-                // Calculate control point perpendicular to line
-                const angle = Math.atan2(dy, dx);
-                const perpAngle = angle - Math.PI / 2;
-                const midX = (prev.x + curr.x) / 2;
-                const midY = (prev.y + curr.y) / 2;
-                const controlX = midX + Math.cos(perpAngle) * curveAmount;
-                const controlY = midY + Math.sin(perpAngle) * curveAmount;
-                
-                pathD += ` Q ${controlX} ${controlY}, ${curr.x} ${curr.y}`;
-              }
-            }
-            
-            const scrollWidth = heatmapContainerRef.current?.scrollWidth || 0;
-            const scrollHeight = heatmapContainerRef.current?.scrollHeight || 0;
-            
-            return (
-              <svg
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: `${scrollWidth}px`,
-                  height: `${scrollHeight}px`,
-                  pointerEvents: 'none',
-                  zIndex: 9,
-                }}
-              >
-                <defs>
-                  <linearGradient id="demo-fomoLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style={{ stopColor: 'rgb(219, 39, 119)', stopOpacity: 0.8 }} />
-                    <stop offset="50%" style={{ stopColor: 'rgb(168, 85, 247)', stopOpacity: 0.8 }} />
-                    <stop offset="100%" style={{ stopColor: 'rgb(168, 85, 247)', stopOpacity: 0.8 }} />
-                  </linearGradient>
-                </defs>
-                <path
-                  d={pathD}
-                  stroke="url(#demo-fomoLineGradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray="5,5"
-                  style={{ filter: 'drop-shadow(0 2px 4px rgba(219, 39, 119, 0.4))' }}
                 />
               </svg>
             );
