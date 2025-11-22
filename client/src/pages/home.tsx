@@ -37,14 +37,12 @@ import { TradingMaster } from "@/components/trading-master";
 import { WorldMap } from "@/components/world-map";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
 import { PersonalHeatmap } from "@/components/PersonalHeatmap";
-import { TradebookShareView } from "@/components/TradebookShareView";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft, Save } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
-import { toPng } from "html-to-image";
 
 // Global window type declaration for audio control
 declare global {
@@ -1900,12 +1898,6 @@ export default function Home() {
 
   // Trading Master Coming Soon Modal State
   const [showTradingMasterComingSoon, setShowTradingMasterComingSoon] = useState(false);
-
-  // Social Media Report Card Share State
-  const [isSharing, setIsSharing] = useState(false);
-  const [reportCardData, setReportCardData] = useState<any>(null);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string>('');
   const { toast } = useToast();
 
   // Centralized authentication check helper - ALL tab switches MUST use this
@@ -1951,231 +1943,6 @@ export default function Home() {
       // Unauthorized user - show coming soon modal
       setShowTradingMasterComingSoon(true);
     }
-  };
-
-  // Prepare Report Card Data from Trading Data
-  const prepareReportCardData = useCallback((journalData: any) => {
-    try {
-      const totalDatesInInput = Object.keys(journalData).length;
-      console.log(`📊 prepareReportCardData received ${totalDatesInInput} dates`);
-      
-      // Calculate total performance metrics
-      let totalPnL = 0;
-      let totalTrades = 0;
-      let winningTrades = 0;
-      let datesCount = 0;
-      const trendData: Array<{ date: string; pnl: number; formattedDate: string }> = [];
-      const lossTagsMap: Map<string, { count: number; totalLoss: number }> = new Map();
-      
-      Object.entries(journalData).forEach(([dateKey, dayData]: [string, any]) => {
-        // Include ALL trading days (even if they don't have performanceMetrics)
-        const metrics = dayData?.performanceMetrics;
-        const netPnL = metrics?.netPnL || 0;
-        const trades = metrics?.totalTrades || 0;
-        const winning = metrics?.winningTrades || 0;
-        
-        // Count all dates, process all P&L values
-        totalPnL += netPnL;
-        totalTrades += trades;
-        winningTrades += winning;
-        datesCount++;
-        
-        // Add to trend data (all dates, even zero P&L)
-        const date = new Date(dateKey);
-        trendData.push({
-          date: dateKey,
-          pnl: netPnL,
-          formattedDate: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-        });
-        
-        // Analyze loss tags (only for losing days)
-        if (netPnL < 0) {
-          const tags = dayData?.tradingTags || [];
-          tags.forEach((tag: string) => {
-            const existing = lossTagsMap.get(tag) || { count: 0, totalLoss: 0 };
-            lossTagsMap.set(tag, {
-              count: existing.count + 1,
-              totalLoss: existing.totalLoss + Math.abs(netPnL),
-            });
-          });
-        }
-      });
-      
-      // Convert loss tags map to array and sort by total loss
-      const lossTags = Array.from(lossTagsMap.entries())
-        .map(([tag, data]) => ({ tag, ...data }))
-        .sort((a, b) => b.totalLoss - a.totalLoss);
-      
-      // Sort trend data by date
-      trendData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      console.log(`📊 prepareReportCardData processed ${datesCount} dates (${trendData.length} in trend data)`);
-      console.log(`📊 Sample dates in trendData:`, trendData.slice(0, 5).map(d => d.date));
-      
-      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
-      const isProfitable = totalPnL >= 0;
-      
-      return {
-        totalPnL,
-        winRate,
-        totalTrades,
-        datesCount,
-        lossTags,
-        trendData,
-        isProfitable,
-      };
-    } catch (error) {
-      console.error('Error preparing report card data:', error);
-      return null;
-    }
-  }, []);
-
-  // Social Media Tradebook Share Handler - Simplified
-  const handleShareReportCard = async () => {
-    try {
-      setIsSharing(true);
-      toast({
-        title: "Generating Tradebook",
-        description: "Creating your trading calendar view...",
-      });
-
-      // Calculate stats from current data
-      const calculateStats = () => {
-        let totalPnL = 0;
-        let fomoCount = 0;
-        let totalTrades = 0;
-        let winningTrades = 0;
-        let currentStreak = 0;
-        let maxStreak = 0;
-        let lastWasWin = false;
-
-        Object.values(tradingDataByDate).forEach((data: any) => {
-          if (data?.performanceMetrics) {
-            const pnl = data.performanceMetrics.netPnL || 0;
-            totalPnL += pnl;
-            totalTrades += data.performanceMetrics.totalTrades || 0;
-            winningTrades += data.performanceMetrics.winningTrades || 0;
-            
-            if (pnl > 0) {
-              if (lastWasWin) {
-                currentStreak++;
-              } else {
-                currentStreak = 1;
-                lastWasWin = true;
-              }
-              maxStreak = Math.max(maxStreak, currentStreak);
-            } else {
-              lastWasWin = false;
-              currentStreak = 0;
-            }
-          }
-          
-          if (data?.tradingTags?.includes('fomo')) {
-            fomoCount++;
-          }
-        });
-
-        const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
-
-        return {
-          pnl: totalPnL,
-          fomo: fomoCount,
-          winRate,
-          streak: maxStreak
-        };
-      };
-
-      const stats = calculateStats();
-      setReportCardData({ stats, heatmapData: tradingDataByDate });
-      
-      // Wait for the component to render
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const tradebookElement = document.getElementById('tradebook-share-container');
-      if (!tradebookElement) {
-        throw new Error('Tradebook container not found');
-      }
-
-      // Wait for fonts to load
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Generate the image
-      const dataUrl = await toPng(tradebookElement, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-      });
-
-      // Store the generated image URL and show modal
-      setGeneratedImageUrl(dataUrl);
-      setShowShareModal(true);
-
-      toast({
-        title: "Success!",
-        description: "Tradebook generated! Preview and share options available.",
-      });
-
-    } catch (error) {
-      console.error('Error generating tradebook:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate tradebook. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  // Download report card image
-  const handleDownloadReportCard = () => {
-    if (!generatedImageUrl) return;
-    
-    const link = document.createElement('a');
-    link.download = 'trading-report-card.png';
-    link.href = generatedImageUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Downloaded!",
-      description: "Report card image saved to your device.",
-    });
-  };
-
-  // Share on social media platforms
-  const handleSocialShare = (platform: string) => {
-    const shareText = "📊 Check out my trading performance!\n\n" +
-      "🚀 Advanced Trading Journal - Track emotions & behavior with realistic data\n" +
-      "💹 Works on ALL markets: NSE | Crypto | Forex | Commodity\n" +
-      "✨ 100% FREE\n\n" +
-      "#Trading #StockMarket #TradingJournal";
-    
-    let shareUrl = '';
-    
-    switch (platform) {
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-        break;
-      case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareText)}`;
-        break;
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?summary=${encodeURIComponent(shareText)}`;
-        break;
-      case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        break;
-      case 'telegram':
-        shareUrl = `https://t.me/share/url?text=${encodeURIComponent(shareText)}`;
-        break;
-      default:
-        return;
-    }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   // AI Finance Assistant Logic - Real data fetching and analysis
@@ -9757,24 +9524,6 @@ ${
                                   <div className="text-[10px] opacity-80">Streak</div>
                                   <div className="text-xs font-bold">{maxWinStreak}</div>
                                 </div>
-                                
-                                {/* Share Icon */}
-                                <div className="flex items-center justify-center" data-testid="button-share">
-                                  <button 
-                                    className="w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors flex items-center justify-center disabled:opacity-50"
-                                    onClick={handleShareReportCard}
-                                    disabled={isSharing}
-                                    title="Share trading report card"
-                                  >
-                                    {isSharing ? (
-                                      <RotateCcw className="w-3.5 h-3.5 text-white animate-spin" />
-                                    ) : (
-                                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                                      </svg>
-                                    )}
-                                  </button>
-                                </div>
                               </div>
                             );
                           })()}
@@ -12710,116 +12459,6 @@ ${
               </div>
             </div>
           </div>
-        )}
-        
-        {/* Share Report Card Modal */}
-        <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-share-report">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Share Your Trading Performance</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              {/* Report Card Preview */}
-              {generatedImageUrl && (
-                <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 font-medium">Preview</p>
-                  <div className="relative w-full overflow-hidden rounded-lg border-2 border-slate-200 dark:border-slate-700">
-                    <img 
-                      src={generatedImageUrl} 
-                      alt="Trading Performance Report Card" 
-                      className="w-full h-auto"
-                      data-testid="img-report-card-preview"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {/* Download Section */}
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Download Image</p>
-                <Button 
-                  onClick={handleDownloadReportCard}
-                  className="w-full gap-2"
-                  variant="default"
-                  data-testid="button-download-report"
-                >
-                  <Download className="w-4 h-4" />
-                  Download Report Card
-                </Button>
-              </div>
-              
-              {/* Share on Social Media Section */}
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Share on Social Media</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    onClick={() => handleSocialShare('twitter')}
-                    className="gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white"
-                    data-testid="button-share-twitter"
-                  >
-                    <Twitter className="w-4 h-4" />
-                    Twitter / X
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => handleSocialShare('facebook')}
-                    className="gap-2 bg-[#1877F2] hover:bg-[#166fe5] text-white"
-                    data-testid="button-share-facebook"
-                  >
-                    <Facebook className="w-4 h-4" />
-                    Facebook
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => handleSocialShare('linkedin')}
-                    className="gap-2 bg-[#0A66C2] hover:bg-[#095196] text-white"
-                    data-testid="button-share-linkedin"
-                  >
-                    <Linkedin className="w-4 h-4" />
-                    LinkedIn
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => handleSocialShare('whatsapp')}
-                    className="gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white"
-                    data-testid="button-share-whatsapp"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    WhatsApp
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => handleSocialShare('telegram')}
-                    className="gap-2 bg-[#0088cc] hover:bg-[#0077b5] text-white col-span-2"
-                    data-testid="button-share-telegram"
-                  >
-                    <Send className="w-4 h-4" />
-                    Telegram
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                <Button 
-                  onClick={() => setShowShareModal(false)}
-                  variant="outline"
-                  className="w-full"
-                  data-testid="button-close-share-modal"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Tradebook Share View - Always rendered (hidden) for image generation */}
-        {reportCardData && (
-          <TradebookShareView 
-            heatmapData={reportCardData.heatmapData || {}} 
-            stats={reportCardData.stats || { pnl: 0, fomo: 0, winRate: 0, streak: 0 }}
-          />
         )}
       </div>
     </div>
