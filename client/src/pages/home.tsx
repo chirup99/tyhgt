@@ -9804,6 +9804,18 @@ ${
                                 ></div>
                               </div>
                             </div>
+                            
+                            {/* Magic Box Dropdown - Below Purple Card */}
+                            <div className="mt-4">
+                              <button 
+                                className="w-full bg-gradient-to-br from-purple-500 to-violet-600 hover-elevate active-elevate-2 text-white rounded-xl p-3 shadow-lg flex items-center justify-center gap-2 transition-all"
+                                data-testid="button-magic-box"
+                              >
+                                <Sparkles className="w-4 h-4" />
+                                <span className="text-sm font-semibold">Magic Box</span>
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Performance Trend Chart - Desktop: Middle */}
