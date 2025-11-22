@@ -164,6 +164,10 @@ import {
   Blocks,
   Hammer,
   Plus,
+  Share2,
+  Facebook,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -1900,6 +1904,8 @@ export default function Home() {
   // Social Media Report Card Share State
   const [isSharing, setIsSharing] = useState(false);
   const [reportCardData, setReportCardData] = useState<any>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string>('');
   const { toast } = useToast();
 
   // Centralized authentication check helper - ALL tab switches MUST use this
@@ -2073,33 +2079,13 @@ export default function Home() {
         backgroundColor: '#f8fafc',
       });
 
-      // Download the image
-      const link = document.createElement('a');
-      link.download = 'trading-report-card.png';
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the data URL to avoid memory leaks
-      setTimeout(() => URL.revokeObjectURL(dataUrl), 100);
-
-      // Prepare Twitter share text
-      const twitterText = encodeURIComponent(
-        "📊 Check out my trading performance!\n\n" +
-        "🚀 Advanced Trading Journal - Track emotions & behavior with realistic data\n" +
-        "💹 Works on ALL markets: NSE | Crypto | Forex | Commodity\n" +
-        "✨ 100% FREE\n\n" +
-        "#Trading #StockMarket #TradingJournal"
-      );
-
-      // Open Twitter share intent
-      const twitterUrl = `https://twitter.com/intent/tweet?text=${twitterText}`;
-      window.open(twitterUrl, '_blank');
+      // Store the generated image URL and show modal
+      setGeneratedImageUrl(dataUrl);
+      setShowShareModal(true);
 
       toast({
         title: "Success!",
-        description: "Report card generated! Image downloaded and Twitter opened.",
+        description: "Report card generated! Preview and share options available.",
       });
 
     } catch (error) {
@@ -2112,6 +2098,56 @@ export default function Home() {
     } finally {
       setIsSharing(false);
     }
+  };
+
+  // Download report card image
+  const handleDownloadReportCard = () => {
+    if (!generatedImageUrl) return;
+    
+    const link = document.createElement('a');
+    link.download = 'trading-report-card.png';
+    link.href = generatedImageUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Downloaded!",
+      description: "Report card image saved to your device.",
+    });
+  };
+
+  // Share on social media platforms
+  const handleSocialShare = (platform: string) => {
+    const shareText = "📊 Check out my trading performance!\n\n" +
+      "🚀 Advanced Trading Journal - Track emotions & behavior with realistic data\n" +
+      "💹 Works on ALL markets: NSE | Crypto | Forex | Commodity\n" +
+      "✨ 100% FREE\n\n" +
+      "#Trading #StockMarket #TradingJournal";
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareText)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?summary=${encodeURIComponent(shareText)}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?text=${encodeURIComponent(shareText)}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   // AI Finance Assistant Logic - Real data fetching and analysis
@@ -12648,6 +12684,108 @@ ${
           </div>
         )}
         
+        {/* Share Report Card Modal */}
+        <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-share-report">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Share Your Trading Performance</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Report Card Preview */}
+              {generatedImageUrl && (
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 font-medium">Preview</p>
+                  <div className="relative w-full overflow-hidden rounded-lg border-2 border-slate-200 dark:border-slate-700">
+                    <img 
+                      src={generatedImageUrl} 
+                      alt="Trading Performance Report Card" 
+                      className="w-full h-auto"
+                      data-testid="img-report-card-preview"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Download Section */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Download Image</p>
+                <Button 
+                  onClick={handleDownloadReportCard}
+                  className="w-full gap-2"
+                  variant="default"
+                  data-testid="button-download-report"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Report Card
+                </Button>
+              </div>
+              
+              {/* Share on Social Media Section */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Share on Social Media</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={() => handleSocialShare('twitter')}
+                    className="gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white"
+                    data-testid="button-share-twitter"
+                  >
+                    <Twitter className="w-4 h-4" />
+                    Twitter / X
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleSocialShare('facebook')}
+                    className="gap-2 bg-[#1877F2] hover:bg-[#166fe5] text-white"
+                    data-testid="button-share-facebook"
+                  >
+                    <Facebook className="w-4 h-4" />
+                    Facebook
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleSocialShare('linkedin')}
+                    className="gap-2 bg-[#0A66C2] hover:bg-[#095196] text-white"
+                    data-testid="button-share-linkedin"
+                  >
+                    <Linkedin className="w-4 h-4" />
+                    LinkedIn
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleSocialShare('whatsapp')}
+                    className="gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white"
+                    data-testid="button-share-whatsapp"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleSocialShare('telegram')}
+                    className="gap-2 bg-[#0088cc] hover:bg-[#0077b5] text-white col-span-2"
+                    data-testid="button-share-telegram"
+                  >
+                    <Send className="w-4 h-4" />
+                    Telegram
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                <Button 
+                  onClick={() => setShowShareModal(false)}
+                  variant="outline"
+                  className="w-full"
+                  data-testid="button-close-share-modal"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Report Card Composer - Always rendered (hidden off-screen) for image generation */}
         <ReportCardComposer data={reportCardData} />
       </div>
