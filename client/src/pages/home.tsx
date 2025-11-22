@@ -12476,31 +12476,74 @@ ${
         
         {/* Share Tradebook Dialog */}
         <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-          <DialogContent className="max-w-2xl" data-testid="dialog-share-tradebook">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold">trade book</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" data-testid="dialog-share-tradebook">
+            <DialogHeader className="flex-shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <DialogTitle className="text-xl font-bold">My Trading Calendar Report</DialogTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (currentUser?.userId) {
+                      const shareUrl = `${window.location.origin}/share/heatmap/${currentUser.userId}`;
+                      try {
+                        navigator.clipboard.writeText(shareUrl);
+                        toast({
+                          title: "Share link copied!",
+                          description: "Anyone with this link can view your trading calendar",
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "Copy failed",
+                          description: "Please copy the link manually: " + shareUrl,
+                          variant: "destructive",
+                        });
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                  data-testid="button-copy-share-link"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Copy Share Link
+                </Button>
+              </div>
             </DialogHeader>
             
-            <div className="space-y-4">
-              {/* Trading Calendar Heatmap */}
+            <div className="flex-1 overflow-auto space-y-4">
+              {/* Trading Calendar Heatmap - Dual-axis Scrollable */}
               <div className="bg-white dark:bg-slate-900 rounded-lg p-4">
-                <h3 className="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
-                  Trading Calendar 2025
-                </h3>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                  {Object.keys(getFilteredHeatmapData()).length} dates with data
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Trading Calendar 2025
+                    </h3>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {Object.keys(getFilteredHeatmapData()).length} dates with data
+                    </div>
+                  </div>
+                  {/* Perala watermark */}
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 animate-pulse"></div>
+                    <span className="text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                      perala
+                    </span>
+                  </div>
                 </div>
-                {/* Use the existing PersonalHeatmap component */}
-                <PersonalHeatmap 
-                  userId={currentUser?.userId || null} 
-                  onDateSelect={() => {}} 
-                  selectedDate={null}
-                  onDataUpdate={() => {}}
-                />
+                
+                {/* Dual-axis scrollable heatmap container */}
+                <div className="max-h-96 overflow-auto thin-scrollbar">
+                  <PersonalHeatmap 
+                    userId={currentUser?.userId || null} 
+                    onDateSelect={() => {}} 
+                    selectedDate={null}
+                    onDataUpdate={() => {}}
+                  />
+                </div>
               </div>
               
               {/* Stats Bar - Same as in the journal view */}
-              <div className="mt-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative">
+              <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative flex-shrink-0">
                 <div className="flex items-center justify-around text-white gap-1">
                   {(() => {
                     const filteredData = getFilteredHeatmapData();
