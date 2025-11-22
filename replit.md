@@ -73,7 +73,16 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
-### Market Data Provider
+### Market Data Providers
+
+**Global Market Indices (World Map)**:
+- **Yahoo Finance v3**: Real-time global market index data for world map display
+- **Indices Tracked**: S&P 500 (USA), S&P/TSX (CANADA), Nifty 50 (INDIA), Nikkei 225 (TOKYO), Hang Seng (HONG KONG)
+- **Caching Strategy**: 5-minute cache duration for efficient updates while respecting API rate limits
+- **Service Location**: `server/market-indices-service.ts` - Handles quote fetching, error handling, and fallback values
+- **Frontend Hook**: `client/src/hooks/useMarketData.ts` - Provides real-time market data to world map component
+
+**Indian Market Data**:
 - **Fyers API v3**: Primary source for real-time and historical Indian market data (NSE/BSE)
 - **Endpoints Used**: 
   - Historical candle data (1-minute, 5-minute, 10-minute timeframes)
