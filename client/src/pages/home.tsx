@@ -9970,7 +9970,7 @@ ${
                                           }}
                                         />
                                         <Area
-                                          type="monotone"
+                                          type="natural"
                                           dataKey="value"
                                           stroke="#000000"
                                           strokeWidth={3}
@@ -9982,6 +9982,9 @@ ${
                                             stroke: "white",
                                             strokeWidth: 2,
                                           }}
+                                          isAnimationActive={true}
+                                          animationDuration={600}
+                                          animationEasing="ease-in-out"
                                         />
                                       </AreaChart>
                                     </ResponsiveContainer>
