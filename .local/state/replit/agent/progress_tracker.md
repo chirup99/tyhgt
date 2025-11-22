@@ -357,6 +357,49 @@
 [x] 1795. 🚀🚀🚀 PROJECT SUCCESSFULLY MIGRATED AND FULLY FUNCTIONAL IN REPLIT! 🚀🚀🚀
 [x] 1796. 💯💯💯 READY FOR ACTIVE DEVELOPMENT - START BUILDING! 💯💯💯
 
+[x] 1797. NOVEMBER 22, 2025 - SHAREABLE HEATMAP WITH PUBLIC VIEW FEATURE
+[x] 1798. User requested: "make its scrollable heatmap and left side close icon add link option. user can share link to any where that link open this window its public view any one can view only when user tap close its ask for sign for new users actually its like promotional ads and below close icon add water mark with text perala"
+[x] 1799. Requirements identified:
+[x] 1800.   - Make heatmap scrollable (already implemented with overflow-x-auto)
+[x] 1801.   - Add close icon on left side of public view
+[x] 1802.   - Add "perala" watermark below close icon
+[x] 1803.   - Add share link option for users to share heatmap
+[x] 1804.   - Create public view accessible via shareable link
+[x] 1805.   - Show sign-in prompt when non-authenticated users click close
+[x] 1806.   - Hide edit/delete controls in public view mode
+[x] 1807. ✅ Created PublicHeatmap page component (client/src/pages/public-heatmap.tsx)
+[x] 1808. ✅ Added route /share/heatmap/:userId for public heatmap access
+[x] 1809. ✅ Implemented close button with X icon on left side
+[x] 1810. ✅ Added "perala" watermark below close button with gradient styling
+[x] 1811. ✅ Created share link button with copy-to-clipboard functionality
+[x] 1812. ✅ Added sign-in dialog that appears when non-authenticated users click close
+[x] 1813. ✅ Public view features:
+[x] 1814.   - Clean gradient background (slate to blue to indigo)
+[x] 1815.   - Close button (X icon) on top-left
+[x] 1816.   - Perala watermark with gradient text and dot indicator
+[x] 1817.   - Share Link button on top-right with copy functionality
+[x] 1818.   - Scrollable heatmap container (max-height with overflow-auto)
+[x] 1819.   - Promotional footer with "Get Started Free" button
+[x] 1820. ✅ Updated PersonalHeatmap component:
+[x] 1821.   - Added isPublicView prop to PersonalHeatmapProps interface
+[x] 1822.   - Hidden edit/delete dropdown menu when isPublicView=true
+[x] 1823.   - Added share button (Share2 icon) to header in normal view
+[x] 1824.   - Implemented handleShareHeatmap function with clipboard copy
+[x] 1825. ✅ Share functionality in normal view:
+[x] 1826.   - Small share icon button in heatmap header
+[x] 1827.   - Generates shareable URL: /share/heatmap/{userId}
+[x] 1828.   - Copies link to clipboard with toast notification
+[x] 1829. ✅ Sign-in flow for non-authenticated users:
+[x] 1830.   - Dialog appears when close button clicked
+[x] 1831.   - Two options: "Sign In / Sign Up" or "Continue Browsing"
+[x] 1832.   - Promotional messaging encourages account creation
+[x] 1833. ✅ Public view is fully responsive and scrollable
+[x] 1834. ✅ Heatmap data fetched from Firebase for public viewing
+[x] 1835. ✅ All interactive elements have proper data-testid attributes
+[x] 1836. ✅ Workflow restarted successfully - application running on port 5000
+[x] 1837. ✅✅✅ SHAREABLE HEATMAP WITH PUBLIC VIEW COMPLETED! ✅✅✅
+[x] 1838. 🎉🎉🎉 USERS CAN NOW SHARE THEIR TRADING CALENDAR AS PROMOTIONAL ADS! 🎉🎉🎉
+
 [x] 1358. NOVEMBER 20, 2025 - FINAL MIGRATION VERIFICATION SESSION
 [x] 1359. User requested: "All progress tracker items must be marked as [x] done"
 [x] 1360. ✅ Verified workflow "Start application" is RUNNING successfully

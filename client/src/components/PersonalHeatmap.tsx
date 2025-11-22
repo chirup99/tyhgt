@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, X, MoreVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MoreVertical, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ interface PersonalHeatmapProps {
     tag: string;
     dates: string[];
   } | null;
+  isPublicView?: boolean;
 }
 
 // Simple function to calculate P&L from trade data
@@ -89,7 +90,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates }: PersonalHeatmapProps) {
+export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates, isPublicView = false }: PersonalHeatmapProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -759,6 +760,16 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     );
   }
 
+  const handleShareHeatmap = () => {
+    if (!userId) return;
+    const shareUrl = `${window.location.origin}/share/heatmap/${userId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "Link copied!",
+      description: "Share this link to showcase your trading calendar",
+    });
+  };
+
   return (
     <div className="flex flex-col gap-2 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 select-none overflow-visible">
       <div className="flex items-center justify-between relative z-5 px-2 py-1 rounded">
@@ -768,12 +779,26 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
             : currentDate.getFullYear()
           }
         </h3>
-        <span className="text-xs text-gray-500">
-          {isLoading ? "Loading..." : selectedRange 
-            ? `${countDatesWithData(filteredHeatmapData)} of ${countDatesWithData(heatmapData)} dates in range`
-            : `${countDatesWithData(heatmapData)} dates with data`
-          }
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">
+            {isLoading ? "Loading..." : selectedRange 
+              ? `${countDatesWithData(filteredHeatmapData)} of ${countDatesWithData(heatmapData)} dates in range`
+              : `${countDatesWithData(heatmapData)} dates with data`
+            }
+          </span>
+          {!isPublicView && userId && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShareHeatmap}
+              className="h-7 w-7 hover-elevate"
+              title="Share your trading calendar"
+              data-testid="button-share-heatmap"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 overflow-visible">
@@ -1223,8 +1248,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
               </Button>
             )}
 
-            {/* 3-dot menu - only show when not in range select mode */}
-            {!isRangeSelectMode && (
+            {/* 3-dot menu - only show when not in range select mode and not in public view */}
+            {!isRangeSelectMode && !isPublicView && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

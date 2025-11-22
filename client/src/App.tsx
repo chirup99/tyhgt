@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import Dashboard from "@/pages/home";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
+import PublicHeatmap from "@/pages/public-heatmap";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -394,6 +395,7 @@ function Router() {
         </MainLayout>
       </Route>
       <Route path="/home" component={NewHome} />
+      <Route path="/share/heatmap/:userId" component={PublicHeatmap} />
       <Route component={NotFound} />
     </Switch>
   );
