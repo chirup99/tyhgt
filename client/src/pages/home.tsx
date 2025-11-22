@@ -37,7 +37,7 @@ import { TradingMaster } from "@/components/trading-master";
 import { WorldMap } from "@/components/world-map";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
 import { PersonalHeatmap } from "@/components/PersonalHeatmap";
-import { ReportCardComposer } from "@/components/ReportCardComposer";
+import { TradebookShareView } from "@/components/TradebookShareView";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
@@ -2030,53 +2030,81 @@ export default function Home() {
     }
   }, []);
 
-  // Social Media Report Card Share Handler
+  // Social Media Tradebook Share Handler - Simplified
   const handleShareReportCard = async () => {
     try {
       setIsSharing(true);
       toast({
-        title: "Generating Report Card",
-        description: "Creating your trading performance report card...",
+        title: "Generating Tradebook",
+        description: "Creating your trading calendar view...",
       });
 
-      // Prepare report card data (get tradingDataByDate from localStorage as fallback)
-      let journalData = {};
-      try {
-        const allDatesResponse = await fetch(getFullApiUrl("/api/journal/all-dates"));
-        if (allDatesResponse.ok) {
-          journalData = await allDatesResponse.json();
-        }
-      } catch (error) {
-        const localData = localStorage.getItem("tradingDataByDate");
-        if (localData) {
-          journalData = JSON.parse(localData);
-        }
-      }
+      // Calculate stats from current data
+      const calculateStats = () => {
+        let totalPnL = 0;
+        let fomoCount = 0;
+        let totalTrades = 0;
+        let winningTrades = 0;
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let lastWasWin = false;
+
+        Object.values(tradingDataByDate).forEach((data: any) => {
+          if (data?.performanceMetrics) {
+            const pnl = data.performanceMetrics.netPnL || 0;
+            totalPnL += pnl;
+            totalTrades += data.performanceMetrics.totalTrades || 0;
+            winningTrades += data.performanceMetrics.winningTrades || 0;
+            
+            if (pnl > 0) {
+              if (lastWasWin) {
+                currentStreak++;
+              } else {
+                currentStreak = 1;
+                lastWasWin = true;
+              }
+              maxStreak = Math.max(maxStreak, currentStreak);
+            } else {
+              lastWasWin = false;
+              currentStreak = 0;
+            }
+          }
+          
+          if (data?.tradingTags?.includes('fomo')) {
+            fomoCount++;
+          }
+        });
+
+        const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+
+        return {
+          pnl: totalPnL,
+          fomo: fomoCount,
+          winRate,
+          streak: maxStreak
+        };
+      };
+
+      const stats = calculateStats();
+      setReportCardData({ stats, heatmapData: tradingDataByDate });
       
-      const cardData = prepareReportCardData(journalData);
-      if (!cardData || cardData.datesCount === 0) {
-        throw new Error('No trading data available for report card');
-      }
-      
-      setReportCardData(cardData);
-      
-      // Wait for the component to render with the new data
+      // Wait for the component to render
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const reportCardElement = document.getElementById('report-card-container');
-      if (!reportCardElement) {
-        throw new Error('Report card container not found');
+      const tradebookElement = document.getElementById('tradebook-share-container');
+      if (!tradebookElement) {
+        throw new Error('Tradebook container not found');
       }
 
-      // Wait for fonts and images to load
+      // Wait for fonts to load
       await document.fonts.ready;
       await new Promise(resolve => setTimeout(resolve, 300));
 
       // Generate the image
-      const dataUrl = await toPng(reportCardElement, {
+      const dataUrl = await toPng(tradebookElement, {
         cacheBust: true,
-        pixelRatio: 2, // Higher quality
-        backgroundColor: '#f8fafc',
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
       });
 
       // Store the generated image URL and show modal
@@ -2085,14 +2113,14 @@ export default function Home() {
 
       toast({
         title: "Success!",
-        description: "Report card generated! Preview and share options available.",
+        description: "Tradebook generated! Preview and share options available.",
       });
 
     } catch (error) {
-      console.error('Error generating report card:', error);
+      console.error('Error generating tradebook:', error);
       toast({
         title: "Error",
-        description: "Failed to generate report card. Please try again.",
+        description: "Failed to generate tradebook. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -12786,8 +12814,13 @@ ${
           </DialogContent>
         </Dialog>
 
-        {/* Report Card Composer - Always rendered (hidden off-screen) for image generation */}
-        <ReportCardComposer data={reportCardData} />
+        {/* Tradebook Share View - Always rendered (hidden) for image generation */}
+        {reportCardData && (
+          <TradebookShareView 
+            heatmapData={reportCardData.heatmapData || {}} 
+            stats={reportCardData.stats || { pnl: 0, fomo: 0, winRate: 0, streak: 0 }}
+          />
+        )}
       </div>
     </div>
   );
