@@ -9460,7 +9460,7 @@ ${
                             };
                             
                             return (
-                              <div className="grid grid-cols-6 gap-2 text-white">
+                              <div className="grid grid-cols-7 gap-2 text-white">
                                 {/* Total P&L */}
                                 <div className="flex flex-col items-center justify-center" data-testid="stat-total-pnl">
                                   <div className="text-[10px] opacity-80">P&L</div>
@@ -9518,6 +9518,15 @@ ${
                                   <div className="text-[10px] opacity-80">Streak</div>
                                   <div className="text-xs font-bold">{maxWinStreak}</div>
                                 </div>
+                                
+                                {/* Magic Box - Dropdown Button */}
+                                <button 
+                                  className="flex items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all"
+                                  data-testid="button-magic-box"
+                                  title="Magic Box - AI Trading Insights"
+                                >
+                                  <Sparkles className="w-4 h-4" />
+                                </button>
                                 
                                 {/* Share Icon */}
                                 <div className="flex items-center justify-center" data-testid="button-share">
@@ -9803,18 +9812,6 @@ ${
                                   }}
                                 ></div>
                               </div>
-                            </div>
-                            
-                            {/* Magic Box Dropdown - Below Purple Card */}
-                            <div className="mt-4">
-                              <button 
-                                className="w-full bg-gradient-to-br from-purple-500 to-violet-600 hover-elevate active-elevate-2 text-white rounded-xl p-3 shadow-lg flex items-center justify-center gap-2 transition-all"
-                                data-testid="button-magic-box"
-                              >
-                                <Sparkles className="w-4 h-4" />
-                                <span className="text-sm font-semibold">Magic Box</span>
-                                <ChevronDown className="w-4 h-4" />
-                              </button>
                             </div>
                           </div>
 
