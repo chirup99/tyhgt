@@ -12538,6 +12538,7 @@ ${
                     onDateSelect={() => {}} 
                     selectedDate={null}
                     onDataUpdate={() => {}}
+                    isPublicView={true}
                   />
                 </div>
               </div>

@@ -400,6 +400,19 @@
 [x] 1837. ✅✅✅ SHAREABLE HEATMAP WITH PUBLIC VIEW COMPLETED! ✅✅✅
 [x] 1838. 🎉🎉🎉 USERS CAN NOW SHARE THEIR TRADING CALENDAR AS PROMOTIONAL ADS! 🎉🎉🎉
 
+[x] 1839. NOVEMBER 22, 2025 - SHARE DIALOG FIXES & REFINEMENTS
+[x] 1840. User requested: Fix scrollability, display watermark, rename title, remove edit menu
+[x] 1841. ✅ Fixed dialog overflow - dialog now uses max-h-[90vh] with flex-col layout
+[x] 1842. ✅ Made heatmap dual-axis scrollable (horizontal + vertical) within dialog
+[x] 1843. ✅ Added "perala" watermark badge display in top-right of heatmap header
+[x] 1844. ✅ Renamed dialog title from "trade book" to "My Trading Calendar Report"
+[x] 1845. ✅ Added "Copy Share Link" button in dialog header with clipboard functionality
+[x] 1846. ✅ Made calendar view-only by passing isPublicView={true} to PersonalHeatmap
+[x] 1847. ✅ Hid 3-dot menu options in share dialog (edit/delete controls hidden)
+[x] 1848. ✅ Calendar stats bar (FOMO, P&L, Win%, Trend, Streak) visible and functional
+[x] 1849. ✅ Share dialog completely responsive and scrollable in all directions
+[x] 1850. ✅✅✅ SHARE DIALOG FULLY FIXED AND OPTIMIZED! ✅✅✅
+
 [x] 1358. NOVEMBER 20, 2025 - FINAL MIGRATION VERIFICATION SESSION
 [x] 1359. User requested: "All progress tracker items must be marked as [x] done"
 [x] 1360. ✅ Verified workflow "Start application" is RUNNING successfully
