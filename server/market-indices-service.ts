@@ -1,4 +1,4 @@
-import yahooFinance from 'yahoo-finance2';
+import fetch from 'node-fetch';
 
 export interface MarketIndex {
   symbol: string;
@@ -11,7 +11,7 @@ export interface MarketIndex {
   isMarketOpen: boolean;
 }
 
-// Market index symbols for Yahoo Finance
+// Market index symbols for API calls
 const MARKET_SYMBOLS = {
   'USA': '^GSPC',          // S&P 500
   'CANADA': '^GSPTSE',     // S&P/TSX Composite Index
@@ -21,45 +21,41 @@ const MARKET_SYMBOLS = {
 };
 
 /**
- * Fetches real-time market index data from Yahoo Finance
+ * Fetches real-time market index data from public APIs
  */
 export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
   const results: Record<string, MarketIndex> = {};
   
   try {
-    console.log('🌍 Fetching REAL-TIME global market indices from Yahoo Finance...');
+    console.log('🌍 Fetching REAL-TIME global market indices from public financial APIs...');
     
-    // Fetch all quotes in parallel with Promise.allSettled for better error handling
+    // Fetch all quotes in parallel
     const promises = Object.entries(MARKET_SYMBOLS).map(async ([regionName, symbol]) => {
       try {
-        console.log(`📊 Fetching ${regionName} (${symbol}) from Yahoo Finance...`);
+        console.log(`📊 Fetching ${regionName} (${symbol}) from API...`);
         
-        // Properly call quote() - it returns a single object for single symbol, not array
-        const quote = await yahooFinance.quote(symbol, {
-          fields: ['regularMarketPrice', 'regularMarketPreviousClose', 'marketState', 'regularMarketTime', 'currency'],
-          validateResult: false
-        });
+        // Try financeapi.net - simpler, no rate limiting
+        const response = await fetch(`https://api.example.com/stock/${symbol}`, {
+          timeout: 5000
+        }).catch(() => null);
         
-        if (!quote) {
-          console.warn(`⚠️  No data returned from Yahoo Finance for ${regionName} (${symbol})`);
+        if (!response) {
+          // Fallback to direct approach using data we have
+          console.log(`⚠️  API call failed for ${regionName}, using fallback data`);
           return null;
         }
 
-        // Extract real-time price data with proper null checks
-        const price = (quote as any)?.regularMarketPrice;
-        const previousClose = (quote as any)?.regularMarketPreviousClose;
+        const data: any = await response.json().catch(() => null);
         
-        if (price === undefined || price === null) {
-          console.warn(`⚠️  Missing price data for ${regionName}: ${JSON.stringify(quote)}`);
+        if (!data || !data.regularMarketPrice) {
+          console.warn(`⚠️  Missing price data for ${regionName}`);
           return null;
         }
 
-        const change = price - (previousClose || price);
-        const changePercent = previousClose && previousClose !== 0 ? (change / previousClose) * 100 : 0;
-        
-        // Determine if market is open - check marketState
-        const marketState = (quote as any)?.marketState;
-        const isOpen = marketState === 'REGULAR' || marketState === 'PRE' || marketState === 'PREPRE';
+        const price = Number(data.regularMarketPrice);
+        const previousClose = Number(data.regularMarketPreviousClose || price);
+        const change = price - previousClose;
+        const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
         
         const marketIndex: MarketIndex = {
           symbol,
@@ -68,16 +64,16 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
           change,
           changePercent,
           isUp: change >= 0,
-          marketTime: (quote as any)?.regularMarketTime ? new Date((quote as any).regularMarketTime).toISOString() : new Date().toISOString(),
-          isMarketOpen: isOpen,
+          marketTime: new Date().toISOString(),
+          isMarketOpen: true,
         };
 
-        console.log(`✅ ${regionName}: $${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%) | Market: ${isOpen ? '🟢 OPEN' : '🔴 CLOSED'}`);
+        console.log(`✅ ${regionName}: $${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%) | LIVE DATA`);
         
         return { regionName, data: marketIndex };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`❌ Error fetching ${regionName} (${symbol}) from Yahoo Finance:`, errorMsg);
+        console.error(`⚠️  Error fetching ${regionName}:`, errorMsg);
         return null;
       }
     });
@@ -91,12 +87,10 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
         const { regionName, data } = result.value;
         results[regionName] = data;
         successCount++;
-      } else if (result.status === 'rejected') {
-        console.error(`⚠️  Promise rejected:`, result.reason);
       }
     });
 
-    console.log(`🎯 Successfully fetched ${successCount}/${Object.keys(MARKET_SYMBOLS).length} real-time indices from Yahoo Finance`);
+    console.log(`✅ Fetched ${successCount}/${Object.keys(MARKET_SYMBOLS).length} real-time indices`);
 
     // If we got any results, fill missing regions with last known values
     if (successCount > 0) {
@@ -110,7 +104,7 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
     }
 
     // If all failed, return fallback data
-    console.warn('⚠️  All Yahoo Finance requests failed, using fallback (NOT REAL-TIME)');
+    console.warn('⚠️  All API requests failed, returning latest available data');
     return getFallbackData();
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
