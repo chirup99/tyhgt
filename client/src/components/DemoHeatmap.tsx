@@ -102,6 +102,9 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
   const heatmapContainerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<boolean>(false);
   const { toast } = useToast();
+  
+  // FOMO highlighted dates curved lines support
+  const [fomoLinePositions, setFomoLinePositions] = useState<Array<{ x1: number; y1: number; x2: number; y2: number }> | null>(null);
 
   // SIMPLE FETCH - No filters, no complications
   useEffect(() => {
@@ -356,6 +359,64 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     };
   }, [selectedRange]);
 
+  // Calculate FOMO line positions for highlighted dates in public view mode
+  useEffect(() => {
+    if (!isPublicView || !highlightedDates || highlightedDates.dates.length === 0 || !heatmapContainerRef.current) {
+      setFomoLinePositions(null);
+      return;
+    }
+
+    const calculateFomoLinePositions = () => {
+      const containerRef = heatmapContainerRef.current;
+      if (!containerRef) return;
+      
+      const containerRect = containerRef.getBoundingClientRect();
+      const scrollLeft = containerRef.scrollLeft;
+      const scrollTop = containerRef.scrollTop;
+      
+      // Origin point: top center of the heatmap
+      const originX = containerRect.width / 2;
+      const originY = -10; // Above the heatmap
+      
+      const lines: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+      
+      highlightedDates.dates.forEach(dateKey => {
+        const cell = containerRef.querySelector(`[data-date="${dateKey}"]`) as HTMLElement;
+        if (cell) {
+          const cellRect = cell.getBoundingClientRect();
+          
+          // Calculate center position of cell relative to container + scroll offset
+          const x2 = cellRect.left - containerRect.left + cellRect.width / 2 + scrollLeft;
+          const y2 = cellRect.top - containerRect.top + cellRect.height / 2 + scrollTop;
+          
+          lines.push({ x1: originX, y1: originY, x2, y2 });
+        }
+      });
+      
+      console.log(`🎯 DemoHeatmap: Calculated ${lines.length} FOMO line positions for ${highlightedDates.tag} tag`);
+      setFomoLinePositions(lines.length > 0 ? lines : null);
+    };
+
+    // Calculate positions after render
+    const timer1 = setTimeout(calculateFomoLinePositions, 100);
+    const timer2 = setTimeout(calculateFomoLinePositions, 250);
+    const timer3 = setTimeout(calculateFomoLinePositions, 500);
+    
+    // Recalculate on scroll
+    const scrollContainer = heatmapContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', calculateFomoLinePositions);
+    }
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', calculateFomoLinePositions);
+      }
+    };
+  }, [highlightedDates, isPublicView]);
 
   // Filter heatmap data based on selected range
   const getFilteredData = () => {
@@ -828,6 +889,62 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
                   strokeLinejoin="round"
                   style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
                 />
+              </svg>
+            );
+          })()}
+
+          {/* SVG overlay for FOMO curved lines (public view mode) */}
+          {fomoLinePositions && isPublicView && highlightedDates && (() => {
+            const scrollWidth = heatmapContainerRef.current?.scrollWidth || 0;
+            const scrollHeight = heatmapContainerRef.current?.scrollHeight || 0;
+            
+            return (
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: `${scrollWidth}px`,
+                  height: `${scrollHeight}px`,
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                }}
+              >
+                <defs>
+                  <linearGradient id="fomo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{ stopColor: 'rgb(234, 179, 8)', stopOpacity: 0.8 }} />
+                    <stop offset="100%" style={{ stopColor: 'rgb(234, 88, 12)', stopOpacity: 0.8 }} />
+                  </linearGradient>
+                </defs>
+                {fomoLinePositions.map((line, index) => {
+                  const { x1, y1, x2, y2 } = line;
+                  const dx = x2 - x1;
+                  const dy = y2 - y1;
+                  const distance = Math.sqrt(dx * dx + dy * dy);
+                  
+                  // Create smooth curve
+                  const curveAmount = Math.min(distance * 0.3, 50);
+                  const angle = Math.atan2(dy, dx);
+                  const perpAngle = angle - Math.PI / 2;
+                  const midX = (x1 + x2) / 2;
+                  const midY = (y1 + y2) / 2;
+                  const controlX = midX + Math.cos(perpAngle) * curveAmount;
+                  const controlY = midY + Math.sin(perpAngle) * curveAmount;
+                  const pathD = `M ${x1} ${y1} Q ${controlX} ${controlY}, ${x2} ${y2}`;
+                  
+                  return (
+                    <path
+                      key={index}
+                      d={pathD}
+                      stroke="url(#fomo-gradient)"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ filter: 'drop-shadow(0 2px 4px rgba(234, 179, 8, 0.4))' }}
+                    />
+                  );
+                })}
               </svg>
             );
           })()}
