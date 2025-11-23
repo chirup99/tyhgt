@@ -3,6 +3,13 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 // API base URL - uses Cloud Run backend in production, local backend in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
+// Debug logging
+console.log('🔧 [ENV] import.meta.env.MODE:', import.meta.env.MODE);
+console.log('🔧 [ENV] import.meta.env.DEV:', import.meta.env.DEV);
+console.log('🔧 [ENV] import.meta.env.PROD:', import.meta.env.PROD);
+console.log('🔧 [ENV] VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('🔧 [ENV] API_BASE_URL:', API_BASE_URL);
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     let errorMessage: string;
