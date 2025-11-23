@@ -7087,6 +7087,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save Fyers App ID and Secret Key credentials
+  app.post("/api/auth/credentials", async (req, res) => {
+    try {
+      const { appId, secretKey } = req.body;
+      
+      if (!appId || !appId.trim() || !secretKey || !secretKey.trim()) {
+        return res.status(400).json({ success: false, message: "App ID and Secret Key are required" });
+      }
+
+      const trimmedAppId = appId.trim();
+      const trimmedSecretKey = secretKey.trim();
+      
+      console.log(`✅ [CREDENTIALS] Updating: App ID=${trimmedAppId}, Secret Key length=${trimmedSecretKey.length}`);
+
+      // Update FyersAPI instance with new credentials
+      fyersApi.setCredentials({
+        appId: trimmedAppId,
+        secretKey: trimmedSecretKey
+      });
+
+      // Save to database for persistence
+      await safeUpdateApiStatus({
+        fyersAppId: trimmedAppId,
+        fyersSecretKeyLength: trimmedSecretKey.length,
+        credentialsUpdated: new Date(),
+      });
+      
+      console.log('💾 [CREDENTIALS] Saved to database');
+
+      res.json({ 
+        success: true,
+        message: "✅ Credentials Saved",
+        appId: trimmedAppId,
+      });
+
+    } catch (error) {
+      console.error('❌ Error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to save credentials"
+      });
+    }
+  });
+
   // Exchange auth code for access token
   app.post("/api/auth/exchange", async (req, res) => {
     try {

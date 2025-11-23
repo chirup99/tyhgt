@@ -1383,11 +1383,15 @@ export class FyersAPI {
   }
 }
 
-// Create singleton instance - Token will be loaded from database in routes.ts
-// Using empty token initially, will be updated from database or UI
+// Create singleton instance - Load credentials from .env file
+// Token will be loaded from database in routes.ts
+console.log('🔐 [INIT] Loading Fyers credentials from environment...');
+console.log('🔐 [INIT] App ID:', process.env.FYERS_APP_ID ? process.env.FYERS_APP_ID.substring(0, 10) + '...' : 'NOT FOUND');
+console.log('🔐 [INIT] Secret Key:', process.env.FYERS_SECRET_KEY ? 'PRESENT' : 'NOT FOUND');
+
 export const fyersApi = new FyersAPI({
-  appId: process.env.FYERS_APP_ID || '',
-  secretKey: process.env.FYERS_SECRET_KEY || '',
+  appId: process.env.FYERS_APP_ID || 'BUXMASTNCH-100',
+  secretKey: process.env.FYERS_SECRET_KEY || 'TMA74Z9O0Z',
   accessToken: '', // Will be loaded from database on server start
 });
 
