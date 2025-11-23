@@ -97,6 +97,8 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isRangeSelectMode, setIsRangeSelectMode] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedDateForDelete, setSelectedDateForDelete] = useState<string | null>(null);
   const [selectedDatesForEdit, setSelectedDatesForEdit] = useState<string[]>([]);
   const [selectedDatesForRange, setSelectedDatesForRange] = useState<string[]>([]);
   const [linePositions, setLinePositions] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
@@ -270,6 +272,13 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       return;
     }
     
+    // If in delete mode, select the date for deletion
+    if (isDeleteMode) {
+      // Toggle selection - if already selected, deselect it
+      setSelectedDateForDelete(prev => prev === dateKey ? null : dateKey);
+      return;
+    }
+    
     console.log(`🔥 PersonalHeatmap: Date clicked: ${dateKey}, fetching FRESH data from Firebase...`);
     
     try {
@@ -296,15 +305,31 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const handleMoveDateClick = () => {
     setIsEditMode(true);
     setIsRangeSelectMode(false);
+    setIsDeleteMode(false);
     setSelectedDatesForEdit([]);
+    setSelectedDateForDelete(null);
   };
 
-  // Handle delete - delete data from Firebase when user entered wrong data
-  const handleDelete = async () => {
-    if (!selectedDate) {
+  // Handle "Delete" menu item click - enter delete mode
+  const handleDeleteClick = () => {
+    setIsDeleteMode(true);
+    setIsEditMode(false);
+    setIsRangeSelectMode(false);
+    setSelectedDateForDelete(null);
+  };
+
+  // Handle cancel delete mode
+  const handleCancelDelete = () => {
+    setIsDeleteMode(false);
+    setSelectedDateForDelete(null);
+  };
+
+  // Handle confirm delete - actually delete the selected date
+  const handleConfirmDelete = async () => {
+    if (!selectedDateForDelete) {
       toast({
         title: "No Date Selected",
-        description: "Please select a date first to delete its data",
+        description: "Please select a date to delete",
         variant: "destructive",
       });
       return;
@@ -319,28 +344,17 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
       return;
     }
 
-    const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
-    
-    // Confirm deletion
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete all data for ${dateKey}? This action cannot be undone.`
-    );
-    
-    if (!confirmDelete) {
-      return;
-    }
-
-    console.log(`🗑️ Deleting personal data for userId=${userId}, date=${dateKey}`);
+    console.log(`🗑️ Deleting personal data for userId=${userId}, date=${selectedDateForDelete}`);
     
     try {
       // Show loading toast
       toast({
         title: "Deleting Data...",
-        description: `Removing all data for ${dateKey}`,
+        description: `Removing all data for ${selectedDateForDelete}`,
       });
 
       // Delete data from Firebase using DELETE endpoint
-      const deleteResponse = await fetch(`/api/user-journal/${userId}/${dateKey}`, {
+      const deleteResponse = await fetch(`/api/user-journal/${userId}/${selectedDateForDelete}`, {
         method: 'DELETE',
       });
 
@@ -348,17 +362,21 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         throw new Error('Failed to delete data from Firebase');
       }
 
-      console.log(`✅ Personal data deleted successfully for ${dateKey}`);
+      console.log(`✅ Personal data deleted successfully for ${selectedDateForDelete}`);
 
       // Show success message
       toast({
         title: "Success!",
-        description: `All data deleted for ${dateKey}`,
+        description: `All data deleted for ${selectedDateForDelete}`,
       });
 
       // Force heatmap refresh by incrementing refreshKey
       console.log('🔄 Triggering heatmap refresh after deletion...');
       setRefreshKey(prev => prev + 1);
+
+      // Exit delete mode
+      setIsDeleteMode(false);
+      setSelectedDateForDelete(null);
       
     } catch (error) {
       console.error('❌ Error deleting personal data:', error);
@@ -374,7 +392,9 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
   const handleSelectRangeClick = () => {
     setIsRangeSelectMode(true);
     setIsEditMode(false);
+    setIsDeleteMode(false);
     setSelectedDatesForRange([]);
+    setSelectedDateForDelete(null);
     // Don't clear selectedRange - allow user to adjust existing range
   };
 
@@ -1045,6 +1065,9 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                           const isSelectedForEdit = selectedDatesForEdit.includes(dateKey);
                           const editIndex = selectedDatesForEdit.indexOf(dateKey);
                           
+                          // Check if date is selected for deletion
+                          const isSelectedForDelete = selectedDateForDelete === dateKey;
+                          
                           // Check if date is selected for range filtering
                           const isSelectedForRange = selectedDatesForRange.includes(dateKey);
                           const rangeIndex = selectedDatesForRange.indexOf(dateKey);
@@ -1087,6 +1110,14 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                                   />
                                 </div>
                               )}
+                              {isSelectedForDelete && (
+                                <div className="absolute inset-0 flex items-center justify-center ring-2 ring-red-600 dark:ring-red-400 rounded-sm">
+                                  <div 
+                                    className="w-1.5 h-1.5 rounded-full bg-red-600 dark:bg-red-400"
+                                    data-testid={`delete-marker-${dateKey}`}
+                                  />
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -1120,9 +1151,46 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
         </div>
       </div>
 
-      {/* Year Navigation / Edit Mode Control */}
+      {/* Year Navigation / Edit Mode / Delete Mode Control */}
       <div className="relative pt-2 border-t border-gray-200 dark:border-gray-700">
-        {isEditMode ? (
+        {isDeleteMode ? (
+          // Delete Mode: Show single date selection interface
+          <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 bg-red-50 dark:bg-red-900/20 rounded-md">
+            <div className="flex-1 min-w-0 flex justify-center">
+              {!selectedDateForDelete ? (
+                <p className="text-[10px] font-medium text-red-900 dark:text-red-100">
+                  Select date to delete
+                </p>
+              ) : (
+                <div className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                  <span className="truncate">{selectedDateForDelete}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelDelete}
+                className="h-6 px-2 text-[10px]"
+                data-testid="button-cancel-delete"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleConfirmDelete}
+                disabled={!selectedDateForDelete}
+                className="h-6 px-2 text-[10px]"
+                data-testid="button-confirm-delete"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        ) : isEditMode ? (
           // Edit Mode: Show two-date selection interface (compact)
           <div className="flex items-center justify-between gap-1.5 px-2 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
             <div className="flex-1 min-w-0 flex justify-center">
@@ -1337,7 +1405,7 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   <DropdownMenuItem onClick={handleMoveDateClick} data-testid="menu-item-move-date">
                     Move date
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} data-testid="menu-item-delete">
+                  <DropdownMenuItem onClick={handleDeleteClick} data-testid="menu-item-delete">
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
