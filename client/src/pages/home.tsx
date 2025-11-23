@@ -7959,6 +7959,19 @@ ${
                         </h1>
                       </div>
 
+                      {/* Public Trading Report Button - Below Welcome */}
+                      <div className="flex items-center justify-center pb-4 px-4">
+                        <Button
+                          variant="outline"
+                          className="bg-white/10 hover:bg-white/20 border-white/30 text-white"
+                          onClick={() => setShowShareDialog(true)}
+                          data-testid="button-view-public-report"
+                        >
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          View Trading Report
+                        </Button>
+                      </div>
+
                       {/* Trading Tools Section - White container with centered cards */}
                       <div className="bg-white md:pt-4 pt-4 md:pb-4 pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
                         {/* Mobile Search Bar - Fully visible at top */}
@@ -13037,61 +13050,7 @@ ${
               </div>
             </div>
             
-            <DialogFooter className="border-t pt-4">
-              <div className="flex flex-col gap-3 w-full">
-                {!shareableUrl ? (
-                  <Button
-                    onClick={handleCreateShareableLink}
-                    disabled={isCreatingShareableLink}
-                    className="w-full"
-                    data-testid="button-create-shareable-link"
-                  >
-                    {isCreatingShareableLink ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Creating shareable link...
-                      </>
-                    ) : (
-                      <>
-                        <Link2 className="w-4 h-4 mr-2" />
-                        Create Shareable Link (7-day expiry)
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                      <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <input
-                        type="text"
-                        readOnly
-                        value={shareableUrl}
-                        className="flex-1 bg-transparent border-none outline-none text-sm"
-                        data-testid="input-shareable-url"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(shareableUrl);
-                          toast({
-                            title: "Link copied!",
-                            description: "Shareable URL copied to clipboard",
-                          });
-                        }}
-                        data-testid="button-copy-shareable-url"
-                      >
-                        <Copy className="w-3 h-3 mr-2" />
-                        Copy
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Share this link with others. It will expire in 7 days.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </DialogFooter>
+            {/* Removed DialogFooter - No shareable link creation needed for public view */}
           </DialogContent>
         </Dialog>
       </div>
