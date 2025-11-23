@@ -7976,38 +7976,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update API status (refresh connection check)
   app.post("/api/status/refresh", async (req, res) => {
     try {
-      if (!fyersApi.isAuthenticated()) {
-        const updatedStatus = await safeUpdateApiStatus({
-          connected: false,
-          authenticated: false,
-          websocketActive: false,
-          responseTime: 0,
-          successRate: 0,
-          throughput: "0 MB/s",
-          activeSymbols: 0,
-          updatesPerSec: 0,
-          uptime: 0,
-          latency: 0,
-          requestsUsed: 0,
-          version: "v3.0.0",
-          dailyLimit: 100000,
-        });
-
-        await safeAddActivityLog({
-          type: "warning",
-          message: "Not authenticated with Fyers API. Please authenticate first."
-        });
-
-        return res.json(updatedStatus);
+      console.log('🔄 [REFRESH] Status refresh requested...');
+      
+      // Try to test connection (will fail gracefully if no token)
+      let connected = false;
+      let errorMessage = "";
+      let profile = null;
+      
+      try {
+        connected = await fyersApi.testConnection();
+        if (connected) {
+          profile = await fyersApi.getProfile();
+        }
+      } catch (connError: any) {
+        console.log('⚠️ [REFRESH] Connection test failed:', connError.message);
+        errorMessage = connError.message || 'No token available';
       }
 
-      // Test real connection
-      const connected = await fyersApi.testConnection();
-      const profile = connected ? await fyersApi.getProfile() : null;
+      console.log('🔍 [REFRESH] Connection status:', connected ? 'CONNECTED' : 'NOT CONNECTED');
       
       const updatedStatus = await safeUpdateApiStatus({
         connected,
-        authenticated: fyersApi.isAuthenticated(),
+        authenticated: connected,
         websocketActive: connected,
         responseTime: connected ? Math.floor(Math.random() * 50) + 20 : 0,
         successRate: connected ? 99.8 : 0,
@@ -8019,19 +8009,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestsUsed: Math.floor(Math.random() * 2000) + 1000,
         version: "v3.0.0",
         dailyLimit: 100000,
+        lastUpdate: new Date().toISOString(),
       });
 
       // Add activity log
-      await safeAddActivityLog({
-        type: connected ? "success" : "error",
-        message: connected 
-          ? `API connection refreshed successfully${profile ? ` - User: ${profile.name}` : ''}` 
-          : "Failed to connect to Fyers API"
-      });
+      if (connected) {
+        await safeAddActivityLog({
+          type: "success",
+          message: `✅ API connection refreshed successfully${profile ? ` - User: ${profile.name}` : ''}`
+        });
+        console.log('✅ [REFRESH] Connection successful');
+      } else {
+        await safeAddActivityLog({
+          type: "warning",
+          message: `⏳ API token not available. Waiting for manual token input via UI. (${errorMessage})`
+        });
+        console.log('⚠️ [REFRESH] Waiting for token input');
+      }
 
       res.json(updatedStatus);
     } catch (error) {
-      console.error('Refresh API status error:', error);
+      console.error('❌ Refresh API status error:', error);
       await safeAddActivityLog({
         type: "error",
         message: `API refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`
