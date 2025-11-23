@@ -1,0 +1,86 @@
+Access to fetch at 'https://perala-808950990883.us-central1.run.app/api/auth/token' from origin 'https://b738fb26-6fdb-4254-b09e-d7507e75928e-00-kaajrwy7p0mx.pike.replit.dev' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+queryClient.ts:34  POST https://perala-808950990883.us-central1.run.app/api/auth/token net::ERR_FAILED
+(anonymous) @ queryClient.ts:34
+fetchWithTimeout @ queryClient.ts:29
+apiRequest @ queryClient.ts:74
+mutationFn @ auth-button.tsx:25
+fn @ @tanstack_react-query.js?v=41176114:2003
+run @ @tanstack_react-query.js?v=41176114:797
+(anonymous) @ @tanstack_react-query.js?v=41176114:822
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=41176114:818
+Promise.catch
+run @ @tanstack_react-query.js?v=41176114:801
+(anonymous) @ @tanstack_react-query.js?v=41176114:822
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=41176114:818
+Promise.catch
+run @ @tanstack_react-query.js?v=41176114:801
+start @ @tanstack_react-query.js?v=41176114:840
+execute @ @tanstack_react-query.js?v=41176114:2044
+await in execute
+mutate @ @tanstack_react-query.js?v=41176114:2383
+(anonymous) @ @tanstack_react-query.js?v=41176114:3573
+handleSubmit @ auth-button.tsx:56
+callCallback2 @ chunk-SXRIVT2P.js?v=41176114:3680
+invokeGuardedCallbackDev @ chunk-SXRIVT2P.js?v=41176114:3705
+invokeGuardedCallback @ chunk-SXRIVT2P.js?v=41176114:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-SXRIVT2P.js?v=41176114:3742
+executeDispatch @ chunk-SXRIVT2P.js?v=41176114:7046
+processDispatchQueueItemsInOrder @ chunk-SXRIVT2P.js?v=41176114:7066
+processDispatchQueue @ chunk-SXRIVT2P.js?v=41176114:7075
+dispatchEventsForPlugins @ chunk-SXRIVT2P.js?v=41176114:7083
+(anonymous) @ chunk-SXRIVT2P.js?v=41176114:7206
+batchedUpdates$1 @ chunk-SXRIVT2P.js?v=41176114:18966
+batchedUpdates @ chunk-SXRIVT2P.js?v=41176114:3585
+dispatchEventForPluginEventSystem @ chunk-SXRIVT2P.js?v=41176114:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SXRIVT2P.js?v=41176114:5484
+dispatchEvent @ chunk-SXRIVT2P.js?v=41176114:5478
+dispatchDiscreteEvent @ chunk-SXRIVT2P.js?v=41176114:5455
+auth-button.tsx:42 ❌ [TOKEN] Connection failed: Error: Network error. Please check your internet connection and try again.
+    at apiRequest (queryClient.ts:89:33)
+    at async Object.mutationFn (auth-button.tsx:25:22)
+onError @ auth-button.tsx:42
+execute @ @tanstack_react-query.js?v=41176114:2089
+await in execute
+mutate @ @tanstack_react-query.js?v=41176114:2383
+(anonymous) @ @tanstack_react-query.js?v=41176114:3573
+handleSubmit @ auth-button.tsx:56
+callCallback2 @ chunk-SXRIVT2P.js?v=41176114:3680
+invokeGuardedCallbackDev @ chunk-SXRIVT2P.js?v=41176114:3705
+invokeGuardedCallback @ chunk-SXRIVT2P.js?v=41176114:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-SXRIVT2P.js?v=41176114:3742
+executeDispatch @ chunk-SXRIVT2P.js?v=41176114:7046
+processDispatchQueueItemsInOrder @ chunk-SXRIVT2P.js?v=41176114:7066
+processDispatchQueue @ chunk-SXRIVT2P.js?v=41176114:7075
+dispatchEventsForPlugins @ chunk-SXRIVT2P.js?v=41176114:7083
+(anonymous) @ chunk-SXRIVT2P.js?v=41176114:7206
+batchedUpdates$1 @ chunk-SXRIVT2P.js?v=41176114:18966
+batchedUpdates @ chunk-SXRIVT2P.js?v=41176114:3585
+dispatchEventForPluginEventSystem @ chunk-SXRIVT2P.js?v=41176114:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SXRIVT2P.js?v=41176114:5484
+dispatchEvent @ chunk-SXRIVT2P.js?v=41176114:5478
+dispatchDiscreteEvent @ chunk-SXRIVT2P.js?v=41176114:5455
+auth-button.tsx:43 ❌ [TOKEN] Error message: Network error. Please check your internet connection and try again.
+onError @ auth-button.tsx:43
+execute @ @tanstack_react-query.js?v=41176114:2089
+await in execute
+mutate @ @tanstack_react-query.js?v=41176114:2383
+(anonymous) @ @tanstack_react-query.js?v=41176114:3573
+handleSubmit @ auth-button.tsx:56
+callCallback2 @ chunk-SXRIVT2P.js?v=41176114:3680
+invokeGuardedCallbackDev @ chunk-SXRIVT2P.js?v=41176114:3705
+invokeGuardedCallback @ chunk-SXRIVT2P.js?v=41176114:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-SXRIVT2P.js?v=41176114:3742
+executeDispatch @ chunk-SXRIVT2P.js?v=41176114:7046
+processDispatchQueueItemsInOrder @ chunk-SXRIVT2P.js?v=41176114:7066
+processDispatchQueue @ chunk-SXRIVT2P.js?v=41176114:7075
+dispatchEventsForPlugins @ chunk-SXRIVT2P.js?v=41176114:7083
+(anonymous) @ chunk-SXRIVT2P.js?v=41176114:7206
+batchedUpdates$1 @ chunk-SXRIVT2P.js?v=41176114:18966
+batchedUpdates @ chunk-SXRIVT2P.js?v=41176114:3585
+dispatchEventForPluginEventSystem @ chunk-SXRIVT2P.js?v=41176114:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SXRIVT2P.js?v=41176114:5484
+dispatchEvent @ chunk-SXRIVT2P.js?v=41176114:5478
+dispatchDiscreteEvent @ chunk-SXRIVT2P.js?v=41176114:5455
+auth-button.tsx:44 ❌ [TOKEN] Error status: undefined
