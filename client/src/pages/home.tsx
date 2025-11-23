@@ -12833,141 +12833,210 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* Trade History Table - From Journal Trade Book */}
+              {/* Tradebook with Heatmap */}
               <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                      TRADE HISTORY
-                    </h3>
-                  </div>
-
-                  <div className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
-                    <table className="w-full text-xs">
-                      <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
-                        <tr>
-                          <th className="p-1 text-left min-w-[60px]">Time</th>
-                          <th className="p-1 text-left min-w-[50px]">Order</th>
-                          <th className="p-1 text-left min-w-[80px]">Symbol</th>
-                          <th className="p-1 text-left min-w-[50px]">Type</th>
-                          <th className="p-1 text-left min-w-[40px]">Qty</th>
-                          <th className="p-1 text-left min-w-[60px]">Price</th>
-                          <th className="p-1 text-left min-w-[60px]">P&L</th>
-                          <th className="p-1 text-left min-w-[40px]">%</th>
-                          <th className="p-1 text-left min-w-[70px]">Duration</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                        {(() => {
-                          // Collect all trades from report data
-                          const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
-                            ? sharedReportData.reportData.tradingDataByDate 
-                            : getFilteredHeatmapData();
-                          
-                          const allTrades: any[] = [];
-                          
-                          // Extract all trades from all dates
-                          Object.entries(filteredData).forEach(([dateKey, dayData]: [string, any]) => {
-                            const tradeHistory = dayData?.tradingData?.tradeHistory || dayData?.tradeHistory || [];
-                            
-                            if (Array.isArray(tradeHistory) && tradeHistory.length > 0) {
-                              tradeHistory.forEach((trade: any) => {
-                                allTrades.push({
-                                  ...trade,
-                                  date: dateKey
-                                });
-                              });
+                  {(() => {
+                    const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                      ? sharedReportData.reportData.tradingDataByDate 
+                      : getFilteredHeatmapData();
+                    
+                    // Calculate metrics
+                    let totalPnL = 0;
+                    let totalTrades = 0;
+                    let winningTrades = 0;
+                    let currentStreak = 0;
+                    let maxStreak = 0;
+                    let fomoCount = 0;
+                    const dates = Object.keys(filteredData).sort();
+                    
+                    dates.forEach((dateKey, index) => {
+                      const dayData = filteredData[dateKey];
+                      const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                      const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                      
+                      if (metrics) {
+                        const netPnL = metrics.netPnL || 0;
+                        totalPnL += netPnL;
+                        totalTrades += metrics.totalTrades || 0;
+                        winningTrades += metrics.winningTrades || 0;
+                        
+                        // Calculate streak
+                        if (netPnL > 0) {
+                          currentStreak++;
+                          maxStreak = Math.max(maxStreak, currentStreak);
+                        } else {
+                          currentStreak = 0;
+                        }
+                        
+                        // Count FOMO tags
+                        if (Array.isArray(tags)) {
+                          tags.forEach((tag: string) => {
+                            if (tag.toLowerCase().includes('fomo')) {
+                              fomoCount++;
                             }
                           });
+                        }
+                      }
+                    });
+                    
+                    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                    
+                    // Create heatmap data by month
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+                    const currentYear = new Date().getFullYear();
+                    
+                    // Group dates by month
+                    const monthlyData: { [key: string]: { [key: string]: number } } = {};
+                    dates.forEach(dateKey => {
+                      const [year, month, day] = dateKey.split('-');
+                      const monthKey = `${year}-${month}`;
+                      const dayData = filteredData[dateKey];
+                      const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                      const netPnL = metrics?.netPnL || 0;
+                      
+                      if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = {};
+                      }
+                      monthlyData[monthKey][day] = netPnL;
+                    });
+                    
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                            TRADEBOOK
+                          </h3>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {dates.length} dates with data
+                          </div>
+                        </div>
+                        
+                        {/* Heatmap Calendar */}
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4">
+                          <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Trading Calendar {currentYear}
+                          </div>
                           
-                          if (allTrades.length === 0) {
-                            return (
-                              <tr>
-                                <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                                  No trades found in this report
-                                </td>
-                              </tr>
-                            );
-                          }
+                          {/* Month Grid */}
+                          <div className="grid grid-cols-12 gap-2">
+                            {months.map((month, monthIndex) => {
+                              const monthKey = `${currentYear}-${String(monthIndex + 1).padStart(2, '0')}`;
+                              const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
+                              const firstDayOfMonth = new Date(currentYear, monthIndex, 1).getDay();
+                              
+                              return (
+                                <div key={month} className="text-center">
+                                  <div className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    {month}
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    {dayLabels.map((label, labelIndex) => (
+                                      <div key={labelIndex} className="flex justify-center">
+                                        {(() => {
+                                          // Calculate which day of month this represents
+                                          const dayOfMonth = labelIndex - firstDayOfMonth + 1;
+                                          const dayKey = String(dayOfMonth).padStart(2, '0');
+                                          const pnl = monthlyData[monthKey]?.[dayKey];
+                                          
+                                          if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
+                                            return <div className="w-3 h-3" />;
+                                          }
+                                          
+                                          let bgColor = 'bg-gray-200 dark:bg-gray-700';
+                                          if (pnl !== undefined) {
+                                            if (pnl > 0) {
+                                              bgColor = pnl > 1000 ? 'bg-green-600' : pnl > 500 ? 'bg-green-500' : 'bg-green-400';
+                                            } else if (pnl < 0) {
+                                              bgColor = pnl < -1000 ? 'bg-red-600' : pnl < -500 ? 'bg-red-500' : 'bg-red-400';
+                                            }
+                                          }
+                                          
+                                          return (
+                                            <div
+                                              className={`w-3 h-3 rounded-sm ${bgColor}`}
+                                              title={pnl !== undefined ? `₹${pnl.toFixed(2)}` : 'No data'}
+                                            />
+                                          );
+                                        })()}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                           
-                          return allTrades.map((trade, index) => (
-                            <tr
-                              key={index}
-                              className="border-b border-gray-200 dark:border-gray-700"
-                            >
-                              <td className="p-1">{trade.time}</td>
-                              <td className="p-1">
-                                <span
-                                  className={`px-2 py-1 rounded text-xs font-medium ${
-                                    trade.order === "BUY"
-                                      ? "bg-green-600 text-white"
-                                      : "bg-red-600 text-white"
-                                  }`}
-                                >
-                                  {trade.order}
-                                </span>
-                              </td>
-                              <td className="p-1">{trade.symbol}</td>
-                              <td className="p-1">{trade.type}</td>
-                              <td className="p-1">{trade.qty}</td>
-                              <td className="p-1">₹{trade.price}</td>
-                              <td
-                                className={`p-2 ${
-                                  (trade.pnl || "").includes("+")
-                                    ? "text-green-600"
-                                    : (trade.pnl || "").includes("-")
-                                      ? "text-red-600"
-                                      : ""
-                                }`}
-                              >
-                                {trade.pnl}
-                              </td>
-                              <td
-                                className={`p-2 font-medium ${(() => {
-                                  if (!trade.pnl || trade.pnl === "-")
-                                    return "";
-                                  const pnlStr = (trade.pnl || "").replace(
-                                    /[₹,+\s]/g,
-                                    "",
-                                  );
-                                  const pnlValue = parseFloat(pnlStr) || 0;
-                                  const openPrice = trade.price;
-                                  const totalInvestment =
-                                    openPrice * trade.qty || 1;
-                                  const percentage =
-                                    (pnlValue / totalInvestment) * 100;
-                                  return percentage > 0
-                                    ? "text-green-600"
-                                    : percentage < 0
-                                      ? "text-red-600"
-                                      : "text-gray-500";
-                                })()}`}
-                              >
-                                {(() => {
-                                  if (!trade.pnl || trade.pnl === "-")
-                                    return "-";
-                                  const pnlStr = (trade.pnl || "").replace(
-                                    /[₹,+\s]/g,
-                                    "",
-                                  );
-                                  const pnlValue = parseFloat(pnlStr) || 0;
-                                  const openPrice = trade.price;
-                                  const totalInvestment =
-                                    openPrice * trade.qty || 1;
-                                  const percentage =
-                                    (pnlValue / totalInvestment) * 100;
-                                  return `${
-                                    percentage >= 0 ? "+" : ""
-                                  }${percentage.toFixed(2)}%`;
-                                })()}
-                              </td>
-                              <td className="p-1">{trade.duration}</td>
-                            </tr>
-                          ));
-                        })()}
-                      </tbody>
-                    </table>
-                  </div>
+                          {/* Legend */}
+                          <div className="flex items-center justify-between mt-4 text-[10px]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600 dark:text-gray-400">Loss</span>
+                              <div className="flex gap-1">
+                                <div className="w-3 h-3 rounded-sm bg-red-600" />
+                                <div className="w-3 h-3 rounded-sm bg-red-500" />
+                                <div className="w-3 h-3 rounded-sm bg-red-400" />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex gap-1">
+                                <div className="w-3 h-3 rounded-sm bg-green-400" />
+                                <div className="w-3 h-3 rounded-sm bg-green-500" />
+                                <div className="w-3 h-3 rounded-sm bg-green-600" />
+                              </div>
+                              <span className="text-gray-600 dark:text-gray-400">Profit</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Purple Metrics Bar */}
+                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg p-4 grid grid-cols-5 gap-4">
+                          {/* P&L */}
+                          <div className="text-center">
+                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">P&L</div>
+                            <div className="text-white text-lg font-bold">
+                              {totalPnL >= 0 ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                            </div>
+                          </div>
+                          
+                          {/* Trend */}
+                          <div className="text-center">
+                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">Trend</div>
+                            <div className="flex justify-center items-center h-6">
+                              <svg viewBox="0 0 40 20" className="w-10 h-5">
+                                <path
+                                  d={`M 0 ${totalPnL >= 0 ? '15' : '5'} L 10 10 L 20 ${totalPnL >= 0 ? '5' : '15'} L 30 8 L 40 ${totalPnL >= 0 ? '3' : '17'}`}
+                                  fill="none"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                          
+                          {/* FOMO */}
+                          <div className="text-center">
+                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">FOMO</div>
+                            <div className="text-white text-lg font-bold">{fomoCount}</div>
+                          </div>
+                          
+                          {/* Win% */}
+                          <div className="text-center">
+                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">Win%</div>
+                            <div className="text-white text-lg font-bold">{winRate.toFixed(0)}%</div>
+                          </div>
+                          
+                          {/* Streak */}
+                          <div className="text-center">
+                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">Streak</div>
+                            <div className="text-white text-lg font-bold">{maxStreak}</div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </CardContent>
               </Card>
               
