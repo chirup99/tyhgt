@@ -19,9 +19,15 @@ export function AuthButton() {
 
   const tokenMutation = useMutation({
     mutationFn: async (token: string) => {
-      return await apiRequest("POST", "/api/auth/token", { accessToken: token });
+      console.log("🔐 [TOKEN] Submitting token to /api/auth/token...");
+      console.log("🔐 [TOKEN] Token length:", token.length);
+      console.log("🔐 [TOKEN] First 30 chars:", token.substring(0, 30));
+      const result = await apiRequest("POST", "/api/auth/token", { accessToken: token });
+      console.log("✅ [TOKEN] Backend response:", result);
+      return result;
     },
     onSuccess: () => {
+      console.log("✅ [TOKEN] Connection successful, invalidating queries...");
       queryClient.invalidateQueries({ queryKey: ["/api/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
       
@@ -33,6 +39,9 @@ export function AuthButton() {
       setAccessToken("");
     },
     onError: (error: any) => {
+      console.error("❌ [TOKEN] Connection failed:", error);
+      console.error("❌ [TOKEN] Error message:", error?.message);
+      console.error("❌ [TOKEN] Error status:", error?.status);
       toast({
         title: "❌ Connection Failed",
         description: error?.message || "Invalid token. Please check and try again.",
