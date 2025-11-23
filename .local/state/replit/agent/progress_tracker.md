@@ -3724,3 +3724,26 @@
 [x] 3399. ✅ Share functionality fully implemented and working
 [x] 3400. ✅✅✅ SHARE TRADEBOOK FEATURE COMPLETE! ✅✅✅
 [x] 3401. 🎉🎉🎉 USERS CAN NOW SHARE THEIR TRADING CALENDAR! 🎉🎉🎉
+
+[x] 3402. NOVEMBER 23, 2025 - RENAME EDIT DATE TO MOVE DATE & IMPLEMENT FIREBASE DELETE
+[x] 3403. User requested: "for edit date rename to move date and for delete option its basically its used to delete data from heatmap its should delete from firebase its basically user entry wrong data its used to delete"
+[x] 3404. ✅ Renamed "Edit date" menu item to "Move date" (line 1386)
+[x] 3405. ✅ Renamed handleEditDateClick function to handleMoveDateClick (line 581)
+[x] 3406. ✅ Created handleDelete function to delete data from Firebase (lines 587-651)
+[x] 3407. ✅ Delete handler checks if a date is selected before proceeding
+[x] 3408. ✅ Delete handler shows confirmation dialog with date and warning
+[x] 3409. ✅ Delete handler uses window.confirm for user confirmation
+[x] 3410. ✅ Delete handler formats dateKey correctly (YYYY-MM-DD format)
+[x] 3411. ✅ Delete handler calls /api/journal/{dateKey} with PUT method
+[x] 3412. ✅ Delete handler sends empty object {} to Firebase to clear data
+[x] 3413. ✅ Delete handler shows loading toast while deleting
+[x] 3414. ✅ Delete handler shows success toast after deletion
+[x] 3415. ✅ Delete handler triggers heatmap refresh by incrementing refreshKey
+[x] 3416. ✅ Delete handler includes error handling with descriptive messages
+[x] 3417. ✅ Delete handler logs deletion progress to console
+[x] 3418. ✅ Wired up handleDelete to Delete menu item onClick (line 1388)
+[x] 3419. ✅ Updated data-testid from "menu-item-edit-date" to "menu-item-move-date"
+[x] 3420. ✅ Delete menu item properly triggers handleDelete function
+[x] 3421. ✅ Workflow restarted successfully - changes applied
+[x] 3422. ✅✅✅ MOVE DATE RENAME & FIREBASE DELETE COMPLETE! ✅✅✅
+[x] 3423. 🎉🎉🎉 USERS CAN NOW MOVE DATES AND DELETE WRONG DATA FROM FIREBASE! 🎉🎉🎉
