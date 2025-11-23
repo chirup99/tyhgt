@@ -18,6 +18,13 @@ export default function SharedReport() {
 
   const { data: reportData, isLoading, error } = useQuery<{ success: boolean; report: VerifiedReport }>({
     queryKey: ['/api/verified-reports', reportId],
+    queryFn: async () => {
+      const response = await fetch(`/api/verified-reports/${reportId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch verified report');
+      }
+      return response.json();
+    },
     enabled: !!reportId,
   });
 
@@ -228,6 +235,7 @@ export default function SharedReport() {
                     tradingDataByDate={data.tradingDataByDate}
                     selectedDate={selectedDate}
                     onDateSelect={(date) => setSelectedDate(date)}
+                    isPublicView={true}
                   />
                 </CardContent>
               </Card>
