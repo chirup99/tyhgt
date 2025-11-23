@@ -4142,6 +4142,43 @@ ${
   const handleHeatmapDataUpdate = (data: Record<string, any>) => {
     console.log("📊 Received heatmap data update:", Object.keys(data).length, "dates");
     setHeatmapDataFromComponent(data);
+    
+    // ✅ AUTO-SWITCH TO DEMO MODE: For new users or when personal trades = 0
+    if (!isDemoMode && getUserId()) {
+      const hasAnyTradeData = Object.values(data).some((dayData: any) => {
+        // Check both wrapped (Firebase) and unwrapped formats
+        const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+        const tradeHistory = dayData?.tradingData?.tradeHistory || dayData?.tradeHistory;
+        
+        // Has data if:
+        // 1. Has performance metrics with non-zero P&L, OR
+        // 2. Has non-empty trade history
+        return (
+          (metrics && metrics.netPnL !== undefined && metrics.netPnL !== 0) ||
+          (Array.isArray(tradeHistory) && tradeHistory.length > 0)
+        );
+      });
+      
+      if (!hasAnyTradeData && Object.keys(data).length === 0) {
+        console.log("📭 No personal trades found - auto-switching to Demo mode with latest data view");
+        setIsDemoMode(true);
+        localStorage.setItem("tradingJournalDemoMode", "true");
+        
+        // Scroll to latest data after a brief delay to ensure heatmap is rendered
+        setTimeout(() => {
+          if (heatmapContainerRef.current) {
+            const scrollContainer = heatmapContainerRef.current.querySelector('[style*="overflow"]') as HTMLElement;
+            if (scrollContainer) {
+              // Scroll to the rightmost position (latest date)
+              scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+              console.log("🎯 Scrolled to latest data view");
+            }
+          }
+        }, 500);
+      } else if (!hasAnyTradeData) {
+        console.log("⚠️ Personal data exists but has no actual trade data (all zero P&L)");
+      }
+    }
   };
   
   const handleDateRangeChange = (range: { from: Date; to: Date } | null) => {
@@ -9279,7 +9316,19 @@ ${
                               onDateSelect={handleDateSelect}
                               selectedDate={selectedDate}
                               tradingDataByDate={tradingDataByDate}
-                              onDataUpdate={handleHeatmapDataUpdate}
+                              onDataUpdate={(data) => {
+                                handleHeatmapDataUpdate(data);
+                                // Scroll to latest data for demo mode
+                                setTimeout(() => {
+                                  if (heatmapContainerRef.current) {
+                                    const scrollContainer = heatmapContainerRef.current.querySelector('[style*="overflow"]') as HTMLElement;
+                                    if (scrollContainer) {
+                                      scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+                                      console.log("🎯 Demo heatmap: Scrolled to latest data view");
+                                    }
+                                  }
+                                }, 300);
+                              }}
                               onRangeChange={handleDateRangeChange}
                               highlightedDates={activeTagHighlight}
                             />
