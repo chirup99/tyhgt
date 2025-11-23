@@ -4,7 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { fyersApi } from "./fyers-api";
 import { AnalysisProcessor } from "./analysis-processor";
-import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, socialPostLikes, socialPostComments, socialPostReposts, userFollows, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse } from "@shared/schema";
+import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, socialPostLikes, socialPostComments, socialPostReposts, userFollows, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse, insertVerifiedReportSchema } from "@shared/schema";
+import { nanoid } from "nanoid";
 import { fetchBrokerTrades } from "./services/broker-integrations";
 import { z } from "zod";
 import { desc, sql, eq } from "drizzle-orm";
@@ -16306,6 +16307,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: 'Query processing failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // ==========================================
+  // VERIFIED REPORTS - Shareable Trading Reports
+  // ==========================================
+  
+  // Create a verified report
+  app.post('/api/verified-reports', async (req, res) => {
+    try {
+      const reportData = insertVerifiedReportSchema.parse(req.body);
+      
+      // Generate unique report ID
+      const reportId = nanoid(10);
+      
+      // Set expiration date to 7 days from now
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      
+      // Generate shareable URL
+      const shareUrl = `${req.protocol}://${req.get('host')}/shared/${reportId}`;
+      
+      const report = await storage.createVerifiedReport({
+        ...reportData,
+        reportId,
+        shareUrl,
+        expiresAt,
+      });
+      
+      res.json({ success: true, report });
+    } catch (error) {
+      console.error('[VERIFIED-REPORTS] Create error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create verified report',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Get a verified report by ID
+  app.get('/api/verified-reports/:reportId', async (req, res) => {
+    try {
+      const { reportId } = req.params;
+      
+      const report = await storage.getVerifiedReport(reportId);
+      
+      if (!report) {
+        return res.status(404).json({
+          success: false,
+          error: 'Report not found or expired'
+        });
+      }
+      
+      // Increment view count
+      await storage.incrementReportViews(reportId);
+      
+      res.json({ success: true, report });
+    } catch (error) {
+      console.error('[VERIFIED-REPORTS] Get error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch verified report',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
