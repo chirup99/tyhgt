@@ -163,6 +163,7 @@ import {
   Hammer,
   Plus,
   Share2,
+  Link2,
   Facebook,
   Linkedin,
   Twitter,
@@ -12575,7 +12576,7 @@ ${
                   className="flex items-center gap-2"
                   data-testid="button-copy-share-link"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Link2 className="h-4 w-4" />
                   Copy Share Link
                 </Button>
               </div>
