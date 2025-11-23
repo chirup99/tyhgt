@@ -12562,8 +12562,17 @@ ${
         >
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" data-testid="dialog-share-tradebook">
             <DialogHeader className="flex-shrink-0">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <DialogTitle className="text-xl font-bold">My Trading Calendar Report</DialogTitle>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col">
+                    <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
+                    <p className="text-xs text-muted-foreground">rethink & reinvest</p>
+                  </div>
+                  <DialogTitle className="text-lg font-semibold mt-2">my trading calendar report</DialogTitle>
+                  <p className="text-xs text-muted-foreground">
+                    userID: {currentUser?.displayName || currentUser?.email || currentUser?.userId || 'Guest'}
+                  </p>
+                </div>
                 <Button
                   variant="outline"
                   size="icon"
