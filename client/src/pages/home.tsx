@@ -12581,7 +12581,7 @@ ${
                     <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
                   </div>
                   <div className="flex items-center gap-2">
-                    <DialogTitle className="text-lg font-semibold">my trading calendar report</DialogTitle>
+                    <DialogTitle className="text-lg font-semibold">MY trading report</DialogTitle>
                     <Button
                       variant="outline"
                       size="icon"
