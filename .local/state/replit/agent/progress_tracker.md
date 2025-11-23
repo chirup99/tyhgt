@@ -4384,3 +4384,15 @@
 [x] 3743. ✅ Workflow restarted successfully with new header design
 [x] 3744. ✅✅✅ TRADING REPORT DIALOG HEADER REDESIGNED! ✅✅✅
 [x] 3745. 🎨🎨🎨 CLEAN, COMPACT LAYOUT WITH GREEN LINK ICON IN TOP RIGHT! 🎨🎨🎨
+
+[x] 3746. NOVEMBER 23, 2025 - TRADING REPORT HEADER ORDER ADJUSTMENT
+[x] 3747. User requested: "relocate link icon to below user id swap"
+[x] 3748. ✅ Swapped positions of UserID and Link icon in right column
+[x] 3749. ✅ New order in top right (top to bottom):
+[x] 3750.   1. "MY trading report" title
+[x] 3751.   2. UserID text
+[x] 3752.   3. Green link icon button
+[x] 3753. ✅ Maintained right-alignment for entire column (items-end)
+[x] 3754. ✅ Kept all functionality and styling intact
+[x] 3755. ✅ Workflow restarted successfully with updated order
+[x] 3756. ✅✅✅ LINK ICON RELOCATED BELOW USER ID! ✅✅✅

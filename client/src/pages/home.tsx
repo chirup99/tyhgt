@@ -12712,9 +12712,16 @@ ${
                   <p className="text-xs text-muted-foreground">rethink & reinvest</p>
                 </div>
                 
-                {/* Right side: Report title, Link icon, and UserID */}
+                {/* Right side: Report title, UserID, and Link icon */}
                 <div className="flex flex-col items-end gap-2">
                   <DialogTitle className="text-lg font-semibold">MY trading report</DialogTitle>
+                  
+                  {/* UserID */}
+                  <p className="text-xs text-muted-foreground">
+                    userID: {isSharedReportMode && sharedReportData?.reportData?.username 
+                      ? sharedReportData.reportData.username 
+                      : (currentUser?.displayName || currentUser?.email || currentUser?.userId || 'Guest')}
+                  </p>
                   
                   {/* Link icon button - Only show for owners (not in shared report mode) */}
                   {!isSharedReportMode && (
@@ -12763,13 +12770,6 @@ ${
                       )}
                     </div>
                   )}
-                  
-                  {/* UserID */}
-                  <p className="text-xs text-muted-foreground">
-                    userID: {isSharedReportMode && sharedReportData?.reportData?.username 
-                      ? sharedReportData.reportData.username 
-                      : (currentUser?.displayName || currentUser?.email || currentUser?.userId || 'Guest')}
-                  </p>
                 </div>
               </div>
             </DialogHeader>
