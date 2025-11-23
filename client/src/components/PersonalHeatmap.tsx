@@ -292,11 +292,82 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
     }
   };
 
-  // Handle "Edit date" menu item click
-  const handleEditDateClick = () => {
+  // Handle "Move date" menu item click
+  const handleMoveDateClick = () => {
     setIsEditMode(true);
     setIsRangeSelectMode(false);
     setSelectedDatesForEdit([]);
+  };
+
+  // Handle delete - delete data from Firebase when user entered wrong data
+  const handleDelete = async () => {
+    if (!selectedDate) {
+      toast({
+        title: "No Date Selected",
+        description: "Please select a date first to delete its data",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+    
+    // Confirm deletion
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete all data for ${dateKey}? This action cannot be undone.`
+    );
+    
+    if (!confirmDelete) {
+      return;
+    }
+
+    console.log(`🗑️ Deleting personal data for userId=${userId}, date=${dateKey}`);
+    
+    try {
+      // Show loading toast
+      toast({
+        title: "Deleting Data...",
+        description: `Removing all data for ${dateKey}`,
+      });
+
+      // Delete data from Firebase using DELETE endpoint
+      const deleteResponse = await fetch(`/api/user-journal/${userId}/${dateKey}`, {
+        method: 'DELETE',
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error('Failed to delete data from Firebase');
+      }
+
+      console.log(`✅ Personal data deleted successfully for ${dateKey}`);
+
+      // Show success message
+      toast({
+        title: "Success!",
+        description: `All data deleted for ${dateKey}`,
+      });
+
+      // Force heatmap refresh by incrementing refreshKey
+      console.log('🔄 Triggering heatmap refresh after deletion...');
+      setRefreshKey(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('❌ Error deleting personal data:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete data",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle "Select range" menu item click
@@ -1263,10 +1334,10 @@ export function PersonalHeatmap({ userId, onDateSelect, selectedDate, onDataUpda
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={handleEditDateClick} data-testid="menu-item-edit-date">
-                    Edit date
+                  <DropdownMenuItem onClick={handleMoveDateClick} data-testid="menu-item-move-date">
+                    Move date
                   </DropdownMenuItem>
-                  <DropdownMenuItem data-testid="menu-item-delete">
+                  <DropdownMenuItem onClick={handleDelete} data-testid="menu-item-delete">
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>

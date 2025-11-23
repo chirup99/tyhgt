@@ -3747,3 +3747,27 @@
 [x] 3421. ✅ Workflow restarted successfully - changes applied
 [x] 3422. ✅✅✅ MOVE DATE RENAME & FIREBASE DELETE COMPLETE! ✅✅✅
 [x] 3423. 🎉🎉🎉 USERS CAN NOW MOVE DATES AND DELETE WRONG DATA FROM FIREBASE! 🎉🎉🎉
+
+[x] 3424. NOVEMBER 23, 2025 - APPLY SAME CHANGES TO PERSONAL HEATMAP
+[x] 3425. User requested: "for both heatmaps for personal heatmap also update it"
+[x] 3426. ✅ Updated PersonalHeatmap component with same functionality
+[x] 3427. ✅ Renamed "Edit date" menu item to "Move date" (line 1341)
+[x] 3428. ✅ Renamed handleEditDateClick function to handleMoveDateClick (line 299)
+[x] 3429. ✅ Created handleDelete function for PersonalHeatmap (lines 305-374)
+[x] 3430. ✅ Delete handler checks if date is selected and user is authenticated
+[x] 3431. ✅ Delete handler shows confirmation dialog with date and warning
+[x] 3432. ✅ Delete handler uses window.confirm for user confirmation
+[x] 3433. ✅ Delete handler formats dateKey correctly (YYYY-MM-DD format)
+[x] 3434. ✅ Delete handler calls /api/user-journal/{userId}/{dateKey} with DELETE method
+[x] 3435. ✅ Delete handler properly deletes user-specific data from Firebase
+[x] 3436. ✅ Delete handler shows loading toast while deleting
+[x] 3437. ✅ Delete handler shows success toast after deletion
+[x] 3438. ✅ Delete handler triggers heatmap refresh by incrementing refreshKey
+[x] 3439. ✅ Delete handler includes error handling with descriptive messages
+[x] 3440. ✅ Delete handler logs deletion progress to console
+[x] 3441. ✅ Wired up handleDelete to Delete menu item onClick (line 1343)
+[x] 3442. ✅ Updated data-testid from "menu-item-edit-date" to "menu-item-move-date"
+[x] 3443. ✅ Delete menu item properly triggers handleDelete function
+[x] 3444. ✅ Workflow restarted successfully - changes applied to both heatmaps
+[x] 3445. ✅✅✅ BOTH HEATMAPS UPDATED WITH MOVE DATE & DELETE! ✅✅✅
+[x] 3446. 🎉🎉🎉 DEMO & PERSONAL HEATMAPS NOW SUPPORT MOVE & DELETE! 🎉🎉🎉
