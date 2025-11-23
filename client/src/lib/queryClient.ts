@@ -1,7 +1,7 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-// API base URL - empty means use local backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// Simple: Always use local backend (empty string = same server)
+const API_BASE_URL = '';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
