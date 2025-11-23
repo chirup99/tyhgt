@@ -13210,11 +13210,11 @@ ${
                       winningTrades += metrics.winningTrades || 0;
                       trendData.push(netPnL);
                       
-                      // Only track tags from losing trades
+                      // Only track tags from losing trades - accumulate actual loss amounts
                       if (netPnL < 0 && Array.isArray(tags) && tags.length > 0) {
                         tags.forEach((tag: string) => {
                           const normalizedTag = tag.trim().toLowerCase();
-                          lossTagsMap.set(normalizedTag, (lossTagsMap.get(normalizedTag) || 0) + 1);
+                          lossTagsMap.set(normalizedTag, (lossTagsMap.get(normalizedTag) || 0) + Math.abs(netPnL));
                         });
                       }
                     }
@@ -13225,7 +13225,7 @@ ${
                   
                   const lossTags = Array.from(lossTagsMap.entries())
                     .sort((a, b) => b[1] - a[1])
-                    .map(([tag, count]) => ({ tag, count }));
+                    .map(([tag, lossAmount]) => ({ tag, lossAmount }));
                   
                   const createTrendPath = (data: number[]) => {
                     if (data.length === 0) return '';
@@ -13305,17 +13305,70 @@ ${
                             {isProfitable ? 'Profitable' : 'Not Profitable'}
                           </div>
                         </div>
-                        <svg viewBox="0 0 100 45" className="w-full" style={{ height: '120px' }}>
-                          <line x1="0" y1="22.5" x2="100" y2="22.5" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.2" />
-                          <path
-                            d={createTrendPath(trendData)}
-                            fill="none"
-                            stroke={isProfitable ? '#16a34a' : '#dc2626'}
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        {trendData.length > 0 ? (
+                          <div className="h-28 w-full">
+                            {(() => {
+                              // Convert trend data to chart format
+                              const chartData = trendData.map((pnl, idx) => ({
+                                day: `${idx + 1}`,
+                                value: pnl,
+                                pnl: pnl,
+                              }));
+
+                              return (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart
+                                    data={chartData}
+                                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                                  >
+                                    <defs>
+                                      <linearGradient id="reportTrendGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="rgb(107, 114, 128)" stopOpacity={0.4} />
+                                        <stop offset="100%" stopColor="rgb(107, 114, 128)" stopOpacity={0.05} />
+                                      </linearGradient>
+                                    </defs>
+                                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={false} />
+                                    <YAxis axisLine={false} tickLine={false} tick={false} domain={['dataMin - 1000', 'dataMax + 1000']} />
+                                    <Tooltip
+                                      contentStyle={{
+                                        background: 'var(--background)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '8px',
+                                        fontSize: '11px',
+                                        padding: '6px 10px',
+                                      }}
+                                      formatter={(value: any) => [
+                                        `${value >= 0 ? '₹' : '-₹'}${Math.abs(value).toLocaleString()}`,
+                                        'P&L',
+                                      ]}
+                                    />
+                                    <Area
+                                      type="natural"
+                                      dataKey="value"
+                                      stroke={isProfitable ? '#16a34a' : '#dc2626'}
+                                      strokeWidth={2}
+                                      fill="url(#reportTrendGradient)"
+                                      dot={false}
+                                      activeDot={{
+                                        r: 4,
+                                        fill: isProfitable ? '#16a34a' : '#dc2626',
+                                        stroke: 'white',
+                                        strokeWidth: 2,
+                                      }}
+                                      isAnimationActive={true}
+                                      animationDuration={600}
+                                      animationEasing="ease-in-out"
+                                    />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              );
+                            })()}
+                          </div>
+                        ) : (
+                          <div className="h-28 flex items-center justify-center text-gray-400 text-xs">
+                            No data
+                          </div>
+                        )}
                       </div>
                       
                       {/* Column 3: Loss Tags */}
@@ -13323,14 +13376,14 @@ ${
                         <div className="text-[11px] text-gray-600 dark:text-gray-400 uppercase font-semibold mb-3">Loss Tags</div>
                         {lossTags.length > 0 ? (
                           <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md p-3 space-y-2 max-h-32 overflow-y-auto">
-                            {lossTags.map(({ tag, count }) => (
+                            {lossTags.map(({ tag, lossAmount }) => (
                               <div
                                 key={tag}
                                 className="flex items-center justify-between px-2.5 py-1.5 bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 rounded-md"
                                 data-testid={`tag-loss-${tag}`}
                               >
                                 <span className="text-[12px] font-medium text-red-800 dark:text-red-300 capitalize truncate">{tag}</span>
-                                <span className="text-[11px] font-bold text-red-600 dark:text-red-400 ml-2 flex-shrink-0">-₹{(count * 100).toFixed(0)}</span>
+                                <span className="text-[11px] font-bold text-red-600 dark:text-red-400 ml-2 flex-shrink-0">-₹{lossAmount.toLocaleString('en-IN')}</span>
                               </div>
                             ))}
                           </div>
