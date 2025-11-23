@@ -7089,22 +7089,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         connected: true
       });
 
-      // START historical fetch ONLY after successful authentication
-      console.log('🚀 [AUTH/TOKEN] User authenticated - starting historical data fetch...');
-      setTimeout(async () => {
-        try {
-          console.log('📅 [HISTORICAL-FETCH] Starting historical data collection after authentication...');
-          await autoFetchHistoricalData();
-          
-          // Then start fetching older months (with delay to avoid overwhelming the API)
-          setTimeout(async () => {
-            console.log('🔄 [HISTORICAL-FETCH] Starting older months data collection...');
-            await fetchOlderMonthsData();
-          }, 60000); // Wait 1 minute after first month completes
-        } catch (error) {
-          console.error('❌ [HISTORICAL-FETCH] Failed to start after auth:', error);
-        }
-      }, 5000); // Start after 5 seconds to let UI update
+      // DISABLED: Auto-historical-fetch after token connection
+      // Users can manually trigger via /api/fetch-historical-status endpoint if needed
+      console.log('✅ [AUTH/TOKEN] Token successfully set - ready for use');
 
     } catch (error) {
       console.error('❌ [AUTH/TOKEN] Error:', error);
