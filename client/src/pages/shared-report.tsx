@@ -7,12 +7,14 @@ import { X, Copy, ExternalLink, Calendar, TrendingUp, BarChart3 } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { VerifiedReport } from "@shared/schema";
+import { useState } from "react";
 
 export default function SharedReport() {
   const { reportId } = useParams<{ reportId: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const { data: reportData, isLoading, error } = useQuery<{ success: boolean; report: VerifiedReport }>({
     queryKey: ['/api/verified-reports', reportId],
@@ -20,7 +22,7 @@ export default function SharedReport() {
   });
 
   const handleClose = () => {
-    if (user) {
+    if (currentUser) {
       setLocation('/home');
     } else {
       setLocation('/');
@@ -161,67 +163,59 @@ export default function SharedReport() {
             </Card>
 
             {/* Trading Statistics */}
-            {data.stats && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Trading Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {data.stats.totalTrades !== undefined && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Trades</p>
-                        <p className="text-2xl font-bold" data-testid="text-total-trades">
-                          {data.stats.totalTrades}
-                        </p>
-                      </div>
-                    )}
-                    {data.stats.winRate !== undefined && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Win Rate</p>
-                        <p className="text-2xl font-bold" data-testid="text-win-rate">
-                          {data.stats.winRate}%
-                        </p>
-                      </div>
-                    )}
-                    {data.stats.totalPnL !== undefined && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total P&L</p>
-                        <p
-                          className={`text-2xl font-bold ${
-                            data.stats.totalPnL >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
-                          }`}
-                          data-testid="text-total-pnl"
-                        >
-                          {data.stats.totalPnL >= 0 ? '+' : ''}
-                          {data.stats.totalPnL.toFixed(2)}
-                        </p>
-                      </div>
-                    )}
-                    {data.stats.avgPnL !== undefined && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Avg P&L</p>
-                        <p
-                          className={`text-2xl font-bold ${
-                            data.stats.avgPnL >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
-                          }`}
-                          data-testid="text-avg-pnl"
-                        >
-                          {data.stats.avgPnL >= 0 ? '+' : ''}
-                          {data.stats.avgPnL.toFixed(2)}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Trading Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {data.totalTrades !== undefined && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Trades</p>
+                      <p className="text-2xl font-bold" data-testid="text-total-trades">
+                        {data.totalTrades}
+                      </p>
+                    </div>
+                  )}
+                  {data.winRate !== undefined && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Win Rate</p>
+                      <p className="text-2xl font-bold" data-testid="text-win-rate">
+                        {data.winRate}%
+                      </p>
+                    </div>
+                  )}
+                  {data.totalPnL !== undefined && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total P&L</p>
+                      <p
+                        className={`text-2xl font-bold ${
+                          data.totalPnL >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
+                        }`}
+                        data-testid="text-total-pnl"
+                      >
+                        {data.totalPnL >= 0 ? '+' : ''}
+                        {data.totalPnL.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                  {data.fomoCount !== undefined && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">FOMO Trades</p>
+                      <p className="text-2xl font-bold" data-testid="text-fomo-count">
+                        {data.fomoCount}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Trading Heatmap */}
-            {data.tradingData && (
+            {data.tradingDataByDate && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -231,8 +225,9 @@ export default function SharedReport() {
                 </CardHeader>
                 <CardContent>
                   <DemoHeatmap
-                    tradingDataByDate={data.tradingData}
-                    onDateSelect={() => {}}
+                    tradingDataByDate={data.tradingDataByDate}
+                    selectedDate={selectedDate}
+                    onDateSelect={(date) => setSelectedDate(date)}
                   />
                 </CardContent>
               </Card>

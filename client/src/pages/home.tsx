@@ -77,6 +77,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -163,7 +164,9 @@ import {
   Hammer,
   Plus,
   Share2,
+  Copy,
   Link2,
+  ExternalLink,
   Facebook,
   Linkedin,
   Twitter,
@@ -1903,6 +1906,8 @@ export default function Home() {
   
   // Share tradebook modal state
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareableUrl, setShareableUrl] = useState<string | null>(null);
+  const [isCreatingShareableLink, setIsCreatingShareableLink] = useState(false);
 
   // Centralized authentication check helper - ALL tab switches MUST use this
   const setTabWithAuthCheck = (tabName: string) => {
@@ -1946,6 +1951,101 @@ export default function Home() {
     } else {
       // Unauthorized user - show coming soon modal
       setShowTradingMasterComingSoon(true);
+    }
+  };
+
+  // Create shareable trading report
+  const handleCreateShareableLink = async () => {
+    try {
+      setIsCreatingShareableLink(true);
+      
+      // Gather trading data from the calendar
+      const filteredData = getFilteredHeatmapData();
+      const dates = Object.keys(filteredData).sort();
+      
+      // Calculate comprehensive stats
+      let totalPnL = 0;
+      let totalTrades = 0;
+      let winningTrades = 0;
+      let fomoCount = 0;
+      const streaks: number[] = [];
+      let currentStreak = 0;
+      
+      dates.forEach(dateKey => {
+        const dayData = filteredData[dateKey];
+        const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+        const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+        
+        if (metrics) {
+          const netPnL = metrics.netPnL || 0;
+          totalPnL += netPnL;
+          totalTrades += metrics.totalTrades || 0;
+          winningTrades += metrics.winningTrades || 0;
+          
+          // Track FOMO tags
+          if (Array.isArray(tags) && tags.some((tag: string) => tag.toLowerCase() === 'fomo')) {
+            fomoCount++;
+          }
+          
+          // Track win streaks
+          if (netPnL > 0) {
+            currentStreak++;
+          } else if (netPnL < 0 && currentStreak > 0) {
+            streaks.push(currentStreak);
+            currentStreak = 0;
+          }
+        }
+      });
+      
+      // Final streak
+      if (currentStreak > 0) {
+        streaks.push(currentStreak);
+      }
+      
+      const maxStreak = streaks.length > 0 ? Math.max(...streaks) : 0;
+      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+      
+      // Create verified report
+      const response = await fetch('/api/verified-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser?.userId || 'demo',
+          username: currentUser?.displayName || currentUser?.email || 'Demo User',
+          reportData: {
+            tradingDataByDate: filteredData,
+            totalPnL,
+            totalTrades,
+            winRate: Number(winRate.toFixed(2)),
+            fomoCount,
+            maxStreak,
+            userId: currentUser?.userId || 'demo',
+            username: currentUser?.displayName || currentUser?.email || 'Demo User',
+            tagline: 'rethink & reinvest',
+          }
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.report) {
+        setShareableUrl(result.report.shareUrl);
+        toast({
+          title: "Shareable link created!",
+          description: "Your trading report is ready to share. Link expires in 7 days.",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to create shareable link');
+      }
+    } catch (error) {
+      console.error('[SHARE] Error creating shareable link:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create shareable link. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingShareableLink(false);
     }
   };
 
@@ -12553,10 +12653,11 @@ ${
           open={showShareDialog} 
           onOpenChange={(open) => {
             setShowShareDialog(open);
-            // Reset share dialog's tag highlight when closing
+            // Reset share dialog's tag highlight and shareable URL when closing
             if (!open) {
               setShareDialogTagHighlight(null);
-              console.log('🔄 Share Dialog closed - reset tag highlighting');
+              setShareableUrl(null);
+              console.log('🔄 Share Dialog closed - reset tag highlighting and shareable URL');
             }
           }}
         >
@@ -12893,6 +12994,62 @@ ${
                 })()}
               </div>
             </div>
+            
+            <DialogFooter className="border-t pt-4">
+              <div className="flex flex-col gap-3 w-full">
+                {!shareableUrl ? (
+                  <Button
+                    onClick={handleCreateShareableLink}
+                    disabled={isCreatingShareableLink}
+                    className="w-full"
+                    data-testid="button-create-shareable-link"
+                  >
+                    {isCreatingShareableLink ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Creating shareable link...
+                      </>
+                    ) : (
+                      <>
+                        <Link2 className="w-4 h-4 mr-2" />
+                        Create Shareable Link (7-day expiry)
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                      <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <input
+                        type="text"
+                        readOnly
+                        value={shareableUrl}
+                        className="flex-1 bg-transparent border-none outline-none text-sm"
+                        data-testid="input-shareable-url"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(shareableUrl);
+                          toast({
+                            title: "Link copied!",
+                            description: "Shareable URL copied to clipboard",
+                          });
+                        }}
+                        data-testid="button-copy-shareable-url"
+                      >
+                        <Copy className="w-3 h-3 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Share this link with others. It will expire in 7 days.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

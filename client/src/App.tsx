@@ -35,6 +35,7 @@ import Dashboard from "@/pages/home";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import PublicHeatmap from "@/pages/public-heatmap";
+import SharedReport from "@/pages/shared-report";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -397,6 +398,7 @@ function Router() {
       <Route path="/home" component={NewHome} />
       <Route path="/share/:userId" component={PublicHeatmap} />
       <Route path="/share/heatmap/:userId" component={PublicHeatmap} />
+      <Route path="/shared/:reportId" component={SharedReport} />
       <Route component={NotFound} />
     </Switch>
   );

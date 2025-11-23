@@ -16354,6 +16354,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { reportId } = req.params;
       
+      // Clean up expired reports first
+      await storage.deleteExpiredReports();
+      
       const report = await storage.getVerifiedReport(reportId);
       
       if (!report) {
@@ -16363,10 +16366,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Increment view count
+      // Check if report has expired (defensive check)
+      if (new Date(report.expiresAt) <= new Date()) {
+        return res.status(404).json({
+          success: false,
+          error: 'Report has expired'
+        });
+      }
+      
+      // Increment view count AFTER validation
       await storage.incrementReportViews(reportId);
       
-      res.json({ success: true, report });
+      // Return report with incremented view count
+      const updatedReport = {
+        ...report,
+        views: report.views + 1
+      };
+      
+      res.json({ success: true, report: updatedReport });
     } catch (error) {
       console.error('[VERIFIED-REPORTS] Get error:', error);
       res.status(500).json({
