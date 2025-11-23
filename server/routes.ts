@@ -7089,6 +7089,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         connected: true
       });
 
+      // START historical fetch ONLY after successful authentication
+      console.log('🚀 [AUTH/TOKEN] User authenticated - starting historical data fetch...');
+      setTimeout(async () => {
+        try {
+          console.log('📅 [HISTORICAL-FETCH] Starting historical data collection after authentication...');
+          await autoFetchHistoricalData();
+          
+          // Then start fetching older months (with delay to avoid overwhelming the API)
+          setTimeout(async () => {
+            console.log('🔄 [HISTORICAL-FETCH] Starting older months data collection...');
+            await fetchOlderMonthsData();
+          }, 60000); // Wait 1 minute after first month completes
+        } catch (error) {
+          console.error('❌ [HISTORICAL-FETCH] Failed to start after auth:', error);
+        }
+      }, 5000); // Start after 5 seconds to let UI update
+
     } catch (error) {
       console.error('❌ [AUTH/TOKEN] Error:', error);
       res.status(500).json({ 
@@ -8600,36 +8617,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
-  // Start historical data fetch when server starts
-  setTimeout(async () => {
-    console.log('🚀 HISTORICAL-FETCH: Initializing historical data collection...');
-    try {
-      if (fyersApi.isAuthenticated()) {
-        // First fetch last 1 month data
-        await autoFetchHistoricalData();
-        
-        // Then start fetching older months (with delay to avoid overwhelming the API)
-        setTimeout(async () => {
-          console.log('🔄 Starting older months data collection...');
-          await fetchOlderMonthsData();
-        }, 60000); // Wait 1 minute after first month completes
-        
-      } else {
-        console.log('⏳ HISTORICAL-FETCH: Waiting for Fyers authentication...');
-        // Retry after auth
-        setTimeout(async () => {
-          if (fyersApi.isAuthenticated()) {
-            await autoFetchHistoricalData();
-            setTimeout(async () => {
-              await fetchOlderMonthsData();
-            }, 60000);
-          }
-        }, 30000);
-      }
-    } catch (error) {
-      console.error('❌ HISTORICAL-FETCH initialization failed:', error);
-    }
-  }, 15000); // Start after 15 seconds
+  // DISABLED: Auto-fetch on server startup
+  // Historical data fetch is now ONLY triggered after successful user authentication
+  // to avoid blocking the initial connection process
+  console.log('⏸️ HISTORICAL-FETCH: Auto-fetch on startup DISABLED - will start after user authenticates');
 
   // API endpoint to manually trigger historical fetch
   app.post("/api/fetch-historical-status", async (req, res) => {
