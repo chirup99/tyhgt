@@ -7052,10 +7052,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const token = accessToken.trim();
-      console.log(`✅ [TOKEN] Saved: ${token.substring(0, 30)}...`);
+      console.log(`\n========================================`);
+      console.log(`🔐 [AUTH/TOKEN] RECEIVED TOKEN FROM UI`);
+      console.log(`📝 Token (first 50 chars): ${token.substring(0, 50)}...`);
+      console.log(`📝 Token length: ${token.length}`);
+      console.log(`========================================\n`);
 
       // Set token in memory for immediate use
+      console.log('🔐 [AUTH/TOKEN] Setting token on FyersAPI instance...');
       fyersApi.setAccessToken(token);
+      console.log('✅ [AUTH/TOKEN] Token set on FyersAPI instance');
+
+      // Verify token was set
+      const isAuth = fyersApi.isAuthenticated();
+      console.log(`✅ [AUTH/TOKEN] FyersAPI isAuthenticated(): ${isAuth}`);
 
       // Save to database
       const tokenExpiry = new Date();
@@ -7068,7 +7078,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tokenExpiry: tokenExpiry,
       });
       
-      console.log('💾 [TOKEN] Saved to database');
+      console.log('💾 [AUTH/TOKEN] Saved to database');
+      console.log(`🎯 [AUTH/TOKEN] Response sent to client`);
 
       // Success response
       res.json({ 
@@ -7079,7 +7090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
-      console.error('❌ Error:', error);
+      console.error('❌ [AUTH/TOKEN] Error:', error);
       res.status(500).json({ 
         success: false,
         message: "Failed to save token"
