@@ -2,12 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
 import { X, Copy, ExternalLink, Calendar, TrendingUp, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { VerifiedReport } from "@shared/schema";
 import { useState } from "react";
+import Dashboard from "@/pages/home";
 
 export default function SharedReport() {
   const { reportId } = useParams<{ reportId: string }>();
@@ -48,52 +50,68 @@ export default function SharedReport() {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-        <Card className="w-full max-w-2xl mx-4">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-4 h-4 bg-primary rounded-full animate-pulse" />
-              <div className="w-4 h-4 bg-primary rounded-full animate-pulse delay-75" />
-              <div className="w-4 h-4 bg-primary rounded-full animate-pulse delay-150" />
-            </div>
-            <p className="text-center mt-4 text-muted-foreground">Loading report...</p>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        {/* Background Dashboard (restricted) */}
+        <div className="pointer-events-none opacity-30 blur-sm">
+          <Dashboard />
+        </div>
+
+        {/* Loading Overlay */}
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl mx-4">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-4 h-4 bg-primary rounded-full animate-pulse" />
+                <div className="w-4 h-4 bg-primary rounded-full animate-pulse delay-75" />
+                <div className="w-4 h-4 bg-primary rounded-full animate-pulse delay-150" />
+              </div>
+              <p className="text-center mt-4 text-muted-foreground">Loading report...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 
   if (error || !reportData?.success) {
     return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-        <Card className="w-full max-w-2xl mx-4">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-destructive">Report Not Found</CardTitle>
+      <>
+        {/* Background Dashboard (restricted) */}
+        <div className="pointer-events-none opacity-30 blur-sm">
+          <Dashboard />
+        </div>
+
+        {/* Error Overlay */}
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl mx-4">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-destructive">Report Not Found</CardTitle>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleClose}
+                  data-testid="button-close-error"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                This report may have expired or does not exist. Shareable reports are valid for 7 days.
+              </p>
               <Button
-                size="icon"
-                variant="ghost"
+                className="mt-4"
                 onClick={handleClose}
-                data-testid="button-close-error"
+                data-testid="button-return-home"
               >
-                <X className="h-4 w-4" />
+                Return Home
               </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              This report may have expired or does not exist. Shareable reports are valid for 7 days.
-            </p>
-            <Button
-              className="mt-4"
-              onClick={handleClose}
-              data-testid="button-return-home"
-            >
-              Return Home
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 
@@ -101,34 +119,35 @@ export default function SharedReport() {
   const { username, reportData: data, shareUrl, createdAt, expiresAt, views } = report;
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 overflow-y-auto p-4">
-      <div className="w-full max-w-6xl my-8">
-        <Card>
-          <CardHeader className="border-b">
+    <>
+      {/* Background Dashboard (restricted - not interactable) */}
+      <div className="pointer-events-none opacity-30 blur-sm">
+        <Dashboard />
+      </div>
+
+      {/* Report Dialog Overlay */}
+      <Dialog open={true} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent 
+          className="max-w-6xl max-h-[90vh] overflow-y-auto p-0"
+          data-testid="dialog-shared-report"
+        >
+          <DialogHeader className="border-b p-6 pb-4">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <BarChart3 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <CardTitle data-testid="text-report-title">Trading Report</CardTitle>
+                  <DialogTitle data-testid="text-report-title">MY trading report</DialogTitle>
                   <p className="text-sm text-muted-foreground" data-testid="text-report-owner">
                     by {username}
                   </p>
                 </div>
               </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={handleClose}
-                data-testid="button-close-report"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
-          </CardHeader>
+          </DialogHeader>
 
-          <CardContent className="p-6 space-y-6">
+          <div className="p-6 space-y-6">
             {/* Report Metadata */}
             <div className="flex items-center justify-between flex-wrap gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
@@ -240,9 +259,9 @@ export default function SharedReport() {
                 </CardContent>
               </Card>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

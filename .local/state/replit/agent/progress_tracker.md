@@ -320,6 +320,48 @@
 [x] 1994. 💯💯💯 READY FOR ACTIVE DEVELOPMENT - START BUILDING! 💯💯💯
 [x] 1995. ✅✅✅ MIGRATION IMPORT COMPLETED - ALL TASKS DONE! ✅✅✅
 
+[x] 1996. NOVEMBER 23, 2025 - SHAREABLE LINK UX IMPROVEMENT
+[x] 1997. User requested: "for create shareable link button from my trading report its working but its open on separate window only displaying report. but i want to make best user experience dont create separate page use current owner page with background trading journal with dialog my trading report window for public user only my trading report is accessible not background owner trading journal tab like same page"
+[x] 1998. User wants shareable link to show trading journal in background with report in dialog overlay
+[x] 1999. Requirements identified:
+[x] 2000.   - Don't open separate/blank page for shared reports
+[x] 2001.   - Show full trading journal page in background (restricted/disabled)
+[x] 2002.   - Display "MY trading report" in dialog overlay on top
+[x] 2003.   - Public users can only access report dialog, not background trading journal
+[x] 2004.   - Same page experience with better visual context
+[x] 2005. ✅ Modified shared-report.tsx to import Dashboard component
+[x] 2006. ✅ Rendered Dashboard in background with restrictions:
+[x] 2007.   - pointer-events-none (prevents interaction)
+[x] 2008.   - opacity-30 (makes it visually subdued)
+[x] 2009.   - blur-sm (creates depth separation)
+[x] 2010. ✅ Converted report card to Dialog component overlay
+[x] 2011. ✅ Changed report title to "MY trading report" (matching user's design)
+[x] 2012. ✅ Dialog shows on top of blurred background trading journal
+[x] 2013. ✅ Public users can:
+[x] 2014.   - View the report in full detail
+[x] 2015.   - Copy shareable URL
+[x] 2016.   - See trading statistics
+[x] 2017.   - View trading calendar heatmap
+[x] 2018.   - Close dialog to return home
+[x] 2019. ✅ Public users CANNOT:
+[x] 2020.   - Interact with background trading journal
+[x] 2021.   - Access owner's private data
+[x] 2022.   - Navigate to other tabs
+[x] 2023. ✅ Dialog is fully scrollable with max-h-[90vh]
+[x] 2024. ✅ Dialog has proper close functionality
+[x] 2025. ✅ Maintained all existing report features:
+[x] 2026.   - View count tracking
+[x] 2027.   - Creation and expiration dates
+[x] 2028.   - Share URL with copy button
+[x] 2029.   - Trading statistics display
+[x] 2030.   - Trading calendar heatmap
+[x] 2031. ✅ Loading state shows Dashboard in background with loading overlay
+[x] 2032. ✅ Error state shows Dashboard in background with error message
+[x] 2033. ✅ All data-testid attributes preserved for testing
+[x] 2034. ✅ Restarted workflow successfully - changes applied
+[x] 2035. ✅✅✅ SHAREABLE LINK UX IMPROVEMENT COMPLETED! ✅✅✅
+[x] 2036. 🎉🎉🎉 SHAREABLE LINKS NOW SHOW TRADING JOURNAL IN BACKGROUND WITH REPORT DIALOG ON TOP! 🎉🎉🎉
+
 [x] 1666. NOVEMBER 22, 2025 - SHARE BUTTON MODAL WITH PREVIEW AND SOCIAL MEDIA OPTIONS
 [x] 1667. User requested: "for share button its generating promotional report card image its downloading and share on x platform. dont do that when i tap on share button pop window with report card display what cards is generated so that i can improvise below add share link option to share on different social media platform"
 [x] 1668. Requirements identified:
