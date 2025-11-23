@@ -133,7 +133,8 @@ export class FyersAPI {
 
     // Add authorization header if access token is available
     if (credentials.accessToken) {
-      const authHeader = `${credentials.appId}:${credentials.accessToken}`;
+      const authString = `${credentials.appId}:${credentials.accessToken}`;
+      const authHeader = 'Bearer ' + Buffer.from(authString).toString('base64');
       this.apiClient.defaults.headers.common['Authorization'] = authHeader;
       this.dataClient.defaults.headers.common['Authorization'] = authHeader;
     }
@@ -186,10 +187,10 @@ export class FyersAPI {
 
       if (response.data.s === 'ok' && response.data.data?.access_token) {
         this.credentials.accessToken = response.data.data.access_token;
-        this.apiClient.defaults.headers.common['Authorization'] = 
-          `${this.credentials.appId}:${this.credentials.accessToken}`;
-        this.dataClient.defaults.headers.common['Authorization'] = 
-          `${this.credentials.appId}:${this.credentials.accessToken}`;
+        const authString = `${this.credentials.appId}:${this.credentials.accessToken}`;
+        const authHeader = 'Bearer ' + Buffer.from(authString).toString('base64');
+        this.apiClient.defaults.headers.common['Authorization'] = authHeader;
+        this.dataClient.defaults.headers.common['Authorization'] = authHeader;
         console.log('✅ [FYERS-AUTH] Access token generated successfully');
         return response.data.data.access_token;
       } else {
@@ -869,7 +870,8 @@ export class FyersAPI {
   // Set access token manually
   setAccessToken(token: string): void {
     this.credentials.accessToken = token;
-    const authHeader = `${this.credentials.appId}:${token}`;
+    const authString = `${this.credentials.appId}:${token}`;
+    const authHeader = 'Bearer ' + Buffer.from(authString).toString('base64');
     this.apiClient.defaults.headers.common['Authorization'] = authHeader;
     this.dataClient.defaults.headers.common['Authorization'] = authHeader;
   }
@@ -879,7 +881,8 @@ export class FyersAPI {
     Object.assign(this.credentials, credentials);
     
     if (credentials.accessToken) {
-      const authHeader = `${this.credentials.appId}:${credentials.accessToken}`;
+      const authString = `${this.credentials.appId}:${credentials.accessToken}`;
+      const authHeader = 'Bearer ' + Buffer.from(authString).toString('base64');
       this.apiClient.defaults.headers.common['Authorization'] = authHeader;
       this.dataClient.defaults.headers.common['Authorization'] = authHeader;
     }
@@ -1170,7 +1173,8 @@ export class FyersAPI {
         { baseUrl: 'https://api.fyers.in', path: '/data/history', method: 'POST' }
       ];
       
-      const authHeader = `${this.credentials.appId}:${this.credentials.accessToken}`;
+      const authString = `${this.credentials.appId}:${this.credentials.accessToken}`;
+      const authHeader = 'Bearer ' + Buffer.from(authString).toString('base64');
       console.log('Using auth header format:', `${this.credentials.appId}:${this.credentials.accessToken ? '[TOKEN_SET]' : '[NO_TOKEN]'}`);
       console.log('Testing with all permissions enabled...');
       
