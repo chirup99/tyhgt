@@ -87,7 +87,7 @@ const backupDataService = createBackupDataService();
 // Safe activity logging wrapper - silently fails if Firebase is unavailable
 async function safeAddActivityLog(log: { type: string; message: string }): Promise<void> {
   try {
-    await safeAddActivityLog(log);
+    await storage.addActivityLog(log);
   } catch (error) {
     // Silently ignore Firebase errors - logging should never crash the server
     // Firebase may be intentionally disabled to save costs
@@ -97,7 +97,7 @@ async function safeAddActivityLog(log: { type: string; message: string }): Promi
 // Safe API status update wrapper - silently fails if Firebase is unavailable
 async function safeUpdateApiStatus(status: any): Promise<any> {
   try {
-    return await safeUpdateApiStatus(status);
+    return await storage.updateApiStatus(status);
   } catch (error) {
     // Silently ignore Firebase errors - status updates should never crash the server
     console.log('⚠️ Firebase unavailable, skipping API status update');
