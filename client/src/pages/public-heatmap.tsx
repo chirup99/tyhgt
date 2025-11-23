@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
-import { X, Link as LinkIcon } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
 import { auth } from "@/firebase";
@@ -17,6 +17,7 @@ export default function PublicHeatmap() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const currentUser = auth.currentUser;
+  const [userDisplayName, setUserDisplayName] = useState<string>("Guest");
 
   useEffect(() => {
     // Fetch public (sanitized) heatmap data - only aggregate metrics, no sensitive details
@@ -58,12 +59,29 @@ export default function PublicHeatmap() {
     }
   }, [userId]);
 
+  useEffect(() => {
+    // Fetch user display name
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`/api/user/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserDisplayName(data.displayName || data.email || userId);
+        }
+      } catch (error) {
+        console.log("Could not fetch user info:", error);
+      }
+    };
+
+    if (userId) {
+      fetchUserInfo();
+    }
+  }, [userId]);
+
   const handleClose = () => {
-    // If user is not authenticated, show sign-in dialog
     if (!currentUser) {
       setShowSignInDialog(true);
     } else {
-      // If authenticated, go to their dashboard
       setLocation("/");
     }
   };
@@ -220,56 +238,43 @@ export default function PublicHeatmap() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 overflow-y-auto">
-      <div className="max-w-6xl mx-auto">
-        {/* Header with close and share */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              className="h-10 w-10 rounded-full bg-white dark:bg-slate-800 shadow-md hover-elevate"
-              data-testid="button-close-public-heatmap"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            
-            {/* Perala Watermark */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md">
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
-              <span className="text-xs font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                perala
-              </span>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-y-auto">
+      <div className="w-full max-w-3xl">
+        {/* Modal-style Dialog */}
+        <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
+          {/* Header */}
+          <div className="flex-shrink-0">
+            <div className="flex flex-col gap-2 p-6">
+              {/* Top row: PERALA (left) and Report title (right) */}
+              <div className="flex items-center justify-between gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
+                <div className="flex items-center gap-2">
+                  <DialogTitle className="text-lg font-semibold">my trading calendar report</DialogTitle>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyLink}
+                    className="h-9 w-9"
+                    data-testid="button-copy-share-link"
+                  >
+                    <Link2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Bottom row: Tagline and UserID */}
+              <div className="flex flex-col space-y-1">
+                <p className="text-xs text-muted-foreground">rethink & reinvest</p>
+                <p className="text-xs text-muted-foreground">
+                  userID: {userDisplayName}
+                </p>
+              </div>
             </div>
           </div>
 
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleCopyLink}
-            className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            data-testid="button-copy-share-link"
-          >
-            <LinkIcon className="h-4 w-4" />
-            Share Link
-          </Button>
-        </div>
-
-        {/* Main Report Container */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Title Section */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              My Trading Calendar Report
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Public trading performance view
-            </p>
-          </div>
-
-          <div className="p-6 space-y-4">
-            {/* Heatmap Container - Scrollable */}
+          {/* Content */}
+          <div className="flex-1 overflow-auto space-y-4 p-6">
+            {/* Heatmap Container */}
             <div className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg">
               <DemoHeatmap
                 tradingDataByDate={heatmapData}
@@ -330,7 +335,7 @@ export default function PublicHeatmap() {
             </div>
             
             {/* Analytics Row: Total P&L, Performance Trend, Loss Tags */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {/* Column 1: Total P&L */}
               <div className={`rounded-lg p-4 text-white ${stats.isProfitable ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-red-500 to-red-600'}`}>
                 <div className="flex items-start justify-between mb-3">
@@ -406,22 +411,6 @@ export default function PublicHeatmap() {
             </div>
           </div>
         </div>
-
-        {/* Promotional footer */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-            Track your trading journey with perala
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation("/login")}
-            className="hover-elevate"
-            data-testid="button-get-started"
-          >
-            Get Started Free
-          </Button>
-        </div>
       </div>
 
       {/* Sign-in Dialog */}
@@ -429,9 +418,6 @@ export default function PublicHeatmap() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Sign in to continue</DialogTitle>
-            <DialogDescription>
-              Create your free account to start tracking your trading performance with perala
-            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 mt-4">
             <Button
