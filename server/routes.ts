@@ -7041,127 +7041,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start the cleanup scheduler
   scheduleDailyCleanup();
 
-  // Set access token manually - NEW FLOW: RESPOND INSTANTLY, SAVE IN BACKGROUND
+  // SIMPLIFIED: Set access token - just save it, don't test
   app.post("/api/auth/token", async (req, res) => {
     try {
       const { accessToken } = req.body;
       
-      if (!accessToken) {
-        return res.status(400).json({ message: "Access token is required" });
+      if (!accessToken || !accessToken.trim()) {
+        return res.status(400).json({ message: "Token is required" });
       }
 
-      // Clean the token (remove any duplicates or extra quotes)
-      const cleanedToken = accessToken.trim().replace(/["']/g, '').split('""')[0];
-      console.log(`🔧 Cleaned token length: ${cleanedToken.length} chars`);
+      // Use token as-is (don't clean it)
+      const token = accessToken.trim();
+      console.log(`✅ [TOKEN] Received token: ${token.substring(0, 50)}...`);
 
-      // Validate token format (Fyers tokens are typically 600+ characters)
-      if (cleanedToken.length < 100) {
-        safeAddActivityLog({
-          type: "error",
-          message: "Invalid token format: Token too short"
-        }).catch(err => console.error('Activity log error:', err));
-        return res.status(400).json({ message: "Invalid token format. Token appears to be incomplete." });
-      }
+      // Set token in memory
+      fyersApi.setAccessToken(token);
+      console.log('⚡ [TOKEN] Token set in memory');
 
-      // STEP 1: Set token in memory (instant!)
-      console.log('⚡ [TOKEN-AUTH] Setting token - INSTANT response!');
-      fyersApi.setAccessToken(cleanedToken);
-      
+      // Save to database
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 24);
-      
-      // STEP 2: Return success INSTANTLY (no database waits!)
-      console.log('✅ [TOKEN-AUTH] Responding IMMEDIATELY - database save in background!');
+
+      await safeUpdateApiStatus({
+        authenticated: true,
+        accessToken: token,
+        tokenExpiry: tokenExpiry,
+      });
+      console.log('💾 [TOKEN] Token saved to database');
+
+      // Respond immediately
       res.json({ 
-        success: true, 
-        message: "Token saved! Connection verification in progress...",
-        connected: false,
+        success: true,
+        message: "Token saved successfully",
         authenticated: true
       });
 
-      // STEP 3: Database save + connection test in background (non-blocking)
-      setImmediate(async () => {
-        try {
-          // Save to PostgreSQL in background
-          console.log('💾 [TOKEN-AUTH] Saving to PostgreSQL in background...');
-          try {
-            await safeUpdateApiStatus({
-              connected: false,
-              authenticated: true,
-              websocketActive: false,
-              responseTime: 45,
-              successRate: 99.8,
-              throughput: "2.3 MB/s",
-              activeSymbols: 250,
-              updatesPerSec: 1200,
-              uptime: 99.97,
-              latency: 12,
-              requestsUsed: 1500,
-              version: "v3.0.0",
-              dailyLimit: 100000,
-              accessToken: cleanedToken,
-              tokenExpiry: tokenExpiry,
-            });
-            console.log('✅ [TOKEN-AUTH] PostgreSQL save completed');
-          } catch (dbError) {
-            console.error('❌ [TOKEN-AUTH] PostgreSQL save failed:', dbError);
-          }
-
-          // Save to Firebase in background (don't block user!)
-          console.log('📦 [TOKEN-AUTH] Starting Firebase backup in background...');
-          let firebaseSuccess = false;
-          try {
-            const firebaseResult = await googleCloudService.saveFyersToken(cleanedToken, tokenExpiry);
-            if (firebaseResult.success) {
-              console.log('✅ [TOKEN-AUTH] Firebase backup completed');
-              firebaseSuccess = true;
-            }
-          } catch (firebaseError) {
-            console.error('❌ [TOKEN-AUTH] Firebase backup failed:', firebaseError);
-          }
-
-          // Log token save completion
-          await safeAddActivityLog({
-            type: "success",
-            message: `Token saved successfully (Firebase: ${firebaseSuccess ? 'Yes' : 'No'}). Testing connection...`
-          });
-
-          // Test connection in background
-          console.log('🔍 [TOKEN-AUTH] Testing Fyers API connection...');
-          const isConnected = await fyersApi.testConnection();
-          
-          if (isConnected) {
-            console.log('✅ [TOKEN-AUTH] Connection successful!');
-            await safeUpdateApiStatus({
-              connected: true,
-              authenticated: true,
-              websocketActive: true,
-            });
-            await safeAddActivityLog({
-              type: "success",
-              message: "Fyers API connection established and verified"
-            });
-          } else {
-            console.log('⚠️ [TOKEN-AUTH] Connection pending - will retry automatically');
-            await safeAddActivityLog({
-              type: "info",
-              message: "Token saved. Connection will retry when API becomes available."
-            });
-          }
-        } catch (bgError) {
-          console.error('❌ [TOKEN-AUTH] Background process error:', bgError);
-        }
-      });
-
     } catch (error) {
-      console.error('Token auth error:', error);
-      
-      await safeAddActivityLog({
-        type: "error",
-        message: `Token authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      });
-
-      res.status(500).json({ message: "Authentication failed" });
+      console.error('❌ [TOKEN] Error:', error);
+      res.status(500).json({ message: "Failed to save token" });
     }
   });
 
