@@ -4140,7 +4140,13 @@ ${
   const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(null);
   
   // Track if user has manually toggled the switch (to prevent auto-switching after manual toggle)
-  const [hasManuallyToggledMode, setHasManuallyToggledMode] = useState(false);
+  const [hasManuallyToggledMode, setHasManuallyToggledMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("hasManuallyToggledMode");
+      return stored === "true";
+    }
+    return false;
+  });
   
   // ✅ SEPARATE STATE FOR SHARE DIALOG: Prevents interference with main tradebook
   const [shareDialogTagHighlight, setShareDialogTagHighlight] = useState<{
@@ -4170,9 +4176,10 @@ ${
       });
       
       if (!hasAnyTradeData && Object.keys(data).length === 0) {
-        console.log("📭 No personal trades found - suggesting Demo mode with latest data view");
+        console.log("📭 No personal trades found - auto-switching to Demo mode");
         setIsDemoMode(true);
         localStorage.setItem("tradingJournalDemoMode", "true");
+        // Don't set hasManuallyToggledMode here - this is automatic, not manual
         
         // Scroll to latest data after a brief delay to ensure heatmap is rendered
         setTimeout(() => {
@@ -4346,7 +4353,8 @@ ${
       }
     } catch (error) {
       console.error("❌ Error during auto-click:", error);
-      alert("Failed to load personal data. Please try again.");
+      // Don't show error popup for new users - they will see demo heatmap instead
+      console.log("ℹ️ No personal data found - user will see demo heatmap");
     } finally {
       setIsAutoClickingPersonal(false);
     }
@@ -4392,10 +4400,13 @@ ${
         if (userId) {
           console.log(`👤 Personal mode - loading personal data instantly...`);
           handleAutoClickPersonalDates();
-        } else {
-          console.log(`⚠️ No userId found - switching to Demo mode automatically`);
+        } else if (!hasManuallyToggledMode) {
+          // Only auto-switch if user hasn't manually chosen personal mode
+          console.log(`⚠️ No userId found - auto-switching to Demo mode`);
           setIsDemoMode(true);
           localStorage.setItem("tradingJournalDemoMode", "true");
+        } else {
+          console.log(`ℹ️ No userId but user manually selected personal mode - respecting choice`);
         }
       } else {
         // ✅ SIMPLIFIED: Load demo data directly from Firebase - NO localStorage!
@@ -9291,6 +9302,7 @@ ${
                                   
                                   // Mark that user has manually toggled (prevents auto-switching)
                                   setHasManuallyToggledMode(true);
+                                  localStorage.setItem("hasManuallyToggledMode", "true");
                                   
                                   // Simple toggle - just flip the mode
                                   setIsDemoMode(checked);
@@ -12554,7 +12566,7 @@ ${
                 <DialogTitle className="text-xl font-bold">My Trading Calendar Report</DialogTitle>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
                   onClick={() => {
                     if (currentUser?.userId) {
                       const shareUrl = `${window.location.origin}/share/heatmap/${currentUser.userId}`;
@@ -12573,7 +12585,6 @@ ${
                       }
                     }
                   }}
-                  size="icon"
                   className="h-9 w-9"
                   data-testid="button-copy-share-link"
                 >
