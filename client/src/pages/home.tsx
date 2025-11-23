@@ -4331,6 +4331,64 @@ ${
     };
   }, [shareDialogTagHighlight]);
 
+  // ✅ SEPARATE STATE FOR REPORT DIALOG: Prevents interference with main tradebook
+  const [reportDialogTagHighlight, setReportDialogTagHighlight] = useState<{
+    tag: string;
+    dates: string[];
+  } | null>(null);
+  
+  // Refs for report dialog curved line connections
+  const reportDialogFomoButtonRef = useRef<HTMLButtonElement>(null);
+  const reportDialogHeatmapContainerRef = useRef<HTMLDivElement>(null);
+  
+  // State to trigger re-render of curved lines during scroll for report dialog
+  const [reportDialogScrollTrigger, setReportDialogScrollTrigger] = useState(0);
+  
+  // Effect to handle scroll updates for report dialog curved lines
+  useEffect(() => {
+    if (!reportDialogTagHighlight || reportDialogTagHighlight.tag !== 'fomo') return;
+    
+    const heatmapWrapper = reportDialogHeatmapContainerRef.current;
+    if (!heatmapWrapper) return;
+    
+    // Find the scrollable element (parent with overflow-auto class)
+    const scrollableElement = heatmapWrapper;
+    if (!scrollableElement) return;
+    
+    let rafId: number | null = null;
+    
+    const handleScroll = () => {
+      // Immediate update for instant response
+      setReportDialogScrollTrigger(prev => prev + 1);
+      
+      // Cancel any pending RAF
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      
+      // Also schedule RAF for next frame
+      rafId = requestAnimationFrame(() => {
+        setReportDialogScrollTrigger(prev => prev + 1);
+        rafId = null;
+      });
+    };
+    
+    // Attach scroll listener
+    scrollableElement.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    
+    console.log('⚡ Attached scroll listener to report dialog heatmap');
+    
+    // Cleanup
+    return () => {
+      scrollableElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [reportDialogTagHighlight]);
+
   // Date range selection state
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -12753,8 +12811,9 @@ ${
             if (!open) {
               // Use the centralized close handler
               handleShareDialogClose();
-              // Reset share dialog's tag highlight
+              // Reset BOTH share dialog tag highlight AND report dialog tag highlight
               setShareDialogTagHighlight(null);
+              setReportDialogTagHighlight(null);
               console.log('🔄 Share Dialog closed - reset tag highlighting and shareable URL');
             } else {
               setShowShareDialog(open);
@@ -12833,17 +12892,85 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* Heatmap Container - using DemoHeatmap component like journal tab */}
-              <div className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-                <DemoHeatmap
-                  tradingDataByDate={isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
-                    ? sharedReportData.reportData.tradingDataByDate 
-                    : getFilteredHeatmapData()}
-                  onDateSelect={() => {}}
-                  selectedDate={null}
-                  onDataUpdate={() => {}}
-                  isPublicView={true}
-                />
+              {/* Heatmap Container with ref for curved lines */}
+              <div className="relative">
+                <div 
+                  ref={reportDialogHeatmapContainerRef}
+                  className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg"
+                >
+                  <DemoHeatmap
+                    tradingDataByDate={isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                      ? sharedReportData.reportData.tradingDataByDate 
+                      : getFilteredHeatmapData()}
+                    onDateSelect={() => {}}
+                    selectedDate={null}
+                    onDataUpdate={() => {}}
+                    isPublicView={true}
+                  />
+                </div>
+                
+                {/* Curved Lines Overlay for FOMO button */}
+                {reportDialogTagHighlight?.tag === 'fomo' && reportDialogTagHighlight.dates.length > 0 && (() => {
+                  // Force recalculation on scroll
+                  void reportDialogScrollTrigger;
+                  
+                  const paths: JSX.Element[] = [];
+                  
+                  if (!reportDialogFomoButtonRef.current || !reportDialogHeatmapContainerRef.current) {
+                    return null;
+                  }
+                  
+                  const buttonRect = reportDialogFomoButtonRef.current.getBoundingClientRect();
+                  const heatmapRect = reportDialogHeatmapContainerRef.current.getBoundingClientRect();
+                  
+                  // Calculate origin point (center of FOMO button)
+                  const originX = buttonRect.left + buttonRect.width / 2;
+                  const originY = buttonRect.top + buttonRect.height / 2;
+                  
+                  // Find all highlighted date cells
+                  reportDialogTagHighlight.dates.forEach((date, index) => {
+                    const cellElement = reportDialogHeatmapContainerRef.current?.querySelector(
+                      `[data-date="${date}"]`
+                    );
+                    
+                    if (cellElement) {
+                      const cellRect = cellElement.getBoundingClientRect();
+                      const cellX = cellRect.left + cellRect.width / 2;
+                      const cellY = cellRect.top + cellRect.height / 2;
+                      
+                      // Calculate control points for smooth curve
+                      const dx = cellX - originX;
+                      const dy = cellY - originY;
+                      const distance = Math.sqrt(dx * dx + dy * dy);
+                      const curveAmount = Math.min(distance * 0.25, 80);
+                      
+                      // Create curved path
+                      const controlX = originX + dx * 0.5;
+                      const controlY = originY + dy * 0.5 - curveAmount;
+                      
+                      paths.push(
+                        <path
+                          key={`fomo-line-${index}`}
+                          d={`M ${originX} ${originY} Q ${controlX} ${controlY}, ${cellX} ${cellY}`}
+                          stroke="rgba(168, 85, 247, 0.4)"
+                          strokeWidth="1.5"
+                          fill="none"
+                          strokeDasharray="4 2"
+                          className="pointer-events-none"
+                        />
+                      );
+                    }
+                  });
+                  
+                  return (
+                    <svg
+                      className="fixed inset-0 pointer-events-none"
+                      style={{ zIndex: 9999 }}
+                    >
+                      {paths}
+                    </svg>
+                  );
+                })()}
               </div>
               
               {/* Stats Bar - Purple metrics from journal tab */}
@@ -12942,11 +13069,48 @@ ${
                         </div>
                       </div>
                       
-                      {/* FOMO */}
-                      <div className="flex flex-col items-center justify-center">
+                      {/* FOMO - Clickable button with curved lines */}
+                      <button
+                        ref={reportDialogFomoButtonRef}
+                        className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                          reportDialogTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                        }`}
+                        onClick={() => {
+                          if (reportDialogTagHighlight?.tag === 'fomo') {
+                            // Toggle off if already active
+                            setReportDialogTagHighlight(null);
+                            console.log('📍 Deactivated FOMO tag highlighting in report dialog');
+                          } else {
+                            // Get FOMO dates from filtered data
+                            const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                              ? sharedReportData.reportData.tradingDataByDate 
+                              : getFilteredHeatmapData();
+                            const dates = Object.keys(filteredData).sort();
+                            
+                            const fomoDates: string[] = [];
+                            dates.forEach(dateKey => {
+                              const dayData = filteredData[dateKey];
+                              const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                              
+                              if (Array.isArray(tags)) {
+                                tags.forEach((tag: string) => {
+                                  if (tag.toLowerCase().includes('fomo') && !fomoDates.includes(dateKey)) {
+                                    fomoDates.push(dateKey);
+                                  }
+                                });
+                              }
+                            });
+                            
+                            // Activate FOMO highlighting
+                            setReportDialogTagHighlight({ tag: 'fomo', dates: fomoDates });
+                            console.log(`📍 Activated FOMO tag highlighting in report dialog for ${fomoDates.length} dates:`, fomoDates);
+                          }
+                        }}
+                        title={`Click to ${reportDialogTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
+                      >
                         <div className="text-[10px] opacity-80">FOMO</div>
                         <div className="text-xs font-bold">{fomoTrades}</div>
-                      </div>
+                      </button>
                       
                       {/* Win% */}
                       <div className="flex flex-col items-center justify-center">
