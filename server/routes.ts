@@ -3602,50 +3602,13 @@ async function attemptAutoReconnection() {
     const apiStatus = await storage.getApiStatus();
     
     if (!apiStatus || !apiStatus.accessToken) {
-      console.log('❌ [POSTGRES] No database token found - checking environment fallback');
+      console.log('❌ [POSTGRES] No database token found - waiting for manual token input');
       
-      // Fallback: If environment token exists, save it to database for future use
-      const envToken = process.env.FYERS_ACCESS_TOKEN;
-      if (envToken) {
-        console.log('💾 Environment token found, testing and saving to database...');
-        
-        try {
-          fyersApi.setAccessToken(envToken);
-          const isConnected = await fyersApi.testConnection();
-          
-          if (isConnected) {
-            // Calculate token expiry (24 hours from now)
-            const tokenExpiry = new Date();
-            tokenExpiry.setHours(tokenExpiry.getHours() + 24);
-            
-            await safeUpdateApiStatus({
-              connected: true,
-              authenticated: true,
-              accessToken: envToken,
-              tokenExpiry: tokenExpiry,
-              websocketActive: true,
-              responseTime: 45,
-              successRate: 99.8,
-              throughput: "2.3 MB/s",
-              activeSymbols: 250,
-              updatesPerSec: 1200,
-              uptime: 99.97,
-              latency: 12,
-            });
-
-            await safeAddActivityLog({
-              type: "success",
-              message: "Environment token validated and saved to database for persistent storage"
-            });
-
-            console.log('🎉 Environment token saved to database successfully!');
-            return true;
-          }
-        } catch (error) {
-          console.log('❌ Environment token validation failed:', error);
-        }
-      }
+      // NOTE: We NO LONGER use environment token as fallback!
+      // ONLY manually pasted tokens through the UI will be used.
+      // This ensures clean token management and daily updates.
       
+      console.log('⚠️  No token available. Please paste your Fyers token through the UI "Connect" button.');
       return false;
     } else {
       // We have a token in the database - test it
