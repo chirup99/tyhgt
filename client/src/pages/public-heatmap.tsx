@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
-import { Link2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
 import { auth } from "@/firebase";
 import { useLocation } from "wouter";
@@ -15,7 +14,6 @@ export default function PublicHeatmap() {
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const currentUser = auth.currentUser;
   const [userDisplayName, setUserDisplayName] = useState<string>("Guest");
 
@@ -88,15 +86,6 @@ export default function PublicHeatmap() {
 
   const handleSignIn = () => {
     setLocation("/login");
-  };
-
-  const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}/share/heatmap/${userId}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: "Link copied!",
-      description: "Share this link with anyone to showcase your trading calendar",
-    });
   };
 
   if (isLoading) {
@@ -250,15 +239,6 @@ export default function PublicHeatmap() {
                 <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">my trading calendar report</h2>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyLink}
-                    className="h-9 w-9"
-                    data-testid="button-copy-share-link"
-                  >
-                    <Link2 className="h-4 w-4" />
-                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

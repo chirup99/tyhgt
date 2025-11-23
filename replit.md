@@ -30,8 +30,9 @@ The trading journal includes a unified sharing system that lets users share thei
 - Same modal dialog style as edit mode - no separate page
 - Dark overlay background for professional presentation
 - Displays only your public trading metrics in view-only format
-- Can copy the link further, but no editing possible
+- View-only mode - no editing possible
 - Works for both authenticated and non-authenticated users
+- Close button to exit
 
 ### What's Shared & What's Private
 **Public Metrics Shared:**
