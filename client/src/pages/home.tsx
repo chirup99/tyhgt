@@ -1917,19 +1917,27 @@ export default function Home() {
     const sharedReportId = params.get('sharedReport');
     
     if (sharedReportId) {
-      // Fetch the shared report
+      // Open dialog immediately to show loading state
+      setIsSharedReportMode(true);
+      setShowShareDialog(true);
+      
+      // Fetch the shared report in background
       fetch(`/api/verified-reports/${sharedReportId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.report) {
-            setIsSharedReportMode(true);
             setSharedReportData(data.report);
             setShareableUrl(data.report.shareUrl);
-            setShowShareDialog(true);
+          } else {
+            // Close dialog if report not found
+            setShowShareDialog(false);
+            setIsSharedReportMode(false);
           }
         })
         .catch(err => {
           console.error('Failed to load shared report:', err);
+          setShowShareDialog(false);
+          setIsSharedReportMode(false);
         });
     }
   }, []);

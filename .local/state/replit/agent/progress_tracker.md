@@ -4396,3 +4396,24 @@
 [x] 3754. ✅ Kept all functionality and styling intact
 [x] 3755. ✅ Workflow restarted successfully with updated order
 [x] 3756. ✅✅✅ LINK ICON RELOCATED BELOW USER ID! ✅✅✅
+
+[x] 3757. NOVEMBER 23, 2025 - PUBLIC REPORT LINK IMMEDIATE LOADING & VISIBLE HOME SCREEN
+[x] 3758. User requested: "for public link url when user opens its opens on home screen its fine report its taking time to open make it immediate on home screen. and dont make total blury for homescreen for public report make it display home screen dont make it blur display proper with public dialog"
+[x] 3759. ✅ Modified shared report loading logic in home.tsx (line 1917-1946):
+[x] 3760.   - Dialog now opens IMMEDIATELY when URL contains sharedReport parameter
+[x] 3761.   - Report data fetches in background (no waiting)
+[x] 3762.   - Shows loading state while data loads
+[x] 3763.   - Auto-closes if report not found or error occurs
+[x] 3764. ✅ Modified DialogOverlay component in dialog.tsx:
+[x] 3765.   - Changed backdrop from bg-black/80 (80% dark) to bg-black/20 (20% dark)
+[x] 3766.   - Home screen now clearly visible behind dialog
+[x] 3767.   - No blur effect - clean, transparent overlay
+[x] 3768.   - Dialog content stands out while showing background
+[x] 3769. ✅ Benefits of changes:
+[x] 3770.   - Instant dialog appearance (no loading delay)
+[x] 3771.   - Home screen remains visible and recognizable
+[x] 3772.   - Better user experience for public shared reports
+[x] 3773.   - Maintains context by showing where user is
+[x] 3774. ✅ Workflow restarted successfully with improvements
+[x] 3775. ✅✅✅ PUBLIC REPORT OPENS INSTANTLY WITH VISIBLE HOME SCREEN! ✅✅✅
+[x] 3776. ⚡⚡⚡ NO MORE WAITING - NO MORE BLUR! ⚡⚡⚡
