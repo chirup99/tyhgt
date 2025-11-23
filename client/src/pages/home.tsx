@@ -4351,9 +4351,19 @@ ${
     const heatmapWrapper = reportDialogHeatmapContainerRef.current;
     if (!heatmapWrapper) return;
     
-    // Find the scrollable element (parent with overflow-auto class)
-    const scrollableElement = heatmapWrapper;
-    if (!scrollableElement) return;
+    // Find the actual scrollable element inside the heatmap component
+    const scrollableElement = heatmapWrapper.querySelector('.overflow-x-auto');
+    if (!scrollableElement) {
+      // Retry after a tiny delay if not found
+      const retryTimeout = setTimeout(() => {
+        const element = heatmapWrapper.querySelector('.overflow-x-auto');
+        if (element) {
+          attachScrollListener(element);
+        }
+      }, 10);
+      
+      return () => clearTimeout(retryTimeout);
+    }
     
     let rafId: number | null = null;
     
@@ -4373,11 +4383,18 @@ ${
       });
     };
     
-    // Attach scroll listener
-    scrollableElement.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
+    const attachScrollListener = (element: Element) => {
+      // Listen to scroll events with passive for best performance
+      element.addEventListener('scroll', handleScroll, { passive: true });
+      
+      // Also listen for resize events
+      window.addEventListener('resize', handleScroll, { passive: true });
+      
+      console.log('⚡ Attached scroll listener to report dialog heatmap');
+    };
     
-    console.log('⚡ Attached scroll listener to report dialog heatmap');
+    // Attach immediately
+    attachScrollListener(scrollableElement);
     
     // Cleanup
     return () => {
@@ -12920,53 +12937,92 @@ ${
                     return null;
                   }
                   
+                  // Get scrollable dimensions
+                  const scrollWidth = reportDialogHeatmapContainerRef.current.scrollWidth || 0;
+                  const scrollHeight = reportDialogHeatmapContainerRef.current.scrollHeight || 0;
+                  const scrollLeft = reportDialogHeatmapContainerRef.current.scrollLeft || 0;
+                  const scrollTop = reportDialogHeatmapContainerRef.current.scrollTop || 0;
+                  
+                  // Get positions relative to the heatmap's scrollable content
+                  const containerRect = reportDialogHeatmapContainerRef.current.getBoundingClientRect();
                   const buttonRect = reportDialogFomoButtonRef.current.getBoundingClientRect();
-                  const heatmapRect = reportDialogHeatmapContainerRef.current.getBoundingClientRect();
                   
-                  // Calculate origin point (center of FOMO button)
-                  const originX = buttonRect.left + buttonRect.width / 2;
-                  const originY = buttonRect.top + buttonRect.height / 2;
+                  // Calculate button position relative to scrollable content
+                  const buttonCenterX = buttonRect.left - containerRect.left + scrollLeft + buttonRect.width / 2;
+                  const buttonCenterY = buttonRect.top - containerRect.top + scrollTop + buttonRect.height / 2;
                   
-                  // Find all highlighted date cells
+                  // Find all highlighted date cells and draw curved lines to them
                   reportDialogTagHighlight.dates.forEach((date, index) => {
+                    // Find the heatmap cell for this date
                     const cellElement = reportDialogHeatmapContainerRef.current?.querySelector(
                       `[data-date="${date}"]`
                     );
                     
                     if (cellElement) {
                       const cellRect = cellElement.getBoundingClientRect();
-                      const cellX = cellRect.left + cellRect.width / 2;
-                      const cellY = cellRect.top + cellRect.height / 2;
                       
-                      // Calculate control points for smooth curve
-                      const dx = cellX - originX;
-                      const dy = cellY - originY;
-                      const distance = Math.sqrt(dx * dx + dy * dy);
-                      const curveAmount = Math.min(distance * 0.25, 80);
+                      // Calculate cell position relative to scrollable content
+                      const cellCenterX = cellRect.left - containerRect.left + scrollLeft + cellRect.width / 2;
+                      const cellCenterY = cellRect.top - containerRect.top + scrollTop + cellRect.height / 2;
                       
-                      // Create curved path
-                      const controlX = originX + dx * 0.5;
-                      const controlY = originY + dy * 0.5 - curveAmount;
+                      // Create quadratic Bezier curve (Q command)
+                      // Control point is positioned to create a nice arc
+                      const controlX = (buttonCenterX + cellCenterX) / 2;
+                      const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
+                      
+                      const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
                       
                       paths.push(
-                        <path
-                          key={`fomo-line-${index}`}
-                          d={`M ${originX} ${originY} Q ${controlX} ${controlY}, ${cellX} ${cellY}`}
-                          stroke="rgba(168, 85, 247, 0.4)"
-                          strokeWidth="1.5"
-                          fill="none"
-                          strokeDasharray="4 2"
-                          className="pointer-events-none"
-                        />
+                        <g key={`connection-${date}-${index}`}>
+                          {/* Bright colored line with dashed pattern */}
+                          <path
+                            d={pathD}
+                            fill="none"
+                            stroke="url(#reportDialogCurvedLineGradient)"
+                            strokeWidth="2.5"
+                            strokeDasharray="6,4"
+                            opacity="0.95"
+                          />
+                          {/* Glowing dot at the end of each line */}
+                          <circle
+                            cx={cellCenterX}
+                            cy={cellCenterY}
+                            r="4"
+                            fill="#fcd34d"
+                            opacity="0.9"
+                          />
+                          <circle
+                            cx={cellCenterX}
+                            cy={cellCenterY}
+                            r="3"
+                            fill="#fbbf24"
+                            className="animate-pulse"
+                          />
+                        </g>
                       );
                     }
                   });
                   
                   return (
                     <svg
-                      className="fixed inset-0 pointer-events-none"
-                      style={{ zIndex: 9999 }}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: `${scrollWidth}px`,
+                        height: `${scrollHeight}px`,
+                        pointerEvents: 'none',
+                        zIndex: 10,
+                      }}
                     >
+                      {/* Define bright gradient for the curved lines */}
+                      <defs>
+                        <linearGradient id="reportDialogCurvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
+                          <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
+                          <stop offset="100%" stopColor="#fbbf24" stopOpacity="1" />
+                        </linearGradient>
+                      </defs>
                       {paths}
                     </svg>
                   );
