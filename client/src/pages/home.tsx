@@ -12705,16 +12705,66 @@ ${
         >
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" data-testid="dialog-share-tradebook">
             <DialogHeader className="flex-shrink-0">
-              <div className="flex flex-col gap-2">
-                {/* Top row: PERALA (left) and Report title (right) */}
-                <div className="flex items-center justify-between gap-2">
+              <div className="flex items-start justify-between gap-4">
+                {/* Left side: PERALA and tagline */}
+                <div className="flex flex-col gap-1">
                   <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
-                  <DialogTitle className="text-lg font-semibold">MY trading report</DialogTitle>
+                  <p className="text-xs text-muted-foreground">rethink & reinvest</p>
                 </div>
                 
-                {/* Bottom row: Tagline and UserID */}
-                <div className="flex flex-col space-y-1">
-                  <p className="text-xs text-muted-foreground">rethink & reinvest</p>
+                {/* Right side: Report title, Link icon, and UserID */}
+                <div className="flex flex-col items-end gap-2">
+                  <DialogTitle className="text-lg font-semibold">MY trading report</DialogTitle>
+                  
+                  {/* Link icon button - Only show for owners (not in shared report mode) */}
+                  {!isSharedReportMode && (
+                    <div className="flex flex-col items-end gap-1">
+                      {!shareableUrl ? (
+                        <Button
+                          size="icon"
+                          onClick={handleCreateShareableLink}
+                          disabled={isCreatingShareableLink}
+                          className="bg-green-600 hover:bg-green-700 h-8 w-8"
+                          data-testid="button-create-shareable-link"
+                        >
+                          {isCreatingShareableLink ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Link2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="bg-green-600 hover:bg-green-700 text-white h-8 w-8"
+                            onClick={() => {
+                              navigator.clipboard.writeText(shareableUrl);
+                              toast({
+                                title: "Link copied!",
+                                description: "Shareable URL copied to clipboard",
+                              });
+                            }}
+                            data-testid="button-copy-shareable-url"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => window.open(shareableUrl, '_blank')}
+                            data-testid="button-open-shareable-url"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* UserID */}
                   <p className="text-xs text-muted-foreground">
                     userID: {isSharedReportMode && sharedReportData?.reportData?.username 
                       ? sharedReportData.reportData.username 
@@ -13051,65 +13101,6 @@ ${
                 })()}
               </div>
             </div>
-            
-            {/* DialogFooter - Only show shareable link creation for owners (not in shared report mode) */}
-            {!isSharedReportMode && (
-              <DialogFooter className="border-t pt-4">
-                <div className="flex flex-col gap-3 w-full">
-                  {!shareableUrl ? (
-                    <Button
-                      onClick={handleCreateShareableLink}
-                      disabled={isCreatingShareableLink}
-                      className="w-full"
-                      data-testid="button-create-shareable-link"
-                    >
-                      {isCreatingShareableLink ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                          Creating shareable link...
-                        </>
-                      ) : (
-                        <>
-                          <Link2 className="w-4 h-4 mr-2" />
-                          Create Shareable Link (7-day expiry)
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                        <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <input
-                          type="text"
-                          readOnly
-                          value={shareableUrl}
-                          className="flex-1 bg-transparent border-none outline-none text-sm"
-                          data-testid="input-shareable-url"
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            navigator.clipboard.writeText(shareableUrl);
-                            toast({
-                              title: "Link copied!",
-                              description: "Shareable URL copied to clipboard",
-                            });
-                          }}
-                          data-testid="button-copy-shareable-url"
-                        >
-                          <Copy className="w-3 h-3 mr-2" />
-                          Copy
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Share this link with others. It will expire in 7 days.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </DialogFooter>
-            )}
           </DialogContent>
         </Dialog>
       </div>
