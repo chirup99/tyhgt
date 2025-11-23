@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
-import { Link2 } from "lucide-react";
+import { Link2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -238,10 +238,10 @@ export default function PublicHeatmap() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="w-full max-w-3xl">
         {/* Modal-style Dialog */}
-        <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           {/* Header */}
           <div className="flex-shrink-0">
             <div className="flex flex-col gap-2 p-6">
@@ -249,7 +249,7 @@ export default function PublicHeatmap() {
               <div className="flex items-center justify-between gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
                 <div className="flex items-center gap-2">
-                  <DialogTitle className="text-lg font-semibold">my trading calendar report</DialogTitle>
+                  <h2 className="text-lg font-semibold">my trading calendar report</h2>
                   <Button
                     variant="outline"
                     size="icon"
@@ -258,6 +258,15 @@ export default function PublicHeatmap() {
                     data-testid="button-copy-share-link"
                   >
                     <Link2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClose}
+                    className="h-9 w-9"
+                    data-testid="button-close-share-modal"
+                  >
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
