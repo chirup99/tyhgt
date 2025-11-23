@@ -395,6 +395,7 @@ function Router() {
         </MainLayout>
       </Route>
       <Route path="/home" component={NewHome} />
+      <Route path="/share/:userId" component={PublicHeatmap} />
       <Route path="/share/heatmap/:userId" component={PublicHeatmap} />
       <Route component={NotFound} />
     </Switch>

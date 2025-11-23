@@ -2,19 +2,17 @@ import { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DemoHeatmap } from "@/components/DemoHeatmap";
-import { auth } from "@/firebase";
 import { useLocation } from "wouter";
 
 export default function PublicHeatmap() {
-  const [, params] = useRoute("/share/heatmap/:userId");
-  const userId = params?.userId || "";
-  const [showSignInDialog, setShowSignInDialog] = useState(false);
+  // Support both /share/:userId and /share/heatmap/:userId routes
+  const [matchSimple, paramsSimple] = useRoute("/share/:userId");
+  const [matchLegacy, paramsLegacy] = useRoute("/share/heatmap/:userId");
+  const userId = paramsSimple?.userId || paramsLegacy?.userId || "";
   const [heatmapData, setHeatmapData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
-  const currentUser = auth.currentUser;
   const [userDisplayName, setUserDisplayName] = useState<string>("Guest");
 
   useEffect(() => {
@@ -77,15 +75,18 @@ export default function PublicHeatmap() {
   }, [userId]);
 
   const handleClose = () => {
-    if (!currentUser) {
-      setShowSignInDialog(true);
+    // Check authentication from localStorage (more reliable for public pages)
+    const userId = localStorage.getItem('currentUserId');
+    const userEmail = localStorage.getItem('currentUserEmail');
+    const isAuthenticated = userId && userEmail && userId !== 'null' && userEmail !== 'null';
+    
+    if (!isAuthenticated) {
+      // Not authenticated → navigate to landing page
+      setLocation("/login");
     } else {
+      // Authenticated → navigate to their journal
       setLocation("/");
     }
-  };
-
-  const handleSignIn = () => {
-    setLocation("/login");
   };
 
   if (isLoading) {
@@ -401,31 +402,6 @@ export default function PublicHeatmap() {
           </div>
         </div>
       </div>
-
-      {/* Sign-in Dialog */}
-      <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sign in to continue</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 mt-4">
-            <Button
-              onClick={handleSignIn}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              data-testid="button-sign-in-dialog"
-            >
-              Sign In / Sign Up
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setShowSignInDialog(false)}
-              data-testid="button-cancel-sign-in"
-            >
-              Continue Browsing
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
