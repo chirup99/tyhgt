@@ -279,12 +279,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       current: false,
       isThemeToggle: true,
     },
-    {
-      name: "Journal Demo",
-      href: "/journal-demo",
-      icon: BookOpen,
-      current: location === "/journal-demo",
-    },
   ];
 
   return (
