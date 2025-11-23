@@ -6,6 +6,8 @@ The system analyzes intraday market data using recursive pattern detection acros
 
 **NEW**: Advanced AI Agent with Web Search (like Replit Agent) - Uses DuckDuckGo and Google News to fetch real-time data and answer ANY financial question with intelligent analysis.
 
+**LATEST**: Public share view modal - Click the link icon in the share dialog to preview the public view within the same dialog. See exactly what others will see when accessing the share link. Back button allows quick return to edit mode.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

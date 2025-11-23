@@ -1903,6 +1903,7 @@ export default function Home() {
   
   // Share tradebook modal state
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [isPublicShareView, setIsPublicShareView] = useState(false);
 
   // Centralized authentication check helper - ALL tab switches MUST use this
   const setTabWithAuthCheck = (tabName: string) => {
@@ -12565,28 +12566,47 @@ ${
               <div className="flex flex-col gap-2">
                 {/* Top row: PERALA (left) and Report title (right) */}
                 <div className="flex items-center justify-between gap-2">
-                  <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
+                  <div className="flex items-center gap-2">
+                    {isPublicShareView && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsPublicShareView(false)}
+                        className="h-8 w-8"
+                        data-testid="button-back-from-share"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
+                  </div>
                   <div className="flex items-center gap-2">
                     <DialogTitle className="text-lg font-semibold">my trading calendar report</DialogTitle>
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => {
-                        if (currentUser?.userId) {
-                          const shareUrl = `${window.location.origin}/share/heatmap/${currentUser.userId}`;
-                          try {
-                            navigator.clipboard.writeText(shareUrl);
-                            toast({
-                              title: "Share link copied!",
-                              description: "Anyone with this link can view your trading calendar",
-                            });
-                          } catch (error) {
-                            toast({
-                              title: "Copy failed",
-                              description: "Please copy the link manually: " + shareUrl,
-                              variant: "destructive",
-                            });
+                        if (isPublicShareView) {
+                          // Copy link when in public view
+                          if (currentUser?.userId) {
+                            const shareUrl = `${window.location.origin}/share/heatmap/${currentUser.userId}`;
+                            try {
+                              navigator.clipboard.writeText(shareUrl);
+                              toast({
+                                title: "Share link copied!",
+                                description: "Anyone with this link can view your trading calendar",
+                              });
+                            } catch (error) {
+                              toast({
+                                title: "Copy failed",
+                                description: "Please copy the link manually: " + shareUrl,
+                                variant: "destructive",
+                              });
+                            }
                           }
+                        } else {
+                          // Switch to public view
+                          setIsPublicShareView(true);
                         }
                       }}
                       className="h-9 w-9"
