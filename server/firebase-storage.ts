@@ -347,6 +347,98 @@ export class FirebaseStorage implements IStorage {
       });
     }
   }
+
+  // Verified Reports methods
+  async createVerifiedReport(report: InsertVerifiedReport): Promise<VerifiedReport> {
+    try {
+      const verifiedReport: VerifiedReport = {
+        id: 0, // Firebase will auto-generate
+        ...report,
+        createdAt: new Date(),
+      };
+
+      const docRef = await this.db.collection('verified-reports').add(verifiedReport);
+      const doc = await docRef.get();
+      
+      return { id: parseInt(docRef.id) || 0, ...doc.data() } as VerifiedReport;
+    } catch (error) {
+      console.error('Error creating verified report:', error);
+      throw new Error('Failed to create verified report in Firebase');
+    }
+  }
+
+  async getVerifiedReport(reportId: string): Promise<VerifiedReport | undefined> {
+    try {
+      const snapshot = await this.db.collection('verified-reports')
+        .where('reportId', '==', reportId)
+        .limit(1)
+        .get();
+
+      if (snapshot.empty) {
+        return undefined;
+      }
+
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+      
+      // Check if expired
+      const expiresAt = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
+      if (expiresAt <= new Date()) {
+        return undefined;
+      }
+
+      return {
+        id: parseInt(doc.id) || 0,
+        reportId: data.reportId,
+        userId: data.userId,
+        username: data.username,
+        reportData: data.reportData,
+        shareUrl: data.shareUrl,
+        views: data.views || 0,
+        expiresAt,
+        createdAt: data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+      } as VerifiedReport;
+    } catch (error) {
+      console.error('Error getting verified report:', error);
+      return undefined;
+    }
+  }
+
+  async incrementReportViews(reportId: string): Promise<void> {
+    try {
+      const snapshot = await this.db.collection('verified-reports')
+        .where('reportId', '==', reportId)
+        .limit(1)
+        .get();
+
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        const currentViews = doc.data().views || 0;
+        await doc.ref.update({ views: currentViews + 1 });
+      }
+    } catch (error) {
+      console.error('Error incrementing report views:', error);
+    }
+  }
+
+  async deleteExpiredReports(): Promise<void> {
+    try {
+      const now = new Date();
+      const snapshot = await this.db.collection('verified-reports')
+        .where('expiresAt', '<=', now)
+        .get();
+
+      const batch = this.db.batch();
+      snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+      console.log(`Deleted ${snapshot.size} expired reports`);
+    } catch (error) {
+      console.error('Error deleting expired reports:', error);
+    }
+  }
 }
 
 export const storage = new FirebaseStorage();

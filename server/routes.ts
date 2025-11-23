@@ -16319,7 +16319,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a verified report
   app.post('/api/verified-reports', async (req, res) => {
     try {
-      const reportData = insertVerifiedReportSchema.parse(req.body);
+      // Validate only the fields coming from frontend (userId, username, reportData)
+      const requestSchema = z.object({
+        userId: z.string(),
+        username: z.string(),
+        reportData: z.any(), // VerifiedReportData interface
+      });
+      
+      const validatedData = requestSchema.parse(req.body);
       
       // Generate unique report ID
       const reportId = nanoid(10);
@@ -16332,9 +16339,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const shareUrl = `${req.protocol}://${req.get('host')}/shared/${reportId}`;
       
       const report = await storage.createVerifiedReport({
-        ...reportData,
         reportId,
+        userId: validatedData.userId,
+        username: validatedData.username,
+        reportData: validatedData.reportData,
         shareUrl,
+        views: 0,
         expiresAt,
       });
       
