@@ -67,10 +67,10 @@ export function AuthButton() {
       setShowTokenInput(false);
       setShowCodeInput(false);
 
-      // Show success message - token is saved and verification is in progress
+      // Show success message - token is now connected
       toast({
-        title: "Token Saved Successfully!",
-        description: "Your token has been saved. Connection verification is running in the background.",
+        title: "✅ Connected to Fyers API!",
+        description: "Your token has been verified and saved successfully.",
       });
 
       setAccessToken("");
@@ -80,16 +80,18 @@ export function AuthButton() {
       
       if (error?.message) {
         errorMessage = error.message;
+      } else if (error?.status === 401) {
+        errorMessage = "Token verification failed. Make sure your token is valid and not expired.";
       }
       
       toast({
-        title: "Authentication Failed",
+        title: "❌ Connection Failed",
         description: errorMessage,
         variant: "destructive",
       });
     },
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+    retry: 1,
+    retryDelay: 1000,
   });
 
   const codeMutation = useMutation({

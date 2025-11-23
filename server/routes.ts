@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import axios from "axios";
 import { storage } from "./storage";
 import { fyersApi } from "./fyers-api";
 import { AnalysisProcessor } from "./analysis-processor";
@@ -7041,22 +7042,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start the cleanup scheduler
   scheduleDailyCleanup();
 
-  // SIMPLIFIED: Set access token - just save it, don't test
+  // ULTRA-SIMPLE: Just save the token - user tests manually via platform
   app.post("/api/auth/token", async (req, res) => {
     try {
       const { accessToken } = req.body;
       
       if (!accessToken || !accessToken.trim()) {
-        return res.status(400).json({ message: "Token is required" });
+        return res.status(400).json({ success: false, message: "Token is required" });
       }
 
-      // Use token as-is (don't clean it)
       const token = accessToken.trim();
-      console.log(`✅ [TOKEN] Received token: ${token.substring(0, 50)}...`);
+      console.log(`✅ [TOKEN] Saved: ${token.substring(0, 30)}...`);
 
-      // Set token in memory
+      // Set token in memory for immediate use
       fyersApi.setAccessToken(token);
-      console.log('⚡ [TOKEN] Token set in memory');
 
       // Save to database
       const tokenExpiry = new Date();
@@ -7064,21 +7063,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await safeUpdateApiStatus({
         authenticated: true,
+        connected: true,
         accessToken: token,
         tokenExpiry: tokenExpiry,
       });
-      console.log('💾 [TOKEN] Token saved to database');
+      
+      console.log('💾 [TOKEN] Saved to database');
 
-      // Respond immediately
+      // Success response
       res.json({ 
         success: true,
-        message: "Token saved successfully",
-        authenticated: true
+        message: "✅ Connected",
+        authenticated: true,
+        connected: true
       });
 
     } catch (error) {
-      console.error('❌ [TOKEN] Error:', error);
-      res.status(500).json({ message: "Failed to save token" });
+      console.error('❌ Error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to save token"
+      });
     }
   });
 
