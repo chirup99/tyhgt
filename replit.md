@@ -10,31 +10,49 @@ The system analyzes intraday market data using recursive pattern detection acros
 
 ## Public Share Feature
 
-The trading journal includes a comprehensive sharing system that lets users share their trading calendar reports:
+The trading journal includes a unified sharing system that lets users share their trading calendar reports with a consistent modal dialog experience:
 
-### Share Dialog (Edit Mode)
-When users click the share button in their trading journal:
-- Share dialog opens within the same window showing edit mode
-- Users can toggle to public view by clicking the link icon
-- Back button (← arrow) returns to edit mode
-- Same PERALA branding and "rethink & reinvest" tagline displayed
+### How Sharing Works
+1. **In Your Journal**: Click the share button → Opens share dialog in modal style
+2. **Preview Before Sharing**: Click the link icon → See exactly what others will see (public view preview)
+3. **Share the Link**: Copy the link and send to anyone
+4. **Others View It**: They see the same modal dialog centered on their screen with your trading calendar
 
-### Public Share Page
-When someone accesses a shared link (e.g., `/share/heatmap/{userId}`):
-- Modal-style dialog appears centered on screen with semi-transparent dark overlay
-- Displays the shared user's trading calendar in view-only mode
-- Shows the same heatmap, stats bar, and analytics cards as the share dialog
-- Only allows copying the link - no editing capabilities
-- Non-authenticated users see the public view and can choose to sign in
-- Authenticated users see the shared user's data (not their own)
+### Share Dialog Modes
 
-### Security & Privacy
-- Shared data is sanitized - only includes aggregate metrics:
-  - Performance metrics (netPnL, totalTrades, winningTrades, losingTrades)
-  - Trading tags (for highlighting purpose)
-- Sensitive details remain private - no access to individual trade records
-- Each shared link is tied to a specific user's public data
-- View-only interface prevents unauthorized modifications
+**Edit Mode** (When you click share in your trading journal)
+- Shows your trading calendar in edit-enabled mode
+- Can toggle to public view preview by clicking link icon
+- Same PERALA branding and "rethink & reinvest" tagline
+- Back button returns to edit mode
+
+**Public View Mode** (What others see when they access your shared link)
+- Same modal dialog style as edit mode - no separate page
+- Dark overlay background for professional presentation
+- Displays only your public trading metrics in view-only format
+- Can copy the link further, but no editing possible
+- Works for both authenticated and non-authenticated users
+
+### What's Shared & What's Private
+**Public Metrics Shared:**
+- Performance metrics (Total P&L, Win Rate, Total Trades)
+- Trading calendar heatmap with color-coded days
+- Stats bar (P&L, Trend, FOMO count, Win%, Streak)
+- Analytics cards (Total P&L, Performance Trend, Loss Tags)
+- Trading tags used for categorization
+
+**Private Details Protected:**
+- Individual trade records and prices
+- Account information
+- Sensitive trading strategies or notes
+- Other user data
+- View-only interface prevents any modifications
+
+### User Experience
+- **Non-authenticated users**: View shared calendar → Option to sign up
+- **Authenticated users**: View shared user's calendar (not their own journal)
+- **Share owners**: Full control - can generate new links anytime
+- **Viewers**: Can share the link further via copy button
 
 # User Preferences
 

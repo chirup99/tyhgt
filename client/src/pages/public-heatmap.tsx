@@ -238,7 +238,7 @@ export default function PublicHeatmap() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="w-full max-w-3xl">
         {/* Modal-style Dialog */}
         <div className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
