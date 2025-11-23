@@ -219,13 +219,34 @@ export class FyersAPI {
   async testConnection(): Promise<boolean> {
     try {
       if (!this.credentials.accessToken) {
+        console.log('❌ [TEST-CONNECTION] No access token available');
         return false;
       }
 
+      console.log('🔍 [TEST-CONNECTION] Testing Fyers API connection...');
+      console.log('🔍 [TEST-CONNECTION] Endpoint: /api/v3/profile');
+      console.log('🔍 [TEST-CONNECTION] Auth header set:', !!this.apiClient.defaults.headers.common['Authorization']);
+      
       const response = await this.apiClient.get<FyersApiResponse<FyersProfile>>('/api/v3/profile');
-      return response.data.s === 'ok';
-    } catch (error) {
-      console.error('Fyers API connection test failed:', error);
+      
+      console.log('📡 [TEST-CONNECTION] Response status:', response.status);
+      console.log('📡 [TEST-CONNECTION] Response data.s:', response.data.s);
+      console.log('📡 [TEST-CONNECTION] Response message:', response.data.message);
+      
+      if (response.data.s === 'ok') {
+        console.log('✅ [TEST-CONNECTION] Connection successful!');
+        return true;
+      } else {
+        console.log('⚠️ [TEST-CONNECTION] Connection failed - server returned:', response.data.message);
+        return false;
+      }
+    } catch (error: any) {
+      console.error('❌ [TEST-CONNECTION] Fyers API connection test failed');
+      console.error('❌ [TEST-CONNECTION] Error:', error.message);
+      if (error.response) {
+        console.error('❌ [TEST-CONNECTION] Response status:', error.response.status);
+        console.error('❌ [TEST-CONNECTION] Response data:', error.response.data);
+      }
       return false;
     }
   }
@@ -872,8 +893,17 @@ export class FyersAPI {
     this.credentials.accessToken = token;
     const authString = `${this.credentials.appId}:${token}`;
     const authHeader = 'Bearer ' + Buffer.from(authString).toString('base64');
+    
+    console.log('🔐 [SET-TOKEN] Updating access token...');
+    console.log('🔐 [SET-TOKEN] App ID:', this.credentials.appId);
+    console.log('🔐 [SET-TOKEN] Token (first 50 chars):', token.substring(0, 50) + '...');
+    console.log('🔐 [SET-TOKEN] Auth header (first 30 chars):', authHeader.substring(0, 30) + '...');
+    
+    // Update headers on both clients
     this.apiClient.defaults.headers.common['Authorization'] = authHeader;
     this.dataClient.defaults.headers.common['Authorization'] = authHeader;
+    
+    console.log('✅ [SET-TOKEN] Authorization header updated on both clients');
   }
 
   // Set credentials (useful for updating access token)
