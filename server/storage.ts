@@ -1,7 +1,7 @@
-import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, livestreamSettings, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults, type LivestreamSettings, type InsertLivestreamSettings } from "@shared/schema";
+import { users, apiStatus, marketData, activityLog, analysisInstructions, analysisResults, livestreamSettings, verifiedReports, type User, type InsertUser, type ApiStatus, type InsertApiStatus, type MarketData, type InsertMarketData, type ActivityLog, type InsertActivityLog, type AnalysisInstructions, type InsertAnalysisInstructions, type AnalysisResults, type InsertAnalysisResults, type LivestreamSettings, type InsertLivestreamSettings, type VerifiedReport, type InsertVerifiedReport } from "@shared/schema";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { eq, desc as descOrder, and } from "drizzle-orm";
+import { eq, desc as descOrder, and, lt, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -34,6 +34,12 @@ export interface IStorage {
   // Livestream Settings methods
   getLivestreamSettings(): Promise<LivestreamSettings | undefined>;
   updateLivestreamSettings(settings: InsertLivestreamSettings): Promise<LivestreamSettings>;
+  
+  // Verified Reports methods
+  createVerifiedReport(report: InsertVerifiedReport): Promise<VerifiedReport>;
+  getVerifiedReport(reportId: string): Promise<VerifiedReport | undefined>;
+  incrementReportViews(reportId: string): Promise<void>;
+  deleteExpiredReports(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -49,6 +55,8 @@ export class MemStorage implements IStorage {
   private currentAnalysisInstructionId: number;
   private currentAnalysisResultId: number;
   private livestreamSettingsData: LivestreamSettings | undefined;
+  private verifiedReportsMap: Map<string, VerifiedReport>;
+  private currentVerifiedReportId: number;
 
   constructor() {
     this.users = new Map();
@@ -61,6 +69,8 @@ export class MemStorage implements IStorage {
     this.analysisResultsList = [];
     this.currentAnalysisInstructionId = 1;
     this.currentAnalysisResultId = 1;
+    this.verifiedReportsMap = new Map();
+    this.currentVerifiedReportId = 1;
     
     // Initialize with default API status
     this.apiStatusData = {
@@ -313,6 +323,50 @@ export class MemStorage implements IStorage {
     this.livestreamSettingsData = livestreamSettings;
     return livestreamSettings;
   }
+
+  // Verified Reports methods
+  async createVerifiedReport(report: InsertVerifiedReport): Promise<VerifiedReport> {
+    const verifiedReport: VerifiedReport = {
+      id: this.currentVerifiedReportId++,
+      reportId: report.reportId,
+      userId: report.userId,
+      username: report.username,
+      reportData: report.reportData,
+      shareUrl: report.shareUrl,
+      views: 0,
+      createdAt: new Date(),
+      expiresAt: report.expiresAt,
+    };
+    this.verifiedReportsMap.set(report.reportId, verifiedReport);
+    return verifiedReport;
+  }
+
+  async getVerifiedReport(reportId: string): Promise<VerifiedReport | undefined> {
+    const report = this.verifiedReportsMap.get(reportId);
+    // Check if report exists and hasn't expired
+    if (report && report.expiresAt > new Date()) {
+      return report;
+    }
+    return undefined;
+  }
+
+  async incrementReportViews(reportId: string): Promise<void> {
+    const report = this.verifiedReportsMap.get(reportId);
+    if (report) {
+      report.views++;
+      this.verifiedReportsMap.set(reportId, report);
+    }
+  }
+
+  async deleteExpiredReports(): Promise<void> {
+    const now = new Date();
+    const entries = Array.from(this.verifiedReportsMap.entries());
+    for (const [reportId, report] of entries) {
+      if (report.expiresAt <= now) {
+        this.verifiedReportsMap.delete(reportId);
+      }
+    }
+  }
 }
 
 // PostgreSQL Storage Implementation
@@ -538,6 +592,45 @@ export class PgStorage implements IStorage {
         .returning();
       return created[0];
     }
+  }
+
+  // Verified Reports methods
+  async createVerifiedReport(report: InsertVerifiedReport): Promise<VerifiedReport> {
+    const created = await this.db.insert(verifiedReports)
+      .values({
+        reportId: report.reportId,
+        userId: report.userId,
+        username: report.username,
+        reportData: report.reportData,
+        shareUrl: report.shareUrl,
+        expiresAt: report.expiresAt,
+      })
+      .returning();
+    return created[0];
+  }
+
+  async getVerifiedReport(reportId: string): Promise<VerifiedReport | undefined> {
+    const reports = await this.db.select()
+      .from(verifiedReports)
+      .where(eq(verifiedReports.reportId, reportId))
+      .limit(1);
+    
+    if (reports.length > 0 && reports[0].expiresAt > new Date()) {
+      return reports[0];
+    }
+    return undefined;
+  }
+
+  async incrementReportViews(reportId: string): Promise<void> {
+    await this.db.update(verifiedReports)
+      .set({ views: sql`${verifiedReports.views} + 1` })
+      .where(eq(verifiedReports.reportId, reportId));
+  }
+
+  async deleteExpiredReports(): Promise<void> {
+    const now = new Date();
+    await this.db.delete(verifiedReports)
+      .where(lt(verifiedReports.expiresAt, now));
   }
 }
 

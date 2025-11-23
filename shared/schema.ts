@@ -179,6 +179,19 @@ export const livestreamSettings = pgTable("livestream_settings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Verified Reports - Public shareable trading reports (7-day expiry)
+export const verifiedReports = pgTable("verified_reports", {
+  id: serial("id").primaryKey(),
+  reportId: text("report_id").notNull().unique(), // Unique shareable ID (nanoid)
+  userId: text("user_id").notNull(), // Firebase user ID
+  username: text("username").notNull(), // Display username
+  reportData: jsonb("report_data").$type<VerifiedReportData>().notNull(), // Full report data
+  shareUrl: text("share_url").notNull(), // Full shareable URL
+  views: integer("views").notNull().default(0), // Track how many times viewed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // 7 days from creation
+});
+
 // Define analysis step types
 export interface AnalysisStep {
   id: string;
@@ -204,6 +217,27 @@ export interface CandleData {
   low: number;
   close: number;
   volume: number;
+}
+
+// Verified Report Data Interface
+export interface VerifiedReportData {
+  // Heatmap data - trading calendar
+  tradingDataByDate: Record<string, any>;
+  
+  // Performance metrics
+  totalPnL: number;
+  totalTrades: number;
+  winRate: number;
+  fomoCount: number;
+  maxStreak: number;
+  
+  // User info
+  userId: string;
+  username: string;
+  tagline?: string;
+  
+  // Timestamp
+  generatedAt: string;
 }
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -257,12 +291,19 @@ export const insertLivestreamSettingsSchema = createInsertSchema(livestreamSetti
   updatedAt: true,
 });
 
+export const insertVerifiedReportSchema = createInsertSchema(verifiedReports).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertHistoricalBackupData = z.infer<typeof insertHistoricalBackupDataSchema>;
 export type InsertHistoricalBackupIndex = z.infer<typeof insertHistoricalBackupIndexSchema>;
 export type InsertBackupSyncStatus = z.infer<typeof insertBackupSyncStatusSchema>;
 export type LivestreamSettings = typeof livestreamSettings.$inferSelect;
 export type InsertLivestreamSettings = z.infer<typeof insertLivestreamSettingsSchema>;
+export type VerifiedReport = typeof verifiedReports.$inferSelect;
+export type InsertVerifiedReport = z.infer<typeof insertVerifiedReportSchema>;
 
 // ==========================================
 // BATTU SCANNER SCHEMA - Integrated for DB Migration
