@@ -1379,11 +1379,12 @@ export class FyersAPI {
   }
 }
 
-// Create singleton instance
+// Create singleton instance - Token will be loaded from database in routes.ts
+// Using empty token initially, will be updated from database or UI
 export const fyersApi = new FyersAPI({
   appId: process.env.FYERS_APP_ID || '',
   secretKey: process.env.FYERS_SECRET_KEY || '',
-  accessToken: process.env.FYERS_ACCESS_TOKEN,
+  accessToken: '', // Will be loaded from database on server start
 });
 
 // Initialize FyersAPI instance for database-driven authentication

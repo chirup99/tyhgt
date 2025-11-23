@@ -3772,6 +3772,24 @@ import { newsRouter } from './news-routes.js';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // ⚡ CRITICAL: LOAD TOKEN FROM DATABASE AT SERVER STARTUP
+  // This ensures UI-submitted tokens persist across server restarts
+  console.log('🔑 [STARTUP] Loading Fyers token from database...');
+  try {
+    const apiStatus = await storage.getApiStatus();
+    if (apiStatus?.accessToken) {
+      console.log('✅ [STARTUP] Found token in database, loading it now...');
+      fyersApi.setAccessToken(apiStatus.accessToken);
+      console.log('✅ [STARTUP] Token loaded successfully from database!');
+      console.log('🔐 [STARTUP] Authorization header updated with database token');
+    } else {
+      console.log('⚠️ [STARTUP] No token in database, will wait for UI input');
+    }
+  } catch (error) {
+    console.error('❌ [STARTUP] Failed to load token from database:', error);
+    console.log('⚠️ [STARTUP] Will wait for UI token input');
+  }
+  
   // Firebase Authentication Routes
   app.post('/api/auth/login', async (req, res) => {
     try {
