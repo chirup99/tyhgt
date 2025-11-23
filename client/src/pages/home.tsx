@@ -4141,6 +4141,12 @@ ${
   // Track if user has manually toggled the switch (to prevent auto-switching after manual toggle)
   const [hasManuallyToggledMode, setHasManuallyToggledMode] = useState(false);
   
+  // ✅ SEPARATE STATE FOR SHARE DIALOG: Prevents interference with main tradebook
+  const [shareDialogTagHighlight, setShareDialogTagHighlight] = useState<{
+    tag: string;
+    dates: string[];
+  } | null>(null);
+  
   // ✅ NEW: Callbacks to receive heatmap data and date range
   const handleHeatmapDataUpdate = (data: Record<string, any>) => {
     console.log("📊 Received heatmap data update:", Object.keys(data).length, "dates");
@@ -12530,7 +12536,17 @@ ${
         )}
         
         {/* Share Tradebook Dialog */}
-        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <Dialog 
+          open={showShareDialog} 
+          onOpenChange={(open) => {
+            setShowShareDialog(open);
+            // Reset share dialog's tag highlight when closing
+            if (!open) {
+              setShareDialogTagHighlight(null);
+              console.log('🔄 Share Dialog closed - reset tag highlighting');
+            }
+          }}
+        >
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" data-testid="dialog-share-tradebook">
             <DialogHeader className="flex-shrink-0">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -12566,7 +12582,7 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* Dual-axis scrollable heatmap container */}
+              {/* Dual-axis scrollable heatmap container - SHARE DIALOG ONLY (uses separate state) */}
               <div className="max-h-96 overflow-auto thin-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
                 {isDemoMode ? (
                   <DemoHeatmap 
@@ -12575,7 +12591,7 @@ ${
                     tradingDataByDate={tradingDataByDate}
                     onDataUpdate={() => {}}
                     isPublicView={true}
-                    highlightedDates={activeTagHighlight}
+                    highlightedDates={shareDialogTagHighlight}
                   />
                 ) : (
                   <PersonalHeatmap 
@@ -12584,7 +12600,7 @@ ${
                     selectedDate={null}
                     onDataUpdate={() => {}}
                     isPublicView={true}
-                    highlightedDates={activeTagHighlight}
+                    highlightedDates={shareDialogTagHighlight}
                   />
                 )}
               </div>
@@ -12682,21 +12698,24 @@ ${
                           </div>
                         </div>
                         
-                        {/* FOMO - Interactive */}
+                        {/* FOMO - Interactive (SHARE DIALOG ONLY - uses separate state) */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (activeTagHighlight?.tag === 'fomo') {
-                              setActiveTagHighlight(null);
+                            e.preventDefault();
+                            if (shareDialogTagHighlight?.tag === 'fomo') {
+                              setShareDialogTagHighlight(null);
+                              console.log('📍 Share Dialog: Deactivated FOMO highlighting');
                             } else {
-                              setActiveTagHighlight({ tag: 'fomo', dates: fomoDates });
+                              setShareDialogTagHighlight({ tag: 'fomo', dates: fomoDates });
+                              console.log(`📍 Share Dialog: Activated FOMO highlighting for ${fomoDates.length} dates`);
                             }
                           }}
                           className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
-                            activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                            shareDialogTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
                           }`}
                           data-testid="stat-fomo-share"
-                          title={`Click to ${activeTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
+                          title={`Click to ${shareDialogTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
                         >
                           <div className="text-[10px] opacity-80">FOMO</div>
                           <div className="text-xs font-bold">{fomoTrades}</div>
