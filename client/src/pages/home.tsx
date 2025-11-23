@@ -12562,43 +12562,48 @@ ${
         >
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" data-testid="dialog-share-tradebook">
             <DialogHeader className="flex-shrink-0">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex flex-col space-y-1">
-                  <div className="flex flex-col">
-                    <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
-                    <p className="text-xs text-muted-foreground">rethink & reinvest</p>
+              <div className="flex flex-col gap-2">
+                {/* Top row: PERALA (left) and Report title (right) */}
+                <div className="flex items-center justify-between gap-2">
+                  <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
+                  <div className="flex items-center gap-2">
+                    <DialogTitle className="text-lg font-semibold">my trading calendar report</DialogTitle>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        if (currentUser?.userId) {
+                          const shareUrl = `${window.location.origin}/share/heatmap/${currentUser.userId}`;
+                          try {
+                            navigator.clipboard.writeText(shareUrl);
+                            toast({
+                              title: "Share link copied!",
+                              description: "Anyone with this link can view your trading calendar",
+                            });
+                          } catch (error) {
+                            toast({
+                              title: "Copy failed",
+                              description: "Please copy the link manually: " + shareUrl,
+                              variant: "destructive",
+                            });
+                          }
+                        }
+                      }}
+                      className="h-9 w-9"
+                      data-testid="button-copy-share-link"
+                    >
+                      <Link2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <DialogTitle className="text-lg font-semibold mt-2">my trading calendar report</DialogTitle>
+                </div>
+                
+                {/* Bottom row: Tagline and UserID */}
+                <div className="flex flex-col space-y-1">
+                  <p className="text-xs text-muted-foreground">rethink & reinvest</p>
                   <p className="text-xs text-muted-foreground">
                     userID: {currentUser?.displayName || currentUser?.email || currentUser?.userId || 'Guest'}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    if (currentUser?.userId) {
-                      const shareUrl = `${window.location.origin}/share/heatmap/${currentUser.userId}`;
-                      try {
-                        navigator.clipboard.writeText(shareUrl);
-                        toast({
-                          title: "Share link copied!",
-                          description: "Anyone with this link can view your trading calendar",
-                        });
-                      } catch (error) {
-                        toast({
-                          title: "Copy failed",
-                          description: "Please copy the link manually: " + shareUrl,
-                          variant: "destructive",
-                        });
-                      }
-                    }
-                  }}
-                  className="h-9 w-9"
-                  data-testid="button-copy-share-link"
-                >
-                  <Link2 className="h-4 w-4" />
-                </Button>
               </div>
             </DialogHeader>
             
