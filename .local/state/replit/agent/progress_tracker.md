@@ -3949,3 +3949,20 @@
 [x] 3492. ✅ Browser console logs confirm heatmap data processing correctly
 [x] 3493. ✅✅✅ DIALOG TITLE RENAME COMPLETE! ✅✅✅
 [x] 3494. 🎉🎉🎉 SHARE DIALOG NOW SHOWS "MY TRADING REPORT"! 🎉🎉🎉
+
+[x] 3495. NOVEMBER 23, 2025 - UPDATE PUBLIC HEATMAP PAGE TITLE
+[x] 3496. User asked: "can you tell me MY trading report beside link icon when we open that link where its navigate"
+[x] 3497. ✅ Explained share link flow: First click switches to public view, second click copies link
+[x] 3498. ✅ Identified public page route: /share/heatmap/{userId}
+[x] 3499. ✅ Found title inconsistency in public-heatmap.tsx (still using old title)
+[x] 3500. ✅ Updated line 244 in client/src/pages/public-heatmap.tsx
+[x] 3501. ✅ Changed title from "my trading calendar report" to "MY trading report"
+[x] 3502. ✅ Public heatmap page now displays:
+[x] 3503.   - Trading calendar heatmap (read-only, sanitized public data)
+[x] 3504.   - Stats bar: P&L, Trend, FOMO, Win%, Streak
+[x] 3505.   - Analytics: Total P&L, Performance Trend, Loss Tags
+[x] 3506.   - User display name from Firebase
+[x] 3507. ✅ Workflow automatically restarted with changes
+[x] 3508. ✅ Both share dialog and public page now use consistent "MY trading report" title
+[x] 3509. ✅✅✅ PUBLIC HEATMAP PAGE TITLE UPDATED! ✅✅✅
+[x] 3510. 🎉🎉🎉 CONSISTENT BRANDING ACROSS SHARE DIALOG AND PUBLIC PAGE! 🎉🎉🎉

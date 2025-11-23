@@ -238,7 +238,7 @@ export default function PublicHeatmap() {
               <div className="flex items-center justify-between gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">PERALA</h1>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold">my trading calendar report</h2>
+                  <h2 className="text-lg font-semibold">MY trading report</h2>
                   <Button
                     variant="ghost"
                     size="icon"
