@@ -12833,212 +12833,136 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* Tradebook with Heatmap */}
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <CardContent className="p-4">
-                  {(() => {
-                    const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
-                      ? sharedReportData.reportData.tradingDataByDate 
-                      : getFilteredHeatmapData();
+              {/* Heatmap Container - using DemoHeatmap component like journal tab */}
+              <div className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                <DemoHeatmap
+                  tradingDataByDate={isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                    ? sharedReportData.reportData.tradingDataByDate 
+                    : getFilteredHeatmapData()}
+                  onDateSelect={() => {}}
+                  selectedDate={null}
+                  onDataUpdate={() => {}}
+                  isPublicView={true}
+                />
+              </div>
+              
+              {/* Stats Bar - Purple metrics from journal tab */}
+              {(() => {
+                const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                  ? sharedReportData.reportData.tradingDataByDate 
+                  : getFilteredHeatmapData();
+                const dates = Object.keys(filteredData).sort();
+                
+                let totalPnL = 0;
+                let totalTrades = 0;
+                let winningTrades = 0;
+                let currentStreak = 0;
+                let maxWinStreak = 0;
+                let fomoTrades = 0;
+                const trendData: number[] = [];
+                
+                dates.forEach(dateKey => {
+                  const dayData = filteredData[dateKey];
+                  const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
+                  const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
+                  
+                  if (metrics) {
+                    const netPnL = metrics.netPnL || 0;
+                    totalPnL += netPnL;
+                    totalTrades += metrics.totalTrades || 0;
+                    winningTrades += metrics.winningTrades || 0;
+                    trendData.push(netPnL);
                     
-                    // Calculate metrics
-                    let totalPnL = 0;
-                    let totalTrades = 0;
-                    let winningTrades = 0;
-                    let currentStreak = 0;
-                    let maxStreak = 0;
-                    let fomoCount = 0;
-                    const dates = Object.keys(filteredData).sort();
+                    // Calculate streak
+                    if (netPnL > 0) {
+                      currentStreak++;
+                      maxWinStreak = Math.max(maxWinStreak, currentStreak);
+                    } else {
+                      currentStreak = 0;
+                    }
                     
-                    dates.forEach((dateKey, index) => {
-                      const dayData = filteredData[dateKey];
-                      const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
-                      const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
-                      
-                      if (metrics) {
-                        const netPnL = metrics.netPnL || 0;
-                        totalPnL += netPnL;
-                        totalTrades += metrics.totalTrades || 0;
-                        winningTrades += metrics.winningTrades || 0;
-                        
-                        // Calculate streak
-                        if (netPnL > 0) {
-                          currentStreak++;
-                          maxStreak = Math.max(maxStreak, currentStreak);
-                        } else {
-                          currentStreak = 0;
+                    // Count FOMO tags
+                    if (Array.isArray(tags)) {
+                      tags.forEach((tag: string) => {
+                        if (tag.toLowerCase().includes('fomo')) {
+                          fomoTrades++;
                         }
-                        
-                        // Count FOMO tags
-                        if (Array.isArray(tags)) {
-                          tags.forEach((tag: string) => {
-                            if (tag.toLowerCase().includes('fomo')) {
-                              fomoCount++;
-                            }
-                          });
-                        }
-                      }
-                    });
-                    
-                    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
-                    
-                    // Create heatmap data by month
-                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-                    const currentYear = new Date().getFullYear();
-                    
-                    // Group dates by month
-                    const monthlyData: { [key: string]: { [key: string]: number } } = {};
-                    dates.forEach(dateKey => {
-                      const [year, month, day] = dateKey.split('-');
-                      const monthKey = `${year}-${month}`;
-                      const dayData = filteredData[dateKey];
-                      const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
-                      const netPnL = metrics?.netPnL || 0;
+                      });
+                    }
+                  }
+                });
+                
+                const isProfitable = totalPnL >= 0;
+                const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                
+                // Create trend path function (from public-heatmap.tsx)
+                const createTrendPath = (data: number[]) => {
+                  if (data.length === 0) return '';
+                  const max = Math.max(...data, 0);
+                  const min = Math.min(...data, 0);
+                  const range = max - min || 1;
+                  const width = 40;
+                  const height = 20;
+                  
+                  const points = data.map((val, i) => {
+                    const x = (i / (data.length - 1 || 1)) * width;
+                    const y = height - ((val - min) / range) * height;
+                    return `${x},${y}`;
+                  }).join(' L ');
+                  
+                  return `M ${points}`;
+                };
+                
+                return (
+                  <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5">
+                    <div className="flex items-center justify-around text-white gap-1">
+                      {/* P&L */}
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="text-[10px] opacity-80">P&L</div>
+                        <div className="text-xs font-bold">
+                          {isProfitable ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                        </div>
+                      </div>
                       
-                      if (!monthlyData[monthKey]) {
-                        monthlyData[monthKey] = {};
-                      }
-                      monthlyData[monthKey][day] = netPnL;
-                    });
-                    
-                    return (
-                      <>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                            TRADEBOOK
-                          </h3>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {dates.length} dates with data
-                          </div>
+                      {/* Trend */}
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="text-[10px] opacity-80">Trend</div>
+                        <div className="w-8 h-4">
+                          <svg viewBox="0 0 40 20" className="w-full h-full">
+                            <path
+                              d={createTrendPath(trendData)}
+                              fill="none"
+                              stroke="white"
+                              strokeWidth="1.5"
+                              opacity="0.9"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
                         </div>
-                        
-                        {/* Heatmap Calendar */}
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4">
-                          <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-3">
-                            Trading Calendar {currentYear}
-                          </div>
-                          
-                          {/* Month Grid */}
-                          <div className="grid grid-cols-12 gap-2">
-                            {months.map((month, monthIndex) => {
-                              const monthKey = `${currentYear}-${String(monthIndex + 1).padStart(2, '0')}`;
-                              const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
-                              const firstDayOfMonth = new Date(currentYear, monthIndex, 1).getDay();
-                              
-                              return (
-                                <div key={month} className="text-center">
-                                  <div className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                    {month}
-                                  </div>
-                                  <div className="space-y-0.5">
-                                    {dayLabels.map((label, labelIndex) => (
-                                      <div key={labelIndex} className="flex justify-center">
-                                        {(() => {
-                                          // Calculate which day of month this represents
-                                          const dayOfMonth = labelIndex - firstDayOfMonth + 1;
-                                          const dayKey = String(dayOfMonth).padStart(2, '0');
-                                          const pnl = monthlyData[monthKey]?.[dayKey];
-                                          
-                                          if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
-                                            return <div className="w-3 h-3" />;
-                                          }
-                                          
-                                          let bgColor = 'bg-gray-200 dark:bg-gray-700';
-                                          if (pnl !== undefined) {
-                                            if (pnl > 0) {
-                                              bgColor = pnl > 1000 ? 'bg-green-600' : pnl > 500 ? 'bg-green-500' : 'bg-green-400';
-                                            } else if (pnl < 0) {
-                                              bgColor = pnl < -1000 ? 'bg-red-600' : pnl < -500 ? 'bg-red-500' : 'bg-red-400';
-                                            }
-                                          }
-                                          
-                                          return (
-                                            <div
-                                              className={`w-3 h-3 rounded-sm ${bgColor}`}
-                                              title={pnl !== undefined ? `₹${pnl.toFixed(2)}` : 'No data'}
-                                            />
-                                          );
-                                        })()}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          {/* Legend */}
-                          <div className="flex items-center justify-between mt-4 text-[10px]">
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600 dark:text-gray-400">Loss</span>
-                              <div className="flex gap-1">
-                                <div className="w-3 h-3 rounded-sm bg-red-600" />
-                                <div className="w-3 h-3 rounded-sm bg-red-500" />
-                                <div className="w-3 h-3 rounded-sm bg-red-400" />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="flex gap-1">
-                                <div className="w-3 h-3 rounded-sm bg-green-400" />
-                                <div className="w-3 h-3 rounded-sm bg-green-500" />
-                                <div className="w-3 h-3 rounded-sm bg-green-600" />
-                              </div>
-                              <span className="text-gray-600 dark:text-gray-400">Profit</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Purple Metrics Bar */}
-                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg p-4 grid grid-cols-5 gap-4">
-                          {/* P&L */}
-                          <div className="text-center">
-                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">P&L</div>
-                            <div className="text-white text-lg font-bold">
-                              {totalPnL >= 0 ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
-                            </div>
-                          </div>
-                          
-                          {/* Trend */}
-                          <div className="text-center">
-                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">Trend</div>
-                            <div className="flex justify-center items-center h-6">
-                              <svg viewBox="0 0 40 20" className="w-10 h-5">
-                                <path
-                                  d={`M 0 ${totalPnL >= 0 ? '15' : '5'} L 10 10 L 20 ${totalPnL >= 0 ? '5' : '15'} L 30 8 L 40 ${totalPnL >= 0 ? '3' : '17'}`}
-                                  fill="none"
-                                  stroke="white"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                          
-                          {/* FOMO */}
-                          <div className="text-center">
-                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">FOMO</div>
-                            <div className="text-white text-lg font-bold">{fomoCount}</div>
-                          </div>
-                          
-                          {/* Win% */}
-                          <div className="text-center">
-                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">Win%</div>
-                            <div className="text-white text-lg font-bold">{winRate.toFixed(0)}%</div>
-                          </div>
-                          
-                          {/* Streak */}
-                          <div className="text-center">
-                            <div className="text-[10px] text-purple-200 uppercase font-semibold mb-1">Streak</div>
-                            <div className="text-white text-lg font-bold">{maxStreak}</div>
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
+                      </div>
+                      
+                      {/* FOMO */}
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="text-[10px] opacity-80">FOMO</div>
+                        <div className="text-xs font-bold">{fomoTrades}</div>
+                      </div>
+                      
+                      {/* Win% */}
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="text-[10px] opacity-80">Win%</div>
+                        <div className="text-xs font-bold">{winRate.toFixed(0)}%</div>
+                      </div>
+                      
+                      {/* Streak */}
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="text-[10px] opacity-80">Streak</div>
+                        <div className="text-xs font-bold">{maxWinStreak}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
               
               {/* Analytics Row: Total P&L, Performance Trend, Top Tags */}
               <div className="grid grid-cols-3 gap-3">
