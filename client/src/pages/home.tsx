@@ -12833,145 +12833,42 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* Dual-axis scrollable heatmap container - SHARE DIALOG ONLY (uses separate state) */}
+              {/* ✅ WRAPPER FOR HEATMAP + STATS BAR: Common container for curved lines SVG positioning */}
               <div className="relative">
-              <div ref={shareDialogHeatmapContainerRef} className="max-h-96 overflow-auto thin-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
-                {isSharedReportMode && sharedReportData ? (
-                  <DemoHeatmap 
-                    onDateSelect={() => {}}
-                    selectedDate={null}
-                    tradingDataByDate={sharedReportData.reportData?.tradingDataByDate || {}}
-                    onDataUpdate={() => {}}
-                    isPublicView={true}
-                    highlightedDates={shareDialogTagHighlight}
-                  />
-                ) : isDemoMode ? (
-                  <DemoHeatmap 
-                    onDateSelect={() => {}}
-                    selectedDate={null}
-                    tradingDataByDate={tradingDataByDate}
-                    onDataUpdate={() => {}}
-                    isPublicView={true}
-                    highlightedDates={shareDialogTagHighlight}
-                  />
-                ) : (
-                  <PersonalHeatmap 
-                    userId={currentUser?.userId || null} 
-                    onDateSelect={() => {}} 
-                    selectedDate={null}
-                    onDataUpdate={() => {}}
-                    isPublicView={true}
-                    highlightedDates={shareDialogTagHighlight}
-                  />
-                )}
-              </div>
-              
-              {/* Curved Lines Overlay - connects FOMO tag block to highlighted dates */}
-              {shareDialogTagHighlight?.tag === 'fomo' && shareDialogTagHighlight.dates.length > 0 && (() => {
-                // Force recalculation on scroll (dependency: shareDialogScrollTrigger)
-                void shareDialogScrollTrigger;
+                {/* Dual-axis scrollable heatmap container - SHARE DIALOG ONLY (uses separate state) */}
+                <div ref={shareDialogHeatmapContainerRef} className="max-h-96 overflow-auto thin-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
+                  {isSharedReportMode && sharedReportData ? (
+                    <DemoHeatmap 
+                      onDateSelect={() => {}}
+                      selectedDate={null}
+                      tradingDataByDate={sharedReportData.reportData?.tradingDataByDate || {}}
+                      onDataUpdate={() => {}}
+                      isPublicView={true}
+                      highlightedDates={shareDialogTagHighlight}
+                    />
+                  ) : isDemoMode ? (
+                    <DemoHeatmap 
+                      onDateSelect={() => {}}
+                      selectedDate={null}
+                      tradingDataByDate={tradingDataByDate}
+                      onDataUpdate={() => {}}
+                      isPublicView={true}
+                      highlightedDates={shareDialogTagHighlight}
+                    />
+                  ) : (
+                    <PersonalHeatmap 
+                      userId={currentUser?.userId || null} 
+                      onDateSelect={() => {}} 
+                      selectedDate={null}
+                      onDataUpdate={() => {}}
+                      isPublicView={true}
+                      highlightedDates={shareDialogTagHighlight}
+                    />
+                  )}
+                </div>
                 
-                // Calculate curved paths from FOMO button to each highlighted date cell
-                const paths: JSX.Element[] = [];
-                
-                if (!shareDialogFomoButtonRef.current || !shareDialogHeatmapContainerRef.current) {
-                  return null;
-                }
-                
-                // Get scrollable dimensions
-                const scrollWidth = shareDialogHeatmapContainerRef.current.scrollWidth || 0;
-                const scrollHeight = shareDialogHeatmapContainerRef.current.scrollHeight || 0;
-                const scrollLeft = shareDialogHeatmapContainerRef.current.scrollLeft || 0;
-                const scrollTop = shareDialogHeatmapContainerRef.current.scrollTop || 0;
-                
-                // Get positions relative to the heatmap's scrollable content
-                const containerRect = shareDialogHeatmapContainerRef.current.getBoundingClientRect();
-                const buttonRect = shareDialogFomoButtonRef.current.getBoundingClientRect();
-                
-                // Calculate button position relative to scrollable content
-                const buttonCenterX = buttonRect.left - containerRect.left + scrollLeft + buttonRect.width / 2;
-                const buttonCenterY = buttonRect.top - containerRect.top + scrollTop + buttonRect.height / 2;
-                
-                // Find all highlighted date cells and draw curved lines to them
-                shareDialogTagHighlight.dates.forEach((date, index) => {
-                  // Find the heatmap cell for this date
-                  const cellElement = shareDialogHeatmapContainerRef.current?.querySelector(
-                    `[data-date="${date}"]`
-                  );
-                  
-                  if (cellElement) {
-                    const cellRect = cellElement.getBoundingClientRect();
-                    
-                    // Calculate cell position relative to scrollable content
-                    const cellCenterX = cellRect.left - containerRect.left + scrollLeft + cellRect.width / 2;
-                    const cellCenterY = cellRect.top - containerRect.top + scrollTop + cellRect.height / 2;
-                    
-                    // Create quadratic Bezier curve (Q command)
-                    // Control point is positioned to create a nice arc
-                    const controlX = (buttonCenterX + cellCenterX) / 2;
-                    const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
-                    
-                    const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
-                    
-                    paths.push(
-                      <g key={`share-connection-${date}-${index}`}>
-                        {/* Bright colored line with dashed pattern */}
-                        <path
-                          d={pathD}
-                          fill="none"
-                          stroke="url(#shareDialogCurvedLineGradient)"
-                          strokeWidth="2.5"
-                          strokeDasharray="6,4"
-                          opacity="0.95"
-                        />
-                        {/* Glowing dot at the end of each line */}
-                        <circle
-                          cx={cellCenterX}
-                          cy={cellCenterY}
-                          r="4"
-                          fill="#fcd34d"
-                          opacity="0.9"
-                        />
-                        <circle
-                          cx={cellCenterX}
-                          cy={cellCenterY}
-                          r="3"
-                          fill="#fbbf24"
-                          className="animate-pulse"
-                        />
-                      </g>
-                    );
-                  }
-                });
-                
-                return (
-                  <svg
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: `${scrollWidth}px`,
-                      height: `${scrollHeight}px`,
-                      pointerEvents: 'none',
-                      zIndex: 10,
-                    }}
-                  >
-                    {/* Define bright gradient for the curved lines */}
-                    <defs>
-                      <linearGradient id="shareDialogCurvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
-                        <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#fbbf24" stopOpacity="1" />
-                      </linearGradient>
-                    </defs>
-                    {paths}
-                  </svg>
-                );
-              })()}
-              </div>
-              
-              {/* Stats Bar - Same as in the journal view */}
-              <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative flex-shrink-0">
+                {/* Stats Bar - Same as in the journal view */}
+                <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative flex-shrink-0 mt-4">
                 <div className="flex items-center justify-around text-white gap-1">
                   {(() => {
                     const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
@@ -13264,6 +13161,112 @@ ${
                   );
                 })()}
               </div>
+              
+              {/* ✅ CURVED LINES OVERLAY: Connects FOMO button to highlighted dates (positioned relative to wrapper) */}
+              {shareDialogTagHighlight?.tag === 'fomo' && shareDialogTagHighlight.dates.length > 0 && (() => {
+                // Force recalculation on scroll (dependency: shareDialogScrollTrigger)
+                void shareDialogScrollTrigger;
+                
+                // Calculate curved paths from FOMO button to each highlighted date cell
+                const paths: JSX.Element[] = [];
+                
+                if (!shareDialogFomoButtonRef.current || !shareDialogHeatmapContainerRef.current) {
+                  return null;
+                }
+                
+                // Get the wrapper div that contains both heatmap and stats bar
+                const wrapperDiv = shareDialogHeatmapContainerRef.current.parentElement;
+                if (!wrapperDiv) return null;
+                
+                // Get bounding rectangles relative to the wrapper
+                const wrapperRect = wrapperDiv.getBoundingClientRect();
+                const buttonRect = shareDialogFomoButtonRef.current.getBoundingClientRect();
+                const heatmapContainer = shareDialogHeatmapContainerRef.current;
+                
+                // Calculate button position relative to wrapper
+                const buttonCenterX = buttonRect.left - wrapperRect.left + buttonRect.width / 2;
+                const buttonCenterY = buttonRect.top - wrapperRect.top + buttonRect.height / 2;
+                
+                // Find all highlighted date cells and draw curved lines to them
+                shareDialogTagHighlight.dates.forEach((date, index) => {
+                  // Find the heatmap cell for this date
+                  const cellElement = heatmapContainer.querySelector(
+                    `[data-date="${date}"]`
+                  );
+                  
+                  if (cellElement) {
+                    const cellRect = cellElement.getBoundingClientRect();
+                    
+                    // Calculate cell position relative to wrapper
+                    const cellCenterX = cellRect.left - wrapperRect.left + cellRect.width / 2;
+                    const cellCenterY = cellRect.top - wrapperRect.top + cellRect.height / 2;
+                    
+                    // Create quadratic Bezier curve (Q command)
+                    // Control point is positioned to create a nice arc
+                    const controlX = (buttonCenterX + cellCenterX) / 2;
+                    const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
+                    
+                    const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
+                    
+                    paths.push(
+                      <g key={`share-connection-${date}-${index}`}>
+                        {/* Bright colored line with dashed pattern */}
+                        <path
+                          d={pathD}
+                          fill="none"
+                          stroke="url(#shareDialogCurvedLineGradient)"
+                          strokeWidth="2.5"
+                          strokeDasharray="6,4"
+                          opacity="0.95"
+                        />
+                        {/* Glowing dot at the end of each line */}
+                        <circle
+                          cx={cellCenterX}
+                          cy={cellCenterY}
+                          r="4"
+                          fill="#fcd34d"
+                          opacity="0.9"
+                        />
+                        <circle
+                          cx={cellCenterX}
+                          cy={cellCenterY}
+                          r="3"
+                          fill="#fbbf24"
+                          className="animate-pulse"
+                        />
+                      </g>
+                    );
+                  }
+                });
+                
+                if (paths.length === 0) return null;
+                
+                return (
+                  <svg
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      pointerEvents: 'none',
+                      zIndex: 10,
+                      overflow: 'visible',
+                    }}
+                  >
+                    {/* Define bright gradient for the curved lines */}
+                    <defs>
+                      <linearGradient id="shareDialogCurvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
+                        <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#fbbf24" stopOpacity="1" />
+                      </linearGradient>
+                    </defs>
+                    {paths}
+                  </svg>
+                );
+              })()}
+            </div>
             </div>
           </DialogContent>
         </Dialog>
