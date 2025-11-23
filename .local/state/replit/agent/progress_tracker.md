@@ -362,6 +362,43 @@
 [x] 2035. ✅✅✅ SHAREABLE LINK UX IMPROVEMENT COMPLETED! ✅✅✅
 [x] 2036. 🎉🎉🎉 SHAREABLE LINKS NOW SHOW TRADING JOURNAL IN BACKGROUND WITH REPORT DIALOG ON TOP! 🎉🎉🎉
 
+[x] 2037. NOVEMBER 23, 2025 - SHAREABLE LINK SIMPLIFIED TO USE OWNER'S ACTUAL PAGE
+[x] 2038. User reported: "url should display like 1st image no changes but its creating different page with different ui 2nd image"
+[x] 2039. Issue identified: Current implementation created separate page with blank background
+[x] 2040. User wants: Same owner page with report dialog, not a new/different page
+[x] 2041. Architect consulted for best approach - recommended query-parameter redirect pattern
+[x] 2042. ✅ Modified shared-report.tsx to redirect to `/?sharedReport=:reportId`
+[x] 2043. ✅ Removed complex Dashboard rendering in shared-report.tsx
+[x] 2044. ✅ Added query parameter detection in home.tsx useEffect
+[x] 2045. ✅ Automatically fetches shared report when query parameter present
+[x] 2046. ✅ Added `isSharedReportMode` state to track shared report viewing
+[x] 2047. ✅ Added `sharedReportData` state to store fetched report
+[x] 2048. ✅ Created `handleShareDialogClose` function to clean up query params
+[x] 2049. ✅ Updated Dialog onOpenChange to use centralized close handler
+[x] 2050. ✅ Wrapped main content div with non-interactable styling when in shared mode:
+[x] 2051.   - pointer-events-none (prevents all interactions)
+[x] 2052.   - opacity-30 (makes background subdued)
+[x] 2053.   - blur-sm (creates visual depth separation)
+[x] 2054. ✅ Share dialog auto-opens when ?sharedReport=:reportId detected
+[x] 2055. ✅ Query parameter removed when dialog closes
+[x] 2056. ✅ Public visitors see:
+[x] 2057.   - Owner's full trading journal page in background (blurred, restricted)
+[x] 2058.   - "MY trading report" dialog overlay on top (fully functional)
+[x] 2059.   - Same visual context as image 1 (not blank page like image 2)
+[x] 2060. ✅ Security maintained:
+[x] 2061.   - Background page is non-interactable for public visitors
+[x] 2062.   - Only report dialog is accessible
+[x] 2063.   - No sessionStorage used (avoiding data exposure)
+[x] 2064.   - Server remains single source of truth
+[x] 2065. ✅ Architecture benefits:
+[x] 2066.   - No code duplication (reuses existing home.tsx)
+[x] 2067.   - No separate page rendering
+[x] 2068.   - Clean query-parameter-driven flow
+[x] 2069.   - Proper state cleanup on dialog close
+[x] 2070. ✅ Restarted workflow successfully - changes applied
+[x] 2071. ✅✅✅ SHAREABLE LINK NOW USES OWNER'S ACTUAL PAGE! ✅✅✅
+[x] 2072. 🎉🎉🎉 PUBLIC VISITORS SEE OWNER'S TRADING JOURNAL WITH REPORT OVERLAY! 🎉🎉🎉
+
 [x] 1666. NOVEMBER 22, 2025 - SHARE BUTTON MODAL WITH PREVIEW AND SOCIAL MEDIA OPTIONS
 [x] 1667. User requested: "for share button its generating promotional report card image its downloading and share on x platform. dont do that when i tap on share button pop window with report card display what cards is generated so that i can improvise below add share link option to share on different social media platform"
 [x] 1668. Requirements identified:

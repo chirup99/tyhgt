@@ -1908,6 +1908,44 @@ export default function Home() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareableUrl, setShareableUrl] = useState<string | null>(null);
   const [isCreatingShareableLink, setIsCreatingShareableLink] = useState(false);
+  const [isSharedReportMode, setIsSharedReportMode] = useState(false);
+  const [sharedReportData, setSharedReportData] = useState<any>(null);
+
+  // Handle shared report from URL query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedReportId = params.get('sharedReport');
+    
+    if (sharedReportId) {
+      // Fetch the shared report
+      fetch(`/api/verified-reports/${sharedReportId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.report) {
+            setIsSharedReportMode(true);
+            setSharedReportData(data.report);
+            setShareableUrl(data.report.shareUrl);
+            setShowShareDialog(true);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load shared report:', err);
+        });
+    }
+  }, []);
+
+  // Handle share dialog close in shared report mode
+  const handleShareDialogClose = () => {
+    setShowShareDialog(false);
+    
+    if (isSharedReportMode) {
+      // Clean up query parameter and reset shared mode
+      window.history.replaceState({}, '', '/');
+      setIsSharedReportMode(false);
+      setSharedReportData(null);
+      setShareableUrl(null);
+    }
+  };
 
   // Centralized authentication check helper - ALL tab switches MUST use this
   const setTabWithAuthCheck = (tabName: string) => {
@@ -7089,7 +7127,9 @@ ${
   }
 
   return (
-    <div className="min-h-screen bg-background overscroll-none touch-pan-y">
+    <div className={`min-h-screen bg-background overscroll-none touch-pan-y ${
+      isSharedReportMode ? 'pointer-events-none opacity-30 blur-sm' : ''
+    }`}>
       {/* Vertical Sidebar - Fixed Position */}
       <div className="fixed left-0 top-0 bottom-0 w-64 chatgpt-sidebar border-r border-gray-700 flex flex-col z-40 md:bottom-0 bottom-[env(safe-area-inset-bottom)] pb-[env(safe-area-inset-bottom)] touch-none hidden">
         {/* Header */}
@@ -12652,12 +12692,14 @@ ${
         <Dialog 
           open={showShareDialog} 
           onOpenChange={(open) => {
-            setShowShareDialog(open);
-            // Reset share dialog's tag highlight and shareable URL when closing
             if (!open) {
+              // Use the centralized close handler
+              handleShareDialogClose();
+              // Reset share dialog's tag highlight
               setShareDialogTagHighlight(null);
-              setShareableUrl(null);
               console.log('🔄 Share Dialog closed - reset tag highlighting and shareable URL');
+            } else {
+              setShowShareDialog(open);
             }
           }}
         >
