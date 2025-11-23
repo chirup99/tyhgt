@@ -12833,175 +12833,143 @@ ${
             </DialogHeader>
             
             <div className="flex-1 overflow-auto space-y-4">
-              {/* ✅ WRAPPER FOR HEATMAP + STATS BAR: Common container for curved lines SVG positioning */}
-              <div className="relative">
-                {/* Dual-axis scrollable heatmap container - SHARE DIALOG ONLY (uses separate state) */}
-                <div ref={shareDialogHeatmapContainerRef} className="max-h-96 overflow-auto thin-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
-                  {isSharedReportMode && sharedReportData ? (
-                    <DemoHeatmap 
-                      onDateSelect={() => {}}
-                      selectedDate={null}
-                      tradingDataByDate={sharedReportData.reportData?.tradingDataByDate || {}}
-                      onDataUpdate={() => {}}
-                      isPublicView={true}
-                      highlightedDates={shareDialogTagHighlight}
-                    />
-                  ) : isDemoMode ? (
-                    <DemoHeatmap 
-                      onDateSelect={() => {}}
-                      selectedDate={null}
-                      tradingDataByDate={tradingDataByDate}
-                      onDataUpdate={() => {}}
-                      isPublicView={true}
-                      highlightedDates={shareDialogTagHighlight}
-                    />
-                  ) : (
-                    <PersonalHeatmap 
-                      userId={currentUser?.userId || null} 
-                      onDateSelect={() => {}} 
-                      selectedDate={null}
-                      onDataUpdate={() => {}}
-                      isPublicView={true}
-                      highlightedDates={shareDialogTagHighlight}
-                    />
-                  )}
-                </div>
-                
-                {/* Stats Bar - Same as in the journal view */}
-                <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative flex-shrink-0 mt-4">
-                <div className="flex items-center justify-around text-white gap-1">
-                  {(() => {
-                    const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
-                      ? sharedReportData.reportData.tradingDataByDate 
-                      : getFilteredHeatmapData();
-                    const dates = Object.keys(filteredData).sort();
-                    
-                    let totalPnL = 0;
-                    let totalTrades = 0;
-                    let winningTrades = 0;
-                    let fomoTrades = 0;
-                    let consecutiveWins = 0;
-                    let maxWinStreak = 0;
-                    const trendData: number[] = [];
-                    const fomoDates: string[] = [];
-                    
-                    dates.forEach(dateKey => {
-                      const dayData = filteredData[dateKey];
-                      const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
-                      const tags = dayData?.tradingData?.tradingTags || dayData?.tradingTags || [];
-                      
-                      if (metrics) {
-                        const netPnL = metrics.netPnL || 0;
-                        totalPnL += netPnL;
-                        totalTrades += metrics.totalTrades || 0;
-                        winningTrades += metrics.winningTrades || 0;
-                        trendData.push(netPnL);
-                        
-                        if (netPnL > 0) {
-                          consecutiveWins++;
-                          maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
-                        } else {
-                          consecutiveWins = 0;
-                        }
-                      }
-                      
-                      // Normalize tag matching
-                      const normalizedTags = Array.isArray(tags) ? tags.map((t: string) => t.trim().toLowerCase()) : [];
-                      if (normalizedTags.includes('fomo')) {
-                        fomoTrades++;
-                        fomoDates.push(dateKey);
-                      }
-                    });
-                    
-                    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
-                    const isProfitable = totalPnL >= 0;
-                    
-                    // Create trend path from data
-                    const createTrendPath = (data: number[]) => {
-                      if (data.length === 0) return '';
-                      const max = Math.max(...data, 0);
-                      const min = Math.min(...data, 0);
-                      const range = max - min || 1;
-                      const width = 40;
-                      const height = 20;
-                      
-                      const points = data.map((val, i) => {
-                        const x = (i / (data.length - 1 || 1)) * width;
-                        const y = height - ((val - min) / range) * height;
-                        return `${x},${y}`;
-                      }).join(' L ');
-                      
-                      return `M ${points}`;
-                    };
-                    
-                    return (
-                      <>
-                        {/* P&L */}
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="text-[10px] opacity-80">P&L</div>
-                          <div className="text-xs font-bold">
-                            {isProfitable ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
-                          </div>
-                        </div>
-                        
-                        {/* Trend - Real data visualization */}
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="text-[10px] opacity-80">Trend</div>
-                          <div className="w-8 h-4">
-                            <svg viewBox="0 0 40 20" className="w-full h-full">
-                              <path
-                                d={createTrendPath(trendData)}
-                                fill="none"
-                                stroke="white"
-                                strokeWidth="1.5"
-                                opacity="0.9"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        
-                        {/* FOMO - Interactive (SHARE DIALOG ONLY - uses separate state) */}
-                        <button
-                          ref={shareDialogFomoButtonRef}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (shareDialogTagHighlight?.tag === 'fomo') {
-                              setShareDialogTagHighlight(null);
-                              console.log('📍 Share Dialog: Deactivated FOMO highlighting');
-                            } else {
-                              setShareDialogTagHighlight({ tag: 'fomo', dates: fomoDates });
-                              console.log(`📍 Share Dialog: Activated FOMO highlighting for ${fomoDates.length} dates`);
+              {/* Trade History Table - From Journal Trade Book */}
+              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      TRADE HISTORY
+                    </h3>
+                  </div>
+
+                  <div className="max-h-96 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
+                        <tr>
+                          <th className="p-1 text-left min-w-[60px]">Time</th>
+                          <th className="p-1 text-left min-w-[50px]">Order</th>
+                          <th className="p-1 text-left min-w-[80px]">Symbol</th>
+                          <th className="p-1 text-left min-w-[50px]">Type</th>
+                          <th className="p-1 text-left min-w-[40px]">Qty</th>
+                          <th className="p-1 text-left min-w-[60px]">Price</th>
+                          <th className="p-1 text-left min-w-[60px]">P&L</th>
+                          <th className="p-1 text-left min-w-[40px]">%</th>
+                          <th className="p-1 text-left min-w-[70px]">Duration</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                        {(() => {
+                          // Collect all trades from report data
+                          const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                            ? sharedReportData.reportData.tradingDataByDate 
+                            : getFilteredHeatmapData();
+                          
+                          const allTrades: any[] = [];
+                          
+                          // Extract all trades from all dates
+                          Object.entries(filteredData).forEach(([dateKey, dayData]: [string, any]) => {
+                            const tradeHistory = dayData?.tradingData?.tradeHistory || dayData?.tradeHistory || [];
+                            
+                            if (Array.isArray(tradeHistory) && tradeHistory.length > 0) {
+                              tradeHistory.forEach((trade: any) => {
+                                allTrades.push({
+                                  ...trade,
+                                  date: dateKey
+                                });
+                              });
                             }
-                          }}
-                          className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
-                            shareDialogTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
-                          }`}
-                          data-testid="stat-fomo-share"
-                          title={`Click to ${shareDialogTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
-                        >
-                          <div className="text-[10px] opacity-80">FOMO</div>
-                          <div className="text-xs font-bold">{fomoTrades}</div>
-                        </button>
-                        
-                        {/* Win% */}
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="text-[10px] opacity-80">Win%</div>
-                          <div className="text-xs font-bold">{winRate.toFixed(0)}%</div>
-                        </div>
-                        
-                        {/* Streak */}
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="text-[10px] opacity-80">Streak</div>
-                          <div className="text-xs font-bold">{maxWinStreak}</div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
+                          });
+                          
+                          if (allTrades.length === 0) {
+                            return (
+                              <tr>
+                                <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                  No trades found in this report
+                                </td>
+                              </tr>
+                            );
+                          }
+                          
+                          return allTrades.map((trade, index) => (
+                            <tr
+                              key={index}
+                              className="border-b border-gray-200 dark:border-gray-700"
+                            >
+                              <td className="p-1">{trade.time}</td>
+                              <td className="p-1">
+                                <span
+                                  className={`px-2 py-1 rounded text-xs font-medium ${
+                                    trade.order === "BUY"
+                                      ? "bg-green-600 text-white"
+                                      : "bg-red-600 text-white"
+                                  }`}
+                                >
+                                  {trade.order}
+                                </span>
+                              </td>
+                              <td className="p-1">{trade.symbol}</td>
+                              <td className="p-1">{trade.type}</td>
+                              <td className="p-1">{trade.qty}</td>
+                              <td className="p-1">₹{trade.price}</td>
+                              <td
+                                className={`p-2 ${
+                                  (trade.pnl || "").includes("+")
+                                    ? "text-green-600"
+                                    : (trade.pnl || "").includes("-")
+                                      ? "text-red-600"
+                                      : ""
+                                }`}
+                              >
+                                {trade.pnl}
+                              </td>
+                              <td
+                                className={`p-2 font-medium ${(() => {
+                                  if (!trade.pnl || trade.pnl === "-")
+                                    return "";
+                                  const pnlStr = (trade.pnl || "").replace(
+                                    /[₹,+\s]/g,
+                                    "",
+                                  );
+                                  const pnlValue = parseFloat(pnlStr) || 0;
+                                  const openPrice = trade.price;
+                                  const totalInvestment =
+                                    openPrice * trade.qty || 1;
+                                  const percentage =
+                                    (pnlValue / totalInvestment) * 100;
+                                  return percentage > 0
+                                    ? "text-green-600"
+                                    : percentage < 0
+                                      ? "text-red-600"
+                                      : "text-gray-500";
+                                })()}`}
+                              >
+                                {(() => {
+                                  if (!trade.pnl || trade.pnl === "-")
+                                    return "-";
+                                  const pnlStr = (trade.pnl || "").replace(
+                                    /[₹,+\s]/g,
+                                    "",
+                                  );
+                                  const pnlValue = parseFloat(pnlStr) || 0;
+                                  const openPrice = trade.price;
+                                  const totalInvestment =
+                                    openPrice * trade.qty || 1;
+                                  const percentage =
+                                    (pnlValue / totalInvestment) * 100;
+                                  return `${
+                                    percentage >= 0 ? "+" : ""
+                                  }${percentage.toFixed(2)}%`;
+                                })()}
+                              </td>
+                              <td className="p-1">{trade.duration}</td>
+                            </tr>
+                          ));
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
               
               {/* Analytics Row: Total P&L, Performance Trend, Top Tags */}
               <div className="grid grid-cols-3 gap-3">
@@ -13162,111 +13130,6 @@ ${
                 })()}
               </div>
               
-              {/* ✅ CURVED LINES OVERLAY: Connects FOMO button to highlighted dates (positioned relative to wrapper) */}
-              {shareDialogTagHighlight?.tag === 'fomo' && shareDialogTagHighlight.dates.length > 0 && (() => {
-                // Force recalculation on scroll (dependency: shareDialogScrollTrigger)
-                void shareDialogScrollTrigger;
-                
-                // Calculate curved paths from FOMO button to each highlighted date cell
-                const paths: JSX.Element[] = [];
-                
-                if (!shareDialogFomoButtonRef.current || !shareDialogHeatmapContainerRef.current) {
-                  return null;
-                }
-                
-                // Get the wrapper div that contains both heatmap and stats bar
-                const wrapperDiv = shareDialogHeatmapContainerRef.current.parentElement;
-                if (!wrapperDiv) return null;
-                
-                // Get bounding rectangles relative to the wrapper
-                const wrapperRect = wrapperDiv.getBoundingClientRect();
-                const buttonRect = shareDialogFomoButtonRef.current.getBoundingClientRect();
-                const heatmapContainer = shareDialogHeatmapContainerRef.current;
-                
-                // Calculate button position relative to wrapper
-                const buttonCenterX = buttonRect.left - wrapperRect.left + buttonRect.width / 2;
-                const buttonCenterY = buttonRect.top - wrapperRect.top + buttonRect.height / 2;
-                
-                // Find all highlighted date cells and draw curved lines to them
-                shareDialogTagHighlight.dates.forEach((date, index) => {
-                  // Find the heatmap cell for this date
-                  const cellElement = heatmapContainer.querySelector(
-                    `[data-date="${date}"]`
-                  );
-                  
-                  if (cellElement) {
-                    const cellRect = cellElement.getBoundingClientRect();
-                    
-                    // Calculate cell position relative to wrapper
-                    const cellCenterX = cellRect.left - wrapperRect.left + cellRect.width / 2;
-                    const cellCenterY = cellRect.top - wrapperRect.top + cellRect.height / 2;
-                    
-                    // Create quadratic Bezier curve (Q command)
-                    // Control point is positioned to create a nice arc
-                    const controlX = (buttonCenterX + cellCenterX) / 2;
-                    const controlY = Math.min(buttonCenterY, cellCenterY) - 50; // Arc upward
-                    
-                    const pathD = `M ${buttonCenterX} ${buttonCenterY} Q ${controlX} ${controlY}, ${cellCenterX} ${cellCenterY}`;
-                    
-                    paths.push(
-                      <g key={`share-connection-${date}-${index}`}>
-                        {/* Bright colored line with dashed pattern */}
-                        <path
-                          d={pathD}
-                          fill="none"
-                          stroke="url(#shareDialogCurvedLineGradient)"
-                          strokeWidth="2.5"
-                          strokeDasharray="6,4"
-                          opacity="0.95"
-                        />
-                        {/* Glowing dot at the end of each line */}
-                        <circle
-                          cx={cellCenterX}
-                          cy={cellCenterY}
-                          r="4"
-                          fill="#fcd34d"
-                          opacity="0.9"
-                        />
-                        <circle
-                          cx={cellCenterX}
-                          cy={cellCenterY}
-                          r="3"
-                          fill="#fbbf24"
-                          className="animate-pulse"
-                        />
-                      </g>
-                    );
-                  }
-                });
-                
-                if (paths.length === 0) return null;
-                
-                return (
-                  <svg
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      pointerEvents: 'none',
-                      zIndex: 10,
-                      overflow: 'visible',
-                    }}
-                  >
-                    {/* Define bright gradient for the curved lines */}
-                    <defs>
-                      <linearGradient id="shareDialogCurvedLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
-                        <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#fbbf24" stopOpacity="1" />
-                      </linearGradient>
-                    </defs>
-                    {paths}
-                  </svg>
-                );
-              })()}
-            </div>
             </div>
           </DialogContent>
         </Dialog>
