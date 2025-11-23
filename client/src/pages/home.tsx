@@ -12716,7 +12716,9 @@ ${
                 <div className="flex flex-col space-y-1">
                   <p className="text-xs text-muted-foreground">rethink & reinvest</p>
                   <p className="text-xs text-muted-foreground">
-                    userID: {currentUser?.displayName || currentUser?.email || currentUser?.userId || 'Guest'}
+                    userID: {isSharedReportMode && sharedReportData?.reportData?.username 
+                      ? sharedReportData.reportData.username 
+                      : (currentUser?.displayName || currentUser?.email || currentUser?.userId || 'Guest')}
                   </p>
                 </div>
               </div>
@@ -12725,7 +12727,16 @@ ${
             <div className="flex-1 overflow-auto space-y-4">
               {/* Dual-axis scrollable heatmap container - SHARE DIALOG ONLY (uses separate state) */}
               <div className="max-h-96 overflow-auto thin-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
-                {isDemoMode ? (
+                {isSharedReportMode && sharedReportData ? (
+                  <DemoHeatmap 
+                    onDateSelect={() => {}}
+                    selectedDate={null}
+                    tradingDataByDate={sharedReportData.reportData?.tradingDataByDate || {}}
+                    onDataUpdate={() => {}}
+                    isPublicView={true}
+                    highlightedDates={shareDialogTagHighlight}
+                  />
+                ) : isDemoMode ? (
                   <DemoHeatmap 
                     onDateSelect={() => {}}
                     selectedDate={null}
@@ -12750,7 +12761,9 @@ ${
               <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-md px-2 py-1.5 relative flex-shrink-0">
                 <div className="flex items-center justify-around text-white gap-1">
                   {(() => {
-                    const filteredData = getFilteredHeatmapData();
+                    const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                      ? sharedReportData.reportData.tradingDataByDate 
+                      : getFilteredHeatmapData();
                     const dates = Object.keys(filteredData).sort();
                     
                     let totalPnL = 0;
@@ -12882,7 +12895,9 @@ ${
               {/* Analytics Row: Total P&L, Performance Trend, Top Tags */}
               <div className="grid grid-cols-3 gap-3">
                 {(() => {
-                  const filteredData = getFilteredHeatmapData();
+                  const filteredData = isSharedReportMode && sharedReportData?.reportData?.tradingDataByDate 
+                    ? sharedReportData.reportData.tradingDataByDate 
+                    : getFilteredHeatmapData();
                   const dates = Object.keys(filteredData).sort();
                   
                   let totalPnL = 0;
