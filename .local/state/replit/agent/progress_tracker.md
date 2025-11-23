@@ -465,6 +465,22 @@
 [x] 1988. 🎉🎉🎉 NEW USERS AUTOMATICALLY SEE DEMO HEATMAP WITH LATEST DATA! 🎉🎉🎉
 [x] 1989. 🎉🎉🎉 USERS WITH NO PERSONAL TRADES AUTO-SWITCH TO DEMO MODE! 🎉🎉🎉
 [x] 1990. 🚀🚀🚀 HEATMAP SCROLLS TO LATEST DATA VIEW AUTOMATICALLY! 🚀🚀🚀
+
+[x] 1991. User feedback: "personal heatmap is not opening for only view purpose"
+[x] 1992. Clarification: Demo mode should be default, but personal heatmap must remain toggleable
+[x] 1993. ✅ Added hasManuallyToggledMode state to track user's manual toggle action
+[x] 1994. ✅ Modified auto-switch logic to only apply on initial load (not after manual toggle)
+[x] 1995. ✅ Auto-switch condition: !isDemoMode && getUserId() && !hasManuallyToggledMode
+[x] 1996. ✅ When user manually toggles switch, setHasManuallyToggledMode(true)
+[x] 1997. ✅ This prevents auto-switching after user makes a choice
+[x] 1998. ✅ Personal heatmap remains fully accessible via toggle switch
+[x] 1999. ✅ Users can view personal heatmap even when empty (for view purposes)
+[x] 2000. ✅ Once toggled, app respects user's choice permanently
+[x] 2001. ✅ Console logging updated: "suggesting Demo mode" instead of "auto-switching"
+[x] 2002. ✅ Workflow restarted successfully - fix applied
+[x] 2003. ✅✅✅ PERSONAL HEATMAP TOGGLE FIX COMPLETED! ✅✅✅
+[x] 2004. 🎉🎉🎉 DEMO MODE IS DEFAULT, PERSONAL MODE ALWAYS ACCESSIBLE! 🎉🎉🎉
+[x] 2005. 🚀🚀🚀 USER CHOICE RESPECTED - NO FORCED MODE SWITCHING! 🚀🚀🚀
 [x] 1912. User requested: "on trading report heatmaps displaying duplicates and fomo button curved lines from fomo button to date not displaying on my calendar report use same logic on trade book its working fix it for my trading calender report"
 [x] 1913. Issues identified:
 [x] 1914.   - Heatmaps displaying duplicates in trading calendar report

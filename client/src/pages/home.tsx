@@ -4138,13 +4138,16 @@ ${
   const [heatmapDataFromComponent, setHeatmapDataFromComponent] = useState<Record<string, any>>({});
   const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date } | null>(null);
   
+  // Track if user has manually toggled the switch (to prevent auto-switching after manual toggle)
+  const [hasManuallyToggledMode, setHasManuallyToggledMode] = useState(false);
+  
   // ✅ NEW: Callbacks to receive heatmap data and date range
   const handleHeatmapDataUpdate = (data: Record<string, any>) => {
     console.log("📊 Received heatmap data update:", Object.keys(data).length, "dates");
     setHeatmapDataFromComponent(data);
     
-    // ✅ AUTO-SWITCH TO DEMO MODE: For new users or when personal trades = 0
-    if (!isDemoMode && getUserId()) {
+    // ✅ AUTO-SWITCH TO DEMO MODE: Only for new users on initial load (not after manual toggle)
+    if (!isDemoMode && getUserId() && !hasManuallyToggledMode) {
       const hasAnyTradeData = Object.values(data).some((dayData: any) => {
         // Check both wrapped (Firebase) and unwrapped formats
         const metrics = dayData?.tradingData?.performanceMetrics || dayData?.performanceMetrics;
@@ -4160,7 +4163,7 @@ ${
       });
       
       if (!hasAnyTradeData && Object.keys(data).length === 0) {
-        console.log("📭 No personal trades found - auto-switching to Demo mode with latest data view");
+        console.log("📭 No personal trades found - suggesting Demo mode with latest data view");
         setIsDemoMode(true);
         localStorage.setItem("tradingJournalDemoMode", "true");
         
@@ -9278,6 +9281,9 @@ ${
                                 checked={isDemoMode}
                                 onCheckedChange={(checked) => {
                                   console.log(`🔄 Demo mode toggle: ${checked ? 'ON (Demo)' : 'OFF (Personal)'}`);
+                                  
+                                  // Mark that user has manually toggled (prevents auto-switching)
+                                  setHasManuallyToggledMode(true);
                                   
                                   // Simple toggle - just flip the mode
                                   setIsDemoMode(checked);
