@@ -36,6 +36,7 @@ import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import PublicHeatmap from "@/pages/public-heatmap";
 import SharedReport from "@/pages/shared-report";
+import TradingJournalDemo from "@/pages/trading-journal-demo";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -278,6 +279,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       current: false,
       isThemeToggle: true,
     },
+    {
+      name: "Journal Demo",
+      href: "/journal-demo",
+      icon: BookOpen,
+      current: location === "/journal-demo",
+    },
   ];
 
   return (
@@ -393,6 +400,11 @@ function Router() {
       <Route path="/voice">
         <MainLayout>
           <NeoFeedSocialFeed />
+        </MainLayout>
+      </Route>
+      <Route path="/journal-demo">
+        <MainLayout>
+          <TradingJournalDemo />
         </MainLayout>
       </Route>
       <Route path="/home" component={NewHome} />
