@@ -12573,11 +12573,11 @@ ${
                       }
                     }
                   }}
-                  className="flex items-center gap-2"
+                  size="icon"
+                  className="h-9 w-9"
                   data-testid="button-copy-share-link"
                 >
                   <Link2 className="h-4 w-4" />
-                  Copy Share Link
                 </Button>
               </div>
             </DialogHeader>
