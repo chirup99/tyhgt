@@ -3715,7 +3715,7 @@ ${
     return null;
   };
 
-  // Load all heatmap data on startup and when demo mode or tab changes
+  // Load all heatmap data on startup and when userId or tab changes - ALWAYS from userId, never demo
   useEffect(() => {
     const loadAllHeatmapData = async () => {
       // Only load heatmap data when on journal tab
@@ -3724,124 +3724,97 @@ ${
         return;
       }
 
-      console.log(`🔄 Loading heatmap data for ${isDemoMode ? 'DEMO' : 'PERSONAL'} mode...`);
+      // ALWAYS load from userId, not demo mode
+      const userId = currentUser?.userId;
+      
+      console.log(`🔄 Loading heatmap data - userId: ${userId || "NO USER (demo)"}`);
       try {
         setIsLoadingHeatmapData(true);
 
-        if (isDemoMode) {
-          // ✅ SIMPLIFIED: Fetch ONLY from Firebase journal-database - NO localStorage!
-          console.log("📊 Fetching demo data from Firebase journal-database...");
-          const response = await fetch(getFullApiUrl("/api/journal/all-dates"));
+        if (!userId) {
+          // No user logged in - clear heatmap data
+          console.log("⚠️ No user ID found - heatmap requires login");
+          setPersonalTradingDataByDate({});
+          setCalendarData({});
+          setIsLoadingHeatmapData(false);
+          return;
+        }
 
-          if (response.ok) {
-            const firebaseData = await response.json();
-            const dateCount = Object.keys(firebaseData).length;
-            console.log(`✅ Loaded ${dateCount} real dates from Firebase`);
+        // ALWAYS fetch user-specific data from Firebase (never demo data)
+        console.log("📥 HEATMAP: Fetching user data from Firebase for userId:", userId);
+        const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
+        if (response.ok) {
+          const personalData = await response.json();
+          console.log("✅ HEATMAP data loaded:", Object.keys(personalData).length, "dates");
+          
+          setTradingDataByDate(personalData);
+          setCalendarData(personalData);
 
-            // Update state with ONLY Firebase data
-            setDemoTradingDataByDate(firebaseData);
-            setCalendarData(firebaseData);
+          // Save to localStorage for offline access
+          localStorage.setItem("tradingDataByDate", JSON.stringify(personalData));
 
-            // Auto-select latest date if any dates exist
-            if (!selectedDate && dateCount > 0) {
-              const sortedDates = Object.keys(firebaseData).sort(
+          // Auto-click all available dates to populate heatmap colors - ULTRA FAST
+          // This simulates clicking each date to ensure colors appear immediately
+          setTimeout(async () => {
+            console.log(
+              "🔄 Ultra-fast auto-clicking all PERSONAL dates for heatmap colors...",
+            );
+
+            // Create all fetch promises in parallel for maximum speed
+            const fetchPromises = Object.keys(personalData).map(
+              async (dateStr) => {
+                try {
+                  const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
+                  if (response.ok) {
+                    const journalData = await response.json();
+                    if (journalData && Object.keys(journalData).length > 0) {
+                      return { dateStr, journalData };
+                    }
+                  }
+                } catch (error) {
+                  console.error(
+                    `❌ Error auto-loading PERSONAL date ${dateStr}:`,
+                    error,
+                  );
+                }
+                return null;
+              },
+            );
+
+            // Wait for all fetches to complete in parallel
+            const results = await Promise.all(fetchPromises);
+
+            // Update state with all loaded data
+            const validResults = results.filter((r) => r !== null);
+            if (validResults.length > 0) {
+              const updatedData = { ...personalData };
+              validResults.forEach((result: any) => {
+                if (result) {
+                  updatedData[result.dateStr] = result.journalData;
+                }
+              });
+              setTradingDataByDate(updatedData);
+              setCalendarData(updatedData);
+              localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
+              console.log(
+                `✅ Ultra-fast PERSONAL heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
+              );
+            }
+
+            // Auto-select latest date AFTER all data is loaded
+            if (!selectedDate && Object.keys(personalData).length > 0) {
+              const sortedDates = Object.keys(personalData).sort(
                 (a, b) => new Date(b).getTime() - new Date(a).getTime(),
               );
-              const latestDate = new Date(sortedDates[0]);
-              console.log(`🎯 Auto-selecting latest Firebase date: ${sortedDates[0]}`);
+              const latestDateStr = sortedDates[0];
+              const latestDate = new Date(latestDateStr);
+              console.log("🎯 Auto-selecting latest PERSONAL date:", latestDateStr);
               setSelectedDate(latestDate);
               await handleDateSelect(latestDate);
             }
-          } else {
-            console.log("⚠️ No data in Firebase journal-database");
-            setDemoTradingDataByDate({});
-            setCalendarData({});
-          }
+          }, 100);
         } else {
-          // PERSONAL MODE: Fetch user-specific data from Firebase
-          console.log("👤 PERSONAL MODE: Fetching user-specific data from Firebase");
-          const userId = getUserId();
-          
-          if (!userId) {
-            console.log("⚠️ No user ID found - cannot load personal data");
-            setIsLoadingHeatmapData(false);
-            return;
-          }
-
-          const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/all`));
-          if (response.ok) {
-            const personalData = await response.json();
-            console.log("✅ PERSONAL data loaded:", Object.keys(personalData).length, "dates");
-            
-            setTradingDataByDate(personalData);
-            setCalendarData(personalData);
-
-            // Save to localStorage for offline access
-            localStorage.setItem("tradingDataByDate", JSON.stringify(personalData));
-
-            // Auto-click all available dates to populate heatmap colors - ULTRA FAST
-            // This simulates clicking each date to ensure colors appear immediately
-            setTimeout(async () => {
-              console.log(
-                "🔄 Ultra-fast auto-clicking all PERSONAL dates for heatmap colors...",
-              );
-
-              // Create all fetch promises in parallel for maximum speed
-              const fetchPromises = Object.keys(personalData).map(
-                async (dateStr) => {
-                  try {
-                    const response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateStr}`));
-                    if (response.ok) {
-                      const journalData = await response.json();
-                      if (journalData && Object.keys(journalData).length > 0) {
-                        return { dateStr, journalData };
-                      }
-                    }
-                  } catch (error) {
-                    console.error(
-                      `❌ Error auto-loading PERSONAL date ${dateStr}:`,
-                      error,
-                    );
-                  }
-                  return null;
-                },
-              );
-
-              // Wait for all fetches to complete in parallel
-              const results = await Promise.all(fetchPromises);
-
-              // Update state with all loaded data
-              const validResults = results.filter((r) => r !== null);
-              if (validResults.length > 0) {
-                const updatedData = { ...personalData };
-                validResults.forEach((result: any) => {
-                  if (result) {
-                    updatedData[result.dateStr] = result.journalData;
-                  }
-                });
-                setTradingDataByDate(updatedData);
-                setCalendarData(updatedData);
-                localStorage.setItem("tradingDataByDate", JSON.stringify(updatedData));
-                console.log(
-                  `✅ Ultra-fast PERSONAL heatmap population complete! Loaded ${validResults.length} dates in parallel.`,
-                );
-              }
-
-              // Auto-select latest date AFTER all data is loaded
-              if (!selectedDate && Object.keys(personalData).length > 0) {
-                const sortedDates = Object.keys(personalData).sort(
-                  (a, b) => new Date(b).getTime() - new Date(a).getTime(),
-                );
-                const latestDateStr = sortedDates[0];
-                const latestDate = new Date(latestDateStr);
-                console.log("🎯 Auto-selecting latest PERSONAL date:", latestDateStr);
-                setSelectedDate(latestDate);
-                await handleDateSelect(latestDate);
-              }
-            }, 100);
-          } else {
-            console.log("📭 No personal data found for user:", userId);
-          }
+          console.log("📭 No personal data found for user:", userId);
         }
       } catch (error) {
         console.error("❌ Error loading heatmap data:", error);
@@ -3867,7 +3840,7 @@ ${
     };
 
     loadAllHeatmapData();
-  }, [activeTab, isDemoMode]); // Re-run when tab or demo mode changes
+  }, [activeTab, currentUser?.userId]); // Re-run when tab or user changes - ALWAYS load from userId
 
   // Images state for saving (with proper type)
   const [tradingImages, setTradingImages] = useState<any[]>([]);
@@ -11981,7 +11954,9 @@ ${
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={!currentUser?.userId}
+                              title={!currentUser?.userId ? "Log in to delete formats" : ""}
                               onClick={async () => {
                                 if (confirm(`Delete format "${label}"?`)) {
                                   const newFormats = { ...savedFormats };
@@ -12027,6 +12002,8 @@ ${
                           <Button
                             variant="outline"
                             size="sm"
+                            disabled={!currentUser?.userId}
+                            title={!currentUser?.userId ? "Log in to save formats" : ""}
                             onClick={async () => {if (!savedFormatLabel.trim()) {
                                 alert("Please enter a label for this format");
                                 return;
@@ -12511,7 +12488,9 @@ ${
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                          className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                          disabled={!currentUser?.userId}
+                                          title={!currentUser?.userId ? "Log in to delete formats" : ""}
                                           onClick={async () => {if (confirm(`Delete format "${label}"?`)) {
                                               const newFormats = { ...savedFormats };
                                               delete newFormats[label];

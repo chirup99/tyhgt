@@ -218,6 +218,23 @@ The trading journal includes a toggle switch that allows users to switch between
   - `GET /api/user-journal/:userId/:date` - Load user-specific trading data
   - `DELETE /api/user-journal/:userId/:date` - Delete user-specific trading data
 
+**IMPORTANT - Import Window & Heatmap Access Control (Nov 24, 2025)**:
+- **Import Window**: ALWAYS loads saved formats from Firebase using userId, NOT from demo mode
+  - Demo mode users can VIEW and LOAD existing saved formats
+  - Demo mode users CANNOT SAVE NEW formats (Save Format button disabled with tooltip "Log in to save formats")
+  - Demo mode users CANNOT DELETE formats (Delete buttons disabled with tooltip "Log in to delete formats")
+  - Fully authenticated users have full access (save/delete/load)
+- **Personal Heatmap**: ALWAYS loads from userId, NEVER from demo data
+  - If no user logged in (userId is null), heatmap clears and shows no data
+  - Heatmap useEffect now depends on `currentUser?.userId` instead of `isDemoMode`
+  - Ensures data isolation: each user sees only their own trading heatmap
+  - Demo mode cannot bypass heatmap's user-specific data loading
+- **Access Control Implementation**:
+  - Save button disabled: `disabled={!currentUser?.userId}`
+  - Delete buttons disabled: `disabled={!currentUser?.userId}`
+  - UI feedback: Disabled buttons show reduced opacity (disabled:opacity-50)
+  - Tooltips explain why buttons are disabled in demo mode
+
 ## Audio MiniCast Feature
 
 The platform includes an innovative **Audio MiniCast** feature for creating audio-based content from feed posts:
