@@ -61,60 +61,30 @@ const getRegionColor = (x: number, y: number, marketData: any): string => {
 };
 
 export function WorldMap() {
-  const [pulseStates, setPulseStates] = useState<Set<number>>(new Set());
   const { marketData, loading } = useMarketData(900000); // Refresh every 15 minutes (900000ms)
-
-  useEffect(() => {
-    // Randomly activate some dots for pulsing effect
-    const interval = setInterval(() => {
-      const randomIndexes = new Set<number>();
-      const numDots = Math.floor(Math.random() * 15) + 10;
-
-      for (let i = 0; i < numDots; i++) {
-        randomIndexes.add(Math.floor(Math.random() * worldMapDots.length));
-      }
-
-      setPulseStates(randomIndexes);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="mb-5 relative">
-      {/* World Map with Dots */}
+      {/* World Map with Dots - No Animation */}
       <div className="relative h-35 overflow-hidden">
         <svg
           viewBox="-10 0 1045.2 458"
           className="w-full h-full"
           preserveAspectRatio="xMidYMid slice"
         >
-          {/* Continent dots */}
+          {/* Continent dots - Static, no animation */}
           {worldMapDots.map(([cx, cy], index) => {
-            const isPulsing = pulseStates.has(index);
             const dotColor = getRegionColor(cx, cy, marketData);
 
             return (
-              <g key={index}>
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r="1.9"
-                  fill={dotColor}
-                  opacity={isPulsing ? 0.8 : 0.35}
-                  className="transition-opacity duration-500"
-                />
-                {isPulsing && (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r="1.9"
-                    fill={dotColor}
-                    opacity={0.4}
-                    className="animate-ping"
-                  />
-                )}
-              </g>
+              <circle
+                key={index}
+                cx={cx}
+                cy={cy}
+                r="1.9"
+                fill={dotColor}
+                opacity={0.8}
+              />
             );
           })}
         </svg>
@@ -154,17 +124,6 @@ export function WorldMap() {
           <span className="text-gray-400 text-[9px]">Updating...</span>
         )}
       </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.6;
-          }
-        }
-      `}</style>
     </div>
   );
 }
