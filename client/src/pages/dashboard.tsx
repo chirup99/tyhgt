@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { AuthButton } from "@/components/auth-button";
 import { ConnectionStatus } from "@/components/connection-status";
 import { ApiStatistics } from "@/components/api-statistics";
+import { FyersConnectionWindow } from "@/components/fyers-connection-window";
 import { ErrorPanel } from "@/components/error-panel";
 import { TradingViewWidget } from "@/components/tradingview-widget";
 import { AdvancedCandlestickChart } from "@/components/advanced-candlestick-chart";
@@ -186,12 +187,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Status Cards */}
+        {/* Status Cards - Split into 2 rows */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <ConnectionStatus />
           <ApiStatistics />
           <NiftyIndex />
           <HistoricalDataStatus />
+        </div>
+
+        {/* Fyers Connection and Bottom Section - Split into half */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <FyersConnectionWindow />
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 h-full min-h-[300px]"></div>
         </div>
         
         {/* Portfolio and Additional Cards */}
