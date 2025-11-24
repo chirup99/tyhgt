@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export interface MarketIndex {
   symbol: string;
   regionName: string;
@@ -9,43 +11,53 @@ export interface MarketIndex {
   isMarketOpen: boolean;
 }
 
-const MARKET_SYMBOLS = {
-  'USA': '^GSPC',          // S&P 500
-  'CANADA': '^GSPTSE',     // S&P/TSX Composite Index
-  'INDIA': '^NSEI',        // Nifty 50
-  'TOKYO': '^N225',        // Nikkei 225
-  'HONG KONG': '^HSI',     // Hang Seng Index
+// Twelve Data symbols for global indices
+const TWELVE_DATA_SYMBOLS = {
+  'USA': 'GSPC',          // S&P 500
+  'CANADA': 'GSPTSE',     // S&P/TSX Composite Index
+  'INDIA': 'NSEI',        // Nifty 50
+  'TOKYO': 'N225',        // Nikkei 225
+  'HONG KONG': 'HSI',     // Hang Seng Index
 };
 
 // Store last closing prices for when market is closed
 let lastClosingPrices: Record<string, MarketIndex> = {};
 
 /**
- * Fetches REAL market data using web search (like Replit Agent)
- * When market is closed, displays last known closing prices
+ * Fetches real market data from Twelve Data API
  */
 export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
   try {
-    console.log('🌍 Fetching REAL market data via web search...');
+    console.log('🌍 Fetching market data from Twelve Data API...');
     
-    // Try to fetch real data from Yahoo Finance via web search
-    const realData = await fetchRealMarketDataViaWebSearch();
-    
-    if (realData && Object.keys(realData).length > 0) {
-      // Store as last closing prices for when market closes
-      lastClosingPrices = realData;
-      console.log(`✅ Fetched ${Object.keys(realData).length} real market indices`);
-      return realData;
-    }
-    
-    // If web search fails and market is closed, return last closing prices
-    if (!isMarketOpen() && Object.keys(lastClosingPrices).length > 0) {
-      console.log('📊 Market closed - returning last closing prices');
-      return lastClosingPrices;
+    const apiKey = process.env.TWELVE_DATA_API_KEY;
+    if (!apiKey) {
+      throw new Error('TWELVE_DATA_API_KEY is not configured');
     }
 
-    // Fallback to realistic data
-    console.log('📦 Using realistic market data');
+    const results: Record<string, MarketIndex> = {};
+    
+    // Fetch data for each market in parallel
+    const fetchPromises = Object.entries(TWELVE_DATA_SYMBOLS).map(([regionName, symbol]) =>
+      fetchTwelveDataQuote(regionName, symbol, apiKey)
+    );
+
+    const fetchedData = await Promise.allSettled(fetchPromises);
+    
+    fetchedData.forEach((result) => {
+      if (result.status === 'fulfilled' && result.value) {
+        results[result.value.regionName] = result.value;
+      }
+    });
+
+    if (Object.keys(results).length > 0) {
+      lastClosingPrices = results;
+      console.log(`✅ Fetched ${Object.keys(results).length} indices from Twelve Data`);
+      return results;
+    }
+
+    // Fallback to realistic data if API fails
+    console.log('📦 Using realistic market data (API fallback)');
     const fallbackData = getRealisticMarketData();
     lastClosingPrices = fallbackData;
     return fallbackData;
@@ -53,9 +65,9 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('❌ Error fetching market data:', errorMsg);
     
-    // If market is closed, return last known prices
-    if (!isMarketOpen() && Object.keys(lastClosingPrices).length > 0) {
-      console.log('📊 Returning last closing prices during market closure');
+    // Return last known prices or fallback
+    if (Object.keys(lastClosingPrices).length > 0) {
+      console.log('📊 Returning last known prices');
       return lastClosingPrices;
     }
     
@@ -64,167 +76,53 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
 }
 
 /**
- * Fetches real market data using web search
- * Similar to how Replit Agent uses web APIs
+ * Fetches a quote from Twelve Data API
  */
-async function fetchRealMarketDataViaWebSearch(): Promise<Record<string, MarketIndex>> {
-  const results: Record<string, MarketIndex> = {};
-  
-  // Fetch data for each market in parallel
-  const fetchPromises = [
-    fetchMarketDataWithRetry('USA', 'S&P 500 current price today', '^GSPC'),
-    fetchMarketDataWithRetry('CANADA', 'TSX Composite Index current price', '^GSPTSE'),
-    fetchMarketDataWithRetry('INDIA', 'Nifty 50 current price today NSE', '^NSEI'),
-    fetchMarketDataWithRetry('TOKYO', 'Nikkei 225 current price today', '^N225'),
-    fetchMarketDataWithRetry('HONG KONG', 'Hang Seng Index current price today', '^HSI'),
-  ];
-
-  const fetchedData = await Promise.allSettled(fetchPromises);
-  
-  fetchedData.forEach((result) => {
-    if (result.status === 'fulfilled' && result.value) {
-      results[result.value.regionName] = result.value;
-    }
-  });
-
-  return results;
-}
-
-/**
- * Fetches market data with retry logic
- * Attempts to extract real price data from web searches
- */
-async function fetchMarketDataWithRetry(
+async function fetchTwelveDataQuote(
   regionName: string,
-  searchQuery: string,
   symbol: string,
-  retries: number = 2
-): Promise<MarketIndex | null> {
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      return await fetchMarketDataFromWeb(regionName, searchQuery, symbol);
-    } catch (error) {
-      if (attempt < retries - 1) {
-        console.log(`⏳ Retry ${attempt + 1}/${retries} for ${regionName}...`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-  }
-  
-  console.warn(`⚠️  Failed to fetch ${regionName} after ${retries} attempts`);
-  return null;
-}
-
-/**
- * Fetches real market data from web sources
- * Uses Yahoo Finance and similar public market data sources
- */
-async function fetchMarketDataFromWeb(
-  regionName: string,
-  searchQuery: string,
-  symbol: string
+  apiKey: string
 ): Promise<MarketIndex | null> {
   try {
-    // Fetch from Yahoo Finance API (public endpoint)
-    const yahooUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price`;
+    const url = `https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${apiKey}`;
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    const response = await fetch(yahooUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      signal: controller.signal,
+    const response = await axios.get(url, {
+      timeout: 8000,
     }).finally(() => clearTimeout(timeoutId));
 
-    if (response.ok) {
-      const data = await response.json();
-      
-      if (data.quoteSummary?.result?.[0]?.price) {
-        const priceData = data.quoteSummary.result[0].price;
-        const price = priceData.regularMarketPrice?.raw || 0;
-        const previousClose = priceData.regularMarketPreviousClose?.raw || price;
-        const changePercent = ((price - previousClose) / previousClose) * 100;
-        const change = price - previousClose;
+    if (response.data && response.data.price !== undefined) {
+      const price = parseFloat(response.data.price);
+      const previousClose = parseFloat(response.data.previous_close) || price;
+      const change = price - previousClose;
+      const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
 
-        console.log(`✅ ${regionName}: $${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
+      console.log(`✅ ${regionName} (${symbol}): ${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
 
-        return {
-          symbol,
-          regionName,
-          price,
-          change,
-          changePercent,
-          isUp: changePercent >= 0,
-          marketTime: new Date().toISOString(),
-          isMarketOpen: isMarketOpen(),
-        };
-      }
+      return {
+        symbol,
+        regionName,
+        price,
+        change,
+        changePercent,
+        isUp: changePercent >= 0,
+        marketTime: new Date().toISOString(),
+        isMarketOpen: isMarketOpen(),
+      };
     }
 
-    // Alternative: Try fetching from a market data endpoint
-    const alternativeUrl = `https://api.example-finance.com/quote/${symbol}`;
-    
-    // If that fails too, extract data from web search
-    return await extractMarketDataFromSearch(regionName, symbol);
+    console.warn(`⚠️ No price data for ${regionName}`);
+    return null;
   } catch (error) {
-    console.warn(`⚠️  Web fetch failed for ${regionName}: ${error instanceof Error ? error.message : String(error)}`);
+    console.warn(`⚠️ Failed to fetch ${regionName} from Twelve Data: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }
 
 /**
- * Extracts market data from web search results
- */
-async function extractMarketDataFromSearch(
-  regionName: string,
-  symbol: string
-): Promise<MarketIndex | null> {
-  try {
-    // Fetch from DuckDuckGo (like Replit Agent would)
-    const searchUrl = `https://api.duckduckgo.com/?q=${symbol}+current+price&format=json`;
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const response = await fetch(searchUrl, {
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
-
-    if (response.ok) {
-      const data = await response.json();
-      // Parse the abstraction to get price info
-      if (data.AbstractText) {
-        const priceMatch = data.AbstractText.match(/(\d{1,5}[.,]\d{1,3}(?:[.,]\d{3})*)/g);
-        if (priceMatch) {
-          const price = parseFloat(priceMatch[0].replace(/[.,]/g, '.'));
-          if (price > 0) {
-            console.log(`✅ ${regionName}: Extracted price $${price.toFixed(2)}`);
-            return {
-              symbol,
-              regionName,
-              price,
-              change: 0,
-              changePercent: 0,
-              isUp: true,
-              marketTime: new Date().toISOString(),
-              isMarketOpen: isMarketOpen(),
-            };
-          }
-        }
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.warn(`⚠️  Search extraction failed for ${regionName}`);
-    return null;
-  }
-}
-
-/**
- * Returns realistic market data (fallback when web search fails)
+ * Returns realistic market data (fallback when API fails)
  */
 function getRealisticMarketData(): Record<string, MarketIndex> {
   const marketRates: Record<string, { price: number; changePercent: number }> = {
@@ -238,7 +136,7 @@ function getRealisticMarketData(): Record<string, MarketIndex> {
   const results: Record<string, MarketIndex> = {};
   
   Object.entries(marketRates).forEach(([regionName, { price, changePercent }]) => {
-    const symbol = MARKET_SYMBOLS[regionName as keyof typeof MARKET_SYMBOLS];
+    const symbol = TWELVE_DATA_SYMBOLS[regionName as keyof typeof TWELVE_DATA_SYMBOLS];
     const change = (price * changePercent) / 100;
     
     results[regionName] = {
@@ -262,7 +160,7 @@ function getRealisticMarketData(): Record<string, MarketIndex> {
 function getFallbackData(): Record<string, MarketIndex> {
   return {
     'USA': {
-      symbol: '^GSPC',
+      symbol: 'GSPC',
       regionName: 'USA',
       price: 5900,
       change: 0,
@@ -272,7 +170,7 @@ function getFallbackData(): Record<string, MarketIndex> {
       isMarketOpen: false,
     },
     'CANADA': {
-      symbol: '^GSPTSE',
+      symbol: 'GSPTSE',
       regionName: 'CANADA',
       price: 24200,
       change: 0,
@@ -282,7 +180,7 @@ function getFallbackData(): Record<string, MarketIndex> {
       isMarketOpen: false,
     },
     'INDIA': {
-      symbol: '^NSEI',
+      symbol: 'NSEI',
       regionName: 'INDIA',
       price: 23600,
       change: 0,
@@ -292,7 +190,7 @@ function getFallbackData(): Record<string, MarketIndex> {
       isMarketOpen: false,
     },
     'TOKYO': {
-      symbol: '^N225',
+      symbol: 'N225',
       regionName: 'TOKYO',
       price: 39000,
       change: 0,
@@ -302,7 +200,7 @@ function getFallbackData(): Record<string, MarketIndex> {
       isMarketOpen: false,
     },
     'HONG KONG': {
-      symbol: '^HSI',
+      symbol: 'HSI',
       regionName: 'HONG KONG',
       price: 19400,
       change: 0,
@@ -339,7 +237,7 @@ function isMarketOpen(): boolean {
  * Gets cache duration based on market status
  */
 function getCacheDuration(): number {
-  return isMarketOpen() ? 15 * 60 * 1000 : 60 * 60 * 1000;
+  return isMarketOpen() ? 5 * 60 * 1000 : 30 * 60 * 1000; // 5 min when open, 30 min when closed
 }
 
 // Cache management
@@ -348,9 +246,8 @@ let lastFetchTime: number = 0;
 
 /**
  * Gets market indices with intelligent caching
- * - Fetches fresh data every 15 minutes when market is open
- * - Fetches fresh data every 60 minutes when market is closed
- * - Returns last closing prices while fetching
+ * - Fetches fresh data every 5 minutes when market is open
+ * - Fetches fresh data every 30 minutes when market is closed
  */
 export async function getCachedMarketIndices(): Promise<Record<string, MarketIndex>> {
   const now = Date.now();
@@ -362,14 +259,14 @@ export async function getCachedMarketIndices(): Promise<Record<string, MarketInd
   
   if (isCacheValid) {
     const ageMinutes = Math.round((now - lastFetchTime) / 1000 / 60);
-    const updateInterval = isMarketOpen() ? '15 min' : '60 min';
+    const updateInterval = isMarketOpen() ? '5 min' : '30 min';
     console.log(`📦 Cached data (${ageMinutes}m old | Market: ${marketStatus} | Updates: every ${updateInterval})`);
     return cachedData!;
   }
   
   // Fetch fresh data
-  const updateInterval = isMarketOpen() ? '15 minutes' : '60 minutes';
-  console.log(`🌐 Refreshing market data (Market: ${marketStatus} | Updates every ${updateInterval})...`);
+  const updateInterval = isMarketOpen() ? '5 minutes' : '30 minutes';
+  console.log(`🌐 Refreshing market data from Twelve Data (Market: ${marketStatus} | Updates every ${updateInterval})...`);
   try {
     const freshData = await getMarketIndices();
     cachedData = freshData;
