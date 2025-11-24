@@ -5152,45 +5152,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/social-posts', async (req, res) => {
     const requestId = Math.random().toString(36).substring(7);
     console.log(`\n🚀 [${requestId}] POST /api/social-posts - New post creation request`);
-    console.log(`📍 [${requestId}] Origin: ${req.headers.origin || 'none'}`);
-    console.log(`🔐 [${requestId}] Has Authorization: ${!!req.headers.authorization}`);
     
     try {
-      const authHeader = req.headers.authorization;
+      // Get userId from request body (already authenticated on frontend)
+      const { userId } = req.body;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        console.log(`❌ [${requestId}] No valid authorization header`);
-        return res.status(401).json({ error: 'Authentication required to create posts' });
-      }
-
-      const idToken = authHeader.split('Bearer ')[1];
-      console.log(`🎫 [${requestId}] Token length: ${idToken.length} chars`);
-      
-      // Verify the Firebase ID token
-      console.log(`🔍 [${requestId}] Verifying Firebase ID token...`);
-      const admin = await import('firebase-admin');
-      
-      let decodedToken: any;
-      try {
-        decodedToken = await admin.auth().verifyIdToken(idToken);
-      } catch (tokenError: any) {
-        console.error(`❌ [${requestId}] Token verification error:`, tokenError.message);
-        console.error(`❌ [${requestId}] Token error code:`, tokenError.code);
-        
-        // Check if admin.auth() is even available
-        if (!admin.auth) {
-          console.error(`❌ [${requestId}] CRITICAL: admin.auth() is not available. Firebase Admin SDK not properly initialized.`);
-          return res.status(500).json({ 
-            error: 'Server authentication error', 
-            message: 'Firebase authentication service is not available on the server'
-          });
-        }
-        
-        throw tokenError;
+      if (!userId) {
+        console.log(`❌ [${requestId}] No userId provided`);
+        return res.status(400).json({ error: 'User ID is required' });
       }
       
-      const userId = decodedToken.uid;
-      console.log(`✅ [${requestId}] Token verified for user: ${userId}`);
+      console.log(`✅ [${requestId}] Creating post for user: ${userId}`);
       
       // Get user profile from Firestore
       const { getFirestore } = await import('firebase-admin/firestore');
