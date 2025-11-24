@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 export interface MarketIndex {
   symbol: string;
@@ -11,113 +12,146 @@ export interface MarketIndex {
   isMarketOpen: boolean;
 }
 
-// Yahoo Finance symbols for global indices
-const YAHOO_FINANCE_SYMBOLS: Record<string, string> = {
-  'USA': '^GSPC',           // S&P 500
-  'CANADA': '^GSPTSE',      // TSX Composite
-  'INDIA': '^NSEI',         // Nifty 50
-  'TOKYO': '^N225',         // Nikkei 225
-  'HONG KONG': '^HSI',      // Hang Seng
+// Google Finance symbols for global indices - using ticker:exchange format
+const GOOGLE_FINANCE_INDICES = {
+  'USA': { ticker: 'GSPC', exchange: 'INDEXSP' },           // S&P 500
+  'CANADA': { ticker: 'GSPTSE', exchange: 'INDEXSP' },      // TSX Composite
+  'INDIA': { ticker: '0700113Y', exchange: 'NSEI' },        // Nifty 50
+  'TOKYO': { ticker: '225', exchange: 'INDEXNIKKEI' },      // Nikkei 225
+  'HONG KONG': { ticker: 'HSI', exchange: 'INDEXHKG' },     // Hang Seng
 };
 
 /**
- * Fetches real market data from Yahoo Finance API
+ * Fetches real market data from Google Finance
  */
 export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
-  try {
-    console.log('🌍 Fetching market data from Yahoo Finance API...');
-    
-    const results: Record<string, MarketIndex> = {};
-    
-    // Fetch data for each market in parallel
-    const fetchPromises = Object.entries(YAHOO_FINANCE_SYMBOLS).map(([regionName, symbol]) =>
-      fetchYahooFinanceQuote(regionName, symbol)
-    );
+  console.log('🌍 Fetching real-time market data from Google Finance...');
+  
+  const results: Record<string, MarketIndex> = {};
+  
+  // Fetch data for each market in parallel
+  const fetchPromises = Object.entries(GOOGLE_FINANCE_INDICES).map(([regionName, config]) =>
+    fetchGoogleFinanceData(regionName, config.ticker, config.exchange)
+  );
 
-    const fetchedData = await Promise.allSettled(fetchPromises);
-    
-    let successCount = 0;
-    fetchedData.forEach((result) => {
-      if (result.status === 'fulfilled' && result.value) {
-        results[result.value.regionName] = result.value;
-        successCount++;
-      }
-    });
-
-    if (successCount > 0) {
-      console.log(`✅ Fetched ${successCount}/${Object.keys(YAHOO_FINANCE_SYMBOLS).length} indices from Yahoo Finance`);
-      return results;
+  const fetchedData = await Promise.allSettled(fetchPromises);
+  
+  let successCount = 0;
+  fetchedData.forEach((result) => {
+    if (result.status === 'fulfilled' && result.value) {
+      results[result.value.regionName] = result.value;
+      successCount++;
     }
+  });
 
-    throw new Error('Failed to fetch any market data from Yahoo Finance');
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('❌ Error fetching market data:', errorMsg);
-    throw error;
+  console.log(`📊 Successfully fetched ${successCount}/${Object.keys(GOOGLE_FINANCE_INDICES).length} indices`);
+  
+  if (successCount === 0) {
+    throw new Error('Failed to fetch any market data from Google Finance');
   }
+
+  return results;
 }
 
 /**
- * Fetches a quote from Yahoo Finance API
+ * Scrapes Google Finance for market data
  */
-async function fetchYahooFinanceQuote(
+async function fetchGoogleFinanceData(
   regionName: string,
-  symbol: string
+  ticker: string,
+  exchange: string
 ): Promise<MarketIndex | null> {
   try {
-    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price`;
+    const url = `https://www.google.com/finance/quote/${ticker}:${exchange}`;
     
-    console.log(`📡 Fetching ${regionName} from Yahoo Finance: ${symbol}`);
+    console.log(`📡 Fetching ${regionName}: ${ticker}:${exchange} from ${url}`);
     
     const response = await axios.get(url, {
-      timeout: 8000,
+      timeout: 10000,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
       }
     });
 
-    if (response.data?.quoteSummary?.result?.[0]?.price) {
-      const priceData = response.data.quoteSummary.result[0].price;
-      
-      const price = priceData.regularMarketPrice?.raw || 0;
-      const change = priceData.regularMarketChange?.raw || 0;
-      const changePercent = (priceData.regularMarketChangePercent?.raw || 0) * 100;
+    const $ = cheerio.load(response.data);
+    
+    // Google Finance price structure - get the main price display
+    let priceText = '';
+    let changeText = '';
+    let changePercentText = '';
 
-      if (price > 0) {
-        console.log(`✅ ${regionName} (${symbol}): ${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
-
-        return {
-          symbol,
-          regionName,
-          price,
-          change,
-          changePercent,
-          isUp: changePercent >= 0,
-          marketTime: new Date().toISOString(),
-          isMarketOpen: true,
-        };
+    // Try to find price in various possible locations
+    const priceElements = $('div[data-draggable-id] span, div[role="heading"] span, [data-currency] span');
+    
+    for (let i = 0; i < priceElements.length; i++) {
+      const text = $(priceElements[i]).text().trim();
+      const num = parseFloat(text);
+      if (!isNaN(num) && num > 0 && text.length < 20) {
+        priceText = text;
+        break;
       }
     }
 
-    console.warn(`⚠️ No price data for ${regionName} from Yahoo Finance`);
+    // Look for change percentage
+    const changeElements = $('div span');
+    changeElements.each((i, elem) => {
+      const text = $(elem).text().trim();
+      if ((text.includes('%') || text.includes('+') || text.includes('-')) && text.length < 15) {
+        if (!changeText && text.match(/[+-]?\d+\.?\d*%/)) {
+          changeText = text;
+        }
+      }
+    });
+
+    // Parse the data
+    const price = parseFloat(priceText.replace(/[^0-9.-]/g, ''));
+    let changePercent = 0;
+    
+    if (changeText) {
+      const match = changeText.match(/[+-]?\d+\.?\d*/);
+      if (match) {
+        changePercent = parseFloat(match[0]);
+      }
+    }
+
+    if (!isNaN(price) && price > 0) {
+      const change = (price * changePercent) / 100;
+      
+      console.log(`✅ ${regionName}: ${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
+
+      return {
+        symbol: ticker,
+        regionName,
+        price,
+        change,
+        changePercent,
+        isUp: changePercent >= 0,
+        marketTime: new Date().toISOString(),
+        isMarketOpen: true,
+      };
+    }
+
+    console.warn(`⚠️ Could not extract valid price for ${regionName} (price: "${priceText}", change: "${changeText}")`);
     return null;
+    
   } catch (error) {
-    console.warn(`⚠️ Failed to fetch ${regionName}: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`❌ Error fetching ${regionName}: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }
 
 /**
- * Gets market indices with NO caching - always fresh data
+ * Gets market indices - fetches fresh data every time
  */
 export async function getCachedMarketIndices(): Promise<Record<string, MarketIndex>> {
-  console.log('🌐 Fetching fresh market data (no cache)...');
+  console.log('🌐 Fetching fresh market indices...');
   try {
-    const freshData = await getMarketIndices();
-    console.log(`✅ Market data fetched successfully`);
-    return freshData;
+    const data = await getMarketIndices();
+    console.log(`✅ Market data retrieved successfully`);
+    return data;
   } catch (error) {
-    console.error('❌ Error fetching market data:', error);
+    console.error('❌ Failed to fetch market indices:', error);
     throw error;
   }
 }
