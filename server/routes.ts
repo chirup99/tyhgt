@@ -5164,7 +5164,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [${requestId}] Creating post for user: ${userId}`);
       
-      // Get user profile from Firestore
+      // Import Firebase admin and Firestore
+      const admin = await import('firebase-admin');
       const { getFirestore } = await import('firebase-admin/firestore');
       const db = getFirestore();
       
