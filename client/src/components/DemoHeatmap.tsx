@@ -220,6 +220,53 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     };
   }, [selectedDatesForEdit]);
 
+  // Auto-scroll heatmap horizontally when in public view (showcase animation)
+  useEffect(() => {
+    if (!isPublicView || !heatmapContainerRef.current || isLoading) {
+      return;
+    }
+
+    const container = heatmapContainerRef.current;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+
+    if (maxScroll <= 0) {
+      return; // No scroll needed
+    }
+
+    let scrollDirection = 1; // 1 for right, -1 for left
+    let currentScroll = 0;
+    let animationId: ReturnType<typeof requestAnimationFrame> | null = null;
+
+    const animate = () => {
+      const scrollSpeed = 0.5; // pixels per frame
+      currentScroll += scrollSpeed * scrollDirection;
+
+      // Check if we've reached the end or start
+      if (currentScroll >= maxScroll) {
+        currentScroll = maxScroll;
+        scrollDirection = -1; // Change direction to left
+      } else if (currentScroll <= 0) {
+        currentScroll = 0;
+        scrollDirection = 1; // Change direction to right
+      }
+
+      container.scrollLeft = currentScroll;
+      animationId = requestAnimationFrame(animate);
+    };
+
+    // Start animation after a small delay to ensure data is loaded
+    const startDelay = setTimeout(() => {
+      animationId = requestAnimationFrame(animate);
+    }, 500);
+
+    return () => {
+      clearTimeout(startDelay);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [isPublicView, isLoading]);
+
   // Calculate range badge positions dynamically when badges render (for range selection mode)
   useEffect(() => {
     if (selectedDatesForRange.length !== 2 || !rangeBadge1Ref.current || !rangeBadge2Ref.current) {
