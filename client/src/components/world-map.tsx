@@ -80,10 +80,9 @@ export function WorldMap() {
             background: "none"
           }}
         >
-          {/* Continent dots with pulsing animation */}
+          {/* Continent dots - Static, no animation */}
           {worldMapDots.map(([cx, cy], index) => {
             const dotColor = getRegionColor(cx, cy, marketData, isDarkMode);
-            const animationDelay = (index % 10) * 0.1; // Stagger animations
 
             return (
               <circle
@@ -94,10 +93,6 @@ export function WorldMap() {
                 fill={dotColor}
                 opacity={1}
                 shapeRendering="crispEdges"
-                className="world-map-dot"
-                style={{
-                  animationDelay: `${animationDelay}s`
-                }}
               />
             );
           })}
