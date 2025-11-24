@@ -7317,63 +7317,8 @@ ${
 
           <div className="space-y-1 pt-4">
             <p className="text-xs font-medium sidebar-muted uppercase tracking-wide mb-3">
-              Core Trading Tools
+              Trading Tools
             </p>
-
-            <button
-              onClick={() => handleTabClick("backtest")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "backtest"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Backtest
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("chart")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "chart"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Trading Charts
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("check")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "check"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              BATTU Scan
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("4candle")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "4candle"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              4 Candle Rule
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("scanner")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "scanner"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Complete Scanner
-            </button>
 
             <button
               onClick={handleTradingMasterAccess}
@@ -7394,39 +7339,6 @@ ${
             <p className="text-xs font-medium sidebar-muted uppercase tracking-wide mb-3">
               Analysis & Monitoring
             </p>
-
-            <button
-              onClick={() => handleTabClick("backtest")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "backtest"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Backtest
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("cb")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "cb"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Historical Data
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("simulator")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "simulator"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Trade Simulator
-            </button>
 
             <button
               onClick={() => checkAuthAndNavigate("journal")}
