@@ -112,6 +112,7 @@ import {
   Play,
   Pause,
   RotateCcw,
+  RotateCw,
   DollarSign,
   Zap,
   Newspaper,
@@ -3422,6 +3423,7 @@ ${
   const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>({});
   const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
   const [detectedFormatLabel, setDetectedFormatLabel] = useState<string | null>(null);
+  const [formatsLoading, setFormatsLoading] = useState(false);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
   // Helper function to save formats to Firebase
   const saveFormatsToFirebase = async (formats: Record<string, FormatData>) => {
@@ -3485,14 +3487,17 @@ ${
       if (!currentUser?.userId) {
         console.log("⏳ No authenticated user, skipping format load");
         setSavedFormats({});
+        setFormatsLoading(false);
         return;
       }
 
+      setFormatsLoading(true);
       try {
         console.log("📥 Loading user formats from Firebase for userId:", currentUser.userId);
         const idToken = await auth.currentUser?.getIdToken();
         if (!idToken) {
           console.error("❌ Failed to get Firebase ID token");
+          setFormatsLoading(false);
           return;
         }
         
@@ -3509,10 +3514,7 @@ ${
           console.log("✅ Loaded formats from Firebase:", Object.keys(formats).length, "formats", formats);
           setSavedFormats(formats);
           if (Object.keys(formats).length > 0) {
-            toast({
-              title: "Formats Loaded",
-              description: `Loaded ${Object.keys(formats).length} saved format(s) from Firebase`
-            });
+            console.log("📦 Formats available in dropdown:", Object.keys(formats).join(", "));
           }
         } else {
           const errorText = await response.text();
@@ -3522,6 +3524,8 @@ ${
       } catch (error) {
         console.error("❌ Error loading user formats:", error);
         setSavedFormats({});
+      } finally {
+        setFormatsLoading(false);
       }
     };
 
@@ -3532,6 +3536,7 @@ ${
   useEffect(() => {
     if (showImportModal && currentUser?.userId) {
       console.log("📂 Import dialog opened, reloading formats...");
+      setFormatsLoading(true);
       // Create a function to reload formats without dependency on state
       (async () => {
         try {
@@ -3544,10 +3549,15 @@ ${
               const formats = await response.json();
               console.log("✅ Dialog opened - formats reloaded:", Object.keys(formats).length);
               setSavedFormats(formats);
+              if (Object.keys(formats).length > 0) {
+                console.log("📦 Formats now available in dropdown:", Object.keys(formats).join(", "));
+              }
             }
           }
         } catch (err) {
           console.error("❌ Failed to reload formats on dialog open:", err);
+        } finally {
+          setFormatsLoading(false);
         }
       })();
     }
@@ -12593,7 +12603,7 @@ ${
                         </p>
                         <div className="flex items-center gap-2">
                           <select
-                            className="h-9 px-3 text-sm border rounded-md bg-background"
+                            className="h-9 px-3 text-sm border rounded-md bg-background disabled:opacity-50"
                             onChange={(e) => {
                               if (e.target.value) {
                                 const loadedFormat = savedFormats[e.target.value];
@@ -12605,12 +12615,58 @@ ${
                             }}
                             defaultValue=""
                             data-testid="select-load-format"
+                            disabled={formatsLoading}
                           >
-                            <option value="">Load Saved Format{Object.keys(savedFormats).length > 0 ? ` (${Object.keys(savedFormats).length})` : ""}</option>
+                            <option value="">
+                              {formatsLoading 
+                                ? "Loading formats..." 
+                                : `Load Saved Format${Object.keys(savedFormats).length > 0 ? ` (${Object.keys(savedFormats).length})` : ""}`}
+                            </option>
                             {Object.keys(savedFormats).map((label) => (
                               <option key={label} value={label}>{label}</option>
                             ))}
                           </select>
+                          {currentUser?.userId && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 px-2"
+                              onClick={async () => {
+                                console.log("🔃 Manually refreshing formats from Firebase...");
+                                setFormatsLoading(true);
+                                try {
+                                  const idToken = await auth.currentUser?.getIdToken();
+                                  if (idToken) {
+                                    const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+                                      headers: { 'Authorization': `Bearer ${idToken}` }
+                                    });
+                                    if (response.ok) {
+                                      const formats = await response.json();
+                                      console.log("✅ Formats refreshed:", Object.keys(formats).length);
+                                      setSavedFormats(formats);
+                                      toast({
+                                        title: "Refreshed",
+                                        description: `Loaded ${Object.keys(formats).length} format(s)`
+                                      });
+                                    }
+                                  }
+                                } catch (err) {
+                                  console.error("❌ Refresh failed:", err);
+                                  toast({
+                                    title: "Refresh Failed",
+                                    description: "Could not load formats",
+                                    variant: "destructive"
+                                  });
+                                } finally {
+                                  setFormatsLoading(false);
+                                }
+                              }}
+                              data-testid="button-refresh-formats"
+                              title="Refresh saved formats"
+                            >
+                              <RotateCw className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
