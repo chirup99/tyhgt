@@ -7586,6 +7586,31 @@ ${
                   <ApiStatistics />
                 </div>
 
+                {/* Fyers Connection Window - Split into half with bottom empty space */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Fyers Connection Window */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Fyers API Connection</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Connect your Fyers API to get started</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <AuthButton />
+                    </div>
+                  </div>
+
+                  {/* Bottom Empty Space - Placeholder for future features */}
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[250px] flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Ready for more features</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Error Panel and Recent Activity - Bottom */}
                 <ErrorPanel />
 
