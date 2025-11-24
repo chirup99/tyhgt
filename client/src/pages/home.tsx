@@ -11913,18 +11913,6 @@ ${
                             </tr>
                           </thead>
                           <tbody>
-                            {/* First Trade Line Row - For Text Selection */}
-                            {buildModeData.sampleLine && (
-                              <tr className="bg-muted/30 border-b">
-                                <td colSpan={6} className="px-2 py-2">
-                                  <div className="text-xs text-muted-foreground mb-1">First Trade Line:</div>
-                                  <div className="select-text font-medium text-foreground">
-                                    {buildModeData.sampleLine}
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
-                            
                             <tr className="border-b">
                               {/* Time Column */}
                               <td 
