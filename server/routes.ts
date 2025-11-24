@@ -7043,7 +7043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start the cleanup scheduler
   scheduleDailyCleanup();
 
-  // ULTRA-SIMPLE: Just save the token - user tests manually via platform
+  // Replace old token with new one - no blocking!
   app.post("/api/auth/token", async (req, res) => {
     try {
       const { accessToken } = req.body;
@@ -7054,24 +7054,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const token = accessToken.trim();
       console.log(`\n========================================`);
-      console.log(`🔐 [AUTH/TOKEN] RECEIVED TOKEN FROM UI`);
+      console.log(`🔐 [AUTH/TOKEN] RECEIVED NEW TOKEN FROM UI`);
       console.log(`📝 Token (first 50 chars): ${token.substring(0, 50)}...`);
       console.log(`📝 Token length: ${token.length}`);
       console.log(`========================================\n`);
 
-      // Set token in memory for immediate use
-      console.log('🔐 [AUTH/TOKEN] Setting token on FyersAPI instance...');
-      fyersApi.setAccessToken(token);
-      console.log('✅ [AUTH/TOKEN] Token set on FyersAPI instance');
+      // ✅ STEP 1: CLEAR OLD TOKEN FIRST - no blocking!
+      console.log('🔐 [AUTH/TOKEN] Clearing any old/expired token...');
+      fyersApi.setAccessToken(''); // Reset to empty first
+      console.log('✅ [AUTH/TOKEN] Old token cleared');
 
-      // Verify token was set
+      // ✅ STEP 2: SET NEW TOKEN
+      console.log('🔐 [AUTH/TOKEN] Setting NEW token on FyersAPI instance...');
+      fyersApi.setAccessToken(token);
+      console.log('✅ [AUTH/TOKEN] New token set on FyersAPI instance');
+
+      // ✅ STEP 3: Verify token was set
       const isAuth = fyersApi.isAuthenticated();
       console.log(`✅ [AUTH/TOKEN] FyersAPI isAuthenticated(): ${isAuth}`);
 
-      // Save to database
+      // ✅ STEP 4: Save to database (overwrite old one)
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
+      console.log('💾 [AUTH/TOKEN] Saving new token to database (replacing old one)...');
       await safeUpdateApiStatus({
         authenticated: true,
         connected: true,
@@ -7079,26 +7085,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tokenExpiry: tokenExpiry,
       });
       
-      console.log('💾 [AUTH/TOKEN] Saved to database');
-      console.log(`🎯 [AUTH/TOKEN] Response sent to client`);
+      console.log('💾 [AUTH/TOKEN] New token saved successfully - old one overwritten');
+      console.log(`🎯 [AUTH/TOKEN] Connection established - token ready for use`);
 
-      // Success response
+      // ✅ SUCCESS: Return immediately - don't wait for background tasks
       res.json({ 
         success: true,
-        message: "✅ Connected",
+        message: "✅ Connected Successfully",
         authenticated: true,
-        connected: true
+        connected: true,
+        tokenSet: true
       });
 
-      // DISABLED: Auto-historical-fetch after token connection
-      // Users can manually trigger via /api/fetch-historical-status endpoint if needed
-      console.log('✅ [AUTH/TOKEN] Token successfully set - ready for use');
+      console.log('✅ [AUTH/TOKEN] New token is now ACTIVE - no blocking!');
 
     } catch (error) {
       console.error('❌ [AUTH/TOKEN] Error:', error);
       res.status(500).json({ 
         success: false,
-        message: "Failed to save token"
+        message: "Failed to connect with token. Please try again.",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Disconnect - Clear token completely
+  app.post("/api/auth/disconnect", async (req, res) => {
+    try {
+      console.log(`\n========================================`);
+      console.log(`🔌 [AUTH/DISCONNECT] Clearing old token...`);
+      console.log(`========================================\n`);
+
+      // ✅ STEP 1: Clear token in memory
+      console.log('🔐 [AUTH/DISCONNECT] Clearing token from FyersAPI instance...');
+      fyersApi.setAccessToken('');
+      console.log('✅ [AUTH/DISCONNECT] Token cleared from memory');
+
+      // ✅ STEP 2: Clear from database
+      console.log('💾 [AUTH/DISCONNECT] Removing token from database...');
+      await safeUpdateApiStatus({
+        authenticated: false,
+        connected: false,
+        accessToken: null,
+        tokenExpiry: null,
+      });
+      
+      console.log('💾 [AUTH/DISCONNECT] Token removed from database');
+      console.log(`🎯 [AUTH/DISCONNECT] Disconnected - ready for new connection`);
+
+      res.json({ 
+        success: true,
+        message: "✅ Disconnected Successfully",
+        authenticated: false,
+        connected: false
+      });
+
+    } catch (error) {
+      console.error('❌ [AUTH/DISCONNECT] Error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to disconnect",
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
