@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 export interface MarketIndex {
   symbol: string;
@@ -11,35 +12,30 @@ export interface MarketIndex {
   isMarketOpen: boolean;
 }
 
-// Twelve Data symbols for global indices
-const TWELVE_DATA_SYMBOLS = {
-  'USA': 'GSPC',          // S&P 500
-  'CANADA': 'GSPTSE',     // S&P/TSX Composite Index
-  'INDIA': 'NSEI',        // Nifty 50
-  'TOKYO': 'N225',        // Nikkei 225
-  'HONG KONG': 'HSI',     // Hang Seng Index
+// Google Finance symbols for global indices
+const GOOGLE_FINANCE_SYMBOLS = {
+  'USA': { ticker: 'GSPC', exchange: 'INDEXSP' },           // S&P 500
+  'CANADA': { ticker: 'GSPTSE', exchange: 'INDEXSP' },      // TSX Composite
+  'INDIA': { ticker: '0700113Y', exchange: 'NSEI' },        // Nifty 50
+  'TOKYO': { ticker: '225', exchange: 'INDEXNIKKEI' },      // Nikkei 225
+  'HONG KONG': { ticker: 'HSI', exchange: 'INDEXHKG' },     // Hang Seng
 };
 
 // Store last closing prices for when market is closed
 let lastClosingPrices: Record<string, MarketIndex> = {};
 
 /**
- * Fetches real market data from Twelve Data API
+ * Fetches real market data from Google Finance
  */
 export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
   try {
-    console.log('🌍 Fetching market data from Twelve Data API...');
+    console.log('🌍 Fetching market data from Google Finance...');
     
-    const apiKey = process.env.TWELVE_DATA_API_KEY;
-    if (!apiKey) {
-      throw new Error('TWELVE_DATA_API_KEY is not configured');
-    }
-
     const results: Record<string, MarketIndex> = {};
     
     // Fetch data for each market in parallel
-    const fetchPromises = Object.entries(TWELVE_DATA_SYMBOLS).map(([regionName, symbol]) =>
-      fetchTwelveDataQuote(regionName, symbol, apiKey)
+    const fetchPromises = Object.entries(GOOGLE_FINANCE_SYMBOLS).map(([regionName, { ticker, exchange }]) =>
+      fetchGoogleFinanceQuote(regionName, ticker, exchange)
     );
 
     const fetchedData = await Promise.allSettled(fetchPromises);
@@ -52,12 +48,12 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
 
     if (Object.keys(results).length > 0) {
       lastClosingPrices = results;
-      console.log(`✅ Fetched ${Object.keys(results).length} indices from Twelve Data`);
+      console.log(`✅ Fetched ${Object.keys(results).length} indices from Google Finance`);
       return results;
     }
 
-    // Fallback to realistic data if API fails
-    console.log('📦 Using realistic market data (API fallback)');
+    // Fallback to realistic data if scraping fails
+    console.log('📦 Using realistic market data (fallback)');
     const fallbackData = getRealisticMarketData();
     lastClosingPrices = fallbackData;
     return fallbackData;
@@ -76,33 +72,74 @@ export async function getMarketIndices(): Promise<Record<string, MarketIndex>> {
 }
 
 /**
- * Fetches a quote from Twelve Data API
+ * Fetches a quote from Google Finance
  */
-async function fetchTwelveDataQuote(
+async function fetchGoogleFinanceQuote(
   regionName: string,
-  symbol: string,
-  apiKey: string
+  ticker: string,
+  exchange: string
 ): Promise<MarketIndex | null> {
   try {
-    const url = `https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${apiKey}`;
+    const url = `https://www.google.com/finance/quote/${ticker}:${exchange}`;
     
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
+    console.log(`📡 Fetching ${regionName} from Google Finance: ${ticker}:${exchange}`);
+    
     const response = await axios.get(url, {
-      timeout: 8000,
-    }).finally(() => clearTimeout(timeoutId));
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
 
-    if (response.data && response.data.price !== undefined) {
-      const price = parseFloat(response.data.price);
-      const previousClose = parseFloat(response.data.previous_close) || price;
-      const change = price - previousClose;
-      const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+    const $ = cheerio.load(response.data);
+    
+    // Google Finance structure: Look for price and change data
+    // The price is typically in a data attribute or specific element
+    let priceText = '';
+    let changeText = '';
+    
+    // Try multiple selectors to find price
+    const priceSelectors = [
+      'div[data-dtl-currency] span',
+      'div.YMlKec span',
+      'div[role="heading"] span',
+    ];
+    
+    for (const selector of priceSelectors) {
+      const elem = $(selector).first();
+      if (elem.text()) {
+        priceText = elem.text().trim();
+        break;
+      }
+    }
+    
+    // Try to find change percentage
+    const changeSelectors = [
+      'div[data-dtl-change-percent]',
+      'div.P6mA1c',
+      'span.mfOvfb',
+    ];
+    
+    for (const selector of changeSelectors) {
+      const elem = $(selector).first();
+      if (elem.text()) {
+        changeText = elem.text().trim();
+        break;
+      }
+    }
 
-      console.log(`✅ ${regionName} (${symbol}): ${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
+    // Parse price and change
+    const price = parseFloat(priceText.replace(/[^0-9.-]/g, ''));
+    const changePercentStr = changeText.match(/[+-]?\d+\.?\d*%?/);
+    const changePercent = changePercentStr ? parseFloat(changePercentStr[0].replace('%', '')) : 0;
+
+    if (!isNaN(price) && price > 0) {
+      const change = (price * changePercent) / 100;
+      
+      console.log(`✅ ${regionName} (${ticker}:${exchange}): ${price.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`);
 
       return {
-        symbol,
+        symbol: ticker,
         regionName,
         price,
         change,
@@ -113,16 +150,16 @@ async function fetchTwelveDataQuote(
       };
     }
 
-    console.warn(`⚠️ No price data for ${regionName}`);
+    console.warn(`⚠️ Could not extract price for ${regionName} (price: ${priceText}, change: ${changeText})`);
     return null;
   } catch (error) {
-    console.warn(`⚠️ Failed to fetch ${regionName} from Twelve Data: ${error instanceof Error ? error.message : String(error)}`);
+    console.warn(`⚠️ Failed to fetch ${regionName} from Google Finance: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }
 
 /**
- * Returns realistic market data (fallback when API fails)
+ * Returns realistic market data (fallback when scraping fails)
  */
 function getRealisticMarketData(): Record<string, MarketIndex> {
   const marketRates: Record<string, { price: number; changePercent: number }> = {
@@ -136,11 +173,11 @@ function getRealisticMarketData(): Record<string, MarketIndex> {
   const results: Record<string, MarketIndex> = {};
   
   Object.entries(marketRates).forEach(([regionName, { price, changePercent }]) => {
-    const symbol = TWELVE_DATA_SYMBOLS[regionName as keyof typeof TWELVE_DATA_SYMBOLS];
+    const symbols = GOOGLE_FINANCE_SYMBOLS[regionName as keyof typeof GOOGLE_FINANCE_SYMBOLS];
     const change = (price * changePercent) / 100;
     
     results[regionName] = {
-      symbol,
+      symbol: symbols.ticker,
       regionName,
       price,
       change,
@@ -266,7 +303,7 @@ export async function getCachedMarketIndices(): Promise<Record<string, MarketInd
   
   // Fetch fresh data
   const updateInterval = isMarketOpen() ? '5 minutes' : '30 minutes';
-  console.log(`🌐 Refreshing market data from Twelve Data (Market: ${marketStatus} | Updates every ${updateInterval})...`);
+  console.log(`🌐 Refreshing market data from Google Finance (Market: ${marketStatus} | Updates every ${updateInterval})...`);
   try {
     const freshData = await getMarketIndices();
     cachedData = freshData;
