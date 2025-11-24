@@ -11867,6 +11867,75 @@ ${
                     : "Paste your trade data in your broker's format. If you've saved this format before, it will be auto-detected."
                   }
                 </p>
+
+                {/* Saved Formats - Always visible */}
+                {Object.keys(savedFormats).length > 0 && (
+                  <div className="mb-3 p-3 border rounded-md bg-card">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs font-medium">
+                        📚 Your Saved Formats ({Object.keys(savedFormats).length})
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      {Object.entries(savedFormats).map(([label, format]) => (
+                        <div
+                          key={label}
+                          className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover-elevate"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-medium">{label}</div>
+                            <div className="text-xs text-muted-foreground truncate font-mono">
+                              {format.sampleLine || "No sample line"}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                setBuildModeData(format);
+                                setActiveFormat(format);
+                                toast({
+                                  title: "Format Loaded",
+                                  description: `Using "${label}" format for import`,
+                                });
+                                console.log("✅ Format loaded:", label, format);
+                              }}
+                              data-testid={`button-load-format-${label}`}
+                            >
+                              Load
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              onClick={async () => {
+                                if (confirm(`Delete format "${label}"?`)) {
+                                  const newFormats = { ...savedFormats };
+                                  delete newFormats[label];
+                                  setSavedFormats(newFormats);
+                                  await saveFormatsToFirebase(newFormats);
+                                  if (activeFormat === format) {
+                                    setActiveFormat(null);
+                                  }
+                                  toast({
+                                    title: "Format Deleted",
+                                    description: `"${label}" has been removed`,
+                                  });
+                                  console.log("🗑️ Format deleted:", label);
+                                }
+                              }}
+                              data-testid={`button-delete-format-quick-${label}`}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="border rounded-md bg-muted/30 p-3 mb-3">
                   {isBuildMode ? (
