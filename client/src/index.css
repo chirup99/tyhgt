@@ -343,3 +343,27 @@ input[type="range"].slider-thumb-purple::-moz-range-track {
 .animate-slide-in {
   animation: slideIn 0.5s ease-out;
 }
+
+/* Auto-scrolling heatmap animation for showcase */
+@keyframes heatmapAutoScroll {
+  0% {
+    scroll-behavior: smooth;
+    scroll-left: 0;
+  }
+  25% {
+    scroll-left: 100%;
+  }
+  50% {
+    scroll-left: 100%;
+  }
+  75% {
+    scroll-left: 0;
+  }
+  100% {
+    scroll-left: 0;
+  }
+}
+
+.heatmap-auto-scroll {
+  animation: heatmapAutoScrollAnimation 8s ease-in-out infinite;
+}
