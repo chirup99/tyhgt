@@ -3736,21 +3736,32 @@ import { newsRouter } from './news-routes.js';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // ⚡ CRITICAL: LOAD TOKEN FROM DATABASE AT SERVER STARTUP
+  // ⚡ CRITICAL: LOAD TOKEN FROM DATABASE AT SERVER STARTUP (ONLY IF FRESH!)
   // This ensures UI-submitted tokens persist across server restarts
-  console.log('🔑 [STARTUP] Loading Fyers token from database...');
+  // BUT: Skip expired tokens to avoid rate limit blocking
+  console.log('🔑 [STARTUP] Checking for valid Fyers token in database...');
   try {
     const apiStatus = await storage.getApiStatus();
-    if (apiStatus?.accessToken) {
-      console.log('✅ [STARTUP] Found token in database, loading it now...');
-      fyersApi.setAccessToken(apiStatus.accessToken);
-      console.log('✅ [STARTUP] Token loaded successfully from database!');
-      console.log('🔐 [STARTUP] Authorization header updated with database token');
+    if (apiStatus?.accessToken && apiStatus?.tokenExpiry) {
+      const tokenExpiryDate = new Date(apiStatus.tokenExpiry);
+      const now = new Date();
+      
+      if (tokenExpiryDate > now) {
+        console.log('✅ [STARTUP] Token is FRESH (expires:', tokenExpiryDate.toISOString(), ')');
+        console.log('🔑 [STARTUP] Loading fresh token from database...');
+        fyersApi.setAccessToken(apiStatus.accessToken);
+        console.log('✅ [STARTUP] Fresh token loaded successfully!');
+        console.log('🔐 [STARTUP] Authorization header updated with fresh database token');
+      } else {
+        console.log('⚠️ [STARTUP] Token EXPIRED (expired:', tokenExpiryDate.toISOString(), ')');
+        console.log('🔑 [STARTUP] Skipping expired token - waiting for fresh token from UI');
+        // Don't load expired token - let user paste a fresh one
+      }
     } else {
       console.log('⚠️ [STARTUP] No token in database, will wait for UI input');
     }
   } catch (error) {
-    console.error('❌ [STARTUP] Failed to load token from database:', error);
+    console.error('❌ [STARTUP] Failed to check token status:', error);
     console.log('⚠️ [STARTUP] Will wait for UI token input');
   }
   
