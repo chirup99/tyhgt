@@ -318,7 +318,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main Content - responsive margin/padding */}
-      <div className="md:ml-20 min-h-screen">
+      <div className="md:ml-64 min-h-screen">
         {children}
       </div>
 
