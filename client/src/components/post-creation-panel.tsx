@@ -374,7 +374,7 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-4 xl:space-y-6 p-4 xl:p-6">
+      <CardContent className="space-y-4 xl:space-y-6 p-4 xl:p-6 max-h-[calc(100vh-280px)] overflow-y-auto">
         {viewMode === 'audio' ? (
           /* Audio MiniCast Form */
           <form onSubmit={handleSubmit} className="space-y-4">
