@@ -7763,7 +7763,7 @@ ${
                   </button>
 
                   {/* World Map Section: Desktop 31% white background, Mobile unchanged */}
-                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:bg-white md:px-2 md:py-3 px-8 pt-1 pb-1 relative" style={{ background: window.innerWidth >= 768 ? '#ffffff' : undefined }}>
+                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 px-8 pt-1 pb-1 relative" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
                     {/* Simple container for WorldMap */}
                     <div className="w-full md:max-w-lg max-w-6xl flex items-center justify-center">
                       <WorldMap />
