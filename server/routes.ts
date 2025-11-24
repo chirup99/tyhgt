@@ -7005,13 +7005,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // END OF SOCIAL MEDIA FEATURES
   // ==========================
 
-  // Attempt auto-reconnection on server start
-  console.log('🔄 Server starting - scheduling auto-reconnection check...');
-  setTimeout(async () => {
-    console.log('⏰ Auto-reconnection check starting...');
-    const reconnected = await attemptAutoReconnection();
-    console.log(`🔌 Auto-reconnection result: ${reconnected ? 'SUCCESS' : 'FAILED'}`);
-  }, 2000); // Wait 2 seconds for storage to initialize
+  // DISABLED: Auto-reconnection system - blocks manual token connection
+  // User will manually paste token via Dashboard UI
+  console.log('🔄 Server starting - auto-reconnection DISABLED (manual connection only)');
+  // setTimeout(async () => {
+  //   console.log('⏰ Auto-reconnection check starting...');
+  //   const reconnected = await attemptAutoReconnection();
+  //   console.log(`🔌 Auto-reconnection result: ${reconnected ? 'SUCCESS' : 'FAILED'}`);
+  // }, 2000); // Wait 2 seconds for storage to initialize
 
   // Daily cleanup job - runs at midnight to delete expired tokens
   const scheduleDailyCleanup = () => {
