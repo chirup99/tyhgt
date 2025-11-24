@@ -6429,32 +6429,45 @@ ${
           </div>
         </div>
 
-        {/* Statistics Section - 70% Width with Subscribe Window - 30% Width */}
+        {/* Statistics Section - Sidebar Navigation + Main Content */}
         <div className="mb-8 flex gap-6">
-          {/* Statistics Window - 70% */}
-          <div className="w-[70%]">
+          {/* Sidebar Navigation */}
+          <div className="w-[20%]">
+            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 sticky top-6">
+              <h3 className="text-white font-bold text-sm mb-4 px-2">Navigation</h3>
+              <div className="space-y-2">
+                {[
+                  { id: "backtest-1", label: "Backtest" },
+                  { id: "trading-charts", label: "Trading Charts" },
+                  { id: "battu-scan", label: "BATTU Scan" },
+                  { id: "4-candle-rule", label: "4 Candle Rule" },
+                  { id: "complete-scanner", label: "Complete Scanner" },
+                  { id: "historical-data", label: "Historical Data" },
+                  { id: "trade-simulator", label: "Trade Simulator" },
+                  { id: "backtest-2", label: "Backtest" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setStatisticsTab(item.id)}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm ${
+                      statisticsTab === item.id
+                        ? "bg-purple-600 text-white"
+                        : "text-slate-300 hover:bg-slate-700"
+                    }`}
+                    data-testid={`nav-${item.id}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Window - 80% */}
+          <div className="w-[80%]">
             <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
               <Tabs value={statisticsTab} onValueChange={setStatisticsTab} className="w-full">
-                <div className="flex items-center justify-between mb-6">
-
-                  {/* Tab Switch Buttons */}
-                  <TabsList className="bg-slate-700 border-slate-600">
-                    <TabsTrigger 
-                      value="overview" 
-                      className="text-slate-300 data-[state=active]:bg-slate-600 data-[state=active]:text-white flex items-center gap-2"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                      Podcast
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="setup" 
-                      className="text-slate-300 data-[state=active]:bg-slate-600 data-[state=active]:text-white flex items-center gap-2"
-                    >
-                      <Shield className="w-4 h-4" />
-                      Events
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+                <div className="mb-6">
 
                 {/* Overview Tab Content - Music-Style Podcast Dashboard */}
                 <TabsContent value="overview" className="mt-0">
