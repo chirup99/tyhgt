@@ -89,8 +89,15 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || error.message || 'Failed to create post');
+        let errorMessage = 'Failed to create post';
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+        } catch {
+          // Response is not JSON (probably HTML error page)
+          errorMessage = `Server error (${response.status})`;
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();
