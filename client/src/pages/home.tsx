@@ -12592,27 +12592,25 @@ ${
                           ✨ This preview updates automatically as you paste - check your format before importing
                         </p>
                         <div className="flex items-center gap-2">
-                          {Object.keys(savedFormats).length > 0 && (
-                            <select
-                              className="h-9 px-3 text-sm border rounded-md bg-background"
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  const loadedFormat = savedFormats[e.target.value];
-                                  setBuildModeData(loadedFormat);
-                                  setActiveFormat(loadedFormat);
-                                  setIsBuildMode(true);
-                                  console.log("✅ Format loaded and activated:", e.target.value, loadedFormat);
-                                }
-                              }}
-                              defaultValue=""
-                              data-testid="select-load-format"
-                            >
-                              <option value="">Load Saved Format</option>
-                              {Object.keys(savedFormats).map((label) => (
-                                <option key={label} value={label}>{label}</option>
-                              ))}
-                            </select>
-                          )}
+                          <select
+                            className="h-9 px-3 text-sm border rounded-md bg-background"
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const loadedFormat = savedFormats[e.target.value];
+                                setBuildModeData(loadedFormat);
+                                setActiveFormat(loadedFormat);
+                                setIsBuildMode(true);
+                                console.log("✅ Format loaded and activated:", e.target.value, loadedFormat);
+                              }
+                            }}
+                            defaultValue=""
+                            data-testid="select-load-format"
+                          >
+                            <option value="">Load Saved Format{Object.keys(savedFormats).length > 0 ? ` (${Object.keys(savedFormats).length})` : ""}</option>
+                            {Object.keys(savedFormats).map((label) => (
+                              <option key={label} value={label}>{label}</option>
+                            ))}
+                          </select>
                           <Button
                             variant="outline"
                             size="sm"
