@@ -7287,7 +7287,7 @@ ${
       isSharedReportMode ? 'pointer-events-none opacity-30 blur-sm' : ''
     }`}>
       {/* Vertical Sidebar - Fixed Position */}
-      <div className="fixed left-0 top-0 bottom-0 w-64 chatgpt-sidebar border-r border-gray-700 flex flex-col z-40 md:bottom-0 bottom-[env(safe-area-inset-bottom)] pb-[env(safe-area-inset-bottom)] touch-none hidden">
+      <div className="fixed left-0 top-0 bottom-0 w-64 chatgpt-sidebar border-r border-gray-700 flex flex-col z-40 md:bottom-0 bottom-[env(safe-area-inset-bottom)] pb-[env(safe-area-inset-bottom)] touch-none">
         {/* Header */}
         <div className="p-4 border-b border-gray-700">
           <h1 className="text-xl font-semibold sidebar-text">
