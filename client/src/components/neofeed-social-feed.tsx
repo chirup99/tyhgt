@@ -125,7 +125,7 @@ function InlineCommentSection({ post, isVisible, onClose }: { post: FeedPost; is
       };
       setLocalComments(prev => [...prev, immediateComment]);
       
-      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      // Only invalidate the comments query, NOT all posts
       queryClient.invalidateQueries({ queryKey: [`/api/social-posts/${post.id}/comments`] });
       setComment('');
       toast({ description: "Comment added successfully!" });
@@ -1686,9 +1686,6 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
       setLiked(!liked); // Revert on error
       queryClient.setQueryData(['/api/social-posts'], context?.previousPosts);
       toast({ description: "Failed to update like", variant: "destructive" });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
     }
   });
 
@@ -1737,9 +1734,6 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
       setReposted(!reposted); // Revert on error
       queryClient.setQueryData(['/api/social-posts'], context?.previousPosts);
       toast({ description: "Failed to update repost", variant: "destructive" });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
     }
   });
 
