@@ -81,6 +81,12 @@ app.use((req, res, next) => {
     // Firebase Hosting domains for this specific project
     'https://fast-planet-470408-f1.web.app',
     'https://fast-planet-470408-f1.firebaseapp.com',
+    // Production custom domains
+    'https://perala.in',
+    'https://www.perala.in',
+    // Production Cloud Run deployments
+    'https://perala-808950990883.us-central1.run.app',
+    'https://perala-zup2rskmja-uc.a.run.app',
     // Cloud Run backend URL
     process.env.VITE_API_URL ? process.env.VITE_API_URL : null,
     // Cloud Run frontend URL (for deployments)
@@ -118,14 +124,16 @@ app.use((req, res, next) => {
   if (origin && isTrustedOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Vary', 'Origin');
     log(`✅ CORS allowed for origin: ${origin}`);
   } else if (origin) {
     // Log rejected origins in production for debugging
     log(`❌ CORS rejected for untrusted origin: ${origin}`);
   }
   
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, X-CSRF-Token');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, X-CSRF-Token, X-API-Key');
+  res.header('Access-Control-Expose-Headers', 'Content-Length, X-JSON-Response-Size');
   res.header('Access-Control-Max-Age', '86400');
 
   // Additional headers for security
