@@ -3528,6 +3528,31 @@ ${
     loadUserFormats();
   }, [currentUser?.userId]);
 
+  // Reload formats when import dialog opens
+  useEffect(() => {
+    if (showImportModal && currentUser?.userId) {
+      console.log("📂 Import dialog opened, reloading formats...");
+      // Create a function to reload formats without dependency on state
+      (async () => {
+        try {
+          const idToken = await auth.currentUser?.getIdToken();
+          if (idToken) {
+            const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+              headers: { 'Authorization': `Bearer ${idToken}` }
+            });
+            if (response.ok) {
+              const formats = await response.json();
+              console.log("✅ Dialog opened - formats reloaded:", Object.keys(formats).length);
+              setSavedFormats(formats);
+            }
+          }
+        } catch (err) {
+          console.error("❌ Failed to reload formats on dialog open:", err);
+        }
+      })();
+    }
+  }, [showImportModal, currentUser?.userId]);
+
   // Auto-detect format when pasting data
   useEffect(() => {
     if (importData.trim() && Object.keys(savedFormats).length > 0) {
@@ -11875,6 +11900,43 @@ ${
                       <div className="text-xs font-medium">
                         📚 Your Saved Formats ({Object.keys(savedFormats).length})
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={async () => {
+                          console.log("🔄 Manually refreshing formats from Firebase...");
+                          if (currentUser?.userId) {
+                            try {
+                              const idToken = await auth.currentUser?.getIdToken();
+                              if (idToken) {
+                                const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+                                  headers: { 'Authorization': `Bearer ${idToken}` }
+                                });
+                                if (response.ok) {
+                                  const formats = await response.json();
+                                  setSavedFormats(formats);
+                                  toast({
+                                    title: "Refreshed",
+                                    description: `Reloaded ${Object.keys(formats).length} format(s)`,
+                                  });
+                                  console.log("✅ Formats refreshed:", Object.keys(formats).length);
+                                }
+                              }
+                            } catch (err) {
+                              console.error("❌ Failed to refresh:", err);
+                              toast({
+                                title: "Refresh Failed",
+                                description: "Could not reload formats",
+                                variant: "destructive"
+                              });
+                            }
+                          }
+                        }}
+                        data-testid="button-refresh-formats"
+                      >
+                        Refresh
+                      </Button>
                     </div>
                     <div className="space-y-1.5">
                       {Object.entries(savedFormats).map(([label, format]) => (
