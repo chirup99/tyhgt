@@ -28,36 +28,8 @@ const worldMapDots =
 
 // Function to determine region color based on coordinates and market status
 const getRegionColor = (x: number, y: number, marketData: any): string => {
-  let regionName = "";
-
-  // North America - Canada (approximate x: 100-265, y: 70-180)
-  if (x >= 100 && x <= 265 && y >= 70 && y <= 180) {
-    regionName = "CANADA";
-  }
-  // North America - USA (approximate x: 100-350, y: 180-260)
-  else if (x >= 100 && x <= 350 && y >= 180 && y <= 260) {
-    regionName = "USA";
-  }
-  // India (approximate x: 520-600, y: 200-280)
-  else if (x >= 520 && x <= 600 && y >= 200 && y <= 280) {
-    regionName = "INDIA";
-  }
-  // Hong Kong / Southern China (approximate x: 600-680, y: 180-240)
-  else if (x >= 600 && x <= 680 && y >= 180 && y <= 240) {
-    regionName = "HONG KONG";
-  }
-  // Japan / Tokyo (approximate x: 680-740, y: 140-200)
-  else if (x >= 680 && x <= 740 && y >= 140 && y <= 200) {
-    regionName = "TOKYO";
-  }
-
-  // Return color based on market status
-  if (regionName && marketData && marketData[regionName]) {
-    return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Green if up, red if down
-  }
-
-  // Default black for other regions (visible on white background)
-  return "#000000";
+  // All dots displayed as dark black
+  return "#1a1a1a";
 };
 
 export function WorldMap() {
