@@ -70,7 +70,12 @@ export function WorldMap() {
         <svg
           viewBox="-10 0 1045.2 458"
           className="w-full h-full"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="xMidYMid meet"
+          shapeRendering="crispEdges"
+          style={{
+            filter: "none",
+            background: "none"
+          }}
         >
           {/* Continent dots - Static, no animation */}
           {worldMapDots.map(([cx, cy], index) => {
@@ -84,6 +89,7 @@ export function WorldMap() {
                 r="1.9"
                 fill={dotColor}
                 opacity={0.8}
+                shapeRendering="crispEdges"
               />
             );
           })}
