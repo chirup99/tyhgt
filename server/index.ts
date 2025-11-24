@@ -103,8 +103,8 @@ app.use((req, res, next) => {
     // Check exact matches against allowlist
     if (allowedOrigins.includes(origin)) return true;
     
-    // Production: Allow all Cloud Run URLs (*.run.app domains)
-    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.run\.app$/)) {
+    // Production: Allow all Cloud Run URLs (*.run.app domains with multiple subdomains)
+    if (origin.match(/^https:\/\/[a-zA-Z0-9\-\.]+\.run\.app$/)) {
       log(`✅ CORS allowed for Cloud Run domain: ${origin}`);
       return true;
     }
