@@ -7304,10 +7304,10 @@ ${
 
             <button
               onClick={() => handleTabClick("dashboard")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 sidebar-text ${
                 activeTab === "dashboard"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               <Star className="h-4 w-4" />
@@ -7322,10 +7322,10 @@ ${
 
             <button
               onClick={() => handleTabClick("backtest")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "backtest"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               Backtest
@@ -7333,10 +7333,10 @@ ${
 
             <button
               onClick={() => setTabWithAuthCheck("chart")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "chart"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               Trading Charts
@@ -7344,10 +7344,10 @@ ${
 
             <button
               onClick={() => setTabWithAuthCheck("check")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "check"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               BATTU Scan
@@ -7355,10 +7355,10 @@ ${
 
             <button
               onClick={() => setTabWithAuthCheck("4candle")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "4candle"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               4 Candle Rule
@@ -7366,10 +7366,10 @@ ${
 
             <button
               onClick={() => setTabWithAuthCheck("scanner")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "scanner"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               Complete Scanner
@@ -7377,10 +7377,10 @@ ${
 
             <button
               onClick={handleTradingMasterAccess}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "trading-master"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -7397,10 +7397,10 @@ ${
 
             <button
               onClick={() => handleTabClick("backtest")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "backtest"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               Backtest
@@ -7408,10 +7408,10 @@ ${
 
             <button
               onClick={() => setTabWithAuthCheck("cb")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "cb"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               Historical Data
@@ -7419,10 +7419,10 @@ ${
 
             <button
               onClick={() => setTabWithAuthCheck("simulator")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "simulator"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               Trade Simulator
@@ -7430,10 +7430,10 @@ ${
 
             <button
               onClick={() => checkAuthAndNavigate("journal")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "journal"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -7444,10 +7444,10 @@ ${
 
             <button
               onClick={() => handleTabClick("insights")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "insights"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -7463,61 +7463,11 @@ ${
             </p>
 
             <button
-              onClick={() => setTabWithAuthCheck("tutor")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                activeTab === "tutor"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Tutor
-              </div>
-            </button>
-
-            <button
-              onClick={() => checkAuthAndNavigate("voice")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                activeTab === "voice"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Social Feed
-              </div>
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("documentation")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                activeTab === "documentation"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              Documentation
-            </button>
-
-            <button
-              onClick={() => setTabWithAuthCheck("strategy-build")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                activeTab === "strategy-build"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              Strategy Build
-            </button>
-
-            <button
               onClick={() => handleTabClick("trading-home")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "trading-home"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -7527,11 +7477,25 @@ ${
             </button>
 
             <button
+              onClick={() => checkAuthAndNavigate("voice")}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
+                activeTab === "voice"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-accent hover:bg-opacity-50"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Social Feed
+              </div>
+            </button>
+
+            <button
               onClick={() => handleTabClick("stock-news")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "stock-news"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  : "hover:bg-accent hover:bg-opacity-50"
               }`}
             >
               <div className="flex items-center gap-2">
