@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMarketData } from "../hooks/useMarketData";
+import { useTheme } from "@/components/theme-provider";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
 interface MarketRegion {
@@ -27,7 +28,7 @@ const worldMapDots =
     });
 
 // Function to determine region color based on coordinates and market status
-const getRegionColor = (x: number, y: number, marketData: any): string => {
+const getRegionColor = (x: number, y: number, marketData: any, isDarkMode: boolean): string => {
   let regionName = "";
 
   // North America - Canada (approximate x: 100-265, y: 70-180)
@@ -56,17 +57,19 @@ const getRegionColor = (x: number, y: number, marketData: any): string => {
     return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Green if up, red if down
   }
 
-  // Dark black for other regions (visible on white background)
-  return "#1a1a1a";
+  // Return white for dark mode, dark black for light mode
+  return isDarkMode ? "#ffffff" : "#1a1a1a";
 };
 
 export function WorldMap() {
   const { marketData, loading } = useMarketData(900000); // Refresh every 15 minutes (900000ms)
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   return (
     <div className="mb-5 relative">
       {/* World Map with Dots - No Animation */}
-      <div className="relative h-35 overflow-hidden">
+      <div className="relative h-35 overflow-hidden" style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff" }}>
         <svg
           viewBox="-10 0 1045.2 458"
           className="w-full h-full"
@@ -79,7 +82,7 @@ export function WorldMap() {
         >
           {/* Continent dots - Static, no animation */}
           {worldMapDots.map(([cx, cy], index) => {
-            const dotColor = getRegionColor(cx, cy, marketData);
+            const dotColor = getRegionColor(cx, cy, marketData, isDarkMode);
 
             return (
               <circle
