@@ -220,6 +220,11 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     };
   }, [selectedDatesForEdit]);
 
+  // State for tracking auto-scroll and interaction
+  const [autoScrollAnimationId, setAutoScrollAnimationId] = useState<ReturnType<typeof requestAnimationFrame> | null>(null);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const [hasTriggeredFomo, setHasTriggeredFomo] = useState(false);
+
   // Auto-scroll heatmap horizontally when in public view (showcase animation)
   useEffect(() => {
     if (!isPublicView || !heatmapContainerRef.current || isLoading) {
@@ -236,8 +241,14 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     let scrollDirection = 1; // 1 for right, -1 for left
     let currentScroll = 0;
     let animationId: ReturnType<typeof requestAnimationFrame> | null = null;
+    let hasInteracted = false;
 
     const animate = () => {
+      // Stop animation if user has interacted
+      if (hasInteracted) {
+        return;
+      }
+
       const scrollSpeed = 0.5; // pixels per frame
       currentScroll += scrollSpeed * scrollDirection;
 
@@ -254,9 +265,44 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       animationId = requestAnimationFrame(animate);
     };
 
+    // Handle user interaction - stop scroll and trigger FOMO
+    const handleUserInteraction = () => {
+      hasInteracted = true;
+      setIsAutoScrolling(false);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+
+      // Trigger FOMO button click once if not already triggered
+      if (!hasTriggeredFomo) {
+        setHasTriggeredFomo(true);
+        
+        // Find and click FOMO button
+        const fomoButton = container.querySelector('button[title*="Click to"]') as HTMLButtonElement;
+        if (fomoButton && fomoButton.textContent?.includes('FOMO')) {
+          fomoButton.click();
+          console.log('🎯 FOMO button auto-clicked on user interaction');
+          
+          // Auto-turn off FOMO after 2 seconds
+          setTimeout(() => {
+            fomoButton.click();
+            console.log('🎯 FOMO button auto-turned off');
+          }, 2000);
+        }
+      }
+    };
+
+    // Add interaction listeners
+    container.addEventListener('touchstart', handleUserInteraction, { once: true });
+    container.addEventListener('click', handleUserInteraction, { once: true });
+    container.addEventListener('mousedown', handleUserInteraction, { once: true });
+
     // Start animation after a small delay to ensure data is loaded
     const startDelay = setTimeout(() => {
-      animationId = requestAnimationFrame(animate);
+      if (!hasInteracted) {
+        animationId = requestAnimationFrame(animate);
+        setAutoScrollAnimationId(animationId);
+      }
     }, 500);
 
     return () => {
@@ -264,8 +310,11 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
+      container.removeEventListener('touchstart', handleUserInteraction);
+      container.removeEventListener('click', handleUserInteraction);
+      container.removeEventListener('mousedown', handleUserInteraction);
     };
-  }, [isPublicView, isLoading]);
+  }, [isPublicView, isLoading, hasTriggeredFomo]);
 
   // Calculate range badge positions dynamically when badges render (for range selection mode)
   useEffect(() => {
