@@ -11900,6 +11900,16 @@ ${
                         </div>
                       </div>
 
+                      {/* Display first trade line for selection */}
+                      {buildModeData.sampleLine && (
+                        <div className="bg-background rounded border p-3 font-mono text-xs">
+                          <div className="text-muted-foreground mb-1">First Trade Line:</div>
+                          <div className="text-foreground select-text bg-muted/30 p-2 rounded">
+                            {buildModeData.sampleLine}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="bg-background rounded border overflow-hidden">
                         <table className="w-full font-mono text-xs">
                           <thead>
