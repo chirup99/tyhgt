@@ -3480,28 +3480,43 @@ ${
   // Load user's saved formats from Firebase when user is authenticated
   useEffect(() => {
     const loadUserFormats = async () => {
+      console.log("🔄 loadUserFormats triggered, currentUser:", currentUser?.userId ? `userId: ${currentUser.userId}` : "NO USER");
+      
       if (!currentUser?.userId) {
         console.log("⏳ No authenticated user, skipping format load");
+        setSavedFormats({});
         return;
       }
 
       try {
         console.log("📥 Loading user formats from Firebase for userId:", currentUser.userId);
         const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) return;
+        if (!idToken) {
+          console.error("❌ Failed to get Firebase ID token");
+          return;
+        }
         
+        console.log("🔑 Got Firebase ID token, making request to /api/user-formats/", currentUser.userId);
         const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
           headers: {
             'Authorization': `Bearer ${idToken}`
           }
         });
 
+        console.log("📡 Response status:", response.status, response.statusText);
         if (response.ok) {
           const formats = await response.json();
-          console.log("✅ Loaded formats from Firebase:", Object.keys(formats).length, "formats");
+          console.log("✅ Loaded formats from Firebase:", Object.keys(formats).length, "formats", formats);
           setSavedFormats(formats);
+          if (Object.keys(formats).length > 0) {
+            toast({
+              title: "Formats Loaded",
+              description: `Loaded ${Object.keys(formats).length} saved format(s) from Firebase`
+            });
+          }
         } else {
-          console.log("📭 No saved formats found in Firebase");
+          const errorText = await response.text();
+          console.log("📭 No saved formats found in Firebase, status:", response.status, "error:", errorText);
           setSavedFormats({});
         }
       } catch (error) {
