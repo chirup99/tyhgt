@@ -57,8 +57,8 @@ const getRegionColor = (x: number, y: number, marketData: any, isDarkMode: boole
     return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Green if up, red if down
   }
 
-  // Return white for dark mode, dark black for light mode
-  return isDarkMode ? "#ffffff" : "#1a1a1a";
+  // Return white for dark mode, dark blue for light mode
+  return isDarkMode ? "#ffffff" : "#1e3a8a";
 };
 
 export function WorldMap() {
