@@ -837,19 +837,45 @@ function ProfileHeader() {
   }, []);
 
   // Fetch all posts
-  const { data: allPosts = [], refetch: refetchPosts } = useQuery({
+  const { data: allPosts = [], refetch: refetchPosts, isLoading: isLoadingPosts } = useQuery({
     queryKey: ['/api/social-posts'],
     queryFn: async (): Promise<SocialPost[]> => {
-      const response = await fetch(`/api/social-posts?refresh=${Date.now()}`);
-      if (!response.ok) throw new Error('Failed to fetch posts');
-      return await response.json();
+      try {
+        const response = await fetch(`/api/social-posts?refresh=${Date.now()}`);
+        if (!response.ok) throw new Error('Failed to fetch posts');
+        const posts = await response.json();
+        console.log('📥 ProfileHeader - Fetched posts:', {
+          totalPosts: posts.length,
+          samplePost: posts[0] ? {
+            id: posts[0].id,
+            authorUsername: posts[0].authorUsername,
+            authorDisplayName: posts[0].authorDisplayName
+          } : null
+        });
+        return posts;
+      } catch (error) {
+        console.error('❌ ProfileHeader - Error fetching posts:', error);
+        throw error;
+      }
     }
   });
 
   // Filter user's posts
-  const userPosts = allPosts.filter(post => 
-    profileData && post.authorUsername === profileData.username
-  );
+  const userPosts = allPosts.filter(post => {
+    const matches = profileData && (
+      post.authorUsername === profileData.username || 
+      post.user?.handle === profileData.username ||
+      post.authorUsername === currentUser?.email?.split('@')[0]
+    );
+    if (matches && profileData) {
+      console.log('✅ ProfileHeader - Post matched user:', {
+        postId: post.id,
+        postAuthor: post.authorUsername,
+        profileUsername: profileData.username
+      });
+    }
+    return matches;
+  });
 
   useEffect(() => {
     if (profileData) {
@@ -1583,7 +1609,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
   const currentUser = auth.currentUser;
   
   // Check if this post belongs to the current user
-  const isOwnPost = currentUserUsername && (post.authorUsername === currentUserUsername || post.user?.handle === currentUserUsername);
+  const isOwnPost = !!(currentUserUsername && (post.authorUsername === currentUserUsername || post.user?.handle === currentUserUsername));
   
   // Get the author username for follow functionality
   const authorUsername = post.user?.handle || post.authorUsername || 'user';
@@ -1888,6 +1914,8 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
         likes={post.likes || post.metrics?.likes || 0}
         comments={post.comments || post.metrics?.comments || 0}
         isLiked={liked}
+        postId={post.id?.toString()}
+        isOwner={isOwnPost}
       />
     );
   }

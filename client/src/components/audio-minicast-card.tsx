@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Radio, Play, Heart, MessageCircle, Share } from 'lucide-react';
+import { Radio, Play, Heart, MessageCircle, Share, MoreVertical, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { auth } from '@/firebase';
 
 interface SelectedPost {
   id: string | number;
@@ -20,6 +30,8 @@ interface AudioMinicastCardProps {
   likes?: number;
   comments?: number;
   isLiked?: boolean;
+  postId?: string;
+  isOwner?: boolean;
 }
 
 interface AudioCard {
@@ -38,12 +50,18 @@ export function AudioMinicastCard({
   timestamp,
   likes = 0,
   comments = 0,
-  isLiked = false
+  isLiked = false,
+  postId,
+  isOwner = false
 }: AudioMinicastCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [localLiked, setLocalLiked] = useState(isLiked);
   const [likeCount, setLikeCount] = useState(likes);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const previousCardIdRef = useRef<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [cards, setCards] = useState<AudioCard[]>(() => {
     console.log('🎧 AudioMinicastCard Initializing:', {
@@ -217,6 +235,41 @@ export function AudioMinicastCard({
     setLikeCount(prev => localLiked ? prev - 1 : prev + 1);
   };
 
+  const handleDelete = async () => {
+    if (!postId) {
+      toast({ description: 'Unable to delete post', variant: 'destructive' });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+
+      const idToken = await user.getIdToken();
+      const response = await fetch(`/api/social-posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to delete post');
+
+      toast({ description: 'Audio post deleted successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      setShowDeleteDialog(false);
+    } catch (error: any) {
+      console.error('❌ Error deleting audio post:', error);
+      toast({ 
+        description: error.message || 'Failed to delete post', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Card className="border-0 border-b border-gray-200 dark:border-gray-700 rounded-none overflow-hidden">
       <CardContent className="p-0">
@@ -236,6 +289,32 @@ export function AudioMinicastCard({
               <span>{formatTimeAgo(timestamp)}</span>
             </div>
           </div>
+          
+          {/* Delete Menu - Only show for owner */}
+          {isOwner && postId && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  data-testid="button-audio-post-menu"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-red-600 dark:text-red-400 cursor-pointer"
+                  data-testid="menu-item-delete-audio"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* Swipeable Cards Container */}
@@ -562,6 +641,35 @@ export function AudioMinicastCard({
             <Share className="h-5 w-5" />
           </Button>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Audio Post</DialogTitle>
+            </DialogHeader>
+            <p className="text-gray-600 dark:text-gray-400">
+              Are you sure you want to delete this audio minicast? This action cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteDialog(false)}
+                data-testid="button-cancel-delete-audio"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                data-testid="button-confirm-delete-audio"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
