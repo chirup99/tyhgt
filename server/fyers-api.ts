@@ -273,15 +273,26 @@ export class FyersAPI {
         throw new Error('Access token not available');
       }
 
-      const response = await this.apiClient.get<FyersApiResponse<FyersProfile>>('/api/v3/profile');
+      console.log('🔍 [PROFILE] Fetching user profile with validation parameter...');
+      
+      const response = await this.apiClient.get<FyersApiResponse<FyersProfile>>(
+        '/api/v3/profile',
+        {
+          params: { 'ext_flags': 'true' } // Required validation parameter for Fyers API
+        }
+      );
+      
+      console.log('📡 [PROFILE] Response status:', response.data.s);
       
       if (response.data.s === 'ok' && response.data.data) {
+        console.log(`✅ [PROFILE] Profile fetched successfully - User: ${response.data.data.name}`);
         return response.data.data;
       } else {
+        console.error(`⚠️ [PROFILE] Profile error: ${response.data.message}`);
         throw new Error(`Failed to get profile: ${response.data.message}`);
       }
-    } catch (error) {
-      console.error('Failed to get Fyers profile:', error);
+    } catch (error: any) {
+      console.error('❌ [PROFILE] Failed to get Fyers profile:', error.message);
       return null;
     }
   }

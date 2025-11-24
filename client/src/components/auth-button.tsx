@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Key, Settings } from "lucide-react";
+import { Key, Settings, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import type { ApiStatus } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface FyersProfile {
+  name: string;
+  email: string;
+  fyerId: string;
+}
 
 export function AuthButton() {
   const { toast } = useToast();
@@ -18,6 +24,12 @@ export function AuthButton() {
   const { data: apiStatus } = useQuery<ApiStatus>({
     queryKey: ["/api/status"],
     refetchInterval: 5000,
+  });
+
+  const { data: profileData } = useQuery<{ success: boolean; profile: FyersProfile }>({
+    queryKey: ["/api/auth/profile"],
+    enabled: !!(apiStatus?.authenticated && apiStatus?.connected),
+    refetchInterval: 10000,
   });
 
   const tokenMutation = useMutation({
@@ -84,22 +96,23 @@ export function AuthButton() {
   };
 
   const isConnected = apiStatus?.authenticated && apiStatus?.connected;
+  const fyersUsername = profileData?.profile?.name || "User";
 
   // Show connected status
   if (isConnected) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <Key className="text-green-600 h-4 w-4" />
+      <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 flex-1">
+            <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="text-green-600 dark:text-green-400 h-4 w-4" />
             </div>
-            <div>
-              <h3 className="text-sm font-medium text-green-900">
-                Fyers API Connected
+            <div className="min-w-0">
+              <h3 className="text-sm font-medium text-green-900 dark:text-green-200">
+                ✅ Connected
               </h3>
-              <p className="text-xs text-green-700">
-                All services operational.
+              <p className="text-xs text-green-700 dark:text-green-300 truncate">
+                Fyers User: <span className="font-semibold">{fyersUsername}</span>
               </p>
             </div>
           </div>
@@ -109,6 +122,7 @@ export function AuthButton() {
                 await apiRequest("POST", "/api/auth/disconnect");
                 queryClient.invalidateQueries({ queryKey: ["/api/status"] });
                 queryClient.invalidateQueries({ queryKey: ["/api/market-data"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/auth/profile"] });
                 toast({
                   title: "Disconnected",
                   description: "Token cleared. You can add a new token below.",
@@ -123,7 +137,7 @@ export function AuthButton() {
             }}
             variant="outline"
             size="sm"
-            className="border-green-600 text-green-600 hover:bg-green-50"
+            className="border-green-600 dark:border-green-600 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900 flex-shrink-0"
             data-testid="button-disconnect"
           >
             Disconnect
