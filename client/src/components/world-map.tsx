@@ -56,8 +56,8 @@ const getRegionColor = (x: number, y: number, marketData: any): string => {
     return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Green if up, red if down
   }
 
-  // Default white for other regions
-  return "white";
+  // Default gray for other regions (visible on white background)
+  return "#94a3b8";
 };
 
 export function WorldMap() {
@@ -138,7 +138,7 @@ export function WorldMap() {
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ backgroundColor: color }}
               />
-              <span className="text-white/60 text-[10px] tracking-wide">
+              <span className="text-gray-600 text-[10px] tracking-wide">
                 {region.name}
               </span>
               {market && market.change !== undefined && (
@@ -151,7 +151,7 @@ export function WorldMap() {
           );
         })}
         {loading && (
-          <span className="text-white/40 text-[9px]">Updating...</span>
+          <span className="text-gray-400 text-[9px]">Updating...</span>
         )}
       </div>
 

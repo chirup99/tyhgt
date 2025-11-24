@@ -7762,8 +7762,8 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: Desktop 31% dark background with larger clearer map, Mobile unchanged */}
-                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:bg-slate-950 md:px-2 md:py-3 px-8 pt-1 pb-1">
+                  {/* World Map Section: Desktop 31% white background with larger clearer map, Mobile unchanged */}
+                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:bg-white md:px-2 md:py-3 px-8 pt-1 pb-1">
                     {/* Transparent container for WorldMap - Desktop larger for clarity */}
                     <div className="w-full md:max-w-lg max-w-6xl md:bg-transparent/10 md:backdrop-blur-sm md:rounded-2xl md:p-3 flex items-center justify-center">
                       <WorldMap />
