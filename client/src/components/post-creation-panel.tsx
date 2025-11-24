@@ -68,35 +68,66 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
 
   const createPostMutation = useMutation({
     mutationFn: async (postData: InsertSocialPost) => {
-      const { auth } = await import('@/firebase');
-      const user = auth.currentUser;
-      
-      if (!user) {
-        throw new Error('You must be logged in to create posts');
-      }
-      
-      const idToken = await user.getIdToken();
-      
-      // Use API base URL from environment variable for Cloud Run compatibility
-      const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-      const fullUrl = `${API_BASE_URL}/api/social-posts`;
-      
-      const response = await fetch(fullUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify(postData),
-        credentials: 'include'
+      console.log('🚀 [POST-CREATE] Starting post creation...');
+      console.log('📝 [POST-CREATE] Post data:', {
+        content: postData.content?.substring(0, 50) + '...',
+        isAudioPost: postData.isAudioPost,
+        hasImage: postData.hasImage
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create post');
+      try {
+        const { auth } = await import('@/firebase');
+        console.log('🔥 [POST-CREATE] Firebase auth imported');
+        
+        const user = auth.currentUser;
+        console.log('👤 [POST-CREATE] Current user:', user ? `${user.uid} (${user.email})` : 'NOT LOGGED IN');
+        
+        if (!user) {
+          console.error('❌ [POST-CREATE] No user logged in');
+          throw new Error('You must be logged in to create posts');
+        }
+        
+        console.log('🎫 [POST-CREATE] Getting ID token...');
+        const idToken = await user.getIdToken();
+        console.log('✅ [POST-CREATE] ID token obtained, length:', idToken.length);
+        
+        // Use API base URL from environment variable for Cloud Run compatibility
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+        const fullUrl = `${API_BASE_URL}/api/social-posts`;
+        console.log('📡 [POST-CREATE] Posting to:', fullUrl);
+        
+        const response = await fetch(fullUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify(postData),
+          credentials: 'include'
+        });
+        
+        console.log('📨 [POST-CREATE] Response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          let errorData: any = {};
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { error: response.statusText };
+          }
+          console.error('❌ [POST-CREATE] Server error:', errorData);
+          throw new Error(errorData.error || errorData.message || 'Failed to create post');
+        }
+        
+        const result = await response.json();
+        console.log('✅ [POST-CREATE] Post created successfully:', result.id);
+        return result;
+      } catch (error: any) {
+        console.error('💥 [POST-CREATE] Error caught:', error);
+        console.error('💥 [POST-CREATE] Error message:', error.message);
+        console.error('💥 [POST-CREATE] Error stack:', error.stack);
+        throw error;
       }
-      
-      return await response.json();
     },
     onMutate: async (newPost) => {
       await queryClient.cancelQueries({ queryKey: ['/api/social-posts'] });
@@ -123,10 +154,28 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
 
       return { previousPosts };
     },
-    onError: (err, newPost, context) => {
+    onError: (err: any, newPost, context) => {
+      console.error('🔴 [POST-CREATE] Mutation error handler triggered');
+      console.error('🔴 [POST-CREATE] Error:', err);
+      
       queryClient.setQueryData(['/api/social-posts'], context?.previousPosts);
+      
+      let errorMessage = "Failed to create post. Please try again.";
+      
+      if (err.message.includes('logged in')) {
+        errorMessage = "Please log in to create posts.";
+      } else if (err.message.includes('Profile not set up')) {
+        errorMessage = "Please complete your profile before creating posts.";
+      } else if (err.message.includes('expired')) {
+        errorMessage = "Your session has expired. Please log in again.";
+      } else if (err.message.includes('authentication') || err.message.includes('Authentication')) {
+        errorMessage = "Authentication error. Please log in again.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       toast({ 
-        description: "Failed to create post. Please try again.", 
+        description: errorMessage, 
         variant: "destructive" 
       });
     },
