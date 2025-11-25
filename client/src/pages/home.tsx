@@ -7507,7 +7507,7 @@ ${
             {activeTab === "trading-home" && (
               <div className="relative min-h-screen overflow-hidden">
                 {/* Navigation Menu - Behind the home screen */}
-                <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10 flex items-center justify-end px-0 md:justify-center md:px-6">
+                <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10 flex items-start justify-end pt-20 px-0 md:items-center md:justify-center md:pt-0 md:px-6">
                   <div className="w-auto md:w-full md:max-w-sm space-y-6 pr-4 md:pr-0">
                     {/* User Profile Section - Horizontal Layout */}
                     <div className="flex items-center gap-4 pb-2">
