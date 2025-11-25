@@ -7351,17 +7351,6 @@ ${
             </p>
 
             <button
-              onClick={() => setTabWithAuthCheck("cb")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "cb"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Historical Data
-            </button>
-
-            <button
               onClick={() => checkAuthAndNavigate("journal")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "journal"
