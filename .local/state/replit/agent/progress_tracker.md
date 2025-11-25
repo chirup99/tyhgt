@@ -107,6 +107,17 @@
 [x] 2174. ✅ Container back to simple flex layout with gap and wrap
 [x] 2175. ✅✅✅ BACKGROUND REMOVED FROM COUNTRIES CONTAINER! ✅✅✅
 [x] 2176. 🎉🎉🎉 COUNTRIES TEXT NOW HAS NO BACKGROUND! 🎉🎉🎉
+
+[x] 2177. NOVEMBER 25, 2025 - WORLD MAP HEIGHT REDUCED & CONTENT CARDS SECTION INCREASED
+[x] 2178. User requested: "for wolrd maps container decrease height till text container and increase bottom content cards container"
+[x] 2179. ✅ Reduced world map SVG container height from h-35 to h-24 (line 86 in world-map.tsx)
+[x] 2180. ✅ Reduced world map wrapper bottom margin from mb-5 to mb-2 (line 84 in world-map.tsx)
+[x] 2181. ✅ Increased blue content section height on mobile from h-[75vh] to h-[85vh] (line 7628 in home.tsx)
+[x] 2182. ✅ Increased blue content section height on desktop from md:h-[69vh] to md:h-[80vh] (line 7628 in home.tsx)
+[x] 2183. ✅ World map now more compact, fitting map and text tightly
+[x] 2184. ✅ Content cards section now has 10-11vh more space for better visibility
+[x] 2185. ✅✅✅ WORLD MAP HEIGHT REDUCED & CONTENT SECTION INCREASED! ✅✅✅
+[x] 2186. 🎉🎉🎉 MORE SPACE FOR CONTENT CARDS! 🎉🎉🎉
 [x] 2092. ✅ Removed Complete Scanner sidebar button (lines 7355-7364)
 [x] 2093. ✅ Removed Trade Simulator sidebar button (lines 7397-7406)
 [x] 2094. ✅ Removed 4 Candle Rule content section (activeTab === "4candle")

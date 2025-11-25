@@ -7625,7 +7625,7 @@ ${
                   </div>
 
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
-                  <div className="h-[75vh] md:h-[69vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
+                  <div className="h-[85vh] md:h-[80vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">

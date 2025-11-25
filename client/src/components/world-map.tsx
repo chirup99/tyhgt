@@ -81,9 +81,9 @@ export function WorldMap() {
   const dotRadius = isMobile ? "1.5" : "2.5";
 
   return (
-    <div className="mb-5 relative">
+    <div className="mb-2 relative">
       {/* World Map with Dots - No Animation */}
-      <div className="relative h-35 overflow-hidden" style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff" }}>
+      <div className="relative h-24 overflow-hidden" style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff" }}>
         <svg
           viewBox="-10 0 1045.2 458"
           className="w-full h-full"
