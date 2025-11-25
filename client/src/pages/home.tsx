@@ -7507,12 +7507,12 @@ ${
             {activeTab === "trading-home" && (
               <div className="relative min-h-screen overflow-hidden">
                 {/* Navigation Menu - Behind the home screen */}
-                <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10 flex items-center justify-center px-4">
-                  <div className="w-full max-w-md space-y-6">
-                    {/* User Profile Section with Firebase data and Theme/Menu Icons */}
-                    <div className="flex flex-col items-center text-center">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-3">
-                        <span className="text-white font-semibold text-2xl">
+                <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10 flex items-center justify-center px-6">
+                  <div className="w-full max-w-sm space-y-6">
+                    {/* User Profile Section - Horizontal Layout */}
+                    <div className="flex items-center gap-4 pb-2">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-semibold text-xl">
                           {(
                             currentUser.displayName ||
                             currentUser.username ||
@@ -7522,36 +7522,26 @@ ${
                             .toUpperCase()}
                         </span>
                       </div>
-                      <p className="text-white font-semibold text-lg mb-1">
-                        {currentUser.displayName || "User"}
-                      </p>
-                      <p className="text-blue-200 text-sm mb-4">
-                        @{currentUser.username || "username"}
-                      </p>
-                      {/* Theme Toggle Icon centered below name */}
-                      <button
-                        onClick={toggleTheme}
-                        className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
-                        data-testid="sidebar-theme-toggle"
-                      >
-                        {theme === "dark" ? (
-                          <Sun className="h-4 w-4 text-white" />
-                        ) : (
-                          <Moon className="h-4 w-4 text-white" />
-                        )}
-                      </button>
+                      <div className="flex flex-col min-w-0">
+                        <p className="text-white font-semibold text-base">
+                          {currentUser.displayName || "User"}
+                        </p>
+                        <p className="text-blue-200 text-sm">
+                          @{currentUser.username || "username"}
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Navigation Menu Items - All aligned uniformly */}
+                    {/* Navigation Menu Items - Left aligned */}
                     <div className="space-y-3 flex flex-col">
                       <button
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-center"
+                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
                         data-testid="nav-profile"
                       >
                         profile
                       </button>
                       <button
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-center"
+                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
                         data-testid="nav-saved"
                       >
                         saved
@@ -7562,7 +7552,7 @@ ${
                             setTabWithAuthCheck("dashboard");
                             setIsNavOpen(false);
                           }}
-                          className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-2"
+                          className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
                           data-testid="nav-dashboard"
                         >
                           <BarChart3 className="h-4 w-4" />
@@ -7570,14 +7560,14 @@ ${
                         </button>
                       )}
                       <button
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-center"
+                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
                         data-testid="nav-settings"
                       >
                         setting & privacy
                       </button>
                       <button
                         onClick={toggleTheme}
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
                         data-testid="nav-darkmode"
                       >
                         {theme === "dark" ? (
@@ -7597,7 +7587,7 @@ ${
                             console.error("Logout error:", error);
                           }
                         }}
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
                         data-testid="nav-logout"
                       >
                         <LogOut className="h-4 w-4" />
