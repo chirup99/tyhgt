@@ -8,7 +8,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  updateProfile
 } from "firebase/auth";
 export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,6 +26,21 @@ export default function Landing() {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      
+      // Capture display name from Google profile
+      const displayName = user.displayName || '';
+      console.log('📝 Google sign-in - Display Name:', displayName);
+      
+      // Ensure Firebase Auth profile has the display name set
+      if (displayName && !user.displayName) {
+        try {
+          await updateProfile(user, { displayName });
+          console.log('✅ Updated Firebase Auth profile with display name');
+        } catch (profileError) {
+          console.warn('⚠️ Could not update Firebase Auth profile:', profileError);
+        }
+      }
+      
       const idToken = await user.getIdToken();
 
       // Send the token to your backend
@@ -37,9 +53,10 @@ export default function Landing() {
       });
 
       if (response.ok) {
-        // Store user ID and email for later use
+        // Store user ID, email, and display name for later use
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
+        localStorage.setItem('currentUserName', displayName);
         
         // Immediately redirect to app
         console.log('✅ Google sign-in successful, redirecting to app...');
