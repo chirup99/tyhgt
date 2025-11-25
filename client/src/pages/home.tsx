@@ -7605,19 +7605,19 @@ ${
                       e.stopPropagation();
                       setIsNavOpen(!isNavOpen);
                     }}
-                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-white/10 rounded-lg transition-all duration-300"
+                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-primary/20 hover:bg-primary/30 rounded-lg transition-all duration-300"
                     data-testid="button-nav-toggle"
                   >
                     <div
-                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
+                      className={`h-0.5 bg-primary transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
                     ></div>
                     <div
-                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
+                      className={`h-0.5 bg-primary transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
                     ></div>
                   </button>
 
-                  {/* World Map Section: Desktop 31% white background, Mobile unchanged */}
-                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 px-8 pt-1 pb-1 relative" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
+                  {/* World Map Section: Desktop theme background, Mobile white with gradient */}
+                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 px-8 pt-1 pb-1 relative bg-gradient-to-b from-white to-primary/10 md:bg-background">
                     {/* Simple container for WorldMap */}
                     <div className="w-full md:max-w-lg max-w-6xl flex items-center justify-center">
                       <WorldMap />
