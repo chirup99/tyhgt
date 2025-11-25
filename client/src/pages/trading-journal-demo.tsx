@@ -10,7 +10,7 @@ export default function TradingJournalDemo() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold text-foreground" data-testid="text-page-title">Trading Journal</h1>
-          <Button variant="ghost" size="icon" data-testid="button-back">
+          <Button variant="ghost" size="icon" className="lg:hidden" data-testid="button-back">
             <ChevronLeft className="h-5 w-5" />
           </Button>
         </div>
