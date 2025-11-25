@@ -7631,7 +7631,7 @@ ${
                   }}
                 >
                   {/* World Map Section - At top of main content */}
-                  <div className="w-full flex items-center justify-center py-3" style={{ background: theme === 'dark' ? '#1a1a1a' : '#ffffff' }}>
+                  <div className="w-full flex items-center justify-center py-3" style={{ background: theme === 'dark' ? '#1a1a1a' : '#e3f2fd' }}>
                     {/* Container for WorldMap - full width on mobile, constrained on desktop */}
                     <div className="w-full md:max-w-lg flex items-center justify-center">
                       <WorldMap />

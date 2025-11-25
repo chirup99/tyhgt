@@ -28,7 +28,12 @@ const worldMapDots =
     });
 
 // Function to determine region color based on coordinates and market status
-const getRegionColor = (x: number, y: number, marketData: any, isDarkMode: boolean): string => {
+const getRegionColor = (
+  x: number,
+  y: number,
+  marketData: any,
+  isDarkMode: boolean,
+): string => {
   let regionName = "";
 
   // North America - Canada (approximate x: 100-265, y: 70-180)
@@ -58,12 +63,12 @@ const getRegionColor = (x: number, y: number, marketData: any, isDarkMode: boole
     if (isDarkMode) {
       return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Bright green/red for dark mode
     } else {
-      return marketData[regionName].isUp ? "#73ba9b" : "#ef233c"; // Custom green/red for light mode
+      return marketData[regionName].isUp ? "#52b788" : "#ef233c"; // Custom green/red for light mode
     }
   }
 
   // Return white for dark mode, light mint for light mode
-  return isDarkMode ? "#ffffff" : "#d5f2e3";
+  return isDarkMode ? "#ffffff" : "#00296b";
 };
 
 export function WorldMap() {
@@ -76,10 +81,10 @@ export function WorldMap() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Smaller dot size for mobile screens
@@ -88,7 +93,10 @@ export function WorldMap() {
   return (
     <div className="mb-5 relative">
       {/* World Map with Dots - No Animation */}
-      <div className="relative h-35 overflow-hidden" style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff" }}>
+      <div
+        className="relative h-35 overflow-hidden"
+        style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff" }}
+      >
         <svg
           viewBox="-10 0 1045.2 458"
           className="w-full h-full"
@@ -96,7 +104,7 @@ export function WorldMap() {
           shapeRendering="crispEdges"
           style={{
             filter: "none",
-            background: "none"
+            background: "none",
           }}
         >
           {/* Continent dots - Smaller on mobile */}
@@ -126,8 +134,12 @@ export function WorldMap() {
           const market = marketData?.[region.name as keyof typeof marketData];
           const color = market
             ? market.isUp
-              ? (isDarkMode ? "#10b981" : "#73ba9b")
-              : (isDarkMode ? "#ef4444" : "#ef233c")
+              ? isDarkMode
+                ? "#10b981"
+                : "#73ba9b"
+              : isDarkMode
+                ? "#ef4444"
+                : "#ef233c"
             : "#64748b";
 
           return (
