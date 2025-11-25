@@ -7587,42 +7587,43 @@ ${
                   </div>
                 </div>
 
-                {/* Home Screen - Stacks on top with card effect */}
+                {/* Two-line Hamburger Icon - Mobile only - Theme responsive - Fixed position */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsNavOpen(!isNavOpen);
+                  }}
+                  className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-all duration-300"
+                  data-testid="button-nav-toggle"
+                >
+                  <div
+                    className={`h-0.5 bg-gray-900 dark:bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
+                  ></div>
+                  <div
+                    className={`h-0.5 bg-gray-900 dark:bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
+                  ></div>
+                </button>
+
+                {/* World Map Section - Fixed at top, no animation */}
+                <div className="fixed top-0 left-0 right-0 h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 z-30" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
+                  {/* Container for WorldMap - full width on mobile, constrained on desktop */}
+                  <div className="w-full md:max-w-lg flex items-center justify-center">
+                    <WorldMap />
+                  </div>
+                </div>
+
+                {/* Home Screen - Stacks on top with card effect - Starts below world map */}
                 <div
                   onClick={() => isNavOpen && setIsNavOpen(false)}
-                  className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 ${
+                  className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 pt-[25vh] md:pt-[31vh] ${
                     isNavOpen
-                      ? "scale-90 -translate-x-[70%] rounded-2xl shadow-2xl"
+                      ? "scale-90 -translate-x-[70%] rounded-tr-3xl shadow-2xl"
                       : "scale-100 translate-x-0"
                   }`}
                   style={{
                     transformOrigin: "right center",
                   }}
                 >
-                  {/* Two-line Hamburger Icon - Mobile only - Theme responsive */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsNavOpen(!isNavOpen);
-                    }}
-                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-all duration-300"
-                    data-testid="button-nav-toggle"
-                  >
-                    <div
-                      className={`h-0.5 bg-gray-900 dark:bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
-                    ></div>
-                    <div
-                      className={`h-0.5 bg-gray-900 dark:bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
-                    ></div>
-                  </button>
-
-                  {/* World Map Section: Desktop 31% white background, Mobile full-width no container */}
-                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 relative" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
-                    {/* Container for WorldMap - full width on mobile, constrained on desktop */}
-                    <div className="w-full md:max-w-lg flex items-center justify-center">
-                      <WorldMap />
-                    </div>
-                  </div>
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
                   <div className="h-[75vh] md:h-[69vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
