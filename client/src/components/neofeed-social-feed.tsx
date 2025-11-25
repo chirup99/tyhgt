@@ -2322,6 +2322,9 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
+      // Stop all audio playback when scrolling
+      window.speechSynthesis.cancel();
+      
       // Pause YouTube video when scrolling
       if (typeof (window as any).pauseBannerYouTube === 'function') {
         (window as any).pauseBannerYouTube();

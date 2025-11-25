@@ -49,6 +49,10 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
   }, [snippets]);
 
   const swipeCard = (direction: 'left' | 'right') => {
+    // Stop any currently playing audio when swiping
+    window.speechSynthesis.cancel();
+    setPlayingCardId(null);
+    
     setCards((prevCards) => {
       const newCards = [...prevCards];
       if (direction === 'right') {

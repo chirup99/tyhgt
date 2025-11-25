@@ -156,6 +156,10 @@ export function AudioMinicastCard({
   };
 
   const swipeCard = (direction: 'left' | 'right') => {
+    // Stop any currently playing audio when swiping
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    
     setCards((prevCards) => {
       const newCards = [...prevCards];
       if (direction === 'right') {
