@@ -7509,91 +7509,107 @@ ${
                 {/* Navigation Menu - Behind the home screen */}
                 <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10 flex items-start justify-end pt-20 px-0 md:items-center md:justify-center md:pt-0 md:px-6">
                   <div className="w-auto md:w-full md:max-w-sm space-y-6 pr-4 md:pr-0">
-                    {/* User Profile Section - Horizontal Layout */}
-                    <div className="flex items-center gap-4 pb-2">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-semibold text-xl">
-                          {(
-                            currentUser.displayName ||
-                            currentUser.username ||
-                            "U"
-                          )
-                            .charAt(0)
-                            .toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <p className="text-white font-semibold text-base">
-                          {currentUser.displayName || "User"}
-                        </p>
-                        <p className="text-blue-200 text-sm">
-                          @{currentUser.username || "username"}
-                        </p>
-                      </div>
-                    </div>
+                    {currentUser.userId ? (
+                      <>
+                        {/* User Profile Section - Horizontal Layout */}
+                        <div className="flex items-center gap-4 pb-2">
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-semibold text-xl">
+                              {(
+                                currentUser.displayName ||
+                                currentUser.username ||
+                                "U"
+                              )
+                                .charAt(0)
+                                .toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <p className="text-white font-semibold text-base">
+                              {currentUser.displayName || "User"}
+                            </p>
+                            <p className="text-blue-200 text-sm">
+                              @{currentUser.username || "username"}
+                            </p>
+                          </div>
+                        </div>
 
-                    {/* Navigation Menu Items - Left aligned */}
-                    <div className="space-y-3 flex flex-col">
-                      <button
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
-                        data-testid="nav-profile"
-                      >
-                        profile
-                      </button>
-                      <button
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
-                        data-testid="nav-saved"
-                      >
-                        saved
-                      </button>
-                      {localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
+                        {/* Navigation Menu Items - Left aligned */}
+                        <div className="space-y-3 flex flex-col">
+                          <button
+                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                            data-testid="nav-profile"
+                          >
+                            profile
+                          </button>
+                          <button
+                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                            data-testid="nav-saved"
+                          >
+                            saved
+                          </button>
+                          {localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
+                            <button
+                              onClick={() => {
+                                setTabWithAuthCheck("dashboard");
+                                setIsNavOpen(false);
+                              }}
+                              className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
+                              data-testid="nav-dashboard"
+                            >
+                              <BarChart3 className="h-4 w-4" />
+                              <span>dashboard</span>
+                            </button>
+                          )}
+                          <button
+                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                            data-testid="nav-settings"
+                          >
+                            setting & privacy
+                          </button>
+                          <button
+                            onClick={toggleTheme}
+                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
+                            data-testid="nav-darkmode"
+                          >
+                            {theme === "dark" ? (
+                              <Sun className="h-4 w-4" />
+                            ) : (
+                              <Moon className="h-4 w-4" />
+                            )}
+                            <span>dark mode</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await signOut(auth);
+                                localStorage.clear();
+                                window.location.href = "/login";
+                              } catch (error) {
+                                console.error("Logout error:", error);
+                              }
+                            }}
+                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
+                            data-testid="nav-logout"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span>logout</span>
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center space-y-4">
                         <button
                           onClick={() => {
-                            setTabWithAuthCheck("dashboard");
-                            setIsNavOpen(false);
-                          }}
-                          className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
-                          data-testid="nav-dashboard"
-                        >
-                          <BarChart3 className="h-4 w-4" />
-                          <span>dashboard</span>
-                        </button>
-                      )}
-                      <button
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors text-left"
-                        data-testid="nav-settings"
-                      >
-                        setting & privacy
-                      </button>
-                      <button
-                        onClick={toggleTheme}
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
-                        data-testid="nav-darkmode"
-                      >
-                        {theme === "dark" ? (
-                          <Sun className="h-4 w-4" />
-                        ) : (
-                          <Moon className="h-4 w-4" />
-                        )}
-                        <span>dark mode</span>
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await signOut(auth);
-                            localStorage.clear();
                             window.location.href = "/login";
-                          } catch (error) {
-                            console.error("Logout error:", error);
-                          }
-                        }}
-                        className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
-                        data-testid="nav-logout"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>logout</span>
-                      </button>
-                    </div>
+                          }}
+                          className="w-full px-6 py-3 bg-white text-blue-900 hover:bg-blue-50 rounded-lg transition-colors font-semibold text-center"
+                          data-testid="nav-login"
+                        >
+                          Login
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
