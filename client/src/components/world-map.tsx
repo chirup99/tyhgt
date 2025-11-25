@@ -65,6 +65,20 @@ export function WorldMap() {
   const { marketData, loading } = useMarketData(900000); // Refresh every 15 minutes (900000ms)
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Smaller dot size for mobile screens
+  const dotRadius = isMobile ? "1.5" : "2.5";
 
   return (
     <div className="mb-5 relative">
@@ -80,7 +94,7 @@ export function WorldMap() {
             background: "none"
           }}
         >
-          {/* Continent dots - Static, no animation */}
+          {/* Continent dots - Smaller on mobile */}
           {worldMapDots.map(([cx, cy], index) => {
             const dotColor = getRegionColor(cx, cy, marketData, isDarkMode);
 
@@ -89,7 +103,7 @@ export function WorldMap() {
                 key={index}
                 cx={cx}
                 cy={cy}
-                r="2.5"
+                r={dotRadius}
                 fill={dotColor}
                 opacity={1}
                 shapeRendering="crispEdges"

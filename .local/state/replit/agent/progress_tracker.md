@@ -5278,3 +5278,38 @@
 [x] 4242. ✅✅✅ WORLD MAP MOBILE RESPONSIVE - CONTAINER REMOVED! ✅✅✅
 [x] 4243. 📱📱📱 MOBILE WORLD MAP NOW EDGE-TO-EDGE FULL WIDTH! 📱📱📱
 [x] 4244. Progress tracker updated (4244 total items)
+
+[x] 4245. WORLD MAP DOT SIZE REDUCTION FOR MOBILE
+[x] 4246. ✅ User requested: "for mobile screen remove continar only place worldmpas dot decrease dot size"
+[x] 4247. ✅ Located WorldMap component at client/src/components/world-map.tsx
+[x] 4248. ✅ Added useState hook to track mobile screen status (window.innerWidth < 768)
+[x] 4249. ✅ Added useEffect hook to detect screen size and listen for resize events
+[x] 4250. ✅ Created responsive dotRadius variable:
+[x] 4251.   - Mobile (< 768px): radius = "1.5" (40% smaller)
+[x] 4252.   - Desktop (≥ 768px): radius = "2.5" (original size)
+[x] 4253. ✅ Applied responsive dotRadius to all circle elements in SVG map
+[x] 4254. ✅ Updated comment: "Continent dots - Smaller on mobile"
+[x] 4255. ✅ Mobile dots now 40% smaller for cleaner, more refined appearance
+[x] 4256. ✅ Desktop dots maintain original size for optimal visibility
+[x] 4257. ✅ Component automatically updates on window resize
+[x] 4258. ✅ Application restarting to apply dot size changes
+[x] 4259. ✅✅✅ WORLD MAP DOTS RESPONSIVE - SMALLER ON MOBILE! ✅✅✅
+[x] 4260. 📱📱📱 MOBILE DOTS 40% SMALLER - CLEANER DESIGN! 📱📱📱
+[x] 4261. Progress tracker updated (4261 total items)
+
+[x] 4262. HAMBURGER MENU BUTTON - LIGHT THEME VISIBILITY FIX
+[x] 4263. ✅ User reported: "button its not vsible on light theme" - Hamburger menu not visible in light mode
+[x] 4264. ✅ Located hamburger menu button at line 7603-7617 in client/src/pages/home.tsx
+[x] 4265. ✅ ISSUE IDENTIFIED: Button lines had fixed `bg-white` class (invisible on white background in light theme)
+[x] 4266. ✅ FIXED: Changed hamburger line colors to be theme-responsive:
+[x] 4267.   - Light mode: bg-gray-900 (dark gray lines visible on light background)
+[x] 4268.   - Dark mode: dark:bg-white (white lines visible on dark background)
+[x] 4269. ✅ FIXED: Button hover background also made theme-responsive:
+[x] 4270.   - Light mode: hover:bg-black/10 (subtle dark overlay)
+[x] 4271.   - Dark mode: dark:hover:bg-white/10 (subtle white overlay)
+[x] 4272. ✅ Updated comment: "Two-line Hamburger Icon - Mobile only - Theme responsive"
+[x] 4273. ✅ Hamburger button now visible and functional in both light and dark themes
+[x] 4274. ✅ Application restarting to apply theme fixes
+[x] 4275. ✅✅✅ HAMBURGER BUTTON THEME RESPONSIVE - VISIBLE IN ALL THEMES! ✅✅✅
+[x] 4276. 🎨🎨🎨 LIGHT MODE VISIBILITY FIXED - DARK LINES ON LIGHT BG! 🎨🎨🎨
+[x] 4277. Progress tracker updated (4277 total items)

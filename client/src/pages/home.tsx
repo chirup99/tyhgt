@@ -7599,20 +7599,20 @@ ${
                     transformOrigin: "right center",
                   }}
                 >
-                  {/* Two-line Hamburger Icon - Mobile only */}
+                  {/* Two-line Hamburger Icon - Mobile only - Theme responsive */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsNavOpen(!isNavOpen);
                     }}
-                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-white/10 rounded-lg transition-all duration-300"
+                    className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-transparent hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-all duration-300"
                     data-testid="button-nav-toggle"
                   >
                     <div
-                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
+                      className={`h-0.5 bg-gray-900 dark:bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
                     ></div>
                     <div
-                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
+                      className={`h-0.5 bg-gray-900 dark:bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
                     ></div>
                   </button>
 
