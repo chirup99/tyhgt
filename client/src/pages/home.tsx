@@ -1863,7 +1863,6 @@ export default function Home() {
   // Passcode verification functions
   const protectedTabs = [
     "trading-home",
-    "insights",
     "dashboard",
     "backtest",
   ]; // Protected tabs
@@ -7436,20 +7435,6 @@ ${
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
                 Journal
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleTabClick("insights")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "insights"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Insights
               </div>
             </button>
           </div>
