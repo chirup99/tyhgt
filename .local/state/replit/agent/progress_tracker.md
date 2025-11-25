@@ -108,22 +108,33 @@
 [x] 2175. ✅✅✅ BACKGROUND REMOVED FROM COUNTRIES CONTAINER! ✅✅✅
 [x] 2176. 🎉🎉🎉 COUNTRIES TEXT NOW HAS NO BACKGROUND! 🎉🎉🎉
 
-[x] 2177. NOVEMBER 25, 2025 - ICONS MOVED TO OLD LEFT SIDEBAR
+[x] 2177. NOVEMBER 25, 2025 - ICONS MOVED TO OLD LEFT SIDEBAR & RIGHT BLACK BAR
 [x] 2178. User requested: "add hamburg button to full screen in different location with profile icon on right side black vertical navigation bar below theme icon"
 [x] 2179. User refinement: "dont remove old icon keep thos. i said instead hamburg icon i want profile icon with same function of hamburg button"
 [x] 2180. User final request: "keep old vertical side bar in that old bar add profile icon not on new vertical side bar"
-[x] 2181. Issue identified: Had created a new right black vertical bar (redundant)
-[x] 2182. User want: Icons in the OLD left sidebar (blue gradient), NOT on a new right bar
-[x] 2183. ✅ Removed the global black vertical navigation bar from right side
-[x] 2184. ✅ Added theme toggle icon to OLD left sidebar (blue gradient sidebar)
-[x] 2185. ✅ Theme icon positioned next to user profile section
-[x] 2186. ✅ Theme icon has hover states (hover:bg-white/10)
-[x] 2187. ✅ Profile section now has profile icon and theme toggle together at top
-[x] 2188. ✅ Left sidebar structure: [Profile Icon] [Name/Username] [Theme Icon]
-[x] 2189. ✅ Menu items below profile section remain unchanged (profile, saved, dashboard, etc.)
-[x] 2190. ✅ Mobile hamburger button remains in top-right
-[x] 2191. ✅✅✅ ICONS SUCCESSFULLY MOVED TO OLD LEFT SIDEBAR! ✅✅✅
-[x] 2192. 🎉🎉🎉 THEME ICON NOW IN OLD BLUE SIDEBAR WITH PROFILE! 🎉🎉🎉
+[x] 2181. User updated request: "on profile icon on right black side bar" - wants profile on right black sidebar
+[x] 2182. ✅ Added theme toggle icon to OLD left sidebar (blue gradient sidebar in home.tsx)
+[x] 2183. ✅ Added profile icon to RIGHT black sidebar in App.tsx (MainLayout)
+[x] 2184. ✅ Profile icon shows user's initial in gradient circle (purple to blue)
+[x] 2185. ✅ Profile icon in right sidebar at bottom with other navigation items
+[x] 2186. ✅ Right sidebar structure: Home, Sign In, Dashboard, Theme, Profile (icons)
+[x] 2187. ✅ Profile icon gets displayName from localStorage
+[x] 2188. ✅ Profile icon has hover states matching other right sidebar buttons
+[x] 2189. ✅ Left sidebar (home.tsx): Theme icon next to profile section
+[x] 2190. ✅ Right sidebar (App.tsx): Profile icon in vertical nav bar
+[x] 2191. ✅ Mobile hamburger button remains in top-right
+[x] 2192. ✅✅✅ PROFILE ICON SUCCESSFULLY ADDED TO RIGHT BLACK SIDEBAR! ✅✅✅
+[x] 2193. 🎉🎉🎉 PROFILE ICON NOW IN RIGHT BLACK SIDEBAR WITH OTHER NAV ITEMS! 🎉🎉🎉
+
+[x] 2194. NOVEMBER 25, 2025 - PROFILE ICON HAMBURGER MENU FUNCTION
+[x] 2195. User request: "when user tap on profile icon on right side bar its active hamburg button function"
+[x] 2196. ✅ Added window.toggleNav() function exposed from home.tsx via useEffect
+[x] 2197. ✅ Updated window interface in App.tsx to include toggleNav function
+[x] 2198. ✅ Added onClick handler to profile icon that calls window.toggleNav()
+[x] 2199. ✅ Clicking profile icon on right sidebar now toggles navigation menu open/close
+[x] 2200. ✅ Profile icon now has hamburger menu toggle functionality
+[x] 2201. ✅✅✅ PROFILE ICON NOW TOGGLES HAMBURGER MENU! ✅✅✅
+[x] 2202. 🎉🎉🎉 PROFILE ICON HAS HAMBURGER BUTTON FUNCTIONALITY! 🎉🎉🎉
 [x] 2092. ✅ Removed Complete Scanner sidebar button (lines 7355-7364)
 [x] 2093. ✅ Removed Trade Simulator sidebar button (lines 7397-7406)
 [x] 2094. ✅ Removed 4 Candle Rule content section (activeTab === "4candle")

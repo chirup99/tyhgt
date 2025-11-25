@@ -1863,6 +1863,16 @@ export default function Home() {
   );
   const [pendingTab, setPendingTab] = useState<string>("");
 
+  // Expose toggle nav function to window for profile icon in right sidebar
+  useEffect(() => {
+    window.toggleNav = () => {
+      setIsNavOpen(prev => !prev);
+    };
+    return () => {
+      delete window.toggleNav;
+    };
+  }, []);
+
   // Passcode verification functions
   const protectedTabs = [
     "trading-home",

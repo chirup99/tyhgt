@@ -6,6 +6,7 @@ declare global {
     getActiveTab?: () => string;
     setActiveTab?: (tab: string) => void;
     stopNewsAudio?: () => void;
+    toggleNav?: () => void;
   }
 }
 import { Switch, Route, useLocation } from "wouter";
@@ -251,6 +252,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   };
 
   const currentUserEmail = localStorage.getItem('currentUserEmail');
+  const currentUserDisplayName = localStorage.getItem('currentDisplayName') || localStorage.getItem('currentUsername') || 'U';
   
   const navigation = [
     {
@@ -279,6 +281,14 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       current: false,
       isThemeToggle: true,
     },
+    {
+      name: "Profile",
+      href: "#",
+      icon: null,
+      current: false,
+      isProfile: true,
+      displayName: currentUserDisplayName,
+    },
   ];
 
   return (
@@ -286,7 +296,36 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       {/* Desktop: Fixed Vertical Navigation (hidden on mobile) */}
       <div className="hidden md:flex fixed right-0 top-0 w-20 h-full bg-gray-950 border-l border-gray-800 flex-col items-center py-6 space-y-6 z-50">
         {navigation.map((item) => {
+          if (item.isProfile) {
+            return (
+              <Button
+                key={item.name}
+                variant="ghost"
+                size="default"
+                className={cn(
+                  "w-12 h-12 p-0 rounded-xl transition-all duration-200 flex items-center justify-center",
+                  "text-gray-400 hover:text-white hover:bg-gray-800"
+                )}
+                title={item.name}
+                onClick={() => {
+                  if (window.toggleNav) {
+                    window.toggleNav();
+                  }
+                }}
+                data-testid="button-profile-menu-toggle"
+              >
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
+                    {item.displayName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </Button>
+            );
+          }
+          
           const Icon = item.icon;
+          if (!Icon) return null;
+          
           return (
             <Button
               key={item.name}
