@@ -7499,27 +7499,41 @@ ${
                 {/* Navigation Menu - Behind the home screen */}
                 <div className="fixed inset-0 bg-gradient-to-b from-blue-800 to-blue-900 z-10">
                   <div className="pt-20 px-6 space-y-4 ml-auto md:w-80 w-64">
-                    {/* User Profile Section with Firebase data */}
-                    <div className="flex items-center gap-3 mb-8">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                        <span className="text-white font-semibold text-xl">
-                          {(
-                            currentUser.displayName ||
-                            currentUser.username ||
-                            "U"
-                          )
-                            .charAt(0)
-                            .toUpperCase()}
-                        </span>
+                    {/* User Profile Section with Firebase data and Theme/Menu Icons */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-white font-semibold text-xl">
+                            {(
+                              currentUser.displayName ||
+                              currentUser.username ||
+                              "U"
+                            )
+                              .charAt(0)
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold text-base truncate">
+                            {currentUser.displayName || "User"}
+                          </p>
+                          <p className="text-blue-200 text-sm truncate">
+                            @{currentUser.username || "username"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold text-base truncate">
-                          {currentUser.displayName || "User"}
-                        </p>
-                        <p className="text-blue-200 text-sm truncate">
-                          @{currentUser.username || "username"}
-                        </p>
-                      </div>
+                      {/* Theme Toggle Icon in Sidebar */}
+                      <button
+                        onClick={toggleTheme}
+                        className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
+                        data-testid="sidebar-theme-toggle"
+                      >
+                        {theme === "dark" ? (
+                          <Sun className="h-4 w-4 text-white" />
+                        ) : (
+                          <Moon className="h-4 w-4 text-white" />
+                        )}
+                      </button>
                     </div>
 
                     {/* Navigation Menu Items */}
@@ -12968,38 +12982,6 @@ ${
             </div>
           </DialogContent>
         </Dialog>
-
-      {/* Global Desktop Right Vertical Navigation Bar - Appears on all tabs */}
-      <div className="hidden md:flex fixed right-0 top-0 h-screen bg-black z-50 flex-col items-center py-4 px-2 gap-4 w-16">
-        {/* Theme Toggle Icon */}
-        <button
-          onClick={toggleTheme}
-          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
-          data-testid="button-desktop-theme-toggle"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5 text-white" />
-          ) : (
-            <Moon className="h-5 w-5 text-white" />
-          )}
-        </button>
-
-        {/* Profile Icon with Menu Function */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsNavOpen(!isNavOpen);
-          }}
-          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
-          data-testid="button-desktop-profile"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-            <span className="text-white font-semibold text-sm">
-              {(currentUser.displayName || currentUser.username || "U").charAt(0).toUpperCase()}
-            </span>
-          </div>
-        </button>
-      </div>
 
       </div>
     </div>
