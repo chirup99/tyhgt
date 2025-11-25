@@ -7604,6 +7604,51 @@ ${
                   ></div>
                 </button>
 
+                {/* Desktop Right Vertical Navigation Bar - Black with icons */}
+                <div className="hidden md:flex fixed right-0 top-0 h-screen bg-black z-50 flex-col items-center py-4 px-2 gap-4 w-16">
+                  {/* Theme Toggle Icon */}
+                  <button
+                    onClick={toggleTheme}
+                    className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
+                    data-testid="button-desktop-theme-toggle"
+                  >
+                    {theme === "dark" ? (
+                      <Sun className="h-5 w-5 text-white" />
+                    ) : (
+                      <Moon className="h-5 w-5 text-white" />
+                    )}
+                  </button>
+
+                  {/* Hamburger Menu Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsNavOpen(!isNavOpen);
+                    }}
+                    className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                    data-testid="button-desktop-nav-toggle"
+                  >
+                    <div
+                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
+                    ></div>
+                    <div
+                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
+                    ></div>
+                  </button>
+
+                  {/* Profile Icon */}
+                  <button
+                    className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
+                    data-testid="button-desktop-profile"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">
+                        {(currentUser.displayName || currentUser.username || "U").charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+
                 {/* Home Screen - Stacks on top with card effect */}
                 <div
                   onClick={() => isNavOpen && setIsNavOpen(false)}
