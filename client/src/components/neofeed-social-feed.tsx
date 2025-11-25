@@ -775,7 +775,7 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
               onClick={onBackClick}
               variant="ghost"
               size="icon"
-              className="hidden lg:flex flex-shrink-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              className="lg:hidden flex-shrink-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
               data-testid="button-back-to-home"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -2736,7 +2736,7 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
           onClick={onBackClick}
           variant="ghost"
           size="icon"
-          className="hidden lg:flex absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+          className="lg:hidden absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
           data-testid="button-back-to-home-neofeed"
         >
           <ArrowLeft className="h-6 w-6" />
