@@ -95,7 +95,7 @@ export function WorldMap() {
       {/* World Map with Dots - No Animation */}
       <div
         className="relative h-35 overflow-hidden"
-        style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff" }}
+        style={{ backgroundColor: isDarkMode ? "#1a1a1a" : "#e3f2fd" }}
       >
         <svg
           viewBox="-10 0 1045.2 458"
