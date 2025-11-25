@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Play, Pause } from 'lucide-react';
 import type { SelectedTextSnippet } from '@/contexts/AudioModeContext';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,8 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
   const [nextColorIndex, setNextColorIndex] = useState(0);
   const [isAnimatingIn, setIsAnimatingIn] = useState(false);
   const [playingCardId, setPlayingCardId] = useState<string | null>(null);
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
+  const prevTopCardIdRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   // Update cards when snippets change - new cards added to TOP with different colors
