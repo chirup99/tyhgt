@@ -7604,18 +7604,18 @@ ${
                   ></div>
                 </button>
 
-                {/* World Map Section - Fixed at top, no animation */}
-                <div className="fixed top-0 left-0 right-0 h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 z-30" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
+                {/* World Map Section - Relative position, moves with content */}
+                <div className="relative h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
                   {/* Container for WorldMap - full width on mobile, constrained on desktop */}
                   <div className="w-full md:max-w-lg flex items-center justify-center">
                     <WorldMap />
                   </div>
                 </div>
 
-                {/* Home Screen - Stacks on top with card effect - Starts below world map */}
+                {/* Home Screen - Stacks on top with card effect */}
                 <div
                   onClick={() => isNavOpen && setIsNavOpen(false)}
-                  className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 pt-[25vh] md:pt-[31vh] ${
+                  className={`min-h-screen bg-gray-900 flex flex-col transition-all duration-500 ease-out relative z-20 ${
                     isNavOpen
                       ? "scale-90 -translate-x-[70%] rounded-tr-3xl shadow-2xl"
                       : "scale-100 translate-x-0"

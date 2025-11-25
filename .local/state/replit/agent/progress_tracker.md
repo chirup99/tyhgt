@@ -73,6 +73,19 @@
 [x] 2089. User requested: "battu scan, 4 candle rule, complete scanner, trade simulator remove completely"
 [x] 2090. ✅ Removed BATTU Scan sidebar button (lines 7333-7342)
 [x] 2091. ✅ Removed 4 Candle Rule sidebar button (lines 7344-7353)
+
+[x] 2146. NOVEMBER 25, 2025 - WORLD MAP FIXED POSITIONING REMOVED
+[x] 2147. User reported: "world map is not moving with screen when i tap on homeberg button its stay on screen remove that feature offset with creen"
+[x] 2148. Issue identified: World map had fixed positioning (position: fixed) keeping it stuck at top of screen
+[x] 2149. Root cause: Line 7608 in home.tsx had className="fixed top-0 left-0 right-0 ... z-30"
+[x] 2150. ✅ Changed world map wrapper from "fixed" to "relative" positioning (line 7611)
+[x] 2151. ✅ Removed "top-0 left-0 right-0" positioning classes that kept map at screen top
+[x] 2152. ✅ Removed "z-30" layering since map is now in normal document flow
+[x] 2153. ✅ Removed "pt-[25vh] md:pt-[31vh]" padding from main content (line 7621)
+[x] 2154. ✅ World map now moves naturally with page content and sidebar interactions
+[x] 2155. ✅ Map no longer stays fixed when hamburger menu is opened
+[x] 2156. ✅✅✅ WORLD MAP FIXED POSITIONING REMOVED! ✅✅✅
+[x] 2157. 🎉🎉🎉 WORLD MAP NOW MOVES WITH SCREEN CONTENT! 🎉🎉🎉
 [x] 2092. ✅ Removed Complete Scanner sidebar button (lines 7355-7364)
 [x] 2093. ✅ Removed Trade Simulator sidebar button (lines 7397-7406)
 [x] 2094. ✅ Removed 4 Candle Rule content section (activeTab === "4candle")
