@@ -7643,21 +7643,21 @@ ${
                   }}
                 >
                   {/* World Map Section - At top of main content */}
-                  <div className="w-full flex items-center justify-center py-0.5" style={{ background: theme === 'dark' ? '#1a1a1a' : '#ffffff' }}>
+                  <div className="w-full flex items-center justify-center py-3" style={{ background: theme === 'dark' ? '#1a1a1a' : '#ffffff' }}>
                     {/* Container for WorldMap - full width on mobile, constrained on desktop */}
-                    <div className="w-full md:max-w-xs flex items-center justify-center scale-50">
+                    <div className="w-full md:max-w-lg flex items-center justify-center">
                       <WorldMap />
                     </div>
                   </div>
 
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
-                  <div className="h-[75vh] md:h-[50vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-2 py-0 md:px-3 px-0 relative md:overflow-y-auto">
-                    <div className="max-w-2xl w-full md:space-y-1">
+                  <div className="h-[75vh] md:h-[69vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
+                    <div className="max-w-4xl w-full md:space-y-4">
                       {/* Greeting - Hidden on mobile */}
-                      <div className="text-center md:block hidden">
-                        <div className="flex items-center justify-center gap-2">
-                          <Sparkles className="h-3 w-3 text-blue-400" />
-                          <h1 className="text-lg font-normal text-gray-100">
+                      <div className="text-center spacey-4 md:block hidden">
+                        <div className="flex items-center justify-center gap-3">
+                          <Sparkles className="4-5 w-4 text-blue-400" />
+                          <h1 className="text-2xl font-normal text-gray-100">
                             Welcome to Trading Platform
                           </h1>
                         </div>
@@ -7666,7 +7666,7 @@ ${
                       {/* Search Input - Hidden on mobile */}
                       <div
                         className={`relative mx-auto transition-all duration-300 md:block hidden ${
-                          isSearchActive ? "max-w-3xl" : "max-w-xl"
+                          isSearchActive ? "max-w-4xl" : "max-w-2xl"
                         }`}
                       >
                         <Input
@@ -7683,40 +7683,40 @@ ${
                               await handleSearch();
                             }
                           }}
-                          className={`w-full transition-all duration-300 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-8 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          className={`w-full transition-all duration-300 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-12 text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                             isSearchActive
-                              ? "h-8 rounded-lg"
-                              : "h-7 rounded-xl"
+                              ? "h-14 rounded-xl"
+                              : "h-12 rounded-2xl"
                           }`}
                         />
                         <Button
                           size="sm"
-                          className="absolute right-1 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300 h-4 w-4 p-0"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300 h-6 w-6 p-0"
                           onClick={() => handleSearch()}
                           disabled={!searchQuery.trim() || isSearchLoading}
                         >
                           {isSearchLoading ? (
-                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           ) : (
-                            <Bot className="h-3 w-3" />
+                            <Bot className="h-4 w-4" />
                           )}
                         </Button>
                       </div>
 
                       {/* AI Search Results - Desktop only */}
                       {isSearchActive && (
-                        <div className="max-w-3xl mx-auto mt-2 animate-in slide-in-from-top-4 duration-300 md:block hidden">
-                          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-3">
+                        <div className="max-w-5xl mx-auto mt-4 animate-in slide-in-from-top-4 duration-300 md:block hidden">
+                          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4">
                             {searchResults ? (
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-1.5 pb-2 border-b border-gray-700">
-                                  <Bot className="h-3 w-3 text-blue-400" />
-                                  <h3 className="text-sm font-medium text-gray-100">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 pb-3 border-b border-gray-700">
+                                  <Bot className="h-4 w-4 text-blue-400" />
+                                  <h3 className="text-lg font-medium text-gray-100">
                                     AI Assistant
                                   </h3>
                                 </div>
                                 <div className="prose prose-invert max-w-none">
-                                  <div className="text-gray-300 whitespace-pre-wrap leading-relaxed text-sm">
+                                  <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
                                     {(() => {
                                       // Render text with inline charts
                                       if (
@@ -7894,10 +7894,25 @@ ${
                       )}
 
                       {/* Enhanced AI Suggestion Buttons - Desktop only */}
-                      <div className="md:flex hidden flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto md:mt-3">
+                      <div className="md:flex hidden flex-wrap items-center justify-center gap-3 max-w-6xl mx-auto md:mt-6">
+                        {/* <Button
+                        variant="secondary"
+                        className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
+                        onClick={() =>
+                          handleSuggestionClick(
+                            "Get live stock prices and fundamentals for NIFTY, SENSEX, and top Indian stocks"
+                          )
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4" />
+                          <span>Stock Prices</span>
+                        </div>
+                      </Button> */}
+
                         <Button
                           variant="secondary"
-                          className="bg-cyan-600 hover:bg-cyan-700 text-white border-0 h-6 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          className="bg-cyan-600 hover:bg-cyan-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
                           onClick={() =>
                             handleSuggestionClick(
                               "RSI technical analysis for RELIANCE",
@@ -7905,79 +7920,109 @@ ${
                           }
                         >
                           <div className="flex items-center justify-center gap-1">
-                            <BarChart3 className="h-2.5 w-2.5" />
+                            <BarChart3 className="h-3 w-3" />
                             <span>Technical Analysis</span>
                           </div>
                         </Button>
 
                         <Button
                           variant="secondary"
-                          className="bg-pink-600 hover:bg-pink-700 text-white border-0 h-6 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          className="bg-pink-600 hover:bg-pink-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
                           onClick={() =>
                             handleSuggestionClick(
                               "Social feed community discussions and trending topics",
                             )
                           }
                         >
-                          <div className="flex items-center gap-1">
-                            <User className="h-2.5 w-2.5" />
+                          <div className="flex items-center gap-2">
+                            <User className="h-3 w-3" />
                             <span>Social Feed</span>
                           </div>
                         </Button>
 
                         <Button
                           variant="secondary"
-                          className="bg-green-600 hover:bg-green-700 text-white border-0 h-6 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          className="bg-green-600 hover:bg-green-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
                           onClick={() =>
                             handleSuggestionClick(
                               "What are today's top financial news and market updates?",
                             )
                           }
                         >
-                          <div className="flex items-center gap-1">
-                            <Newspaper className="h-2.5 w-2.5" />
+                          <div className="flex items-center gap-2">
+                            <Newspaper className="h-3 w-3" />
                             <span>Market News</span>
                           </div>
                         </Button>
 
                         <Button
                           variant="secondary"
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 h-6 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
                           onClick={generateJournalAIReport}
                           data-testid="button-trading-journal"
                         >
-                          <div className="flex items-center gap-1">
-                            <FileText className="h-2.5 w-2.5" />
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3 w-3" />
                             <span>Trading Journal</span>
                           </div>
                         </Button>
 
+                        {/* <Button
+                        variant="secondary"
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
+                        onClick={() =>
+                          handleSuggestionClick(
+                            "Add TCS to watchlist and set alerts"
+                          )
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          <Bell className="h-4 w-4" />
+                          <span>Quick Actions</span>
+                        </div>
+                      </Button> */}
+
+                        {/* <Button
+                        variant="secondary"
+                        className="bg-purple-600 hover:bg-purple-700 text-white border-0 h-11 px-4 rounded-full font-medium transition-all duration-200"
+                        onClick={() =>
+                          handleSuggestionClick(
+                            "Show me upcoming IPOs and recent IPO performance in Indian markets"
+                          )
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>IPO Updates</span>
+                        </div>
+                      </Button> */}
+
                         <Button
                           variant="secondary"
-                          className="bg-orange-600 hover:bg-orange-700 text-white border-0 h-6 px-2 rounded-full text-xs font-medium transition-all duration-200"
+                          className="bg-orange-600 hover:bg-orange-700  text-white border-0 h-7 px-2 rounded-full text-xs font-medium transition-all duration-200"
                           onClick={() =>
                             handleSuggestionClick(
                               "Analyze fundamentals for top stocks - P/E ratio, market cap, growth metrics",
                             )
                           }
                         >
-                          <div className="flex items-center gap-1">
-                            <BarChart3 className="h-2.5 w-2.5" />
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="h-3 w-3" />
                             <span>Fundamentals</span>
                           </div>
                         </Button>
                       </div>
 
                       {/* Mobile Welcome Text - Fixed position in blue area */}
-                      <div className="md:hidden flex items-center justify-center gap-1.5 pt-3 pb-4 px-4 relative z-10">
-                        <Sparkles className="h-3 w-3 text-blue-400" />
-                        <h1 className="text-sm font-normal text-gray-100">
+                      <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4 relative z-10">
+                        <Sparkles className="h-4 w-4 text-blue-400" />
+                        <h1 className="text-base font-normal text-gray-100">
                           Welcome to Trading Platform
                         </h1>
                       </div>
 
                       {/* Trading Tools Section - White container with centered cards */}
-                      <div className="bg-white md:pt-3 pt-3 md:pb-3 pb-3 md:rounded-2xl rounded-2xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
+                      <div className="bg-white md:pt-4 pt-4 md:pb-4 pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
                         {/* Mobile Search Bar - Fully visible at top */}
                         <div className="md:hidden absolute -top-3 left-4 right-4 z-50">
                           <div className="relative">
@@ -8143,60 +8188,60 @@ ${
                           )}
                         </div>
                         {/* Trading Tools Grid - Desktop: 4 columns centered, Mobile: 3 horizontal cards + swipeable below */}
-                        <div className="mx-auto max-w-4xl hidden md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-3 md:px-4 md:items-center">
+                        <div className="mx-auto max-w-6xl hidden md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:px-6 md:items-center">
                           {/* Social Feed Card */}
                           <div
-                            className="bg-blue-500 rounded-xl overflow-hidden h-28 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-blue-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("voice")}
                           >
-                            <div className="absolute top-2 left-2">
-                              <span className="bg-white bg-opacity-90 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-white bg-opacity-90 text-blue-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Social Feed
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-9 h-9 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <MessageCircle className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <MessageCircle className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Master Card */}
                           <div
-                            className="bg-indigo-500 rounded-xl overflow-hidden h-28 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-indigo-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={handleTradingMasterAccess}
                           >
-                            <div className="absolute top-2 left-2">
-                              <span className="bg-white bg-opacity-90 text-indigo-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-white bg-opacity-90 text-indigo-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Trading Master
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-9 h-9 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <Activity className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <Activity className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Trading Charts Card */}
                           <div
-                            className="bg-emerald-500 rounded-xl overflow-hidden h-28 w-full relative cursor-pointer hover:scale-105 transition-transform"
+                            className="bg-emerald-500 rounded-2xl overflow-hidden h-36 w-full relative cursor-pointer hover:scale-105 transition-transform"
                             onClick={() => checkAuthAndNavigate("journal")}
                           >
-                            <div className="absolute top-2 left-2">
-                              <span className="bg-white bg-opacity-90 text-emerald-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-white bg-opacity-90 text-emerald-600 px-2.5 py-1 rounded-full text-xs font-medium">
                                 Journal
                               </span>
                             </div>
-                            <div className="absolute bottom-2 right-2">
-                              <div className="w-9 h-9 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                <BarChart3 className="h-5 w-5 text-white" />
+                            <div className="absolute bottom-3 right-3">
+                              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <BarChart3 className="h-6 w-6 text-white" />
                               </div>
                             </div>
                           </div>
 
                           {/* Tutor Daily News Swipeable Cards - Portrait orientation with proper spacing */}
-                          <div className="relative h-28 w-full flex items-center justify-center">
+                          <div className="relative h-36 w-full flex items-center justify-center">
                             <SwipeableCardStack
                               onSectorChange={handleSectorChange}
                               selectedSector={selectedSector}
