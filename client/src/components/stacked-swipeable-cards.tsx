@@ -50,10 +50,59 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
     }
   }, [snippets]);
 
+  const playCard = useCallback((card: CardWithColor) => {
+    if (!card.text || card.text.trim().length === 0) {
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      
+      const cleanText = removeEmojis(card.text);
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      utterance.onstart = () => {
+        setPlayingCardId(card.id);
+      };
+      
+      utterance.onend = () => {
+        setPlayingCardId(null);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setPlayingCardId(null);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setPlayingCardId(null);
+    }
+  }, []);
+
+  // Auto-play current (top) card when it changes
+  useEffect(() => {
+    if (shouldAutoPlay && cards.length > 0 && cards[0].id !== prevTopCardIdRef.current) {
+      prevTopCardIdRef.current = cards[0].id;
+      // Small delay to ensure card is rendered
+      const timer = setTimeout(() => {
+        playCard(cards[0]);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (cards.length > 0) {
+      prevTopCardIdRef.current = cards[0].id;
+    }
+  }, [cards, shouldAutoPlay, playCard]);
+
   const swipeCard = (direction: 'left' | 'right') => {
     // Stop any currently playing audio when swiping
     window.speechSynthesis.cancel();
     setPlayingCardId(null);
+    setShouldAutoPlay(true); // Enable auto-play for next card
     
     setCards((prevCards) => {
       const newCards = [...prevCards];
@@ -94,6 +143,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
 
   const handleReadNow = (card: CardWithColor, e: React.MouseEvent) => {
     e.stopPropagation();
+    setShouldAutoPlay(false); // Disable auto-play for manual interactions
     
     if (playingCardId === card.id) {
       window.speechSynthesis.cancel();
@@ -110,32 +160,7 @@ export function StackedSwipeableCards({ snippets, onRemove }: StackedSwipeableCa
     }
 
     try {
-      window.speechSynthesis.cancel();
-      
-      const cleanText = removeEmojis(card.text);
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      utterance.onstart = () => {
-        setPlayingCardId(card.id);
-      };
-      
-      utterance.onend = () => {
-        setPlayingCardId(null);
-      };
-      
-      utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event);
-        setPlayingCardId(null);
-        toast({
-          description: "Failed to play audio. Please try again.",
-          variant: "destructive"
-        });
-      };
-      
-      window.speechSynthesis.speak(utterance);
+      playCard(card);
     } catch (error) {
       console.error('Error playing audio:', error);
       setPlayingCardId(null);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Radio, Play, Heart, MessageCircle, Share, MoreVertical, Trash2 } from 'lucide-react';
@@ -59,6 +59,7 @@ export function AudioMinicastCard({
   const [likeCount, setLikeCount] = useState(likes);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
   const previousCardIdRef = useRef<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -146,6 +147,39 @@ export function AudioMinicastCard({
     }
   }, [cards]);
 
+  // Auto-play current (top) card when it changes (Reels-like behavior)
+  useEffect(() => {
+    if (shouldAutoPlay && cards.length > 0 && cards[0].id !== previousCardIdRef.current) {
+      previousCardIdRef.current = cards[0].id;
+      // Small delay to ensure card is rendered
+      const timer = setTimeout(() => {
+        const currentCard = cards[0];
+        if (currentCard && currentCard.type === 'post') {
+          const textToSpeak = cleanTextForSpeech(currentCard.content);
+          
+          const utterance = new SpeechSynthesisUtterance(textToSpeak);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+          
+          utterance.onend = () => {
+            setIsPlaying(false);
+          };
+          
+          utterance.onerror = () => {
+            setIsPlaying(false);
+          };
+          
+          window.speechSynthesis.speak(utterance);
+          setIsPlaying(true);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (cards.length > 0) {
+      previousCardIdRef.current = cards[0].id;
+    }
+  }, [cards, shouldAutoPlay]);
+
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
@@ -159,6 +193,7 @@ export function AudioMinicastCard({
     // Stop any currently playing audio when swiping
     window.speechSynthesis.cancel();
     setIsPlaying(false);
+    setShouldAutoPlay(true); // Enable auto-play for next card
     
     setCards((prevCards) => {
       const newCards = [...prevCards];
@@ -199,6 +234,8 @@ export function AudioMinicastCard({
   }
 
   const togglePlay = () => {
+    setShouldAutoPlay(false); // Disable auto-play for manual interactions
+    
     if (isPlaying) {
       window.speechSynthesis.cancel();
       setIsPlaying(false);
