@@ -116,7 +116,7 @@ export function WorldMap() {
       </div>
 
       {/* Trading hours indicator with live market data */}
-      <div className="flex justify-center gap-3 mt-3 flex-wrap">
+      <div className="flex justify-center gap-3 mt-3 flex-wrap bg-blue-900 md:bg-transparent py-2 md:py-0 px-4 md:px-0 rounded-lg md:rounded-none">
         {marketRegions.map((region) => {
           const market = marketData?.[region.name as keyof typeof marketData];
           const color = market
