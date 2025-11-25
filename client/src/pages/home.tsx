@@ -7643,16 +7643,16 @@ ${
                   }}
                 >
                   {/* World Map Section - At top of main content */}
-                  <div className="w-full flex items-center justify-center py-1.5" style={{ background: theme === 'dark' ? '#1a1a1a' : '#ffffff' }}>
+                  <div className="w-full flex items-center justify-center py-0.5" style={{ background: theme === 'dark' ? '#1a1a1a' : '#ffffff' }}>
                     {/* Container for WorldMap - full width on mobile, constrained on desktop */}
-                    <div className="w-full md:max-w-md flex items-center justify-center scale-75">
+                    <div className="w-full md:max-w-xs flex items-center justify-center scale-50">
                       <WorldMap />
                     </div>
                   </div>
 
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
-                  <div className="h-[75vh] md:h-[60vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-3 py-0 md:px-4 px-0 relative md:overflow-y-auto">
-                    <div className="max-w-3xl w-full md:space-y-2">
+                  <div className="h-[75vh] md:h-[50vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-2 py-0 md:px-3 px-0 relative md:overflow-y-auto">
+                    <div className="max-w-2xl w-full md:space-y-1">
                       {/* Greeting - Hidden on mobile */}
                       <div className="text-center md:block hidden">
                         <div className="flex items-center justify-center gap-2">
@@ -7683,15 +7683,15 @@ ${
                               await handleSearch();
                             }
                           }}
-                          className={`w-full transition-all duration-300 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          className={`w-full transition-all duration-300 bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 pr-8 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                             isSearchActive
-                              ? "h-10 rounded-xl"
-                              : "h-9 rounded-2xl"
+                              ? "h-8 rounded-lg"
+                              : "h-7 rounded-xl"
                           }`}
                         />
                         <Button
                           size="sm"
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300 h-5 w-5 p-0"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-gray-300 h-4 w-4 p-0"
                           onClick={() => handleSearch()}
                           disabled={!searchQuery.trim() || isSearchLoading}
                         >
