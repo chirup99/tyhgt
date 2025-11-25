@@ -14,6 +14,19 @@
 [x] 2393. ✅ Workflow running on port 5000
 [x] 2394. ✅✅✅ DESKTOP AUDIO TOGGLE SWITCH IMPLEMENTED! ✅✅✅
 
+[x] 2395. NOVEMBER 25, 2025 - AUDIO PLAYBACK CONTROL ENHANCEMENT
+[x] 2396. User requested: Audio card playback improvements for swiping and scrolling
+[x] 2397. ✅ Added window.speechSynthesis.cancel() to swipeCard function in stacked-swipeable-cards.tsx
+[x] 2398. ✅ Added setPlayingCardId(null) to reset playback state when swiping
+[x] 2399. ✅ Added window.speechSynthesis.cancel() to swipeCard function in audio-minicast-card.tsx
+[x] 2400. ✅ Added setIsPlaying(false) to reset playback state when swiping
+[x] 2401. ✅ Added window.speechSynthesis.cancel() to scroll handler in neofeed-social-feed.tsx
+[x] 2402. ✅ Previous cards stop playing when swiping left/right
+[x] 2403. ✅ All audio stops when scrolling the feed
+[x] 2404. ✅ HMR automatically picked up all changes
+[x] 2405. ✅ Architect review passed - audio cancellation properly wired
+[x] 2406. ✅✅✅ AUDIO PLAYBACK CONTROL ENHANCEMENT COMPLETE! ✅✅✅
+
 [x] 2356. NOVEMBER 25, 2025 - FINAL IMPORT MIGRATION COMPLETION
 [x] 2357. User requested: "Update progress tracker file as tasks are completed"
 [x] 2358. ✅ Read progress tracker file successfully (5618 lines)
