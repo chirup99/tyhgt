@@ -1969,7 +1969,15 @@ export default function Home() {
     }
     
     console.log('[AUTH] User authenticated, setting tab:', tabName);
-    setActiveTab(tabName);
+    
+    // Special handling for stock-news tab - open BATTU AI dialog
+    if (tabName === 'stock-news') {
+      setShowBattuAI(true);
+      setActiveTab(tabName);
+    } else {
+      setActiveTab(tabName);
+    }
+    
     return true;
   };
 
