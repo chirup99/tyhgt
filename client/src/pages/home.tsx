@@ -28,7 +28,6 @@ import {
 import { IndicatorCrossingsDisplay } from "@/components/indicator-crossings-display";
 import { BattuScanSimulation } from "@/components/battu-scan-simulation";
 import { FourCandleRuleScanner } from "@/components/four-candle-rule-scanner";
-import { StockNewsSearch } from "@/components/stock-news-search";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import SimpleCompleteScanner from "@/components/simple-complete-scanner";
 import { BattuDocumentationDisplay } from "@/components/battu-documentation-display";
@@ -1829,7 +1828,6 @@ export default function Home() {
   const [swipeStartY, setSwipeStartY] = useState(0);
   const [swipeCurrentY, setSwipeCurrentY] = useState(0);
   const [isSwipingUp, setIsSwipingUp] = useState(false);
-  const [showBattuAI, setShowBattuAI] = useState(false);
   const [showJournalAI, setShowJournalAI] = useState(false);
   const [journalAIData, setJournalAIData] = useState<any>(null);
   const [statisticsTab, setStatisticsTab] = useState("overview");
@@ -1865,7 +1863,6 @@ export default function Home() {
   // Passcode verification functions
   const protectedTabs = [
     "trading-home",
-    "stock-news",
     "insights",
     "dashboard",
     "backtest",
@@ -1969,15 +1966,7 @@ export default function Home() {
     }
     
     console.log('[AUTH] User authenticated, setting tab:', tabName);
-    
-    // Special handling for stock-news tab - open BATTU AI dialog
-    if (tabName === 'stock-news') {
-      setShowBattuAI(true);
-      setActiveTab(tabName);
-    } else {
-      setActiveTab(tabName);
-    }
-    
+    setActiveTab(tabName);
     return true;
   };
 
@@ -7497,20 +7486,6 @@ ${
                 Social Feed
               </div>
             </button>
-
-            <button
-              onClick={() => handleTabClick("stock-news")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "stock-news"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Newspaper className="h-4 w-4" />
-                Stock News
-              </div>
-            </button>
           </div>
         </nav>
 
@@ -7548,11 +7523,7 @@ ${
       <div className="flex flex-col chatgpt-main-content min-h-screen md:min-h-screen min-h-[100dvh] overscroll-none">
         {/* Content */}
         <main className="flex-1 overflow-hidden">
-          <div
-            className={`h-full ${
-              activeTab === "stock-news" ? "" : "overflow-auto"
-            }`}
-          >
+          <div className="h-full overflow-auto">
             {/* Render content based on active tab */}
 
             {activeTab === 'dashboard' && localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
@@ -12797,21 +12768,6 @@ ${
                   Got It
                 </Button>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* BATTU AI Dialog */}
-        <Dialog open={showBattuAI} onOpenChange={setShowBattuAI}>
-          <DialogContent className="max-w-4xl h-[80vh] p-0">
-            <DialogHeader className="p-6 pb-2">
-              <DialogTitle className="flex items-center gap-3">
-                <Bot className="h-6 w-6 text-purple-600" />
-                <span>BATTU AI Finance Assistant</span>
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 h-full px-6 pb-6">
-              <StockNewsSearch />
             </div>
           </DialogContent>
         </Dialog>
