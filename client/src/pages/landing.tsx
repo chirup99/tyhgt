@@ -23,27 +23,19 @@ export default function Landing() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      'prompt': 'select_account'
+    });
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      // Capture display name from Google profile
-      const displayName = user.displayName || '';
-      console.log('📝 Google sign-in - Display Name:', displayName);
+      console.log('✅ Google OAuth successful:', { uid: user.uid, email: user.email, displayName: user.displayName });
       
-      // Ensure Firebase Auth profile has the display name set
-      if (displayName && !user.displayName) {
-        try {
-          await updateProfile(user, { displayName });
-          console.log('✅ Updated Firebase Auth profile with display name');
-        } catch (profileError) {
-          console.warn('⚠️ Could not update Firebase Auth profile:', profileError);
-        }
-      }
-      
+      // Get the ID token
       const idToken = await user.getIdToken();
 
-      // Send the token to your backend
+      // Send the token to your backend (backend will handle saving displayName)
       const response = await fetch('/api/auth/google', {
         method: 'POST',
         headers: {
@@ -52,36 +44,49 @@ export default function Landing() {
         }
       });
 
+      const responseData = await response.json();
+      
       if (response.ok) {
-        // Store user ID, email, and display name for later use
+        // Store user info in localStorage
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
-        localStorage.setItem('currentUserName', displayName);
+        localStorage.setItem('currentUserName', user.displayName || user.email || '');
         
-        // Immediately redirect to app
-        console.log('✅ Google sign-in successful, redirecting to app...');
+        console.log('✅ Google sign-in successful, redirecting to app...', responseData);
         window.location.href = "/";
       } else {
+        console.error('Backend auth failed:', responseData);
         toast({
           title: "Authentication Failed",
-          description: "Could not sign in with Google. Please try again.",
+          description: responseData?.message || "Could not sign in with Google.",
           variant: "destructive",
         });
       }
     } catch (error: any) {
+      console.error("Google sign-in error details:", error);
+      
       if (error.code === 'auth/api-key-not-valid') {
-        console.error("Firebase: Invalid API Key. Please check your Firebase configuration.");
+        toast({
+          title: "Configuration Error",
+          description: "Firebase API Key is invalid. Contact support.",
+          variant: "destructive",
+        });
       } else if (error.code === 'auth/account-exists-with-different-credential') {
         toast({
           title: "Account Exists",
-          description: "An account with this email already exists. Please use your original sign-in method or try a different Google account.",
+          description: "An account with this email already exists.",
+          variant: "destructive",
+        });
+      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/operation-not-allowed') {
+        toast({
+          title: "OAuth Not Configured",
+          description: "Google Sign-In is not properly configured. Please check Firebase Console settings.",
           variant: "destructive",
         });
       } else {
-        console.error("Google sign-in error:", error);
         toast({
-          title: "Error",
-          description: "An unexpected error occurred during Google sign-in.",
+          title: "Sign-In Error",
+          description: error.message || "An unexpected error occurred during Google sign-in.",
           variant: "destructive",
         });
       }
