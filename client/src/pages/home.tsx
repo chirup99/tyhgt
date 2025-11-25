@@ -8609,12 +8609,12 @@ ${
 
             {activeTab === "trading-master" && (
               <div className="h-full relative">
-                {/* Back Button */}
+                {/* Back Button - Mobile Only */}
                 <Button
                   onClick={() => setTabWithAuthCheck("trading-home")}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                  className="lg:hidden absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                   data-testid="button-back-to-home-trading-master"
                 >
                   <ArrowLeft className="h-6 w-6" />
@@ -8625,12 +8625,12 @@ ${
 
             {activeTab === "journal" && (
               <div className="space-y-6 p-6 relative">
-                {/* Back Button */}
+                {/* Back Button - Mobile Only */}
                 <Button
                   onClick={() => setTabWithAuthCheck("trading-home")}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                  className="lg:hidden absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                   data-testid="button-back-to-home-journal"
                 >
                   <ArrowLeft className="h-6 w-6" />
