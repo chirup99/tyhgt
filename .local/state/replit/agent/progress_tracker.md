@@ -117,17 +117,18 @@
 [x] 2317. ✅✅✅ WORLD MAP DOT SIZE DECREASED! ✅✅✅
 [x] 2318. 🎉🎉🎉 FULL SCREEN WORLD MAP NOW HAS SMALLER DOTS! 🎉🎉🎉
 
-[x] 2319. NOVEMBER 25, 2025 - WORLD MAP LIGHT THEME CUSTOM COLORS
-[x] 2320. User requested: "for world maps white theme green colors use this color 2b6a4d and red cb0b0a"
-[x] 2321. ✅ Updated getRegionColor function to use theme-based colors (lines 58-66)
-[x] 2322. ✅ Light theme green (market up): Changed from #10b981 to #2b6a4d
-[x] 2323. ✅ Light theme red (market down): Changed from #ef4444 to #cb0b0a
-[x] 2324. ✅ Dark theme colors remain unchanged (#10b981 green, #ef4444 red)
-[x] 2325. ✅ Updated market indicators to use same theme-based colors (lines 130-134)
-[x] 2326. ✅ Both map dots and market indicator labels now use custom light theme colors
-[x] 2327. ✅ Workflow restarted to apply changes
-[x] 2328. ✅✅✅ LIGHT THEME CUSTOM COLORS APPLIED! ✅✅✅
-[x] 2329. 🎉🎉🎉 WORLD MAP NOW HAS CUSTOM GREEN AND RED FOR LIGHT THEME! 🎉🎉🎉
+[x] 2319. NOVEMBER 25, 2025 - WORLD MAP LIGHT THEME CUSTOM COLORS (UPDATED)
+[x] 2320. User requested: "for white theme for dots use this color d5f2e3, green use 73ba9b, red ef233c"
+[x] 2321. ✅ Updated getRegionColor function to use new light theme colors
+[x] 2322. ✅ Light theme dots (non-market regions): Changed to #d5f2e3 (light mint)
+[x] 2323. ✅ Light theme green (market up): Changed to #73ba9b (medium teal green)
+[x] 2324. ✅ Light theme red (market down): Changed to #ef233c (bright red)
+[x] 2325. ✅ Dark theme colors remain unchanged (#10b981 green, #ef4444 red, #ffffff dots)
+[x] 2326. ✅ Updated market indicators to use same theme-based colors
+[x] 2327. ✅ Both map dots and market indicator labels now use new custom light theme colors
+[x] 2328. ✅ Workflow restarted to apply changes
+[x] 2329. ✅✅✅ NEW LIGHT THEME COLORS APPLIED! ✅✅✅
+[x] 2330. 🎉🎉🎉 WORLD MAP NOW HAS UPDATED CUSTOM COLORS FOR LIGHT THEME! 🎉🎉🎉
 
 [x] 2146. NOVEMBER 25, 2025 - WORLD MAP FIXED POSITIONING REMOVED
 [x] 2147. User reported: "world map is not moving with screen when i tap on homeberg button its stay on screen remove that feature offset with creen"
