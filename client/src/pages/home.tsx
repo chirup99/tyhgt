@@ -7568,18 +7568,6 @@ ${
                             setting & privacy
                           </button>
                           <button
-                            onClick={toggleTheme}
-                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
-                            data-testid="nav-darkmode"
-                          >
-                            {theme === "dark" ? (
-                              <Sun className="h-4 w-4" />
-                            ) : (
-                              <Moon className="h-4 w-4" />
-                            )}
-                            <span>dark mode</span>
-                          </button>
-                          <button
                             onClick={async () => {
                               try {
                                 await signOut(auth);

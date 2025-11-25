@@ -18,7 +18,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
-import { Home as HomeIcon, BarChart3, Sun, Moon, LogIn } from "lucide-react";
+import { Home as HomeIcon, BarChart3, Sun, Moon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { 
@@ -261,13 +261,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       icon: HomeIcon,
       current: location === "/app",
     },
-    {
-      name: "Sign In",
-      href: "#",
-      icon: LogIn,
-      current: false,
-      isSignIn: true,
-    },
     ...(currentUserEmail === 'chiranjeevi.perala99@gmail.com' ? [{
       name: "Dashboard", 
       href: "/dashboard", 
@@ -340,8 +333,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
               onClick={() => {
                 if (item.isThemeToggle) {
                   toggleTheme();
-                } else if (item.isSignIn) {
-                  handleNavigation('/login');
                 } else if (item.href === '/dashboard' && !isDashboardAuthenticated) {
                   setShowPasscodeModal(true);
                 } else {

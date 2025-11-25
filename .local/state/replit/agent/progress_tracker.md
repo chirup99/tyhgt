@@ -96,6 +96,18 @@
 [x] 2298. ✅✅✅ REPLIT ENVIRONMENT MIGRATION COMPLETE! ✅✅✅
 [x] 2299. 🎉🎉🎉 PROJECT SUCCESSFULLY MIGRATED AND RUNNING! 🎉🎉🎉
 
+[x] 2300. NOVEMBER 25, 2025 - UI CLEANUP: REMOVED SIGN IN AND DARK MODE BUTTONS
+[x] 2301. User requested: "full size screen remove logout button from vertical side bar and full screen on profile details remove darkmode button"
+[x] 2302. ✅ Removed Sign In button from vertical sidebar in App.tsx (right black bar)
+[x] 2303. ✅ Removed unused LogIn import from App.tsx
+[x] 2304. ✅ Removed dark mode button from full screen profile menu in home.tsx
+[x] 2305. ✅ Fixed LSP error by removing isSignIn conditional check
+[x] 2306. ✅ Vertical sidebar now shows: Home, Dashboard (conditional), Theme, Profile
+[x] 2307. ✅ Full screen profile menu now shows: profile, saved, dashboard (conditional), settings & privacy, logout
+[x] 2308. ✅ Workflow restarted successfully
+[x] 2309. ✅✅✅ UI CLEANUP COMPLETED! ✅✅✅
+[x] 2310. 🎉🎉🎉 SIGN IN AND DARK MODE BUTTONS REMOVED! 🎉🎉🎉
+
 [x] 2146. NOVEMBER 25, 2025 - WORLD MAP FIXED POSITIONING REMOVED
 [x] 2147. User reported: "world map is not moving with screen when i tap on homeberg button its stay on screen remove that feature offset with creen"
 [x] 2148. Issue identified: World map had fixed positioning (position: fixed) keeping it stuck at top of screen
