@@ -54,7 +54,12 @@ const getRegionColor = (x: number, y: number, marketData: any, isDarkMode: boole
 
   // Return color based on market status
   if (regionName && marketData && marketData[regionName]) {
-    return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Green if up, red if down
+    // Dark mode: bright colors, Light mode: darker muted colors
+    if (isDarkMode) {
+      return marketData[regionName].isUp ? "#10b981" : "#ef4444"; // Bright green/red for dark mode
+    } else {
+      return marketData[regionName].isUp ? "#2b6a4d" : "#cb0b0a"; // Muted green/red for light mode
+    }
   }
 
   // Return white for dark mode, black for light mode
@@ -121,8 +126,8 @@ export function WorldMap() {
           const market = marketData?.[region.name as keyof typeof marketData];
           const color = market
             ? market.isUp
-              ? "#10b981"
-              : "#ef4444"
+              ? (isDarkMode ? "#10b981" : "#2b6a4d")
+              : (isDarkMode ? "#ef4444" : "#cb0b0a")
             : "#64748b";
 
           return (
