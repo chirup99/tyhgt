@@ -30,12 +30,24 @@ export default function Landing() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      console.log('✅ Google OAuth successful:', { uid: user.uid, email: user.email, displayName: user.displayName });
+      // Capture display name from Google profile
+      const displayName = user.displayName || user.email || '';
+      console.log('📝 Google OAuth successful:', { uid: user.uid, email: user.email, displayName });
+      
+      // Update Firebase Auth profile with display name
+      if (displayName && !user.displayName) {
+        try {
+          await updateProfile(user, { displayName });
+          console.log('✅ Updated Firebase Auth profile with displayName:', displayName);
+        } catch (profileError) {
+          console.warn('⚠️ Could not update Firebase Auth profile:', profileError);
+        }
+      }
       
       // Get the ID token
       const idToken = await user.getIdToken();
 
-      // Send the token to your backend (backend will handle saving displayName)
+      // Send the token to your backend (backend will also save displayName from ID token)
       const response = await fetch('/api/auth/google', {
         method: 'POST',
         headers: {
@@ -47,12 +59,12 @@ export default function Landing() {
       const responseData = await response.json();
       
       if (response.ok) {
-        // Store user info in localStorage
+        // Store user info in localStorage with display name
         localStorage.setItem('currentUserId', user.uid);
         localStorage.setItem('currentUserEmail', user.email || '');
-        localStorage.setItem('currentUserName', user.displayName || user.email || '');
+        localStorage.setItem('currentUserName', displayName);
         
-        console.log('✅ Google sign-in successful, redirecting to app...', responseData);
+        console.log('✅ Google sign-in successful with displayName, redirecting to app...', { displayName, responseData });
         window.location.href = "/";
       } else {
         console.error('Backend auth failed:', responseData);
