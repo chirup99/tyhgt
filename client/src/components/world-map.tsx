@@ -78,7 +78,7 @@ export function WorldMap() {
   }, []);
 
   // Smaller dot size for mobile screens
-  const dotRadius = isMobile ? "1.5" : "2.5";
+  const dotRadius = isMobile ? "1.5" : "1.8";
 
   return (
     <div className="mb-5 relative">

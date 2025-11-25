@@ -108,6 +108,15 @@
 [x] 2309. ✅✅✅ UI CLEANUP COMPLETED! ✅✅✅
 [x] 2310. 🎉🎉🎉 SIGN IN AND DARK MODE BUTTONS REMOVED! 🎉🎉🎉
 
+[x] 2311. NOVEMBER 25, 2025 - WORLD MAP DOT SIZE DECREASED FOR FULL SCREEN
+[x] 2312. User requested: "on world maps for full screen decrease dot size"
+[x] 2313. ✅ Changed desktop dot radius from 2.5 to 1.8 in world-map.tsx (line 84)
+[x] 2314. ✅ Mobile dot radius remains 1.5 (unchanged)
+[x] 2315. ✅ World map dots now appear smaller and less prominent on full screen
+[x] 2316. ✅ Workflow restarted to apply changes
+[x] 2317. ✅✅✅ WORLD MAP DOT SIZE DECREASED! ✅✅✅
+[x] 2318. 🎉🎉🎉 FULL SCREEN WORLD MAP NOW HAS SMALLER DOTS! 🎉🎉🎉
+
 [x] 2146. NOVEMBER 25, 2025 - WORLD MAP FIXED POSITIONING REMOVED
 [x] 2147. User reported: "world map is not moving with screen when i tap on homeberg button its stay on screen remove that feature offset with creen"
 [x] 2148. Issue identified: World map had fixed positioning (position: fixed) keeping it stuck at top of screen
