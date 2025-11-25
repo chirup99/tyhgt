@@ -8558,6 +8558,74 @@ ${
               </div>
             )}
 
+            {activeTab === "chart" && (
+              <div className="h-full p-6 space-y-6">
+                <div className="max-w-6xl mx-auto">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-blue-500/10 rounded-lg">
+                        <BarChart3 className="h-6 w-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-bold">Trading Charts</h1>
+                        <p className="text-muted-foreground mt-1">Advanced charting tools for technical analysis</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coming Soon Placeholder */}
+                  <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-xl p-12">
+                    <div className="text-center space-y-4">
+                      <div className="w-20 h-20 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center">
+                        <BarChart3 className="h-10 w-10 text-blue-500" />
+                      </div>
+                      <h2 className="text-2xl font-semibold">Advanced Charts Coming Soon</h2>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        We're integrating professional-grade charting tools with multiple timeframes, technical indicators, and drawing tools for comprehensive market analysis.
+                      </p>
+                      <div className="pt-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-500 rounded-lg">
+                          <span className="text-sm font-medium">Under Development</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Feature Preview Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-orange-500/10 rounded-lg w-fit mb-4">
+                        <TrendingUp className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Multiple Timeframes</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Analyze price action across 1m, 5m, 15m, 1h, 4h, daily, and weekly charts
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-cyan-500/10 rounded-lg w-fit mb-4">
+                        <Activity className="h-5 w-5 text-cyan-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Technical Indicators</h3>
+                      <p className="text-sm text-muted-foreground">
+                        50+ built-in indicators including RSI, MACD, Moving Averages, and more
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-violet-500/10 rounded-lg w-fit mb-4">
+                        <PenTool className="h-5 w-5 text-violet-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Drawing Tools</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Trendlines, support/resistance levels, Fibonacci retracements, and patterns
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === "backtest" && (
               <div className="h-full p-6 space-y-6">
                 <div className="max-w-6xl mx-auto">
