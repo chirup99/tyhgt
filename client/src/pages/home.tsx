@@ -7619,25 +7619,12 @@ ${
                     )}
                   </button>
 
-                  {/* Hamburger Menu Button */}
+                  {/* Profile Icon with Menu Function */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsNavOpen(!isNavOpen);
                     }}
-                    className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 rounded-lg hover:bg-white/10 transition-colors"
-                    data-testid="button-desktop-nav-toggle"
-                  >
-                    <div
-                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 rotate-45 translate-y-1" : "w-5"}`}
-                    ></div>
-                    <div
-                      className={`h-0.5 bg-white transition-all duration-300 ${isNavOpen ? "w-5 -rotate-45 -translate-y-1" : "w-4 ml-1"}`}
-                    ></div>
-                  </button>
-
-                  {/* Profile Icon */}
-                  <button
                     className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
                     data-testid="button-desktop-profile"
                   >
