@@ -86,6 +86,18 @@
 [x] 2155. ✅ Map no longer stays fixed when hamburger menu is opened
 [x] 2156. ✅✅✅ WORLD MAP FIXED POSITIONING REMOVED! ✅✅✅
 [x] 2157. 🎉🎉🎉 WORLD MAP NOW MOVES WITH SCREEN CONTENT! 🎉🎉🎉
+
+[x] 2158. NOVEMBER 25, 2025 - WORLD MAP DISPLAY FIX
+[x] 2159. User reported: "world maps is not dispalying"
+[x] 2160. Issue identified: World map was covered by main content div with z-20
+[x] 2161. Root cause: World map was positioned outside main content and got overlapped
+[x] 2162. ✅ Moved world map section inside main content div (line 7622-7628)
+[x] 2163. ✅ World map now appears at top of main content area
+[x] 2164. ✅ Removed separate wrapper section that was outside content flow
+[x] 2165. ✅ Map background now uses theme-based colors (dark: #1a1a1a, light: #ffffff)
+[x] 2166. ✅ World map properly contained within page structure
+[x] 2167. ✅✅✅ WORLD MAP NOW DISPLAYING! ✅✅✅
+[x] 2168. 🎉🎉🎉 WORLD MAP VISIBLE AND MOVES WITH CONTENT! 🎉🎉🎉
 [x] 2092. ✅ Removed Complete Scanner sidebar button (lines 7355-7364)
 [x] 2093. ✅ Removed Trade Simulator sidebar button (lines 7397-7406)
 [x] 2094. ✅ Removed 4 Candle Rule content section (activeTab === "4candle")

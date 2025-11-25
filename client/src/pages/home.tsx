@@ -7604,14 +7604,6 @@ ${
                   ></div>
                 </button>
 
-                {/* World Map Section - Relative position, moves with content */}
-                <div className="relative h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3" style={{ background: window.innerWidth >= 768 ? (theme === 'dark' ? '#1a1a1a' : '#ffffff') : undefined }}>
-                  {/* Container for WorldMap - full width on mobile, constrained on desktop */}
-                  <div className="w-full md:max-w-lg flex items-center justify-center">
-                    <WorldMap />
-                  </div>
-                </div>
-
                 {/* Home Screen - Stacks on top with card effect */}
                 <div
                   onClick={() => isNavOpen && setIsNavOpen(false)}
@@ -7624,6 +7616,14 @@ ${
                     transformOrigin: "right center",
                   }}
                 >
+                  {/* World Map Section - At top of main content */}
+                  <div className="w-full flex items-center justify-center py-3" style={{ background: theme === 'dark' ? '#1a1a1a' : '#ffffff' }}>
+                    {/* Container for WorldMap - full width on mobile, constrained on desktop */}
+                    <div className="w-full md:max-w-lg flex items-center justify-center">
+                      <WorldMap />
+                    </div>
+                  </div>
+
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
                   <div className="h-[75vh] md:h-[69vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
