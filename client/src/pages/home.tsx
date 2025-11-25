@@ -170,6 +170,7 @@ import {
   Facebook,
   Linkedin,
   Twitter,
+  Settings,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -7392,17 +7393,6 @@ ${
             </p>
 
             <button
-              onClick={() => handleTabClick("backtest")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
-                activeTab === "backtest"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent hover:bg-opacity-50"
-              }`}
-            >
-              Backtest
-            </button>
-
-            <button
               onClick={() => setTabWithAuthCheck("cb")}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors sidebar-text ${
                 activeTab === "cb"
@@ -8563,6 +8553,74 @@ ${
                     }
                   }
                 `}</style>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "backtest" && (
+              <div className="h-full p-6 space-y-6">
+                <div className="max-w-6xl mx-auto">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        <Activity className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-bold">Backtest Trading Strategies</h1>
+                        <p className="text-muted-foreground mt-1">Test your trading rules with historical data</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coming Soon Placeholder */}
+                  <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-xl p-12">
+                    <div className="text-center space-y-4">
+                      <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                        <Activity className="h-10 w-10 text-primary" />
+                      </div>
+                      <h2 className="text-2xl font-semibold">Backtest Feature Coming Soon</h2>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        We're building a powerful backtesting engine to help you validate your trading strategies with historical market data.
+                      </p>
+                      <div className="pt-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg">
+                          <span className="text-sm font-medium">Under Development</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Feature Preview Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-blue-500/10 rounded-lg w-fit mb-4">
+                        <BarChart3 className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Historical Data Analysis</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Test strategies against years of historical market data
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-green-500/10 rounded-lg w-fit mb-4">
+                        <TrendingUp className="h-5 w-5 text-green-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Performance Metrics</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Comprehensive statistics on returns, drawdowns, and win rates
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-purple-500/10 rounded-lg w-fit mb-4">
+                        <Settings className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Custom Rules</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Define your own entry, exit, and risk management rules
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
