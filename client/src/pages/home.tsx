@@ -11090,20 +11090,7 @@ ${
               </div>
             )}
 
-            {activeTab === "insights" && (
-              <div className="min-h-screen bg-gray-900 text-white p-6 space-y-6">
-                {/* Tools Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
-                      Tools
-                    </h3>
-                    <span className="text-sm text-blue-400 cursor-pointer hover:underline">
-                      View all
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-4">
+            {/* Insights tab removed */}
                     {/* Screeners */}
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:bg-gray-750 transition-colors cursor-pointer">
                       <div className="flex flex-col space-y-3">
