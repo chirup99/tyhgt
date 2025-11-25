@@ -1,6 +1,19 @@
 [x] 1. Re-installed cross-env package for November 13, 2025 environment migration
 [... Previous entries 2-1245 omitted for brevity ...]
 
+[x] 2383. NOVEMBER 25, 2025 - DESKTOP CREATE POST AUDIO TOGGLE SWITCH ADDED
+[x] 2384. User requested: "for desktop screen for create post window for radio button add like toggle switch"
+[x] 2385. ✅ Added Switch import from '@/components/ui/switch'
+[x] 2386. ✅ Created toggle switch for desktop view (hidden md:flex)
+[x] 2387. ✅ Toggle switch shows Radio icon next to it for visual context
+[x] 2388. ✅ Switch turns purple when active (data-[state=checked]:bg-purple-600)
+[x] 2389. ✅ Kept original button for mobile view (md:hidden)
+[x] 2390. ✅ Mobile still uses circular button with Radio icon
+[x] 2391. ✅ Desktop now has clean toggle switch for audio mode
+[x] 2392. ✅ HMR automatically picked up changes
+[x] 2393. ✅ Workflow running on port 5000
+[x] 2394. ✅✅✅ DESKTOP AUDIO TOGGLE SWITCH IMPLEMENTED! ✅✅✅
+
 [x] 2356. NOVEMBER 25, 2025 - FINAL IMPORT MIGRATION COMPLETION
 [x] 2357. User requested: "Update progress tracker file as tasks are completed"
 [x] 2358. ✅ Read progress tracker file successfully (5618 lines)

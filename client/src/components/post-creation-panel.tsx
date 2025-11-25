@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check, Plus } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
 import { StackedSwipeableCards } from './stacked-swipeable-cards';
@@ -298,7 +299,30 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Audio Icon */}
+            {/* Audio Toggle Switch - Desktop only */}
+            {!hideAudioMode && (
+              <div className="hidden md:flex items-center gap-2">
+                <Radio className={`h-4 w-4 ${
+                  viewMode === 'audio'
+                    ? 'text-purple-600 dark:text-purple-400'
+                    : 'text-gray-400 dark:text-gray-500'
+                }`} />
+                <Switch
+                  checked={viewMode === 'audio'}
+                  onCheckedChange={(checked) => {
+                    if (!checked && viewMode === 'audio' && onMinimize) {
+                      setIsAudioMode(false);
+                      onMinimize();
+                    } else {
+                      setViewMode(checked ? 'audio' : 'post');
+                    }
+                  }}
+                  className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-300 dark:data-[state=unchecked]:bg-gray-600"
+                  data-testid="switch-toggle-audio"
+                />
+              </div>
+            )}
+            {/* Audio Icon - Mobile only */}
             {!hideAudioMode && (
               <Button
                 variant="ghost"
@@ -311,7 +335,7 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
                     setViewMode(viewMode === 'audio' ? 'post' : 'audio');
                   }
                 }}
-                className={`p-2 h-8 w-8 rounded-full ${
+                className={`md:hidden p-2 h-8 w-8 rounded-full ${
                   viewMode === 'audio' 
                     ? 'bg-purple-100 dark:bg-purple-900/30' 
                     : 'hover:bg-gray-200 dark:hover:bg-gray-600'
