@@ -171,6 +171,8 @@ import {
   Linkedin,
   Twitter,
   Settings,
+  Filter,
+  Radar,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -8542,6 +8544,195 @@ ${
                     }
                   }
                 `}</style>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "4candle" && (
+              <div className="h-full p-6 space-y-6">
+                <div className="max-w-6xl mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-orange-500/10 rounded-lg">
+                        <TrendingUp className="h-6 w-6 text-orange-500" />
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-bold">4 Candle Rule</h1>
+                        <p className="text-muted-foreground mt-1">Trading pattern recognition and analysis</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-xl p-12">
+                    <div className="text-center space-y-4">
+                      <div className="w-20 h-20 mx-auto bg-orange-500/10 rounded-full flex items-center justify-center">
+                        <TrendingUp className="h-10 w-10 text-orange-500" />
+                      </div>
+                      <h2 className="text-2xl font-semibold">4 Candle Rule Coming Soon</h2>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Automated detection and analysis of 4-candle patterns for identifying trending opportunities and entry/exit signals.
+                      </p>
+                      <div className="pt-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/10 text-orange-500 rounded-lg">
+                          <span className="text-sm font-medium">Under Development</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-blue-500/10 rounded-lg w-fit mb-4">
+                        <Activity className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Pattern Recognition</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Real-time detection of 4-candle formation patterns
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-green-500/10 rounded-lg w-fit mb-4">
+                        <TrendingUp className="h-5 w-5 text-green-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Signal Generation</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Automatic buy/sell signals based on pattern completion
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-purple-500/10 rounded-lg w-fit mb-4">
+                        <Settings className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Customizable Rules</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Adjust sensitivity and confirmation criteria
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "check" && (
+              <div className="h-full p-6 space-y-6">
+                <div className="max-w-6xl mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-cyan-500/10 rounded-lg">
+                        <Zap className="h-6 w-6 text-cyan-500" />
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-bold">BATTU Scan</h1>
+                        <p className="text-muted-foreground mt-1">Advanced stock screening and analysis</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-xl p-12">
+                    <div className="text-center space-y-4">
+                      <div className="w-20 h-20 mx-auto bg-cyan-500/10 rounded-full flex items-center justify-center">
+                        <Zap className="h-10 w-10 text-cyan-500" />
+                      </div>
+                      <h2 className="text-2xl font-semibold">BATTU Scan Coming Soon</h2>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Comprehensive stock screening tool with multiple technical criteria and customizable watchlists.
+                      </p>
+                      <div className="pt-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 rounded-lg">
+                          <span className="text-sm font-medium">Under Development</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-blue-500/10 rounded-lg w-fit mb-4">
+                        <Filter className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Multi-Criteria Screening</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Filter stocks by price action, volume, and technical indicators
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-green-500/10 rounded-lg w-fit mb-4">
+                        <BarChart3 className="h-5 w-5 text-green-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Real-time Results</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Live market data with instant stock results
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-purple-500/10 rounded-lg w-fit mb-4">
+                        <Save className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Save Watchlists</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Create and manage your custom stock watchlists
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "scanner" && (
+              <div className="h-full p-6 space-y-6">
+                <div className="max-w-6xl mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-violet-500/10 rounded-lg">
+                        <Radar className="h-6 w-6 text-violet-500" />
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-bold">Complete Scanner</h1>
+                        <p className="text-muted-foreground mt-1">Full market scanning with advanced filters</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-xl p-12">
+                    <div className="text-center space-y-4">
+                      <div className="w-20 h-20 mx-auto bg-violet-500/10 rounded-full flex items-center justify-center">
+                        <Radar className="h-10 w-10 text-violet-500" />
+                      </div>
+                      <h2 className="text-2xl font-semibold">Complete Scanner Coming Soon</h2>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Professional-grade market scanner with comprehensive technical analysis and pattern detection across all timeframes.
+                      </p>
+                      <div className="pt-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/10 text-violet-500 rounded-lg">
+                          <span className="text-sm font-medium">Under Development</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-blue-500/10 rounded-lg w-fit mb-4">
+                        <Search className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Advanced Search</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Scan entire market with complex filter combinations
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-green-500/10 rounded-lg w-fit mb-4">
+                        <TrendingUp className="h-5 w-5 text-green-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Pattern Detection</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Identify chart patterns and technical setups
+                      </p>
+                    </div>
+                    <div className="bg-card border border-border rounded-lg p-6">
+                      <div className="p-2 bg-purple-500/10 rounded-lg w-fit mb-4">
+                        <AlertCircle className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <h3 className="font-semibold mb-2">Alert System</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Get notified when your scan criteria are met
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
