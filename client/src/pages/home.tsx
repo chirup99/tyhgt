@@ -7616,8 +7616,8 @@ ${
                     ></div>
                   </button>
 
-                  {/* World Map Section: Desktop theme background, Mobile white with gradient */}
-                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 px-8 pt-1 pb-1 relative bg-gradient-to-b from-white to-primary/10 md:bg-background">
+                  {/* World Map Section: Desktop theme background, Mobile matches blue section */}
+                  <div className="h-1/4 md:h-[31vh] w-full flex items-center justify-center md:px-2 md:py-3 px-8 pt-1 pb-1 relative bg-blue-900 md:bg-background">
                     {/* Simple container for WorldMap */}
                     <div className="w-full md:max-w-lg max-w-6xl flex items-center justify-center">
                       <WorldMap />
