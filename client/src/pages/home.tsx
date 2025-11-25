@@ -1838,9 +1838,39 @@ export default function Home() {
   const [chartTimeframe, setChartTimeframe] = useState<string>("1");
   // Navigation menu state
   const [isNavOpen, setIsNavOpen] = useState(false);
+  
+  // Auth state initialization - wait for Firebase to sync
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   // Get current user data from Firebase
   const { currentUser } = useCurrentUser();
+  
+  // Initialize Firebase auth sync with localStorage
+  useEffect(() => {
+    const userId = localStorage.getItem('currentUserId');
+    const userEmail = localStorage.getItem('currentUserEmail');
+    
+    if (userId && userEmail && userId !== 'null' && userEmail !== 'null') {
+      console.log('✅ Auth initialized from localStorage:', { userId, userEmail });
+      setAuthInitialized(true);
+    } else {
+      // Wait for Firebase auth state with timeout
+      const timer = setTimeout(() => {
+        const finalUserId = localStorage.getItem('currentUserId');
+        const finalUserEmail = localStorage.getItem('currentUserEmail');
+        
+        if (!finalUserId || !finalUserEmail || finalUserId === 'null' || finalUserEmail === 'null') {
+          console.log('❌ No auth found after timeout, redirecting to login');
+          setLocation('/login');
+        } else {
+          console.log('✅ Auth initialized after delay:', { finalUserId, finalUserEmail });
+          setAuthInitialized(true);
+        }
+      }, 500); // Wait 500ms for Firebase auth to sync
+      
+      return () => clearTimeout(timer);
+    }
+  }, [setLocation]);
 
   // AI Search state
   const [searchQuery, setSearchQuery] = useState("");
