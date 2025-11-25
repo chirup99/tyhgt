@@ -769,13 +769,13 @@ function FeedHeader({ onAllClick, isRefreshing, selectedFilter, onFilterChange, 
             ))}
           </div>
           
-          {/* Back Button - Right Corner */}
+          {/* Back Button - Right Corner (Mobile Only) */}
           {onBackClick && (
             <Button
               onClick={onBackClick}
               variant="ghost"
               size="icon"
-              className="flex-shrink-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              className="hidden lg:flex flex-shrink-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
               data-testid="button-back-to-home"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -2730,13 +2730,13 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" ref={containerRef}>
-      {/* Back Button - Absolute positioned in top-right corner (same as Trading Master) */}
+      {/* Back Button - Absolute positioned in top-right corner (Mobile Only) */}
       {onBackClick && (
         <Button
           onClick={onBackClick}
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+          className="hidden lg:flex absolute top-4 right-4 z-50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
           data-testid="button-back-to-home-neofeed"
         >
           <ArrowLeft className="h-6 w-6" />
