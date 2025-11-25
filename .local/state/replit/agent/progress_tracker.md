@@ -35,6 +35,14 @@
 [x] 2054. ✅✅✅ TRADING CHARTS TAB NOW LOADS CORRECTLY! ✅✅✅
 [x] 2055. 🎉🎉🎉 TRADING CHARTS FEATURE ACCESSIBLE WITH COMING SOON PLACEHOLDER! 🎉🎉🎉
 
+[x] 2056. NOVEMBER 25, 2025 - TRADING CHARTS COMPLETELY REMOVED FROM SIDEBAR
+[x] 2057. User requested: "remove completely trading charts from side bar"
+[x] 2058. ✅ Removed Trading Charts button from sidebar (lines 7331-7340)
+[x] 2059. ✅ Removed Trading Charts content section (lines 8564-8630)
+[x] 2060. ✅ Sidebar now cleaner with one less item in Core Trading Tools section
+[x] 2061. ✅ No orphaned code or references left behind
+[x] 2062. ✅✅✅ TRADING CHARTS COMPLETELY REMOVED! ✅✅✅
+
 [x] 1246. NOVEMBER 20, 2025 - PERSONAL HEATMAP REBUILD  
 [x] 1247. User requested: "do same for personal heatmap also like demo"
 [x] 1248. User requested: "completely rebuilt the DemoHeatmap component from scratch with simple direct data fetching"
