@@ -99,17 +99,14 @@
 [x] 2167. ✅✅✅ WORLD MAP NOW DISPLAYING! ✅✅✅
 [x] 2168. 🎉🎉🎉 WORLD MAP VISIBLE AND MOVES WITH CONTENT! 🎉🎉🎉
 
-[x] 2169. NOVEMBER 25, 2025 - MOBILE WORLD MAP COUNTRIES CONTAINER BACKGROUND FIX
-[x] 2170. User reported: "only for mobile screen below worldmaps contries text container is dark blue color backgorund"
-[x] 2171. Issue identified: Countries indicator container (line 119) had no background color for mobile
-[x] 2172. Root cause: Container only had flex/gap styling with no mobile-specific background
-[x] 2173. ✅ Added dark blue background for mobile screens (bg-blue-900)
-[x] 2174. ✅ Made background transparent on desktop (md:bg-transparent)
-[x] 2175. ✅ Added mobile padding (py-2 px-4) and desktop no padding (md:py-0 md:px-0)
-[x] 2176. ✅ Added rounded corners for mobile (rounded-lg) and removed on desktop (md:rounded-none)
-[x] 2177. ✅ Container now matches blue section design on mobile screens
-[x] 2178. ✅✅✅ MOBILE COUNTRIES CONTAINER BACKGROUND FIXED! ✅✅✅
-[x] 2179. 🎉🎉🎉 WORLD MAP COUNTRIES TEXT NOW HAS DARK BLUE BACKGROUND ON MOBILE! 🎉🎉🎉
+[x] 2169. NOVEMBER 25, 2025 - MOBILE WORLD MAP COUNTRIES CONTAINER BACKGROUND REMOVED
+[x] 2170. User requested: "remove it i dont liked background" for countries text container
+[x] 2171. ✅ Removed dark blue background (bg-blue-900) from countries container
+[x] 2172. ✅ Removed mobile padding (py-2 px-4) and desktop padding overrides
+[x] 2173. ✅ Removed rounded corners (rounded-lg) styling
+[x] 2174. ✅ Container back to simple flex layout with gap and wrap
+[x] 2175. ✅✅✅ BACKGROUND REMOVED FROM COUNTRIES CONTAINER! ✅✅✅
+[x] 2176. 🎉🎉🎉 COUNTRIES TEXT NOW HAS NO BACKGROUND! 🎉🎉🎉
 [x] 2092. ✅ Removed Complete Scanner sidebar button (lines 7355-7364)
 [x] 2093. ✅ Removed Trade Simulator sidebar button (lines 7397-7406)
 [x] 2094. ✅ Removed 4 Candle Rule content section (activeTab === "4candle")
