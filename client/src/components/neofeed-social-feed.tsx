@@ -903,18 +903,25 @@ function ProfileHeader() {
     }
   });
 
-  // Filter user's posts
+  // Filter user's posts (works for regular users and bots)
   const userPosts = allPosts.filter(post => {
-    const matches = profileData && (
+    if (!profileData) return false;
+    
+    const matches = (
       post.authorUsername === profileData.username || 
       post.user?.handle === profileData.username ||
-      post.authorUsername === currentUser?.email?.split('@')[0]
+      post.authorUsername === currentUser?.email?.split('@')[0] ||
+      post.authorDisplayName === profileData.displayName ||
+      post.user?.username === profileData.username
     );
-    if (matches && profileData) {
+    
+    if (matches) {
       console.log('✅ ProfileHeader - Post matched user:', {
         postId: post.id,
         postAuthor: post.authorUsername,
-        profileUsername: profileData.username
+        postDisplayName: post.authorDisplayName,
+        profileUsername: profileData.username,
+        profileDisplayName: profileData.displayName
       });
     }
     return matches;

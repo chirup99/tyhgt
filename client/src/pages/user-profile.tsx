@@ -150,10 +150,16 @@ export default function UserProfile() {
     },
   });
 
-  // Filter posts for this user
-  const userPosts = allPosts.filter(post => 
-    post.authorUsername === username
-  );
+  // Filter posts for this user (works for regular users and bots)
+  const userPosts = allPosts.filter(post => {
+    if (!username) return false;
+    return (
+      post.authorUsername === username ||
+      post.user?.handle === username ||
+      post.authorDisplayName === profileData?.displayName ||
+      post.user?.username === username
+    );
+  });
 
   useEffect(() => {
     setPostCount(userPosts.length);
