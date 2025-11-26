@@ -1,8 +1,7 @@
 // @ts-ignore - smartapi-javascript doesn't have type declarations
 import { SmartAPI } from 'smartapi-javascript';
 // @ts-ignore - totp-generator import compatibility
-import * as totpGenerator from 'totp-generator';
-const totp = (totpGenerator as any).default || totpGenerator;
+import { TOTP } from 'totp-generator';
 
 export interface AngelOneCredentials {
   clientCode: string;
@@ -84,8 +83,8 @@ class AngelOneAPI {
     }
 
     try {
-      const totpToken = totp(this.credentials.totpSecret);
-      console.log('🔶 [Angel One] Generated TOTP token');
+      const totpToken = TOTP.generate(this.credentials.totpSecret);
+      console.log('🔶 [Angel One] Generated TOTP token:', totpToken);
 
       const response = await this.smartApi.generateSession(
         this.credentials.clientCode,
