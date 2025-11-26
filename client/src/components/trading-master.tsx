@@ -4407,6 +4407,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   // 🎯 VISUAL AI MODE STATE - Toggle between Notes AI and Visual AI
   const [isVisualAIMode, setIsVisualAIMode] = useState(false);
   const [isSidebarVisualAIMode, setIsSidebarVisualAIMode] = useState(false);
+  
+  // 📊 Trade Tab OHLC Panel State - Collapsible drop-up panel
+  const [isTradeOhlcExpanded, setIsTradeOhlcExpanded] = useState(false);
 
   // 🚀 REVOLUTIONARY PATTERN RECOGNITION ENGINE STATE
   const [isAutoDetectionEnabled, setIsAutoDetectionEnabled] = useState(false);
@@ -7993,57 +7996,87 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           <TabsContent value="trade" className="p-0 -mx-6 h-[calc(100vh-120px)]">
             <div className="flex h-full gap-0">
               {/* 75% - Visual Chart Screen (Left Side) */}
-              <div className="flex-[75] border-r border-border bg-[#131722] overflow-y-auto">
-                <div className="flex flex-col">
-                  {/* TradingView Chart */}
-                  <div className="p-0" style={{ height: typeof window !== 'undefined' ? window.innerHeight - 280 : 500 }}>
-                    <TradingViewStyleChart 
-                      height={typeof window !== 'undefined' ? window.innerHeight - 280 : 500}
-                      defaultSymbol="NSE:NIFTY50-INDEX"
-                      interval="15"
-                    />
-                  </div>
-                  
-                  {/* OHLC Data Window Below Chart */}
-                  <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700 mx-2 mb-2">
-                    <CardContent className="p-4">
-                      <div className="space-y-4">
-                        {/* OHLC Header with Controls */}
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                            <BarChart3 className="h-4 w-4 text-blue-400" />
-                            OHLC Data
-                          </h3>
-                          
-                          {/* Control Bar - Stock Search, Timeframe, Fetch, Export */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {/* Symbol Search Combobox */}
-                            <Popover open={openSymbolSearch} onOpenChange={setOpenSymbolSearch}>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  role="combobox"
-                                  aria-expanded={openSymbolSearch}
-                                  className="w-32 h-7 justify-between bg-white dark:bg-slate-800 border-slate-600 text-slate-900 dark:text-white text-xs px-2"
-                                  data-testid="button-trade-symbol-search"
-                                >
-                                  {ohlcSymbol
-                                    ? stockSymbols.find((symbol) => symbol.value === ohlcSymbol)?.label || ohlcSymbol
-                                    : "Select..."}
-                                  <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-64 p-0 bg-white dark:bg-slate-800 border-slate-600">
-                                <Command>
-                                  <CommandInput
-                                    placeholder="Search stocks..."
-                                    value={symbolSearchValue}
-                                    onValueChange={setSymbolSearchValue}
-                                    className="text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-none"
-                                  />
-                                  <CommandList className="bg-white dark:bg-slate-800 max-h-48">
-                                    <CommandEmpty className="text-slate-900 dark:text-white py-3 text-center text-xs">No stock found.</CommandEmpty>
-                                    <CommandGroup className="bg-white dark:bg-slate-800">
+              <div className="flex-[75] border-r border-border bg-[#131722] relative">
+                {/* TradingView Chart - Full Height */}
+                <div className="h-full">
+                  <TradingViewStyleChart 
+                    height={typeof window !== 'undefined' ? window.innerHeight - 120 : 600}
+                    defaultSymbol="NSE:NIFTY50-INDEX"
+                    interval="15"
+                  />
+                </div>
+                
+                {/* OHLC Drop-Up Panel - Positioned at Bottom of Chart */}
+                <div className={`absolute bottom-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+                  isTradeOhlcExpanded ? 'max-h-80' : 'max-h-10'
+                }`}>
+                  <div className="bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 rounded-t-lg mx-2 shadow-lg">
+                    {/* Clickable Header - Always Visible */}
+                    <div 
+                      className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-800/50 rounded-t-lg"
+                      onClick={() => setIsTradeOhlcExpanded(!isTradeOhlcExpanded)}
+                      data-testid="button-trade-ohlc-toggle"
+                    >
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-blue-400" />
+                        <span className="text-sm font-semibold text-white">OHLC Data</span>
+                        {ohlcSymbol && (
+                          <span className="text-xs text-slate-400">({ohlcSymbol})</span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Quick Stats when collapsed */}
+                        {!isTradeOhlcExpanded && ohlcData && ohlcData.candles && ohlcData.candles.length > 0 && (
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className="text-slate-400">O: <span className="text-white">₹{ohlcData.candles[0]?.open?.toFixed(2)}</span></span>
+                            <span className="text-green-400">H: ₹{Math.max(...ohlcData.candles.map((c: any) => c.high || 0)).toFixed(2)}</span>
+                            <span className="text-red-400">L: ₹{Math.min(...ohlcData.candles.map((c: any) => c.low || Infinity)).toFixed(2)}</span>
+                            <span className="text-purple-400">C: ₹{ohlcData.candles[ohlcData.candles.length - 1]?.close?.toFixed(2)}</span>
+                          </div>
+                        )}
+                        
+                        {/* Chevron indicator */}
+                        <ChevronUp className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${
+                          isTradeOhlcExpanded ? '' : 'rotate-180'
+                        }`} />
+                      </div>
+                    </div>
+                    
+                    {/* Expandable Content */}
+                    <div className={`overflow-hidden transition-all duration-300 ${
+                      isTradeOhlcExpanded ? 'opacity-100' : 'opacity-0 h-0'
+                    }`}>
+                      <div className="px-3 pb-3 space-y-3">
+                        {/* Control Bar - Stock Search, Timeframe, Fetch, Export */}
+                        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-slate-700/50">
+                          {/* Symbol Search Combobox */}
+                          <Popover open={openSymbolSearch} onOpenChange={setOpenSymbolSearch}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openSymbolSearch}
+                                className="w-32 h-7 justify-between bg-white dark:bg-slate-800 border-slate-600 text-slate-900 dark:text-white text-xs px-2"
+                                data-testid="button-trade-symbol-search"
+                              >
+                                {ohlcSymbol
+                                  ? stockSymbols.find((symbol) => symbol.value === ohlcSymbol)?.label || ohlcSymbol
+                                  : "Select..."}
+                                <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-0 bg-white dark:bg-slate-800 border-slate-600" side="top">
+                              <Command>
+                                <CommandInput
+                                  placeholder="Search stocks..."
+                                  value={symbolSearchValue}
+                                  onValueChange={setSymbolSearchValue}
+                                  className="text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-none"
+                                />
+                                <CommandList className="bg-white dark:bg-slate-800 max-h-48">
+                                  <CommandEmpty className="text-slate-900 dark:text-white py-3 text-center text-xs">No stock found.</CommandEmpty>
+                                  <CommandGroup className="bg-white dark:bg-slate-800">
                                       {stockSymbols
                                         .filter((symbol) => 
                                           symbol.label.toLowerCase().includes(symbolSearchValue.toLowerCase()) ||
@@ -8253,14 +8286,14 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                             </div>
                           </>
                         ) : (
-                          <div className="h-32 flex flex-col items-center justify-center">
+                          <div className="h-24 flex flex-col items-center justify-center">
                             <p className="text-sm text-slate-400">No OHLC data loaded</p>
                             <p className="text-xs text-slate-500 mt-1">Click "Fetch" to load {ohlcTimeframe} data</p>
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
               </div>
               
