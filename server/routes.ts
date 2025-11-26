@@ -4044,16 +4044,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userData = userDoc.data();
+      
+      // Get followers and following counts
+      const followersSnapshot = await db.collection('follows').where('followingId', '==', userId).get();
+      const followersCount = followersSnapshot.size;
+      
+      const followingSnapshot = await db.collection('follows').where('followerId', '==', userId).get();
+      const followingCount = followingSnapshot.size;
+      
       console.log('✅ Profile found in Firebase:', {
         username: userData?.username,
         displayName: userData?.displayName,
+        followers: followersCount,
+        following: followingCount,
         hasUsername: !!userData?.username,
         hasDisplayName: !!userData?.displayName
       });
       
       res.json({ 
         success: true,
-        profile: userData,
+        profile: {
+          ...userData,
+          followers: followersCount,
+          following: followingCount
+        },
         userId: userId,
         email: decodedToken.email
       });
