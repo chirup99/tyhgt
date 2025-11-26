@@ -6260,6 +6260,86 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                 </div>
               </div>
             )}
+            
+            {/* Professional OHLC Display Window - Similar to NSE Tab */}
+            {displayOhlcData && displayOhlcData.candles && displayOhlcData.candles.length > 0 && (
+              <div className="mt-4 p-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg border border-slate-600 shadow-lg">
+                <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-purple-400" />
+                  Professional OHLC Data Window
+                </h3>
+                
+                {/* Latest Candle Stats */}
+                {displayOhlcData.candles.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {/* Open Price */}
+                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                      <div className="text-slate-400 text-xs font-medium mb-1">Open</div>
+                      <div className="text-white text-lg font-semibold">
+                        ₹{displayOhlcData.candles[displayOhlcData.candles.length - 1].open.toFixed(2)}
+                      </div>
+                    </div>
+                    
+                    {/* High Price */}
+                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                      <div className="text-slate-400 text-xs font-medium mb-1">High</div>
+                      <div className="text-green-400 text-lg font-semibold">
+                        ₹{displayOhlcData.candles[displayOhlcData.candles.length - 1].high.toFixed(2)}
+                      </div>
+                    </div>
+                    
+                    {/* Low Price */}
+                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                      <div className="text-slate-400 text-xs font-medium mb-1">Low</div>
+                      <div className="text-red-400 text-lg font-semibold">
+                        ₹{displayOhlcData.candles[displayOhlcData.candles.length - 1].low.toFixed(2)}
+                      </div>
+                    </div>
+                    
+                    {/* Close Price */}
+                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                      <div className="text-slate-400 text-xs font-medium mb-1">Close</div>
+                      <div className="text-white text-lg font-semibold">
+                        ₹{displayOhlcData.candles[displayOhlcData.candles.length - 1].close.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Additional Stats */}
+                <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {/* Volume */}
+                  <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                    <div className="text-slate-400 text-xs font-medium mb-1">Volume</div>
+                    <div className="text-slate-300 text-sm font-semibold">
+                      {(displayOhlcData.candles[displayOhlcData.candles.length - 1].volume / 1000000).toFixed(2)}M
+                    </div>
+                  </div>
+                  
+                  {/* Total Candles */}
+                  <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                    <div className="text-slate-400 text-xs font-medium mb-1">Total Candles</div>
+                    <div className="text-slate-300 text-sm font-semibold">
+                      {displayOhlcData.candles.length}
+                    </div>
+                  </div>
+                  
+                  {/* Timeframe */}
+                  <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                    <div className="text-slate-400 text-xs font-medium mb-1">Timeframe</div>
+                    <div className="text-slate-300 text-sm font-semibold">
+                      {ohlcTimeframe}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Data Range Info */}
+                <div className="mt-3 text-xs text-slate-400 flex items-center justify-between p-2 bg-slate-800/50 rounded">
+                  <span>📊 Data from {ohlcFromDate} to {ohlcToDate}</span>
+                  <span className="text-green-400">✓ Ready for analysis</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
