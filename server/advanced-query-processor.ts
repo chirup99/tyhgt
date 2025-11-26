@@ -477,8 +477,14 @@ Guidelines:
     try {
       console.log(`[ADVANCED-QUERY] Processing: "${query}"`);
       
-      const analysis = this.analyzeQuery(query);
+      // Step 1: Use AI to normalize query and extract stocks
+      const normalized = await this.normalizeQueryWithAI(query);
+      console.log(`[SMART-QUERY] Normalized: "${normalized.normalizedQuery}", Stocks: ${normalized.detectedStocks.join(', ')}`);
+      
+      // Step 2: Analyze the normalized query
+      const analysis = this.analyzeQuery(query, normalized);
       console.log(`[ADVANCED-QUERY] Intent: ${analysis.intent}, Complex: ${analysis.isComplexQuery}`);
+      console.log(`[ADVANCED-QUERY] Stocks to analyze: ${analysis.stockSymbols.join(', ')}`);
       console.log(`[ADVANCED-QUERY] Needs: Web=${analysis.needsWebSearch}, Journal=${analysis.needsJournalData}, Risk=${analysis.needsRiskAnalysis}`);
       
       const searchResults = await this.performWebSearch(query, 8);
