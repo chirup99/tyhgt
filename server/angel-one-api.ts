@@ -83,7 +83,8 @@ class AngelOneAPI {
     }
 
     try {
-      const totpToken = await TOTP.generate(this.credentials.totpSecret);
+      const totpTokenObj = await TOTP.generate(this.credentials.totpSecret);
+      const totpToken = typeof totpTokenObj === 'string' ? totpTokenObj : totpTokenObj.otp;
       console.log('🔶 [Angel One] Generated TOTP token:', totpToken);
 
       const response = await this.smartApi.generateSession(
@@ -92,7 +93,9 @@ class AngelOneAPI {
         totpToken
       );
 
-      if (response.status && response.data) {
+      console.log('🔶 [Angel One] API Response:', JSON.stringify(response));
+
+      if (response && response.status && response.data) {
         this.session = {
           jwtToken: response.data.jwtToken,
           refreshToken: response.data.refreshToken,
@@ -102,11 +105,12 @@ class AngelOneAPI {
         console.log('🔶 [Angel One] Session generated successfully');
         return this.session;
       } else {
-        console.error('🔶 [Angel One] Session generation failed:', response.message);
-        throw new Error(response.message || 'Failed to generate session');
+        console.error('🔶 [Angel One] Session generation failed - Full response:', JSON.stringify(response));
+        throw new Error((response?.message) || 'Failed to generate session');
       }
     } catch (error: any) {
       console.error('🔶 [Angel One] Error generating session:', error.message);
+      console.error('🔶 [Angel One] Full error:', JSON.stringify(error));
       this.isAuthenticated = false;
       throw error;
     }
