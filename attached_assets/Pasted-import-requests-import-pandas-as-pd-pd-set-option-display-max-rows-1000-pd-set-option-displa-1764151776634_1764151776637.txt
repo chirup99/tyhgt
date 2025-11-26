@@ -1,0 +1,98 @@
+import requests
+import pandas as pd
+pd.set_option('display.max_rows', 1000)
+pd.set_option('display.max_columns', 1000)
+pd.set_option('display.width', 5000)
+
+
+class NSE:
+    pre_market_categories = ['NIFTY 50', 'Nifty Bank', 'Emerge', 'Securities in F&O', 'Others', 'All']
+    equity_market_categories = ['NIFTY 50', 'NIFTY NEXT 50', 'NIFTY MIDCAP 50', 'NIFTY MIDCAP 100', 'NIFTY MIDCAP 150', 'NIFTY SMALLCAP 50',
+                        'NIFTY SMALLCAP 100', 'NIFTY SMALLCAP 250', 'NIFTY MIDSMALLCAP 400', 'NIFTY 100', 'NIFTY 200', 'NIFTY AUTO',
+                        'NIFTY BANK', 'NIFTY ENERGY', 'NIFTY FINANCIAL SERVICES', 'NIFTY FINANCIAL SERVICES 25/50', 'NIFTY FMCG',
+                        'NIFTY IT', 'NIFTY MEDIA', 'NIFTY METAL', 'NIFTY PHARMA', 'NIFTY PSU BANK', 'NIFTY REALTY',
+                        'NIFTY PRIVATE BANK', 'Securities in F&O', 'Permitted to Trade', 'NIFTY DIVIDEND OPPORTUNITIES 50',
+                        'NIFTY50 VALUE 20', 'NIFTY100 QUALITY 30', 'NIFTY50 EQUAL WEIGHT', 'NIFTY100 EQUAL WEIGHT',
+                        'NIFTY100 LOW VOLATILITY 30', 'NIFTY ALPHA 50', 'NIFTY200 QUALITY 30', 'NIFTY ALPHA LOW-VOLATILITY 30',
+                        'NIFTY200 MOMENTUM 30', 'NIFTY COMMODITIES', 'NIFTY INDIA CONSUMPTION', 'NIFTY CPSE', 'NIFTY INFRASTRUCTURE',
+                        'NIFTY MNC', 'NIFTY GROWTH SECTORS 15', 'NIFTY PSE', 'NIFTY SERVICES SECTOR', 'NIFTY100 LIQUID 15',
+                        'NIFTY MIDCAP LIQUID 15']
+    holidays_categories = ["Clearing", "Trading"]
+
+    def __init__(self):
+        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome'
+                                      '/90.0.4430.212 Safari/537.36',
+                        "cookie": """_ga=GA1.1.1938434061.1740971684; AKA_A2=A; _abck=9F2655D81906DAFBAAE324B2FE7E6704~0~YAAQDNgsMcLEhAqWAQAAwRHfDg1+Nu47oSJzUzbHJwWsjVMF7DG3602zbRDLDiwF0irYEn4axGA0Pcpgqi0/3IWlcv5RkUx/xRbDNcT62gxIbwOUx5qjtOC2TOZiVj5ppMPSi2oWPZIx9s+4XiEzqlnHirCcfcacqN9m4UnLUCkDdgok9i27ODKjw/Up0V2Y58CXSYyT8wdHb9WWWrKaI01+6LMKcIj5pJ0N/lOpQpNvq3m+XXifDj8UHlc/2GVXhuma5SBWVLnPgQhnW5qQEcPhRtWrIMEhiyPtIabS1gqaO2rDOxfcjgIJSaz3St8KX1AgJuXr+2GyhT4dti9rUtCHxJldkGPAvDJRQ4LSQ9lMMqxMXJupRdd+cNOBKw2wpF8eZEOtfq3ANB8koNf8d7LfuOQyJxgSzdlk1TAahdFPFra8V8EX1u02ozQTcouiMLmJ6vJX3rXVNAxb9pbMnMtSt1AGVNMIN0snUuhf6gPvcqZwt3pFQsPEzuToJ0pn2vBnJuc7w2Pog0bWym1aDbZueznAdjUOcRJpF71TJg==~-1~-1~-1; nsit=ICNWinoKWwLmK51qoN9pLwfY; bm_mi=65DF3F0EA9D2271CEABBFF9D914DA393~YAAQDNgsMezEhAqWAQAAlxTfDhvNWSF9xYANqgUzIm2JtaZvRCWosxhUJpiOYD/LCNS75D6JWP9cBTYiBH8gBMEiINEbaQOw3xf88tqO/V4sr1IUxEfJ+ufe/OJyNrTxt5BxA3csM+CBJ7FWQn6JR4SmjFvzx6kY07HZDvdbiwY09SYbqkZZRO8msYefhMCt9yabvuSescfPTdEoQkRu+gYaLmHDL2GfRespSBL74do+zx4WcP0AExZZ2PU/MjqRY2vbqSj+Ka0aAGbOpCxsM/S2EbwZKbjrgwdHTk7VQTLvwLLQuT93hji7PyOzUdejSco8jHzZxBjX0XBLetRnrQ==~1; ak_bmsc=29095FC88FDEA8FDE8E903ECA140EA84~000000000000000000000000000000~YAAQDNgsMaTGhAqWAQAARUDfDht1qsRf+KhodpFdDx/VswQV+A6tDH28exY8capqeuwWVavFOgO2PoSYjvkF3XBqwbWj28Tb2wEDx6ukoYGtcZUSfQODU+TqH4TZzMvhUr21WzMnqDSFvgioOV1QvDdoBmOEp+Llq91F7XO8d8ZiH8r8n2a5SPWAss7HyA29VuUUY8Y4m3Y7tSs4k11pvCi+OgBKmcSMnt8RWHMuaaAUGpRhUNmNTkwSvHVJbAdMgwDKOi23G98MksbmHl4BAnmB8bbH5nGu7fe0AzRHFYvgokDV16sPKtcGCh2WVraUJETJI7C03vIJqlAKYaKFokx/pkCs61hsw2AUvitB6oUxSOEopb6fSwPst4eBpQAhd6G74ypwcRPbuPSFBOpc9r3hwKo1xDXiOL2FSRQGUy6/JeZd18nfSbfPSUjvvBRXS6u2UHFwfG8NBrR2JFFI7OY0U5iysJdlHoXB6afPgwGlyRhB0lltuNk1FwQYpDYhUQ==; nseappid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcGkubnNlIiwiYXVkIjoiYXBpLm5zZSIsImlhdCI6MTc0NDAwNjI2OSwiZXhwIjoxNzQ0MDEzNDY5fQ.XvkylWzKExMc1e6FZMDJnzsD8UnCPumljc06bYsCqHQ; bm_sz=BE9BF7583FD653D1D40310F90CAFA493~YAAQDNgsMafKhAqWAQAAmczfDhtEjok+lqDRKJRvt1l9+Vv2WIVwFHsYU0FX4vTx+BHdcJkMUKikc4DgOBtnmp9TZT6G83XsmWgK4SX+LHRE8507/HolCT4RLeDnY3g2xm6stSKLOGIEshc0Vo+sKVJlQww2y0npZiCrcRI90guRoN01Pike2jIelBVv6KgwTr9aRw4oC54N8skMAkShPeO+Ohf8MmpmSbduIQlVBOPSR0f3WmC0U8sRKiCdgBnQ+kY9hpc3Ybs9cP6IYfExNsEsEG+sjXe6lnVClQA2zWkVwG0h+N+02qR9wDvULP3PnErBoujpKPS5SZ3v5ExrzKYCdqSqzI5u+pOCq8wAa3Tav8MSfxZNfafrgHfU3RbZ5ZbM6FZR3QIMRj5aYY7W+EFagvyxJtmNfrxB15cl6bc=~3687222~4539969; RT="z=1&dm=nseindia.com&si=8ab8b304-eed3-41f1-be01-28d6af4abf71&ss=m96o9zr8&sl=2&se=8c&tt=7oa&bcn=%2F%2F684d0d46.akstat.io%2F"; _ga_87M7PJ3R97=GS1.1.1744006230.7.1.1744006270.20.0.0; _ga_WM2NSQKJEK=GS1.1.1744006230.7.1.1744006270.0.0.0; bm_sv=90A3884A2133811B1D7054671AFCF4B8~YAAQDNgsMcfKhAqWAQAAK9LfDhtjUXTFXP2Yt3Hzux3c2IE7odT3RzVULrjPturovo03EeLkgmfiaLq8vZwHvF2qcTDWfLVYoySyaBxFnLhfdlnYHvI+HRx77+yGneFA71CALZXA82kUUHSuwSTHgn55IHOvG/U+indcFIQhkGnf6ZN0b7JK0FrTN6zpD0ggA6A4iXVceAyiTkKUHncr5s1OCVlYJqc9lyhoetkyGU2Q/Lqs+LJnNgbi/szmE3KhZdfy~1"""}
+        self.session = requests.Session()
+        self.session.get("http://nseindia.com", headers=self.headers)
+
+    def pre_market_data(self, category):
+        pre_market_category = {"NIFTY 50": "NIFTY", "Nifty Bank": "BANKNIFTY", "Emerge": "SME", "Securities in F&O": "FO",
+                          "Others": "OTHERS", "All": "ALL"}
+        data = self.session.get(f"https://www.nseindia.com/api/market-data-pre-open?key={pre_market_category[category]}",
+                                headers=self.headers).json()["data"]
+        new_data = []
+        for i in data:
+            new_data.append(i["metadata"])
+        df = pd.DataFrame(new_data)
+        df = df.set_index("symbol", drop=True)
+        return df
+
+    def equity_market_data(self, category, symbol_list=False):
+        category = category.upper().replace(' ', '%20').replace('&', '%26')
+        data = self.session.get(f"https://www.nseindia.com/api/equity-stockIndices?index={category}", headers=self.headers).json()["data"]
+        df = pd.DataFrame(data)
+        df = df.drop(["meta"], axis=1)
+        df = df.set_index("symbol", drop=True)
+        if symbol_list:
+            return list(df.index)
+        else:
+            return df
+
+    def about_holidays(self, category):
+        data = self.session.get(f'https://www.nseindia.com/api/holiday-master?type={category.lower()}', headers=self.headers).json()
+        df = pd.DataFrame(list(data.values())[0])
+        return df
+
+    def equity_info(self, symbol, trade_info=False):
+        symbol = symbol.replace(' ', '%20').replace('&', '%26')
+        url = 'https://www.nseindia.com/api/quote-equity?symbol=' + symbol + ("&section=trade_info" if trade_info else "")
+        data = self.session.get(url, headers=self.headers).json()
+        return data
+
+    def future_data(self, symbol, indices=False):
+        symbol = symbol.replace(' ', '%20').replace('&', '%26')
+        url = 'https://www.nseindia.com/api/quote-derivative?symbol=' + symbol
+        data = self.session.get(url, headers=self.headers).json()
+        print(data)
+        lst = []
+        for i in data["stocks"]:
+            if i["metadata"]["instrumentType"] == ("Index Futures" if indices else "Stock Futures"):
+                lst.append(i["metadata"])
+        df = pd.DataFrame(lst)
+        df = df.set_index("identifier", drop=True)
+        return df
+
+    def option_data(self, symbol, indices=False):
+        symbol = symbol.replace(' ', '%20').replace('&', '%26')
+        if not indices:
+            url = 'https://www.nseindia.com/api/option-chain-equities?symbol=' + symbol
+        else:
+            url = 'https://www.nseindia.com/api/option-chain-indices?symbol=' + symbol
+        data = self.session.get(url,headers=self.headers).json()["records"]
+        my_df = []
+        for i in data["data"]:
+            for k, v in i.items():
+                if k == "CE" or k == "PE":
+                    info = v
+                    info["instrumentType"] = k
+                    info["timestamp"] = data["timestamp"]
+                    my_df.append(info)
+        df = pd.DataFrame(my_df)
+        df = df.set_index("identifier", drop=True)
+        return df
+
+
+nse = NSE()
+
+print(nse.pre_market_data('Securities in F&O'))
