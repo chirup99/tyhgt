@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Key, CheckCircle2, Shield, Eye, EyeOff } from "lucide-react";
+import { Key, CheckCircle2, Shield, Eye, EyeOff, Clock, RefreshCw, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ interface AngelOneProfile {
   broker: string;
 }
 
-interface AngelOneStatus {
+interface AngelOneStatusData {
   success: boolean;
   connected: boolean;
   authenticated: boolean;
@@ -32,7 +32,7 @@ export function AuthButtonAngelOne() {
   
   const hasEnvCredentials = !!(import.meta.env.VITE_ANGEL_ONE_CLIENT_CODE && import.meta.env.VITE_ANGEL_ONE_API_KEY);
 
-  const { data: angelStatus } = useQuery<AngelOneStatus>({
+  const { data: angelStatus } = useQuery<AngelOneStatusData>({
     queryKey: ["/api/angelone/status"],
     refetchInterval: 5000,
   });
@@ -287,6 +287,110 @@ export function AuthButtonAngelOne() {
           Get credentials from: <a href="https://smartapi.angelbroking.com/publisher-api" target="_blank" rel="noopener noreferrer" className="underline">Angel One SmartAPI Portal</a>
         </p>
       </form>
+    </div>
+  );
+}
+
+export function AngelOneStatus() {
+  const { toast } = useToast();
+
+  const { data: angelStatus } = useQuery<AngelOneStatusData>({
+    queryKey: ["/api/angelone/status"],
+    refetchInterval: 5000,
+  });
+
+  const { data: profileData } = useQuery<{ success: boolean; profile: AngelOneProfile }>({
+    queryKey: ["/api/angelone/profile"],
+    enabled: !!(angelStatus?.connected && angelStatus?.authenticated),
+    refetchInterval: 10000,
+  });
+
+  const refreshMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/angelone/status/refresh"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/status"] });
+      toast({
+        title: "Connection Refreshed",
+        description: "Angel One API status has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh Angel One API connection status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const isConnected = angelStatus?.connected;
+  const isAuthenticated = angelStatus?.authenticated;
+  const userName = profileData?.profile?.name || angelStatus?.clientCode || "Not connected";
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${isConnected && isAuthenticated ? 'bg-orange-500' : 'bg-gray-400'}`}></span>
+          Angel One Connection
+        </h4>
+        <Button
+          onClick={() => refreshMutation.mutate()}
+          disabled={refreshMutation.isPending}
+          size="sm"
+          variant="ghost"
+          className="h-8"
+          data-testid="button-angelone-refresh"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="flex items-center space-x-2">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+            isConnected ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-gray-100 dark:bg-gray-700'
+          }`}>
+            <CheckCircle className={`h-4 w-4 ${
+              isConnected ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400'
+            }`} />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </p>
+            <p className="text-xs text-gray-500">API Status</p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+            isAuthenticated ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-gray-100 dark:bg-gray-700'
+          }`}>
+            <Shield className={`h-4 w-4 ${
+              isAuthenticated ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400'
+            }`} />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+              {isAuthenticated ? 'Authenticated' : 'Not Auth'}
+            </p>
+            <p className="text-xs text-gray-500">Auth Status</p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+            <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate max-w-[80px]">
+              {userName}
+            </p>
+            <p className="text-xs text-gray-500">User</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

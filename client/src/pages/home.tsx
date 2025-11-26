@@ -8,7 +8,7 @@ import React, {
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { AuthButton } from "@/components/auth-button";
-import { AuthButtonAngelOne } from "@/components/auth-button-angelone";
+import { AuthButtonAngelOne, AngelOneStatus } from "@/components/auth-button-angelone";
 import { ConnectionStatus } from "@/components/connection-status";
 import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
 import { SigninDataWindow } from "@/components/signin-data-window";
