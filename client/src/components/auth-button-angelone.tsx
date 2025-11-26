@@ -322,7 +322,7 @@ export function AngelOneStatus() {
 
   const { data: angelStatus } = useQuery<AngelOneStatusData>({
     queryKey: ["/api/angelone/status"],
-    refetchInterval: 5000,
+    refetchInterval: 3000, // Keep-alive heartbeat every 3 seconds
   });
 
   const { data: profileData } = useQuery<{ success: boolean; profile: AngelOneProfile }>({
@@ -351,6 +351,27 @@ export function AngelOneStatus() {
     },
   });
 
+  const disconnectMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/angelone/disconnect"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/statistics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/activity-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/profile"] });
+      toast({
+        title: "Disconnected",
+        description: "Angel One connection has been closed.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Disconnect Failed",
+        description: "Failed to disconnect from Angel One.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const isConnected = angelStatus?.connected;
   const isAuthenticated = angelStatus?.authenticated;
   const userName = profileData?.profile?.name || angelStatus?.clientCode || "Not connected";
@@ -359,19 +380,39 @@ export function AngelOneStatus() {
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${isConnected && isAuthenticated ? 'bg-orange-500' : 'bg-gray-400'}`}></span>
+          <span className={`w-2 h-2 rounded-full animate-pulse ${isConnected && isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`}></span>
           Angel One Connection
         </h4>
-        <Button
-          onClick={() => refreshMutation.mutate()}
-          disabled={refreshMutation.isPending}
-          size="sm"
-          variant="ghost"
-          className="h-8"
-          data-testid="button-angelone-refresh"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => refreshMutation.mutate()}
+            disabled={refreshMutation.isPending || disconnectMutation.isPending}
+            size="sm"
+            variant="ghost"
+            className="h-8"
+            data-testid="button-angelone-refresh"
+            title="Refresh connection status"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+          </Button>
+          {isConnected && isAuthenticated && (
+            <Button
+              onClick={() => {
+                if (confirm('Are you sure you want to disconnect from Angel One?')) {
+                  disconnectMutation.mutate();
+                }
+              }}
+              disabled={disconnectMutation.isPending || refreshMutation.isPending}
+              size="sm"
+              variant="ghost"
+              className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+              data-testid="button-angelone-disconnect"
+              title="Disconnect from Angel One"
+            >
+              <LogOut className={`h-4 w-4 ${disconnectMutation.isPending ? 'animate-spin' : ''}`} />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
