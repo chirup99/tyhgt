@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, TrendingDown, Calendar, Download, Check, ChevronsUpDown, ChevronDown, Search, MessageCircle, MessageSquare, Send, X, BarChart3, BookOpen, Target, CircleDot, Filter, RefreshCw, Play, MoreVertical, Trash2, Plus, Edit, Share2, Copy, ThumbsUp, Code, Shuffle, ToggleLeft, ToggleRight, Sparkles } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar, Download, Check, ChevronsUpDown, ChevronDown, Search, MessageCircle, MessageSquare, Send, X, BarChart3, BookOpen, Target, CircleDot, Filter, RefreshCw, Play, MoreVertical, Trash2, Plus, Edit, Share2, Copy, ThumbsUp, Code, Shuffle, ToggleLeft, ToggleRight, Sparkles, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine, AreaChart, Area } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -5430,7 +5430,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
         {/* Window Switches */}
         <div className="bg-muted/30 border-b border-border px-6 pt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-4xl">
             <TabsTrigger value="main" className="flex items-center gap-2" data-testid="button-tab-main">
               <BarChart3 className="h-4 w-4" />
               Main
@@ -5449,7 +5449,11 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </TabsTrigger>
             <TabsTrigger value="visualai" className="flex items-center gap-2" data-testid="button-tab-visualai">
               <Sparkles className="h-4 w-4" />
-              Test AI
+              NSE Test
+            </TabsTrigger>
+            <TabsTrigger value="nsetext" className="flex items-center gap-2" data-testid="button-tab-nsetext">
+              <FileText className="h-4 w-4" />
+              NSE Text
             </TabsTrigger>
           </TabsList>
           
@@ -11887,6 +11891,17 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* NSE Text Tab Content - Empty Tab */}
+          <TabsContent value="nsetext" className="p-6 space-y-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">NSE Text</p>
+                <p className="text-sm">Coming soon...</p>
+              </div>
+            </div>
           </TabsContent>
           
         </Tabs>
