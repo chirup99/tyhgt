@@ -2272,6 +2272,14 @@ export default function Home() {
 
           let result = data.answer;
 
+          // Store company insights data on window for chart rendering
+          if (data.companyInsights) {
+            (window as any).companyInsightsData = data.companyInsights;
+            console.log("✅ [FRONTEND] Received company insights:", data.companyInsights.symbol, data.companyInsights.trend);
+          } else {
+            (window as any).companyInsightsData = null;
+          }
+
           setSearchResults(result);
           console.log("✅ [FRONTEND] Advanced query processing complete!");
           setIsSearchLoading(false);
@@ -7864,6 +7872,160 @@ ${
                                                       />
                                                     </AreaChart>
                                                   </ResponsiveContainer>
+                                                </div>
+                                              </div>
+                                            )}
+                                            {parts[1] || ""}
+                                          </>
+                                        );
+                                      }
+                                      
+                                      // Company Insights Chart with quarterly performance trend
+                                      if (
+                                        searchResults.includes(
+                                          "[CHART:COMPANY_INSIGHTS]",
+                                        )
+                                      ) {
+                                        const parts = searchResults.split(
+                                          "[CHART:COMPANY_INSIGHTS]",
+                                        );
+                                        const companyInsights =
+                                          (window as any).companyInsightsData || null;
+                                        
+                                        // Use structured data from API response
+                                        const chartData: Array<{quarter: string; value: number; trend: string; changePercent: number}> = [];
+                                        
+                                        if (companyInsights && companyInsights.quarterlyPerformance) {
+                                          let baseValue = 100;
+                                          companyInsights.quarterlyPerformance.forEach((q: any) => {
+                                            baseValue = baseValue * (1 + q.changePercent / 100);
+                                            chartData.push({
+                                              quarter: q.quarter,
+                                              value: Math.round(baseValue * 100) / 100,
+                                              trend: q.changePercent >= 0 ? 'positive' : 'negative',
+                                              changePercent: q.changePercent
+                                            });
+                                          });
+                                        }
+                                        
+                                        // Use trend from structured data or calculate from chart
+                                        const overallTrend = companyInsights?.trend || 
+                                          (chartData.length > 1 
+                                            ? chartData[chartData.length - 1].value > chartData[0].value 
+                                              ? 'positive' 
+                                              : 'negative'
+                                            : 'neutral');
+                                        
+                                        const trendColor = overallTrend === 'positive' ? '#22c55e' : overallTrend === 'negative' ? '#ef4444' : '#6b7280';
+
+                                        return (
+                                          <>
+                                            {parts[0]}
+                                            {chartData.length > 0 && (
+                                              <div className="my-4 bg-gray-900/50 rounded-lg p-4 border border-gray-600">
+                                                <div className="flex items-center justify-between mb-3">
+                                                  <span className="text-sm font-medium text-gray-300">Quarterly Performance Trend</span>
+                                                  <span className={`text-xs px-2 py-1 rounded ${overallTrend === 'positive' ? 'bg-green-500/20 text-green-400' : overallTrend === 'negative' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                                                    {overallTrend === 'positive' ? '↑ Uptrend' : overallTrend === 'negative' ? '↓ Downtrend' : '→ Neutral'}
+                                                  </span>
+                                                </div>
+                                                <div className="h-40 w-full">
+                                                  <ResponsiveContainer
+                                                    width="100%"
+                                                    height="100%"
+                                                  >
+                                                    <AreaChart
+                                                      data={chartData}
+                                                      margin={{
+                                                        top: 10,
+                                                        right: 10,
+                                                        left: 10,
+                                                        bottom: 20,
+                                                      }}
+                                                    >
+                                                      <defs>
+                                                        <linearGradient
+                                                          id="companyInsightsGradient"
+                                                          x1="0"
+                                                          y1="0"
+                                                          x2="0"
+                                                          y2="1"
+                                                        >
+                                                          <stop
+                                                            offset="0%"
+                                                            stopColor={trendColor}
+                                                            stopOpacity={0.4}
+                                                          />
+                                                          <stop
+                                                            offset="100%"
+                                                            stopColor={trendColor}
+                                                            stopOpacity={0.05}
+                                                          />
+                                                        </linearGradient>
+                                                      </defs>
+                                                      <XAxis
+                                                        dataKey="quarter"
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{
+                                                          fontSize: 11,
+                                                          fill: "#9ca3af",
+                                                        }}
+                                                      />
+                                                      <YAxis
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{
+                                                          fontSize: 10,
+                                                          fill: "#6b7280",
+                                                        }}
+                                                        tickFormatter={(value) => `${value.toFixed(0)}`}
+                                                        domain={['dataMin - 5', 'dataMax + 5']}
+                                                      />
+                                                      <Tooltip
+                                                        contentStyle={{
+                                                          background: "#1f2937",
+                                                          border: "1px solid #374151",
+                                                          borderRadius: "8px",
+                                                          color: "#f3f4f6",
+                                                          fontSize: "12px",
+                                                          padding: "8px 12px",
+                                                        }}
+                                                        formatter={(value: any, name: any, props: any) => [
+                                                          `${props.payload.trend === 'positive' ? '↑' : '↓'} ${value.toFixed(1)}`,
+                                                          "Performance Index"
+                                                        ]}
+                                                        labelFormatter={(label) => `${label}`}
+                                                      />
+                                                      <Area
+                                                        type="monotone"
+                                                        dataKey="value"
+                                                        stroke={trendColor}
+                                                        strokeWidth={2}
+                                                        fill="url(#companyInsightsGradient)"
+                                                        dot={{
+                                                          r: 4,
+                                                          stroke: trendColor,
+                                                          strokeWidth: 2,
+                                                          fill: "#1f2937",
+                                                        }}
+                                                        activeDot={{
+                                                          r: 6,
+                                                          stroke: trendColor,
+                                                          strokeWidth: 2,
+                                                          fill: "#ffffff",
+                                                        }}
+                                                      />
+                                                    </AreaChart>
+                                                  </ResponsiveContainer>
+                                                </div>
+                                                <div className="flex justify-center gap-4 mt-2 text-xs text-gray-400">
+                                                  <span className="flex items-center gap-1">
+                                                    <span className="w-2 h-2 rounded-full bg-green-500"></span> Positive Quarter
+                                                  </span>
+                                                  <span className="flex items-center gap-1">
+                                                    <span className="w-2 h-2 rounded-full bg-red-500"></span> Negative Quarter
+                                                  </span>
                                                 </div>
                                               </div>
                                             )}

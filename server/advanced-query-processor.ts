@@ -185,6 +185,7 @@ export class AdvancedQueryProcessor {
       news?: any[];
       riskMetrics?: any;
       performanceMetrics?: any;
+      companyInsights?: any;
     }
   ): string {
     let answer = `# AI Agent Analysis\n\n`;
@@ -259,6 +260,39 @@ export class AdvancedQueryProcessor {
         answer += `**Change:** ${stock.change >= 0 ? '+' : ''}₹${stock.change?.toFixed(2)} (${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent?.toFixed(2)}%)\n`;
       }
       answer += `**Trend:** ${stock.changePercent > 2 ? 'Strong Bullish' : stock.changePercent > 0 ? 'Bullish' : stock.changePercent < -2 ? 'Strong Bearish' : stock.changePercent < 0 ? 'Bearish' : 'Neutral'}\n\n`;
+    }
+    
+    if (additionalData?.companyInsights) {
+      const insights = additionalData.companyInsights;
+      
+      answer += `## Quarterly Performance Insights\n\n`;
+      
+      const trendEmoji = insights.trend === 'positive' ? '↑' : insights.trend === 'negative' ? '↓' : '→';
+      const trendColor = insights.trend === 'positive' ? 'Green' : insights.trend === 'negative' ? 'Red' : 'Neutral';
+      
+      answer += `**Overall Trend:** ${trendEmoji} ${trendColor} (Strength: ${Math.round(insights.trendStrength * 100)}%)\n\n`;
+      
+      answer += `### Last 3 Quarters\n`;
+      answer += `| Quarter | Performance | Change |\n|---------|-------------|--------|\n`;
+      
+      insights.quarterlyPerformance.forEach((q: any) => {
+        const changeEmoji = q.changePercent >= 0 ? '↑' : '↓';
+        answer += `| ${q.quarter} | ₹${q.value.toLocaleString()} | ${changeEmoji} ${q.changePercent >= 0 ? '+' : ''}${q.changePercent.toFixed(1)}% |\n`;
+      });
+      
+      answer += `\n[CHART:COMPANY_INSIGHTS]\n\n`;
+      
+      answer += `### Growth Metrics\n`;
+      answer += `- **Revenue Growth:** ${insights.revenueGrowth >= 0 ? '+' : ''}${insights.revenueGrowth.toFixed(1)}%\n`;
+      answer += `- **Profit Growth:** ${insights.profitGrowth >= 0 ? '+' : ''}${insights.profitGrowth.toFixed(1)}%\n`;
+      if (insights.pe > 0) {
+        answer += `- **P/E Ratio:** ${insights.pe.toFixed(1)}\n`;
+      }
+      if (insights.eps > 0) {
+        answer += `- **EPS:** ₹${insights.eps.toFixed(2)}\n`;
+      }
+      
+      answer += `\n**Recommendation:** ${insights.recommendation}\n\n`;
     }
     
     if (additionalData?.marketTrends && additionalData.marketTrends.length > 0) {
@@ -429,6 +463,12 @@ Guidelines:
             additionalData.stockData = stockData;
             console.log(`[ADVANCED-QUERY] Got stock data for ${analysis.stockSymbols[0]}`);
           }
+          
+          const companyInsights = await enhancedFinancialScraper.getCompanyInsights(analysis.stockSymbols[0]);
+          if (companyInsights) {
+            additionalData.companyInsights = companyInsights;
+            console.log(`[ADVANCED-QUERY] Got company insights for ${analysis.stockSymbols[0]} - Trend: ${companyInsights.trend}`);
+          }
         } catch (error) {
           console.error('[ADVANCED-QUERY] Stock data error:', error);
         }
@@ -485,7 +525,8 @@ Guidelines:
       return {
         answer,
         sources: searchResults,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        companyInsights: additionalData.companyInsights || null
       };
       
     } catch (error) {

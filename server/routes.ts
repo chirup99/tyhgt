@@ -16540,7 +16540,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         query,
         answer: result.answer,
         sources: result.sources,
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
+        companyInsights: result.companyInsights || null
       });
 
     } catch (error) {
