@@ -8,6 +8,28 @@ This project is a full-stack trading platform offering real-time market data ana
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes
+
+## November 26, 2025 - Replit Environment Migration
+
+Successfully migrated PERALA trading application to Replit environment with the following fixes:
+
+1. **Vite HMR WebSocket Configuration** (`vite.config.ts`):
+   - Conditionally configured for Replit environment using REPL_SLUG and REPL_OWNER env vars
+   - Uses `wss://` protocol with port 443 for Replit deployment
+   - Falls back to default Vite HMR for local development
+   - Host format: `${REPL_SLUG}-${REPL_OWNER}.replit.dev`
+
+2. **Historical Data Endpoint** (`server/routes.ts`):
+   - Fixed 503 error for unauthenticated requests to `/api/historical-data`
+   - Returns empty candles array with source "none" when user not authenticated
+   - Maintains proper error handling for authenticated requests
+
+3. **Environment Notes**:
+   - Server runs on port 5000 (Express + Vite)
+   - "Access token not available" warnings are expected for unauthenticated users
+   - Fyers API authentication required for real-time market data access
+
 # System Architecture
 
 ## Frontend Architecture
