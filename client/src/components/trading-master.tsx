@@ -8008,75 +8008,254 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700 mx-2 mb-2">
                     <CardContent className="p-4">
                       <div className="space-y-4">
-                        {/* OHLC Header */}
-                        <div className="flex items-center justify-between">
+                        {/* OHLC Header with Controls */}
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                             <BarChart3 className="h-4 w-4 text-blue-400" />
-                            OHLC Data - {selectedTimeframe} Candle
+                            OHLC Data
                           </h3>
-                          <span className="text-xs text-slate-400">Nifty 50 Index</span>
+                          
+                          {/* Control Bar - Stock Search, Timeframe, Fetch, Export */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {/* Symbol Search Combobox */}
+                            <Popover open={openSymbolSearch} onOpenChange={setOpenSymbolSearch}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openSymbolSearch}
+                                  className="w-32 h-7 justify-between bg-white dark:bg-slate-800 border-slate-600 text-slate-900 dark:text-white text-xs px-2"
+                                  data-testid="button-trade-symbol-search"
+                                >
+                                  {ohlcSymbol
+                                    ? stockSymbols.find((symbol) => symbol.value === ohlcSymbol)?.label || ohlcSymbol
+                                    : "Select..."}
+                                  <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-64 p-0 bg-white dark:bg-slate-800 border-slate-600">
+                                <Command>
+                                  <CommandInput
+                                    placeholder="Search stocks..."
+                                    value={symbolSearchValue}
+                                    onValueChange={setSymbolSearchValue}
+                                    className="text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-none"
+                                  />
+                                  <CommandList className="bg-white dark:bg-slate-800 max-h-48">
+                                    <CommandEmpty className="text-slate-900 dark:text-white py-3 text-center text-xs">No stock found.</CommandEmpty>
+                                    <CommandGroup className="bg-white dark:bg-slate-800">
+                                      {stockSymbols
+                                        .filter((symbol) => 
+                                          symbol.label.toLowerCase().includes(symbolSearchValue.toLowerCase()) ||
+                                          symbol.value.toLowerCase().includes(symbolSearchValue.toLowerCase())
+                                        )
+                                        .map((symbol) => (
+                                          <CommandItem
+                                            key={symbol.value}
+                                            value={symbol.value}
+                                            onSelect={(currentValue) => {
+                                              setOhlcSymbol(currentValue === ohlcSymbol ? "" : currentValue);
+                                              setOpenSymbolSearch(false);
+                                              setSymbolSearchValue("");
+                                            }}
+                                            className="flex items-center px-2 py-1.5 text-xs text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-3 w-3 flex-shrink-0",
+                                                ohlcSymbol === symbol.value ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            <span className="truncate">{symbol.label}</span>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+
+                            {/* Timeframe Select with Custom option */}
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-16 h-7 justify-between bg-white dark:bg-slate-800 border-slate-600 text-slate-900 dark:text-slate-300 text-xs px-2"
+                                  data-testid="button-trade-timeframe"
+                                >
+                                  {getAllTimeframes().find(tf => tf.value === ohlcTimeframe)?.label || ohlcTimeframe}
+                                  <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-36 p-1 bg-white dark:bg-slate-800 border-slate-600">
+                                <div className="grid gap-1 max-h-48 overflow-y-auto">
+                                  {getAllTimeframes().map((timeframe) => (
+                                    <div key={timeframe.value} className="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 group">
+                                      <button 
+                                        className="flex-1 text-left text-xs text-slate-900 dark:text-slate-300"
+                                        onClick={() => {
+                                          setOhlcTimeframe(timeframe.value);
+                                        }}
+                                      >
+                                        {timeframe.label}
+                                      </button>
+                                      {timeframe.deletable && (
+                                        <button
+                                          className="ml-1 w-4 h-4 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-500 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteTimeframe(timeframe.value);
+                                          }}
+                                          title="Delete timeframe"
+                                        >
+                                          ×
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                  <div className="border-t border-slate-200 dark:border-slate-600 mt-1 pt-1">
+                                    <button 
+                                      className="w-full text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-xs text-slate-900 dark:text-slate-300"
+                                      onClick={() => setShowCustomTimeframe(true)}
+                                    >
+                                      + Add Custom
+                                    </button>
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+
+                            {/* Transformation Button */}
+                            <Button 
+                              onClick={handleTransformation}
+                              disabled={!ohlcData || !ohlcData.candles || ohlcData.candles.length === 0}
+                              variant={transformationMode > 0 ? "default" : "outline"}
+                              size="sm"
+                              className={`h-7 px-2 transition-all duration-300 ${
+                                transformationMode > 0 
+                                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg border-purple-500' 
+                                  : 'border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900'
+                              }`}
+                              title={transformationMode > 0 
+                                ? `Mode ${transformationMode}: ${['', 'Inverted', 'Reversed', 'Inverted+Reversed', 'H-Flip', 'Mock'][transformationMode]}` 
+                                : 'Chart Transformation'
+                              }
+                              data-testid="button-trade-transform"
+                            >
+                              <Shuffle className={`h-3 w-3 ${transformationMode > 0 ? 'animate-pulse' : ''}`} />
+                            </Button>
+
+                            {/* Fetch Button */}
+                            <Button 
+                              onClick={handleFetchOhlcData}
+                              disabled={fetchOhlcData.isPending}
+                              size="sm"
+                              className="h-7 px-2 bg-green-600 hover:bg-green-700"
+                              title={fetchOhlcData.isPending ? 'Fetching...' : 'Fetch Data'}
+                              data-testid="button-trade-fetch"
+                            >
+                              {fetchOhlcData.isPending ? (
+                                <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full"></div>
+                              ) : (
+                                <Check className="h-3 w-3" />
+                              )}
+                            </Button>
+
+                            {/* Download/Export Button */}
+                            <Button 
+                              onClick={handleDownloadOhlcData}
+                              disabled={!ohlcData || !ohlcData.candles || ohlcData.candles.length === 0}
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 border-slate-600 text-slate-300 hover:bg-slate-700"
+                              title="Download OHLC CSV"
+                              data-testid="button-trade-export"
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
 
-                        {/* OHLC Values Grid */}
-                        {niftyChartData && niftyChartData.length > 0 ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {/* Open */}
-                            <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                              <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Open</p>
-                              <p className="text-base font-semibold text-white">
-                                ₹{niftyChartData[0]?.price?.toFixed(2) || '--'}
-                              </p>
-                            </div>
-
-                            {/* High */}
-                            <div className="bg-green-900/20 rounded-lg p-3 border border-green-800/30">
-                              <p className="text-xs text-green-400 mb-1 font-medium uppercase tracking-wide">High</p>
-                              <p className="text-base font-semibold text-green-400">
-                                ₹{Math.max(...niftyChartData.map((d: any) => d.price || 0)).toFixed(2)}
-                              </p>
-                            </div>
-
-                            {/* Low */}
-                            <div className="bg-red-900/20 rounded-lg p-3 border border-red-800/30">
-                              <p className="text-xs text-red-400 mb-1 font-medium uppercase tracking-wide">Low</p>
-                              <p className="text-base font-semibold text-red-400">
-                                ₹{Math.min(...niftyChartData.map((d: any) => d.price || Infinity)).toFixed(2)}
-                              </p>
-                            </div>
-
-                            {/* Close */}
-                            <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800/30">
-                              <p className="text-xs text-purple-400 mb-1 font-medium uppercase tracking-wide">Close</p>
-                              <p className="text-base font-semibold text-purple-400">
-                                ₹{niftyChartData[niftyChartData.length - 1]?.price?.toFixed(2) || '--'}
-                              </p>
+                        {/* Loading State */}
+                        {fetchOhlcData.isPending ? (
+                          <div className="h-32 flex items-center justify-center">
+                            <div className="text-slate-400 text-sm flex items-center gap-2">
+                              <div className="animate-spin w-4 h-4 border-2 border-slate-600 border-t-purple-500 rounded-full"></div>
+                              Loading OHLC data...
                             </div>
                           </div>
+                        ) : ohlcData && ohlcData.candles && ohlcData.candles.length > 0 ? (
+                          <>
+                            {/* Stock Info Header */}
+                            <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
+                              <span>{ohlcSymbol || 'NIFTY50'} - {ohlcTimeframe}</span>
+                              <span>{ohlcData.candles.length} candles</span>
+                            </div>
+
+                            {/* OHLC Values Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {/* Open */}
+                              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                                <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Open</p>
+                                <p className="text-base font-semibold text-white">
+                                  ₹{ohlcData.candles[0]?.open?.toFixed(2) || '--'}
+                                </p>
+                              </div>
+
+                              {/* High */}
+                              <div className="bg-green-900/20 rounded-lg p-3 border border-green-800/30">
+                                <p className="text-xs text-green-400 mb-1 font-medium uppercase tracking-wide">High</p>
+                                <p className="text-base font-semibold text-green-400">
+                                  ₹{Math.max(...ohlcData.candles.map((c: any) => c.high || 0)).toFixed(2)}
+                                </p>
+                              </div>
+
+                              {/* Low */}
+                              <div className="bg-red-900/20 rounded-lg p-3 border border-red-800/30">
+                                <p className="text-xs text-red-400 mb-1 font-medium uppercase tracking-wide">Low</p>
+                                <p className="text-base font-semibold text-red-400">
+                                  ₹{Math.min(...ohlcData.candles.map((c: any) => c.low || Infinity)).toFixed(2)}
+                                </p>
+                              </div>
+
+                              {/* Close */}
+                              <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800/30">
+                                <p className="text-xs text-purple-400 mb-1 font-medium uppercase tracking-wide">Close</p>
+                                <p className="text-base font-semibold text-purple-400">
+                                  ₹{ohlcData.candles[ohlcData.candles.length - 1]?.close?.toFixed(2) || '--'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Additional Stats */}
+                            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700">
+                              <div className="text-center">
+                                <p className="text-xs text-slate-400 mb-1">Candles</p>
+                                <p className="text-sm font-semibold text-slate-300">{ohlcData.candles.length}</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-slate-400 mb-1">Range</p>
+                                <p className="text-sm font-semibold text-slate-300">
+                                  ₹{(Math.max(...ohlcData.candles.map((c: any) => c.high || 0)) - Math.min(...ohlcData.candles.map((c: any) => c.low || Infinity))).toFixed(2)}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-slate-400 mb-1">Change</p>
+                                <p className={`text-sm font-semibold ${
+                                  ohlcData.candles[ohlcData.candles.length - 1]?.close >= ohlcData.candles[0]?.open 
+                                    ? 'text-green-400' 
+                                    : 'text-red-400'
+                                }`}>
+                                  {ohlcData.candles[ohlcData.candles.length - 1]?.close >= ohlcData.candles[0]?.open ? '+' : ''}
+                                  {(((ohlcData.candles[ohlcData.candles.length - 1]?.close - ohlcData.candles[0]?.open) / ohlcData.candles[0]?.open) * 100).toFixed(2)}%
+                                </p>
+                              </div>
+                            </div>
+                          </>
                         ) : (
-                          <div className="flex items-center justify-center py-6">
-                            <p className="text-sm text-slate-400">Select timeframe above to view OHLC data</p>
-                          </div>
-                        )}
-
-                        {/* Additional Stats */}
-                        {niftyChartData && niftyChartData.length > 0 && (
-                          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700">
-                            <div className="text-center">
-                              <p className="text-xs text-slate-400 mb-1">Candles</p>
-                              <p className="text-sm font-semibold text-slate-300">{niftyChartData.length}</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-xs text-slate-400 mb-1">Range</p>
-                              <p className="text-sm font-semibold text-slate-300">
-                                ₹{(Math.max(...niftyChartData.map((d: any) => d.price || 0)) - Math.min(...niftyChartData.map((d: any) => d.price || Infinity))).toFixed(2)}
-                              </p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-xs text-slate-400 mb-1">Change</p>
-                              <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                                {isPositive ? '+' : ''}{percentChange}%
-                              </p>
-                            </div>
+                          <div className="h-32 flex flex-col items-center justify-center">
+                            <p className="text-sm text-slate-400">No OHLC data loaded</p>
+                            <p className="text-xs text-slate-500 mt-1">Click "Fetch" to load {ohlcTimeframe} data</p>
                           </div>
                         )}
                       </div>
