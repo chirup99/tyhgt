@@ -9056,17 +9056,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Both Fyers API and backup failed
+      // Both Fyers API and backup failed - return empty data gracefully
       console.error(`❌ Both Fyers API and backup failed for ${symbol}`);
       
       await safeAddActivityLog({
-        type: "error",
-        message: `Historical data failed: No data available from Fyers API or backup for ${symbol}`
+        type: "warning",
+        message: `Historical data unavailable for ${symbol} - returning empty dataset`
       });
 
-      return res.status(503).json({ 
-        error: "Historical data unavailable",
-        message: `No historical data available for ${symbol}. Both Fyers API and backup data sources failed.`,
+      return res.json({ 
+        symbol: symbol,
+        resolution: resolution,
+        range_from: range_from,
+        range_to: range_to,
+        candles: [],
+        source: 'none',
+        message: `No historical data available for ${symbol}. Please authenticate or try a different date.`,
         details: backupResult.error || 'Both primary and backup data sources unavailable'
       });
 
