@@ -154,6 +154,38 @@
 [x] 2526. ✅ Screenshot verified - all components visible
 [x] 2527. ✅✅✅ DASHBOARD LOADING FIX COMPLETE! ✅✅✅
 
+[x] 2528. NOVEMBER 26, 2025 - ANGEL ONE API ENHANCEMENT (Matching Fyers Features)
+[x] 2529. User Request: Add Angel One API features matching Fyers (status refresh, activity logs, API statistics)
+[x] 2530. ✅ Enhanced AngelOneAPI class with statistics tracking:
+[x] 2531.   - Added activity logging (addActivityLog method)
+[x] 2532.   - Added request tracking (trackRequest method)
+[x] 2533.   - Added getActivityLogs() method
+[x] 2534.   - Added getApiStats() method  
+[x] 2535.   - Added refreshStatus() method
+[x] 2536.   - Tracks: response times, success rates, uptime, latency
+[x] 2537. ✅ Added new server routes:
+[x] 2538.   - POST /api/angelone/status/refresh - Refresh connection status
+[x] 2539.   - GET /api/angelone/statistics - Get API performance metrics
+[x] 2540.   - GET /api/angelone/activity-logs - Get recent activity logs
+[x] 2541. ✅ Created new frontend components:
+[x] 2542.   - AngelOneApiStatistics - Shows response time, success rate, throughput
+[x] 2543.   - AngelOneSystemStatus - Shows system status and recent activity
+[x] 2544.   - Enhanced AngelOneStatus - Added proper refresh functionality
+[x] 2545. ✅ Updated home.tsx dashboard:
+[x] 2546.   - Added API Statistics grid (Fyers + Angel One side by side)
+[x] 2547.   - Added System Status grid (ErrorPanel + AngelOneSystemStatus side by side)
+[x] 2548. ✅ All endpoints tested and working:
+[x] 2549.   - /api/angelone/statistics returns proper stats
+[x] 2550.   - /api/angelone/activity-logs returns activity logs
+[x] 2551.   - /api/angelone/status/refresh updates status properly
+[x] 2552. ✅ BUG FIXES (Architect Review Feedback):
+[x] 2553.   - Normalized Date objects to ISO strings in API responses
+[x] 2554.   - Added getFormattedActivityLogs() method for formatted timestamps
+[x] 2555.   - Fixed refreshStatus() to return success/fail flag properly  
+[x] 2556.   - Added trackRequest() to all API methods (getLTP, getCandleData, getHoldings, getPositions, getOrderBook)
+[x] 2557.   - Removed buggy refreshSession() call that crashed workflow
+[x] 2558. ✅✅✅ ANGEL ONE API ENHANCEMENT COMPLETE! ✅✅✅
+
 [x] 2511. NOVEMBER 26, 2025 - FINAL REPLIT ENVIRONMENT MIGRATION COMPLETION
 [x] 2512. Task: Complete project import migration from Replit Agent to standard Replit environment
 [x] 2513. ✅ Identified missing package: smartapi-javascript

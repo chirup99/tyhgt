@@ -7551,6 +7551,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Angel One - Refresh status
+  app.post("/api/angelone/status/refresh", async (req, res) => {
+    try {
+      console.log('🔶 [ANGEL ONE] Refreshing status...');
+      const result = await angelOneApi.refreshStatus();
+      res.json({ 
+        success: result.success,
+        message: result.success ? "Status refreshed" : "Refresh skipped - not connected",
+        ...result.stats
+      });
+    } catch (error: any) {
+      console.error('❌ [ANGEL ONE] Status refresh error:', error.message);
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get API statistics
+  app.get("/api/angelone/statistics", async (req, res) => {
+    try {
+      const stats = angelOneApi.getApiStats();
+      res.json({ 
+        success: true,
+        ...stats
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get activity logs (formatted with ISO timestamps)
+  app.get("/api/angelone/activity-logs", async (req, res) => {
+    try {
+      const logs = angelOneApi.getFormattedActivityLogs();
+      res.json({ 
+        success: true,
+        logs
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
   // Angel One - Get profile
   app.get("/api/angelone/profile", async (req, res) => {
     try {

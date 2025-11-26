@@ -8,7 +8,7 @@ import React, {
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { AuthButton } from "@/components/auth-button";
-import { AuthButtonAngelOne, AngelOneStatus } from "@/components/auth-button-angelone";
+import { AuthButtonAngelOne, AngelOneStatus, AngelOneApiStatistics, AngelOneSystemStatus } from "@/components/auth-button-angelone";
 import { ConnectionStatus } from "@/components/connection-status";
 import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
 import { SigninDataWindow } from "@/components/signin-data-window";
@@ -7579,8 +7579,23 @@ ${
                   <AngelOneStatus />
                 </div>
 
-                {/* Error Panel and Recent Activity - Bottom */}
-                <ErrorPanel />
+                {/* API Statistics Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Fyers API Statistics */}
+                  <ApiStatistics />
+                  
+                  {/* Angel One API Statistics */}
+                  <AngelOneApiStatistics />
+                </div>
+
+                {/* System Status Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Fyers Error Panel and Recent Activity */}
+                  <ErrorPanel />
+                  
+                  {/* Angel One System Status and Recent Activity */}
+                  <AngelOneSystemStatus />
+                </div>
 
               </div>
             )}
