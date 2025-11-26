@@ -275,3 +275,21 @@
 [x] 2615. ✅ Workflow restarted and running successfully
 [x] 2616. ✅✅✅ ANGEL ONE API TEST TAB COMPLETE! ✅✅✅
 [x] 2586. ✅✅✅ REPLIT ENVIRONMENT IMPORT COMPLETE - READY FOR USE! ✅✅✅
+
+[x] 2617. NOVEMBER 26, 2025 - TRADE TAB OHLC DATA SECTION ADDED
+[x] 2618. User Request: Add OHLC data below chart on Trading Master Trade tab (same as main tab)
+[x] 2619. ✅ Added OHLC Data Card below TradingView chart in Trade tab
+[x] 2620. ✅ OHLC Header with BarChart3 icon and selected timeframe display
+[x] 2621. ✅ OHLC Values Grid (Open, High, Low, Close) with color-coded cards:
+[x] 2622.   - Open: slate background with white text
+[x] 2623.   - High: green background with green text
+[x] 2624.   - Low: red background with red text
+[x] 2625.   - Close: purple background with purple text
+[x] 2626. ✅ Additional Stats section:
+[x] 2627.   - Candles count
+[x] 2628.   - Price Range
+[x] 2629.   - Change percentage (green/red based on direction)
+[x] 2630. ✅ Modified chart container for scrollable layout
+[x] 2631. ✅ Adjusted chart height to accommodate OHLC section below
+[x] 2632. ✅ Workflow restarted successfully
+[x] 2633. ✅✅✅ TRADE TAB OHLC DATA SECTION COMPLETE! ✅✅✅
