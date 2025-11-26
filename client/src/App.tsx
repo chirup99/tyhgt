@@ -38,6 +38,7 @@ import NotFound from "@/pages/not-found";
 import PublicHeatmap from "@/pages/public-heatmap";
 import SharedReport from "@/pages/shared-report";
 import TradingJournalDemo from "@/pages/trading-journal-demo";
+import UserProfile from "@/pages/user-profile";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -429,6 +430,11 @@ function Router() {
       <Route path="/journal-demo">
         <MainLayout>
           <TradingJournalDemo />
+        </MainLayout>
+      </Route>
+      <Route path="/user/:username">
+        <MainLayout>
+          <UserProfile />
         </MainLayout>
       </Route>
       <Route path="/home" component={NewHome} />
