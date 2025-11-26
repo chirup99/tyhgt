@@ -1950,7 +1950,10 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
           'Authorization': `Bearer ${idToken}`
         }
       });
-      if (!response.ok) throw new Error(`Failed to ${isFollowing ? 'unfollow' : 'follow'}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${isFollowing ? 'unfollow' : 'follow'}`);
+      }
       return response.json();
     },
     onMutate: async () => {
@@ -1965,12 +1968,16 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
       queryClient.invalidateQueries({ queryKey: [`/api/users/${authorUsername}/follow-status`] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
+      // Invalidate followers/following lists for current user
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({ description: isFollowing ? "Unfollowed successfully!" : "Following!" });
     },
-    onError: (err, variables, context) => {
+    onError: (err: any, variables, context) => {
       // Revert on error
       setIsFollowing(context?.previousFollowing || false);
-      toast({ description: `Failed to ${isFollowing ? 'unfollow' : 'follow'}`, variant: "destructive" });
+      const errorMsg = err?.message || `Failed to ${isFollowing ? 'unfollow' : 'follow'}`;
+      console.error('❌ Follow error:', errorMsg);
+      toast({ description: errorMsg, variant: "destructive" });
     }
   });
 

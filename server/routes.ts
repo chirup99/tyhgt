@@ -5998,28 +5998,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // FOLLOW/UNFOLLOW ENDPOINTS
   app.post('/api/users/:username/follow', async (req, res) => {
     try {
+      console.log('📥 Follow request received for:', req.params.username);
+      
       const userId = await verifyUserAuth(req.headers.authorization);
+      console.log('✅ User authenticated:', userId);
+      
       const targetUsername = req.params.username;
       
       const { getFirestore } = await import('firebase-admin/firestore');
       const db = getFirestore();
       
-      // Get current user's profile
-      const userDoc = await db.collection('users').doc(userId).get();
-      if (!userDoc.exists) {
-        return res.status(404).json({ error: 'User profile not found' });
+      // Get current user's profile - try by ID first, then search by email
+      let userDoc = await db.collection('users').doc(userId).get();
+      let currentUsername = userDoc.data()?.username;
+      
+      if (!userDoc.exists || !currentUsername) {
+        console.log('📍 User profile not found by ID, searching all users...');
+        // Try to find user by any field matching userId
+        const allUsersSnapshot = await db.collection('users').limit(100).get();
+        let foundProfile = false;
+        
+        for (const doc of allUsersSnapshot.docs) {
+          const data = doc.data();
+          if (doc.id === userId || data.uid === userId || data.firebaseUid === userId) {
+            currentUsername = data.username || data.email?.split('@')[0] || 'user';
+            foundProfile = true;
+            console.log('✅ Found user profile:', currentUsername);
+            break;
+          }
+        }
+        
+        if (!foundProfile) {
+          // Create a basic profile for the user
+          const admin = await import('firebase-admin');
+          const userRecord = await admin.auth().getUser(userId);
+          currentUsername = userRecord.email?.split('@')[0] || 'user';
+          
+          await db.collection('users').doc(userId).set({
+            uid: userId,
+            username: currentUsername,
+            email: userRecord.email,
+            createdAt: new Date()
+          });
+          console.log('📝 Created new user profile for:', currentUsername);
+        }
       }
-      const currentUsername = userDoc.data()?.username;
       
       // Find target user by username
+      console.log('🔍 Searching for target user:', targetUsername);
       const usersSnapshot = await db.collection('users').where('username', '==', targetUsername).limit(1).get();
+      
+      let targetUserId: string;
+      
       if (usersSnapshot.empty) {
-        return res.status(404).json({ error: 'Target user not found' });
+        // Target user might not have a profile yet - search in social posts for author info
+        console.log('📍 Target user not found in users collection, checking posts...');
+        const postsSnapshot = await db.collection('social_posts').where('authorUsername', '==', targetUsername).limit(1).get();
+        
+        if (!postsSnapshot.empty) {
+          // Create a profile for the target user based on their posts
+          const postData = postsSnapshot.docs[0].data();
+          targetUserId = `user_${targetUsername}`;
+          
+          await db.collection('users').doc(targetUserId).set({
+            username: targetUsername,
+            displayName: postData.authorDisplayName || targetUsername,
+            createdAt: new Date()
+          });
+          console.log('📝 Created profile for target user:', targetUsername);
+        } else {
+          console.log('❌ Target user not found anywhere:', targetUsername);
+          return res.status(404).json({ error: `User @${targetUsername} not found` });
+        }
+      } else {
+        targetUserId = usersSnapshot.docs[0].id;
       }
-      const targetUserId = usersSnapshot.docs[0].id;
       
       // Don't allow self-follow
-      if (userId === targetUserId) {
+      if (userId === targetUserId || currentUsername === targetUsername) {
+        console.log('⚠️ Self-follow attempt blocked');
         return res.status(400).json({ error: 'Cannot follow yourself' });
       }
       
@@ -6035,7 +6092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ ${currentUsername} is now following ${targetUsername}`);
       res.json({ success: true, following: true });
     } catch (error: any) {
-      console.error('Error following user:', error);
+      console.error('❌ Error following user:', error);
       res.status(500).json({ error: error.message || 'Failed to follow user' });
     }
   });
