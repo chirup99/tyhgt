@@ -2296,6 +2296,39 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   const [nseOhlcLoading, setNseOhlcLoading] = useState(false);
   const [nseOhlcError, setNseOhlcError] = useState<string | null>(null);
   
+  // 🔶 Angel One OHLC Test State - for testing Angel One API
+  const [angelOneSelectedSymbol, setAngelOneSelectedSymbol] = useState('RELIANCE');
+  const [angelOneSymbolSearchOpen, setAngelOneSymbolSearchOpen] = useState(false);
+  const [angelOneSymbolSearchValue, setAngelOneSymbolSearchValue] = useState('');
+  const [angelOneOhlcData, setAngelOneOhlcData] = useState<any>(null);
+  const [angelOneOhlcLoading, setAngelOneOhlcLoading] = useState(false);
+  const [angelOneOhlcError, setAngelOneOhlcError] = useState<string | null>(null);
+  const [angelOneConnectionStatus, setAngelOneConnectionStatus] = useState<'idle' | 'connected' | 'disconnected' | 'error'>('idle');
+  
+  // Angel One stock symbol tokens (required for API calls)
+  const angelOneStockTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
+    'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
+    'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
+    'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
+    'ICICIBANK': { token: '4963', exchange: 'NSE', tradingSymbol: 'ICICIBANK-EQ' },
+    'INFY': { token: '1594', exchange: 'NSE', tradingSymbol: 'INFY-EQ' },
+    'ITC': { token: '1660', exchange: 'NSE', tradingSymbol: 'ITC-EQ' },
+    'SBIN': { token: '3045', exchange: 'NSE', tradingSymbol: 'SBIN-EQ' },
+    'BHARTIARTL': { token: '10604', exchange: 'NSE', tradingSymbol: 'BHARTIARTL-EQ' },
+    'HINDUNILVR': { token: '1394', exchange: 'NSE', tradingSymbol: 'HINDUNILVR-EQ' },
+    'LT': { token: '11483', exchange: 'NSE', tradingSymbol: 'LT-EQ' },
+    'AXISBANK': { token: '5900', exchange: 'NSE', tradingSymbol: 'AXISBANK-EQ' },
+    'KOTAKBANK': { token: '1922', exchange: 'NSE', tradingSymbol: 'KOTAKBANK-EQ' },
+    'BAJFINANCE': { token: '317', exchange: 'NSE', tradingSymbol: 'BAJFINANCE-EQ' },
+    'MARUTI': { token: '10999', exchange: 'NSE', tradingSymbol: 'MARUTI-EQ' },
+    'TITAN': { token: '3506', exchange: 'NSE', tradingSymbol: 'TITAN-EQ' },
+    'SUNPHARMA': { token: '3351', exchange: 'NSE', tradingSymbol: 'SUNPHARMA-EQ' },
+    'TATAMOTORS': { token: '3456', exchange: 'NSE', tradingSymbol: 'TATAMOTORS-EQ' },
+    'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
+    'TECHM': { token: '13538', exchange: 'NSE', tradingSymbol: 'TECHM-EQ' },
+    'ADANIENT': { token: '25', exchange: 'NSE', tradingSymbol: 'ADANIENT-EQ' },
+  };
+  
   // 🚀 WEBSOCKET STREAMING DISABLED FOR MAXIMUM PERFORMANCE
   const connectWebSocket = () => {
     // WebSocket connections disabled to eliminate performance overhead
@@ -11989,35 +12022,35 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </Card>
           </TabsContent>
 
-          {/* NSE Text Tab Content - NSE OHLC Data Display */}
+          {/* Angel One API Test Tab - OHLC Data Display */}
           <TabsContent value="nsetext" className="p-6 space-y-6">
             <div className="space-y-6">
               {/* Header with Stock Search */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    NSE OHLC Data
+                    <BarChart3 className="h-5 w-5 text-orange-500" />
+                    Angel One API Test
                   </h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Real-time stock data from NSE India (Alternative to Fyers API)
+                    Test Angel One API connection and fetch real-time OHLC data
                   </p>
                 </div>
                 
                 {/* Stock Search Bar */}
                 <div className="flex items-center gap-2">
-                  <Popover open={nseSymbolSearchOpen} onOpenChange={setNseSymbolSearchOpen}>
+                  <Popover open={angelOneSymbolSearchOpen} onOpenChange={setAngelOneSymbolSearchOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
-                        aria-expanded={nseSymbolSearchOpen}
+                        aria-expanded={angelOneSymbolSearchOpen}
                         className="w-[250px] justify-between"
-                        data-testid="button-nse-symbol-search"
+                        data-testid="button-angelone-symbol-search"
                       >
                         <div className="flex items-center gap-2">
-                          <Search className="h-4 w-4 text-slate-500" />
-                          <span>{nseSelectedSymbol || "Search stock..."}</span>
+                          <Search className="h-4 w-4 text-orange-500" />
+                          <span>{angelOneSelectedSymbol || "Search stock..."}</span>
                         </div>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -12026,9 +12059,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                       <Command>
                         <CommandInput 
                           placeholder="Search stocks..." 
-                          value={nseSymbolSearchValue}
-                          onValueChange={setNseSymbolSearchValue}
-                          data-testid="input-nse-symbol-search"
+                          value={angelOneSymbolSearchValue}
+                          onValueChange={setAngelOneSymbolSearchValue}
+                          data-testid="input-angelone-symbol-search"
                         />
                         <CommandList>
                           <CommandEmpty>No stock found.</CommandEmpty>
@@ -12056,44 +12089,61 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                               { value: 'ADANIENT', label: 'Adani Enterprises' },
                             ]
                               .filter(s => 
-                                s.value.toLowerCase().includes(nseSymbolSearchValue.toLowerCase()) ||
-                                s.label.toLowerCase().includes(nseSymbolSearchValue.toLowerCase())
+                                s.value.toLowerCase().includes(angelOneSymbolSearchValue.toLowerCase()) ||
+                                s.label.toLowerCase().includes(angelOneSymbolSearchValue.toLowerCase())
                               )
                               .map((stock) => (
                                 <CommandItem
                                   key={stock.value}
                                   value={stock.value}
                                   onSelect={() => {
-                                    setNseSelectedSymbol(stock.value);
-                                    setNseSymbolSearchOpen(false);
-                                    setNseSymbolSearchValue('');
+                                    setAngelOneSelectedSymbol(stock.value);
+                                    setAngelOneSymbolSearchOpen(false);
+                                    setAngelOneSymbolSearchValue('');
                                     
-                                    // Auto-fetch OHLC data
+                                    const stockToken = angelOneStockTokens[stock.value];
+                                    if (!stockToken) {
+                                      setAngelOneOhlcError('Stock token not found');
+                                      return;
+                                    }
+                                    
                                     (async () => {
-                                      setNseOhlcLoading(true);
-                                      setNseOhlcError(null);
-                                      setNseOhlcData(null);
+                                      setAngelOneOhlcLoading(true);
+                                      setAngelOneOhlcError(null);
+                                      setAngelOneOhlcData(null);
                                       
                                       try {
-                                        const response = await fetch(`/api/nse/equity/${stock.value}`);
+                                        const response = await fetch('/api/angelone/ltp', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            exchange: stockToken.exchange,
+                                            tradingSymbol: stockToken.tradingSymbol,
+                                            symbolToken: stockToken.token
+                                          })
+                                        });
                                         const data = await response.json();
                                         
-                                        if (data.success) {
-                                          setNseOhlcData(data);
-                                          setNseConnectionStatus('connected');
+                                        if (data.success && data.data) {
+                                          setAngelOneOhlcData({
+                                            success: true,
+                                            data: data.data,
+                                            timestamp: new Date().toISOString()
+                                          });
+                                          setAngelOneConnectionStatus('connected');
                                         } else {
-                                          setNseOhlcError(data.error || 'Failed to fetch data');
-                                          setNseConnectionStatus('failed');
+                                          setAngelOneOhlcError(data.message || 'Failed to fetch data from Angel One');
+                                          setAngelOneConnectionStatus('error');
                                         }
                                       } catch (error: any) {
-                                        setNseOhlcError(error.message || 'Network error');
-                                        setNseConnectionStatus('failed');
+                                        setAngelOneOhlcError(error.message || 'Network error');
+                                        setAngelOneConnectionStatus('error');
                                       } finally {
-                                        setNseOhlcLoading(false);
+                                        setAngelOneOhlcLoading(false);
                                       }
                                     })();
                                   }}
-                                  data-testid={`nse-stock-${stock.value}`}
+                                  data-testid={`angelone-stock-${stock.value}`}
                                 >
                                   <div className="flex flex-col">
                                     <span className="font-medium">{stock.value}</span>
@@ -12111,58 +12161,81 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                     variant="outline"
                     size="icon"
                     onClick={async () => {
-                      if (!nseSelectedSymbol) return;
-                      setNseOhlcLoading(true);
-                      setNseOhlcError(null);
+                      if (!angelOneSelectedSymbol) return;
+                      const stockToken = angelOneStockTokens[angelOneSelectedSymbol];
+                      if (!stockToken) {
+                        setAngelOneOhlcError('Stock token not found');
+                        return;
+                      }
+                      
+                      setAngelOneOhlcLoading(true);
+                      setAngelOneOhlcError(null);
                       
                       try {
-                        const response = await fetch(`/api/nse/equity/${nseSelectedSymbol}`);
+                        const response = await fetch('/api/angelone/ltp', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            exchange: stockToken.exchange,
+                            tradingSymbol: stockToken.tradingSymbol,
+                            symbolToken: stockToken.token
+                          })
+                        });
                         const data = await response.json();
                         
-                        if (data.success) {
-                          setNseOhlcData(data);
-                          setNseConnectionStatus('connected');
+                        if (data.success && data.data) {
+                          setAngelOneOhlcData({
+                            success: true,
+                            data: data.data,
+                            timestamp: new Date().toISOString()
+                          });
+                          setAngelOneConnectionStatus('connected');
                         } else {
-                          setNseOhlcError(data.error || 'Failed to fetch data');
-                          setNseConnectionStatus('failed');
+                          setAngelOneOhlcError(data.message || 'Failed to fetch data from Angel One');
+                          setAngelOneConnectionStatus('error');
                         }
                       } catch (error: any) {
-                        setNseOhlcError(error.message || 'Network error');
-                        setNseConnectionStatus('failed');
+                        setAngelOneOhlcError(error.message || 'Network error');
+                        setAngelOneConnectionStatus('error');
                       } finally {
-                        setNseOhlcLoading(false);
+                        setAngelOneOhlcLoading(false);
                       }
                     }}
-                    disabled={nseOhlcLoading || !nseSelectedSymbol}
-                    data-testid="button-nse-refresh"
+                    disabled={angelOneOhlcLoading || !angelOneSelectedSymbol}
+                    data-testid="button-angelone-refresh"
                   >
-                    <RefreshCw className={cn("h-4 w-4", nseOhlcLoading && "animate-spin")} />
+                    <RefreshCw className={cn("h-4 w-4", angelOneOhlcLoading && "animate-spin")} />
                   </Button>
                   
                   <Badge 
                     className={cn(
                       "text-xs",
-                      nseConnectionStatus === 'connected' && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-                      nseConnectionStatus === 'failed' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-                      nseConnectionStatus === 'idle' && "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                      angelOneConnectionStatus === 'connected' && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                      angelOneConnectionStatus === 'error' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+                      angelOneConnectionStatus === 'disconnected' && "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+                      angelOneConnectionStatus === 'idle' && "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
                     )}
                   >
-                    {nseConnectionStatus === 'connected' && 'NSE Connected'}
-                    {nseConnectionStatus === 'failed' && 'Failed'}
-                    {nseConnectionStatus === 'idle' && 'Select Stock'}
+                    {angelOneConnectionStatus === 'connected' && 'Angel One Connected'}
+                    {angelOneConnectionStatus === 'error' && 'API Error'}
+                    {angelOneConnectionStatus === 'disconnected' && 'Disconnected'}
+                    {angelOneConnectionStatus === 'idle' && 'Select Stock'}
                   </Badge>
                 </div>
               </div>
 
               {/* Error Display */}
-              {nseOhlcError && (
+              {angelOneOhlcError && (
                 <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-2">
                       <X className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                       <div>
-                        <p className="font-medium text-red-800 dark:text-red-200">Error fetching data</p>
-                        <p className="text-sm text-red-600 dark:text-red-300">{nseOhlcError}</p>
+                        <p className="font-medium text-red-800 dark:text-red-200">Angel One API Error</p>
+                        <p className="text-sm text-red-600 dark:text-red-300">{angelOneOhlcError}</p>
+                        <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                          Make sure you are connected to Angel One from the Dashboard settings.
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -12170,48 +12243,48 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               )}
 
               {/* Loading State */}
-              {nseOhlcLoading && (
+              {angelOneOhlcLoading && (
                 <Card className="bg-white dark:bg-gray-800">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-center py-12">
-                      <RefreshCw className="h-8 w-8 text-blue-500 animate-spin mr-3" />
-                      <span className="text-slate-600 dark:text-slate-400">Fetching {nseSelectedSymbol} data from NSE...</span>
+                      <RefreshCw className="h-8 w-8 text-orange-500 animate-spin mr-3" />
+                      <span className="text-slate-600 dark:text-slate-400">Fetching {angelOneSelectedSymbol} data from Angel One API...</span>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
               {/* OHLC Data Display */}
-              {nseOhlcData && nseOhlcData.data && !nseOhlcLoading && (
+              {angelOneOhlcData && angelOneOhlcData.data && !angelOneOhlcLoading && (
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <CardContent className="p-6">
                     {/* Stock Header */}
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white font-bold text-lg">{nseOhlcData.data.symbol?.charAt(0)}</span>
+                        <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">{angelOneOhlcData.data.tradingSymbol?.charAt(0) || angelOneSelectedSymbol.charAt(0)}</span>
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-white">{nseOhlcData.data.symbol}</h3>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">{nseOhlcData.data.companyName || 'NSE Equity'}</p>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white">{angelOneOhlcData.data.tradingSymbol || angelOneSelectedSymbol}</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">Angel One API - {angelOneOhlcData.data.exchange || 'NSE'}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {nseOhlcData.data.lastPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          {angelOneOhlcData.data.ltp?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </div>
                         <div className={cn(
                           "flex items-center justify-end gap-1 text-sm font-medium",
-                          (nseOhlcData.data.change || 0) >= 0 ? "text-green-600" : "text-red-600"
+                          (angelOneOhlcData.data.change || 0) >= 0 ? "text-green-600" : "text-red-600"
                         )}>
-                          {(nseOhlcData.data.change || 0) >= 0 ? (
+                          {(angelOneOhlcData.data.change || 0) >= 0 ? (
                             <TrendingUp className="h-4 w-4" />
                           ) : (
                             <TrendingDown className="h-4 w-4" />
                           )}
                           <span>
-                            {(nseOhlcData.data.change || 0) >= 0 ? '+' : ''}{nseOhlcData.data.change?.toFixed(2)} 
-                            ({(nseOhlcData.data.pChange || 0) >= 0 ? '+' : ''}{nseOhlcData.data.pChange?.toFixed(2)}%)
+                            {(angelOneOhlcData.data.change || 0) >= 0 ? '+' : ''}{angelOneOhlcData.data.change?.toFixed(2)} 
+                            ({(angelOneOhlcData.data.changePercent || 0) >= 0 ? '+' : ''}{angelOneOhlcData.data.changePercent?.toFixed(2)}%)
                           </span>
                         </div>
                       </div>
@@ -12225,7 +12298,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Open</span>
                         </div>
                         <p className="text-lg font-bold text-slate-900 dark:text-white">
-                          {nseOhlcData.data.open?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          {angelOneOhlcData.data.open?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </p>
                       </div>
                       
@@ -12235,7 +12308,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           <span className="text-xs font-medium text-green-600 uppercase tracking-wide">High</span>
                         </div>
                         <p className="text-lg font-bold text-green-700 dark:text-green-400">
-                          {nseOhlcData.data.dayHigh?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          {angelOneOhlcData.data.high?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </p>
                       </div>
                       
@@ -12245,7 +12318,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           <span className="text-xs font-medium text-red-600 uppercase tracking-wide">Low</span>
                         </div>
                         <p className="text-lg font-bold text-red-700 dark:text-red-400">
-                          {nseOhlcData.data.dayLow?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          {angelOneOhlcData.data.low?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </p>
                       </div>
                       
@@ -12255,7 +12328,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">Prev Close</span>
                         </div>
                         <p className="text-lg font-bold text-purple-700 dark:text-purple-400">
-                          {nseOhlcData.data.previousClose?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          {angelOneOhlcData.data.close?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </p>
                       </div>
                     </div>
@@ -12265,35 +12338,34 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                       <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Volume</p>
                         <p className="font-semibold text-slate-900 dark:text-white">
-                          {nseOhlcData.data.totalTradedVolume?.toLocaleString('en-IN')}
+                          {angelOneOhlcData.data.volume?.toLocaleString('en-IN') || 'N/A'}
                         </p>
                       </div>
                       <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Value (Cr)</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Exchange</p>
                         <p className="font-semibold text-slate-900 dark:text-white">
-                          {((nseOhlcData.data.totalTradedValue || 0) / 10000000).toFixed(2)}
+                          {angelOneOhlcData.data.exchange || 'NSE'}
                         </p>
                       </div>
                       <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">52W High</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Symbol Token</p>
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {angelOneOhlcData.data.symbol || angelOneStockTokens[angelOneSelectedSymbol]?.token || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">API Status</p>
                         <p className="font-semibold text-green-600">
-                          {nseOhlcData.data.yearHigh?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                        </p>
-                      </div>
-                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">52W Low</p>
-                        <p className="font-semibold text-red-600">
-                          {nseOhlcData.data.yearLow?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          Active
                         </p>
                       </div>
                     </div>
 
                     {/* Response Info */}
                     <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-xs text-slate-500">
-                      <span>Last updated: {nseOhlcData.data.lastUpdateTime || nseOhlcData.timestamp}</span>
+                      <span>Last updated: {angelOneOhlcData.timestamp}</span>
                       <div className="flex items-center gap-2">
-                        {nseOhlcData.cached && <Badge variant="outline" className="text-xs">Cached</Badge>}
-                        <Badge variant="outline" className="text-xs">Latency: {nseOhlcData.latencyMs}ms</Badge>
+                        <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Angel One API</Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -12301,49 +12373,49 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               )}
 
               {/* Empty State - No Stock Selected */}
-              {!nseOhlcData && !nseOhlcLoading && !nseOhlcError && (
+              {!angelOneOhlcData && !angelOneOhlcLoading && !angelOneOhlcError && (
                 <Card className="bg-slate-50 dark:bg-slate-900/50 border-dashed">
                   <CardContent className="p-12">
                     <div className="flex flex-col items-center justify-center text-center">
-                      <div className="h-16 w-16 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
-                        <Search className="h-8 w-8 text-slate-400" />
+                      <div className="h-16 w-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-4">
+                        <Search className="h-8 w-8 text-orange-500" />
                       </div>
                       <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        Search for a Stock
+                        Test Angel One API
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
-                        Use the search bar above to find a stock and view its OHLC data fetched directly from NSE India.
+                        Select a stock above to test if Angel One API is working correctly. Make sure you have connected your Angel One account first.
                       </p>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Info Card - Limitations Notice */}
-              <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+              {/* Info Card - Angel One API Info */}
+              <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
                 <CardContent className="p-4">
-                  <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-2">
+                  <h4 className="font-medium text-orange-800 dark:text-orange-200 mb-2 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Cloud Server Limitations
+                    Angel One API Test
                   </h4>
-                  <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
-                    <li>• NSE website uses Akamai bot protection that blocks cloud server IPs</li>
-                    <li>• Direct NSE data fetching may fail with 403 errors from Replit/cloud environments</li>
-                    <li>• Works reliably from local/residential networks only</li>
-                    <li>• For production, Fyers API (with authentication) remains the recommended solution</li>
+                  <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1">
+                    <li>• This tab tests the Angel One Smart API integration</li>
+                    <li>• Make sure you have connected your Angel One account from Dashboard settings</li>
+                    <li>• API returns real-time LTP with OHLC data for the selected stock</li>
+                    <li>• Use this to verify API connection before using in production</li>
                   </ul>
                 </CardContent>
               </Card>
 
-              {/* Info Card - About */}
+              {/* How to Connect Card */}
               <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
                 <CardContent className="p-4">
-                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">About NSE Data Feature</h4>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">How to Connect Angel One</h4>
                   <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• Experimental feature testing direct NSE data fetching</li>
-                    <li>• No API key or daily token required (unlike Fyers)</li>
-                    <li>• Data cached for 30 seconds with rate limiting protection</li>
-                    <li>• Currently blocked by NSE security in cloud environments</li>
+                    <li>1. Go to Dashboard tab and find Angel One settings</li>
+                    <li>2. Enter your Client Code, PIN, API Key and TOTP Secret</li>
+                    <li>3. Click Connect to authenticate with Angel One</li>
+                    <li>4. Once connected, come back here to test the API</li>
                   </ul>
                 </CardContent>
               </Card>
