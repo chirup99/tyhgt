@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, TrendingDown, Calendar, Download, Check, ChevronsUpDown, ChevronDown, Search, MessageCircle, MessageSquare, Send, X, BarChart3, BookOpen, Target, CircleDot, Filter, RefreshCw, Play, MoreVertical, Trash2, Plus, Edit, Share2, Copy, ThumbsUp, Code, Shuffle, ToggleLeft, ToggleRight, Sparkles, FileText } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar, Download, Check, ChevronsUpDown, ChevronDown, Search, MessageCircle, MessageSquare, Send, X, BarChart3, BookOpen, Target, CircleDot, Filter, RefreshCw, Play, MoreVertical, Trash2, Plus, Edit, Share2, Copy, ThumbsUp, Code, Shuffle, ToggleLeft, ToggleRight, Sparkles, FileText, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine, AreaChart, Area } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
