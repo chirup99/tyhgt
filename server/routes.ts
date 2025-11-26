@@ -5094,14 +5094,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('📱 Fetching social posts from Firebase (user posts and finance news)');
       
+      const admin = await import('firebase-admin');
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
       const allPosts = [];
       
       // 1. Fetch user posts from Firebase Firestore
       try {
-        const admin = await import('firebase-admin');
-        const { getFirestore } = await import('firebase-admin/firestore');
-        const db = getFirestore();
-        
         const userPostsSnapshot = await db.collection('user_posts')
           .orderBy('createdAt', 'desc')
           .limit(50)
@@ -5115,6 +5115,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           source: 'firebase'
         }));
         
+        // Auto-create profiles for post authors
+        for (const post of userPosts) {
+          const username = post.authorUsername;
+          if (username) {
+            const usersSnapshot = await db.collection('users').where('username', '==', username).limit(1).get();
+            if (usersSnapshot.empty) {
+              await db.collection('users').doc(`user_${username}`).set({
+                username: username,
+                displayName: post.authorDisplayName || username,
+                createdAt: new Date()
+              });
+              console.log(`📝 Auto-created profile for user: ${username}`);
+            }
+          }
+        }
+        
         allPosts.push(...userPosts);
         console.log(`🔥 Retrieved ${userPosts.length} user posts from Firebase`);
       } catch (error: any) {
@@ -5123,10 +5139,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 2. Fetch finance news from Firebase Firestore (separate collection)
       try {
-        const admin = await import('firebase-admin');
-        const { getFirestore } = await import('firebase-admin/firestore');
-        const db = getFirestore();
-        
         const financeNewsSnapshot = await db.collection('finance_news')
           .orderBy('createdAt', 'desc')
           .limit(50)
@@ -5140,6 +5152,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           source: 'firebase',
           isFinanceNews: true
         }));
+        
+        // Auto-create profile for finance_news bot account
+        try {
+          const financeNewsUserCheck = await db.collection('users').where('username', '==', 'finance_news').limit(1).get();
+          if (financeNewsUserCheck.empty) {
+            await db.collection('users').doc('user_finance_news').set({
+              username: 'finance_news',
+              displayName: 'Finance News',
+              createdAt: new Date()
+            });
+            console.log(`📝 Auto-created profile for: finance_news`);
+          }
+        } catch (e) {
+          console.log('⚠️ Could not create finance_news profile:', e);
+        }
         
         allPosts.push(...financePosts);
         console.log(`💰 Retrieved ${financePosts.length} finance news posts from Firebase`);
@@ -6065,13 +6092,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let targetUserId: string;
       
       if (usersSnapshot.empty) {
-        // Target user might not have a profile yet - search in social posts for author info
-        console.log('📍 Target user not found in users collection, checking posts...');
-        const postsSnapshot = await db.collection('social_posts').where('authorUsername', '==', targetUsername).limit(1).get();
+        // Target user might not have a profile yet - search in user_posts for author info
+        console.log('📍 Target user not found in users collection, checking user_posts...');
+        let postData = null;
         
-        if (!postsSnapshot.empty) {
+        const userPostsSnapshot = await db.collection('user_posts').where('authorUsername', '==', targetUsername).limit(1).get();
+        if (!userPostsSnapshot.empty) {
+          postData = userPostsSnapshot.docs[0].data();
+        } else if (targetUsername === 'finance_news') {
+          // Special case for finance_news bot
+          postData = { authorUsername: 'finance_news', authorDisplayName: 'Finance News' };
+        } else {
+          // Try finance_news collection too
+          const financeSnapshot = await db.collection('finance_news').where('authorUsername', '==', targetUsername).limit(1).get();
+          if (!financeSnapshot.empty) {
+            postData = financeSnapshot.docs[0].data();
+          }
+        }
+        
+        if (postData) {
           // Create a profile for the target user based on their posts
-          const postData = postsSnapshot.docs[0].data();
           targetUserId = `user_${targetUsername}`;
           
           await db.collection('users').doc(targetUserId).set({
@@ -6079,7 +6119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             displayName: postData.authorDisplayName || targetUsername,
             createdAt: new Date()
           });
-          console.log('📝 Created profile for target user:', targetUsername);
+          console.log('📝 Auto-created profile for target user:', targetUsername);
         } else {
           console.log('❌ Target user not found anywhere:', targetUsername);
           return res.status(404).json({ error: `User @${targetUsername} not found` });
