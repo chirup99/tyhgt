@@ -43,7 +43,6 @@ export class AdvancedQueryProcessor {
   
   private async normalizeQueryWithAI(query: string): Promise<{ normalizedQuery: string; detectedStocks: string[] }> {
     try {
-      const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
       
       const stocksList = [
         'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL',
@@ -76,7 +75,10 @@ Examples:
 - "my trades with ITC" -> "Analyze my trading journal with ITC" with intent journal_analysis
 - "how much i loss on reliance" -> "How much loss did I incur on RELIANCE" with intent journal_analysis`;
 
-      const response = await model.generateContent(prompt);
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt
+      });
       const text = response.response.text();
       
       const jsonMatch = text.match(/\{[\s\S]*\}/);
