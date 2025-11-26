@@ -6119,6 +6119,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET FOLLOWERS LIST WITH USER DETAILS
+  app.get('/api/users/:username/followers-list', async (req, res) => {
+    try {
+      const username = req.params.username;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Find user by username
+      const usersSnapshot = await db.collection('users').where('username', '==', username).limit(1).get();
+      if (usersSnapshot.empty) {
+        return res.json({ followers: [] });
+      }
+      const userId = usersSnapshot.docs[0].id;
+      
+      // Get all followers
+      const followersSnapshot = await db.collection('follows').where('followingId', '==', userId).get();
+      
+      // Get follower details
+      const followers: any[] = [];
+      for (const doc of followersSnapshot.docs) {
+        const followData = doc.data();
+        const followerDoc = await db.collection('users').doc(followData.followerId).get();
+        if (followerDoc.exists) {
+          const followerData = followerDoc.data();
+          followers.push({
+            id: followData.followerId,
+            username: followerData?.username || followData.followerUsername,
+            displayName: followerData?.displayName || followerData?.username || 'User',
+            avatar: followerData?.avatar || null,
+            followedAt: followData.createdAt?.toDate?.() || new Date()
+          });
+        }
+      }
+      
+      console.log(`✅ Retrieved ${followers.length} followers for ${username}`);
+      res.json({ followers });
+    } catch (error) {
+      console.error('Error getting followers list:', error);
+      res.json({ followers: [] });
+    }
+  });
+
+  // GET FOLLOWING LIST WITH USER DETAILS
+  app.get('/api/users/:username/following-list', async (req, res) => {
+    try {
+      const username = req.params.username;
+      
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore();
+      
+      // Find user by username
+      const usersSnapshot = await db.collection('users').where('username', '==', username).limit(1).get();
+      if (usersSnapshot.empty) {
+        return res.json({ following: [] });
+      }
+      const userId = usersSnapshot.docs[0].id;
+      
+      // Get all following
+      const followingSnapshot = await db.collection('follows').where('followerId', '==', userId).get();
+      
+      // Get following details
+      const following: any[] = [];
+      for (const doc of followingSnapshot.docs) {
+        const followData = doc.data();
+        const followedDoc = await db.collection('users').doc(followData.followingId).get();
+        if (followedDoc.exists) {
+          const followedData = followedDoc.data();
+          following.push({
+            id: followData.followingId,
+            username: followedData?.username || followData.followingUsername,
+            displayName: followedData?.displayName || followedData?.username || 'User',
+            avatar: followedData?.avatar || null,
+            followedAt: followData.createdAt?.toDate?.() || new Date()
+          });
+        }
+      }
+      
+      console.log(`✅ Retrieved ${following.length} following for ${username}`);
+      res.json({ following });
+    } catch (error) {
+      console.error('Error getting following list:', error);
+      res.json({ following: [] });
+    }
+  });
+
   // LIKE ENDPOINTS (with user tracking)
   app.post('/api/social-posts/:postId/like-v2', async (req, res) => {
     try {

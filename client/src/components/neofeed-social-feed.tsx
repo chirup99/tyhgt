@@ -10,7 +10,8 @@ import {
   Share, MoreHorizontal, CheckCircle, BarChart3, Clock,
   TrendingUp, TrendingDown, Activity, Plus, Home, PenTool,
   Copy, ExternalLink, X, Send, Bot, Trash2, User, MapPin, Calendar,
-  ChevronDown, ChevronUp, ArrowLeft, Check, Layers, Mic, Newspaper
+  ChevronDown, ChevronUp, ArrowLeft, Check, Layers, Mic, Newspaper,
+  Users, UserPlus
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
 import { Button } from './ui/button';
@@ -801,6 +802,8 @@ function ProfileHeader() {
   const [postCount, setPostCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showFollowersDialog, setShowFollowersDialog] = useState(false);
+  const [showFollowingDialog, setShowFollowingDialog] = useState(false);
   const { toast } = useToast();
 
   // Fetch real user profile data from Firebase
@@ -835,6 +838,33 @@ function ProfileHeader() {
 
     loadProfileData();
   }, []);
+
+  // Get username for queries
+  const currentUsername = profileData?.username || currentUser?.email?.split('@')[0] || '';
+
+  // Fetch followers list
+  const { data: followersList = { followers: [] }, refetch: refetchFollowers } = useQuery({
+    queryKey: [`/api/users/${currentUsername}/followers-list`],
+    queryFn: async () => {
+      if (!currentUsername) return { followers: [] };
+      const response = await fetch(`/api/users/${currentUsername}/followers-list`);
+      if (!response.ok) return { followers: [] };
+      return response.json();
+    },
+    enabled: !!currentUsername && showFollowersDialog
+  });
+
+  // Fetch following list
+  const { data: followingList = { following: [] }, refetch: refetchFollowing } = useQuery({
+    queryKey: [`/api/users/${currentUsername}/following-list`],
+    queryFn: async () => {
+      if (!currentUsername) return { following: [] };
+      const response = await fetch(`/api/users/${currentUsername}/following-list`);
+      if (!response.ok) return { following: [] };
+      return response.json();
+    },
+    enabled: !!currentUsername && showFollowingDialog
+  });
 
   // Fetch all posts
   const { data: allPosts = [], refetch: refetchPosts, isLoading: isLoadingPosts } = useQuery({
@@ -965,11 +995,19 @@ function ProfileHeader() {
           </div>
 
           <div className="flex gap-4 text-sm mb-4">
-            <button className="hover:underline">
+            <button 
+              className="hover:underline"
+              onClick={() => setShowFollowingDialog(true)}
+              data-testid="button-show-following"
+            >
               <span className="font-bold text-gray-900 dark:text-white">{following}</span>
               <span className="text-gray-600 dark:text-gray-400 ml-1">Following</span>
             </button>
-            <button className="hover:underline">
+            <button 
+              className="hover:underline"
+              onClick={() => setShowFollowersDialog(true)}
+              data-testid="button-show-followers"
+            >
               <span className="font-bold text-gray-900 dark:text-white">{followers}</span>
               <span className="text-gray-600 dark:text-gray-400 ml-1">Followers</span>
             </button>
@@ -1026,6 +1064,90 @@ function ProfileHeader() {
           window.location.reload();
         }}
       />
+
+      {/* Followers Dialog */}
+      <Dialog open={showFollowersDialog} onOpenChange={setShowFollowersDialog}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Followers
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {followersList.followers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No followers yet</p>
+              </div>
+            ) : (
+              followersList.followers.map((follower: any) => (
+                <div 
+                  key={follower.id} 
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  data-testid={`follower-${follower.id}`}
+                >
+                  <Avatar className="w-10 h-10">
+                    {follower.avatar ? (
+                      <AvatarImage src={follower.avatar} />
+                    ) : (
+                      <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white font-bold">
+                        {(follower.displayName || follower.username || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 dark:text-white">{follower.displayName || follower.username}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">@{follower.username}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Following Dialog */}
+      <Dialog open={showFollowingDialog} onOpenChange={setShowFollowingDialog}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              Following
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {followingList.following.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <UserPlus className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>Not following anyone yet</p>
+              </div>
+            ) : (
+              followingList.following.map((user: any) => (
+                <div 
+                  key={user.id} 
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  data-testid={`following-${user.id}`}
+                >
+                  <Avatar className="w-10 h-10">
+                    {user.avatar ? (
+                      <AvatarImage src={user.avatar} />
+                    ) : (
+                      <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white font-bold">
+                        {(user.displayName || user.username || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 dark:text-white">{user.displayName || user.username}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">@{user.username}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -1632,7 +1754,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
   // Update local state when query data changes
   useEffect(() => {
     if (followStatus) {
-      setIsFollowing(followStatus.isFollowing || false);
+      setIsFollowing(followStatus.following || followStatus.isFollowing || false);
     }
   }, [followStatus]);
   
