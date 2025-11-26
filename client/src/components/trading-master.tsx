@@ -7914,7 +7914,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </Card>
         </div>
       </div>
-
+          </TabsContent>
 
       {/* Custom Timeframe Dialog */}
       <Dialog open={showCustomTimeframe} onOpenChange={setShowCustomTimeframe}>
@@ -7990,7 +7990,6 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </div>
         </DialogContent>
       </Dialog>
-          </TabsContent>
           
           {/* Trade Tab Content - 75/25 Split Layout */}
           <TabsContent value="trade" className="p-0 -mx-6 h-[calc(100vh-120px)]">
@@ -9340,7 +9339,6 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   </div>
                 </div>
               </div>
-            </div>
           </TabsContent>
           
           {/* Backtest Tab Content */}
@@ -12793,6 +12791,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </TabsContent>
           
         </Tabs>
+        </div>
       </div>
 
       {/* 🚀 REVOLUTIONARY PATTERN SAVE DIALOG */}
@@ -13397,8 +13396,6 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </div>
         </DialogContent>
       </Dialog>
-
-    </div>
 
       {/* Share Strategy Dialog */}
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
@@ -14045,6 +14042,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           </div>
         </div>
       )}
+
     </div>
   );
 }
