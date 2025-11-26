@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Key, CheckCircle2, Shield, Eye, EyeOff, Clock, RefreshCw, CheckCircle } from "lucide-react";
+import { Key, CheckCircle2, Shield, Eye, EyeOff, Clock, RefreshCw, CheckCircle, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface AngelOneProfile {
   name: string;
@@ -31,6 +31,8 @@ export function AuthButtonAngelOne() {
   const [showSecret, setShowSecret] = useState(false);
   
   const hasEnvCredentials = !!(import.meta.env.VITE_ANGEL_ONE_CLIENT_CODE && import.meta.env.VITE_ANGEL_ONE_API_KEY);
+  const autoConnectAttempted = useRef(false);
+  const [isAutoConnecting, setIsAutoConnecting] = useState(false);
 
   const { data: angelStatus } = useQuery<AngelOneStatusData>({
     queryKey: ["/api/angelone/status"],
@@ -104,6 +106,37 @@ export function AuthButtonAngelOne() {
     }
   };
 
+  // Auto-connect when environment credentials are available
+  useEffect(() => {
+    const shouldAutoConnect = 
+      hasEnvCredentials && 
+      !autoConnectAttempted.current && 
+      angelStatus !== undefined &&
+      !angelStatus?.connected &&
+      !angelStatus?.authenticated &&
+      clientCode.trim() && 
+      pin.trim() && 
+      apiKey.trim() && 
+      totpSecret.trim();
+
+    if (shouldAutoConnect) {
+      autoConnectAttempted.current = true;
+      setIsAutoConnecting(true);
+      console.log('🔶 Auto-connecting to Angel One with environment credentials...');
+      
+      connectMutation.mutate({
+        clientCode: clientCode.trim(),
+        pin: pin.trim(),
+        apiKey: apiKey.trim(),
+        totpSecret: totpSecret.trim(),
+      }, {
+        onSettled: () => {
+          setIsAutoConnecting(false);
+        }
+      });
+    }
+  }, [hasEnvCredentials, angelStatus, clientCode, pin, apiKey, totpSecret]);
+
   const isConnected = angelStatus?.connected && angelStatus?.authenticated;
   const userName = profileData?.profile?.name || angelStatus?.clientCode || "User";
 
@@ -140,34 +173,62 @@ export function AuthButtonAngelOne() {
   }
 
   if (hasEnvCredentials) {
+    // Auto-connecting state
+    if (isAutoConnecting || connectMutation.isPending) {
+      return (
+        <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-center gap-3 py-2">
+            <Loader2 className="h-5 w-5 text-orange-600 animate-spin" />
+            <div>
+              <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
+                Connecting to Angel One...
+              </h3>
+              <p className="text-xs text-orange-700 dark:text-orange-300">
+                Using environment credentials for automatic connection
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // If we have env credentials but failed to connect, show retry button with disconnect option
     return (
-      <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
+      <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <h3 className="text-sm font-medium text-green-900 dark:text-green-200">
-              Credentials Found in Environment
+            <Shield className="h-4 w-4 text-orange-600" />
+            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
+              Angel One - Ready to Connect
             </h3>
           </div>
-          <p className="text-xs text-green-700 dark:text-green-300 mb-3">
-            Angel One SmartAPI credentials are configured. Click below to connect automatically.
+          <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
+            Environment credentials detected. Auto-connect will retry, or click below to connect manually.
           </p>
         </div>
-        <Button
-          onClick={() => connectMutation.mutate({
-            clientCode: clientCode.trim(),
-            pin: pin.trim(),
-            apiKey: apiKey.trim(),
-            totpSecret: totpSecret.trim(),
-          })}
-          disabled={connectMutation.isPending || !clientCode.trim()}
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-          size="sm"
-          data-testid="button-angelone-connect-env"
-        >
-          <Key className="mr-2 h-4 w-4" />
-          {connectMutation.isPending ? 'Connecting...' : 'Connect with Environment Credentials'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              autoConnectAttempted.current = false;
+              setIsAutoConnecting(true);
+              connectMutation.mutate({
+                clientCode: clientCode.trim(),
+                pin: pin.trim(),
+                apiKey: apiKey.trim(),
+                totpSecret: totpSecret.trim(),
+              }, {
+                onSettled: () => setIsAutoConnecting(false)
+              });
+            }}
+            disabled={connectMutation.isPending || !clientCode.trim()}
+            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+            size="sm"
+            data-testid="button-angelone-connect-env"
+          >
+            <Key className="mr-2 h-4 w-4" />
+            Retry Connection
+          </Button>
+        </div>
       </div>
     );
   }

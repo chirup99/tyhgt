@@ -436,3 +436,23 @@
 [x] 2798. ✅✅✅ REPLIT ENVIRONMENT IMPORT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 2799. ✅✅✅ PROJECT FULLY OPERATIONAL - READY FOR DEVELOPMENT! ✅✅✅
 [x] 2800. ✅✅✅ IMPORT MARKED AS COMPLETE - USER CAN START BUILDING! ✅✅✅
+
+[x] 2801. NOVEMBER 26, 2025 - ANGEL ONE AUTO-CONNECT & DISCONNECT BUTTON
+[x] 2802. User Request: Make Angel One connect automatically and add disconnect button
+[x] 2803. ✅ Added useEffect hook for automatic connection when env credentials are available
+[x] 2804. ✅ Added autoConnectAttempted ref to prevent multiple auto-connect attempts
+[x] 2805. ✅ Added isAutoConnecting state for loading UI during auto-connect
+[x] 2806. ✅ Added Loader2 icon for spinning animation during connection
+[x] 2807. ✅ Auto-connect triggers when:
+[x] 2808.   - hasEnvCredentials is true (VITE_ANGEL_ONE_CLIENT_CODE & VITE_ANGEL_ONE_API_KEY set)
+[x] 2809.   - angelStatus is loaded and not connected
+[x] 2810.   - All required credentials (clientCode, pin, apiKey, totpSecret) are present
+[x] 2811. ✅ Updated UI states:
+[x] 2812.   - Connecting state: Shows orange spinner with "Connecting to Angel One..."
+[x] 2813.   - Ready to connect: Shows retry button if auto-connect fails
+[x] 2814.   - Connected: Shows disconnect button (already existed)
+[x] 2815. ✅ Disconnect button visible when connected (was already implemented)
+[x] 2816. ✅ Console log added: "🔶 Auto-connecting to Angel One with environment credentials..."
+[x] 2817. ✅ Workflow restarted successfully
+[x] 2818. ✅ All services running on port 5000
+[x] 2819. ✅✅✅ ANGEL ONE AUTO-CONNECT & DISCONNECT BUTTON COMPLETE! ✅✅✅
