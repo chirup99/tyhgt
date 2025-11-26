@@ -2100,12 +2100,21 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-gray-900 dark:text-white font-bold text-lg ">
+                <button
+                  onClick={() => {
+                    const username = post.user?.handle || post.authorUsername || '';
+                    if (username) {
+                      window.location.href = `/user/${username}`;
+                    }
+                  }}
+                  className="text-gray-900 dark:text-white font-bold text-lg hover:underline cursor-pointer transition-colors"
+                  data-testid={`button-profile-${post.authorUsername}`}
+                >
                   {post.user?.username || 
                    post.authorDisplayName || 
                    post.authorUsername || 
                    'Unknown User'}
-                </span>
+                </button>
                 {(post.user?.verified || post.authorVerified) && (
                   <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 fill-current" />
                 )}
@@ -2126,21 +2135,17 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Follow button - only show for other users' posts */}
-            {!isOwnPost && currentUser && (
+            {/* Follow button - only show for other users if NOT following */}
+            {!isOwnPost && currentUser && !isFollowing && (
               <Button
-                variant={isFollowing ? "ghost" : "default"}
+                variant="default"
                 size="sm"
                 onClick={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
-                className={`rounded-full px-4 text-xs font-semibold ${
-                  isFollowing 
-                    ? 'border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
+                className="rounded-full px-4 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white"
                 data-testid={`button-follow-${post.id}`}
               >
-                {followMutation.isPending ? '...' : isFollowing ? 'Following' : 'Follow'}
+                {followMutation.isPending ? '...' : 'Follow'}
               </Button>
             )}
             {/* Audio mode indicator */}
