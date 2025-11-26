@@ -384,3 +384,18 @@
 [x] 2748. ✅ Workflow restarted successfully
 [x] 2749. ✅ All services running on port 5000
 [x] 2750. ✅✅✅ TRADE TAB OHLC - ANGEL ONE API INTEGRATION COMPLETE! ✅✅✅
+
+[x] 2751. NOVEMBER 26, 2025 - TRADE TAB OHLC DATA TABLE UI ENHANCEMENT
+[x] 2752. User Request: Display each candle's time and OHLC values in table format (like main Switch tab)
+[x] 2753. ✅ Replaced summary OHLC grid with scrollable candle table:
+[x] 2754.   - Added table with columns: Time, Open, High, Low, Close, Volume
+[x] 2755.   - Each row shows individual candle data with timestamp
+[x] 2756.   - Time format: "DD Mon HH:MM" (e.g., "26 Nov 10:15")
+[x] 2757.   - Color-coded values: Green for High, Red for Low, Purple for Close
+[x] 2758.   - Close value colored green/red based on candle direction
+[x] 2759.   - Alternating row backgrounds for better readability
+[x] 2760.   - Sticky header for easy reference while scrolling
+[x] 2761.   - Max height 48 (192px) with scroll for large datasets
+[x] 2762. ✅ Header shows summary stats: Symbol, Timeframe, Candle count, Range, Change %
+[x] 2763. ✅ Workflow restarted successfully
+[x] 2764. ✅✅✅ TRADE TAB OHLC TABLE UI COMPLETE! ✅✅✅

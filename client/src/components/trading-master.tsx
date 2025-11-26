@@ -8303,70 +8303,73 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           </div>
                         ) : ohlcData && ohlcData.candles && ohlcData.candles.length > 0 ? (
                           <>
-                            {/* Stock Info Header */}
-                            <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
-                              <span>{ohlcSymbol || 'NIFTY50'} - {ohlcTimeframe}</span>
-                              <span>{ohlcData.candles.length} candles</span>
-                            </div>
-
-                            {/* OHLC Values Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                              {/* Open */}
-                              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                                <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Open</p>
-                                <p className="text-base font-semibold text-white">
-                                  ₹{ohlcData.candles[0]?.open?.toFixed(2) || '--'}
-                                </p>
+                            {/* Stock Info Header with Summary Stats */}
+                            <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2 mb-2">
+                              <div className="flex items-center gap-3">
+                                <span className="font-medium text-white">{ohlcSymbol || 'NIFTY50'}</span>
+                                <span className="text-orange-400">{ohlcTimeframe}</span>
+                                <span>{ohlcData.candles.length} candles</span>
                               </div>
-
-                              {/* High */}
-                              <div className="bg-green-900/20 rounded-lg p-3 border border-green-800/30">
-                                <p className="text-xs text-green-400 mb-1 font-medium uppercase tracking-wide">High</p>
-                                <p className="text-base font-semibold text-green-400">
-                                  ₹{Math.max(...ohlcData.candles.map((c: any) => c.high || 0)).toFixed(2)}
-                                </p>
-                              </div>
-
-                              {/* Low */}
-                              <div className="bg-red-900/20 rounded-lg p-3 border border-red-800/30">
-                                <p className="text-xs text-red-400 mb-1 font-medium uppercase tracking-wide">Low</p>
-                                <p className="text-base font-semibold text-red-400">
-                                  ₹{Math.min(...ohlcData.candles.map((c: any) => c.low || Infinity)).toFixed(2)}
-                                </p>
-                              </div>
-
-                              {/* Close */}
-                              <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800/30">
-                                <p className="text-xs text-purple-400 mb-1 font-medium uppercase tracking-wide">Close</p>
-                                <p className="text-base font-semibold text-purple-400">
-                                  ₹{ohlcData.candles[ohlcData.candles.length - 1]?.close?.toFixed(2) || '--'}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Additional Stats */}
-                            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700">
-                              <div className="text-center">
-                                <p className="text-xs text-slate-400 mb-1">Candles</p>
-                                <p className="text-sm font-semibold text-slate-300">{ohlcData.candles.length}</p>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-xs text-slate-400 mb-1">Range</p>
-                                <p className="text-sm font-semibold text-slate-300">
-                                  ₹{(Math.max(...ohlcData.candles.map((c: any) => c.high || 0)) - Math.min(...ohlcData.candles.map((c: any) => c.low || Infinity))).toFixed(2)}
-                                </p>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-xs text-slate-400 mb-1">Change</p>
-                                <p className={`text-sm font-semibold ${
-                                  ohlcData.candles[ohlcData.candles.length - 1]?.close >= ohlcData.candles[0]?.open 
-                                    ? 'text-green-400' 
-                                    : 'text-red-400'
-                                }`}>
+                              <div className="flex items-center gap-3">
+                                <span>Range: <span className="text-slate-300">₹{(Math.max(...ohlcData.candles.map((c: any) => c.high || 0)) - Math.min(...ohlcData.candles.map((c: any) => c.low || Infinity))).toFixed(2)}</span></span>
+                                <span className={ohlcData.candles[ohlcData.candles.length - 1]?.close >= ohlcData.candles[0]?.open ? 'text-green-400' : 'text-red-400'}>
                                   {ohlcData.candles[ohlcData.candles.length - 1]?.close >= ohlcData.candles[0]?.open ? '+' : ''}
                                   {(((ohlcData.candles[ohlcData.candles.length - 1]?.close - ohlcData.candles[0]?.open) / ohlcData.candles[0]?.open) * 100).toFixed(2)}%
-                                </p>
+                                </span>
                               </div>
+                            </div>
+
+                            {/* OHLC Data Table - Each Candle with Time */}
+                            <div className="overflow-x-auto overflow-y-auto max-h-48 border border-slate-700 rounded-lg custom-thin-scrollbar">
+                              <table className="w-full text-xs">
+                                <thead className="sticky top-0 bg-slate-800 z-10">
+                                  <tr className="border-b border-slate-700">
+                                    <th className="text-left px-2 py-1.5 text-slate-400 font-medium">Time</th>
+                                    <th className="text-right px-2 py-1.5 text-slate-400 font-medium">Open</th>
+                                    <th className="text-right px-2 py-1.5 text-green-400 font-medium">High</th>
+                                    <th className="text-right px-2 py-1.5 text-red-400 font-medium">Low</th>
+                                    <th className="text-right px-2 py-1.5 text-purple-400 font-medium">Close</th>
+                                    <th className="text-right px-2 py-1.5 text-slate-400 font-medium">Volume</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {ohlcData.candles.map((candle: any, index: number) => {
+                                    const candleTime = new Date(candle.timestamp * 1000);
+                                    const timeStr = candleTime.toLocaleTimeString('en-IN', { 
+                                      hour: '2-digit', 
+                                      minute: '2-digit',
+                                      timeZone: 'Asia/Kolkata'
+                                    });
+                                    const dateStr = candleTime.toLocaleDateString('en-IN', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                      timeZone: 'Asia/Kolkata'
+                                    });
+                                    const isPositive = candle.close >= candle.open;
+                                    
+                                    return (
+                                      <tr 
+                                        key={index} 
+                                        className={`border-b border-slate-700/50 hover:bg-slate-700/30 ${index % 2 === 0 ? 'bg-slate-800/30' : ''}`}
+                                        data-testid={`row-ohlc-candle-${index}`}
+                                      >
+                                        <td className="px-2 py-1 text-slate-300 font-mono whitespace-nowrap">
+                                          <span className="text-slate-500">{dateStr}</span> {timeStr}
+                                        </td>
+                                        <td className="text-right px-2 py-1 text-white font-mono">₹{candle.open?.toFixed(2)}</td>
+                                        <td className="text-right px-2 py-1 text-green-400 font-mono">₹{candle.high?.toFixed(2)}</td>
+                                        <td className="text-right px-2 py-1 text-red-400 font-mono">₹{candle.low?.toFixed(2)}</td>
+                                        <td className={`text-right px-2 py-1 font-mono font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                                          ₹{candle.close?.toFixed(2)}
+                                        </td>
+                                        <td className="text-right px-2 py-1 text-slate-400 font-mono">
+                                          {candle.volume ? candle.volume.toLocaleString() : '-'}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
                             </div>
                           </>
                         ) : (
