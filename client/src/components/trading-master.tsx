@@ -2288,6 +2288,14 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   const [nseConnectionStatus, setNseConnectionStatus] = useState<'idle' | 'testing' | 'connected' | 'failed'>('idle');
   const [nseTestType, setNseTestType] = useState<'connection' | 'equity' | 'market' | 'premarket'>('connection');
   
+  // NSE OHLC Display state
+  const [nseSelectedSymbol, setNseSelectedSymbol] = useState('RELIANCE');
+  const [nseSymbolSearchOpen, setNseSymbolSearchOpen] = useState(false);
+  const [nseSymbolSearchValue, setNseSymbolSearchValue] = useState('');
+  const [nseOhlcData, setNseOhlcData] = useState<any>(null);
+  const [nseOhlcLoading, setNseOhlcLoading] = useState(false);
+  const [nseOhlcError, setNseOhlcError] = useState<string | null>(null);
+  
   // 🚀 WEBSOCKET STREAMING DISABLED FOR MAXIMUM PERFORMANCE
   const connectWebSocket = () => {
     // WebSocket connections disabled to eliminate performance overhead
@@ -11901,275 +11909,361 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </Card>
           </TabsContent>
 
-          {/* NSE Text Tab Content - NSE API Testing */}
+          {/* NSE Text Tab Content - NSE OHLC Data Display */}
           <TabsContent value="nsetext" className="p-6 space-y-6">
             <div className="space-y-6">
-              {/* Header */}
-              <div className="flex items-center justify-between">
+              {/* Header with Stock Search */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    NSE Data Fetching Test
+                    <BarChart3 className="h-5 w-5" />
+                    NSE OHLC Data
                   </h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Testing NSE website data fetching as alternative to Fyers API
+                    Real-time stock data from NSE India (Alternative to Fyers API)
                   </p>
                 </div>
-                <Badge 
-                  className={cn(
-                    "text-xs",
-                    nseConnectionStatus === 'connected' && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-                    nseConnectionStatus === 'failed' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-                    nseConnectionStatus === 'testing' && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-                    nseConnectionStatus === 'idle' && "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
-                  )}
-                >
-                  {nseConnectionStatus === 'connected' && 'Connected'}
-                  {nseConnectionStatus === 'failed' && 'Failed'}
-                  {nseConnectionStatus === 'testing' && 'Testing...'}
-                  {nseConnectionStatus === 'idle' && 'Not Tested'}
-                </Badge>
+                
+                {/* Stock Search Bar */}
+                <div className="flex items-center gap-2">
+                  <Popover open={nseSymbolSearchOpen} onOpenChange={setNseSymbolSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={nseSymbolSearchOpen}
+                        className="w-[250px] justify-between"
+                        data-testid="button-nse-symbol-search"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Search className="h-4 w-4 text-slate-500" />
+                          <span>{nseSelectedSymbol || "Search stock..."}</span>
+                        </div>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[250px] p-0" align="end">
+                      <Command>
+                        <CommandInput 
+                          placeholder="Search stocks..." 
+                          value={nseSymbolSearchValue}
+                          onValueChange={setNseSymbolSearchValue}
+                          data-testid="input-nse-symbol-search"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No stock found.</CommandEmpty>
+                          <CommandGroup heading="Popular Stocks">
+                            {[
+                              { value: 'RELIANCE', label: 'Reliance Industries' },
+                              { value: 'TCS', label: 'Tata Consultancy Services' },
+                              { value: 'HDFCBANK', label: 'HDFC Bank' },
+                              { value: 'ICICIBANK', label: 'ICICI Bank' },
+                              { value: 'INFY', label: 'Infosys' },
+                              { value: 'ITC', label: 'ITC Limited' },
+                              { value: 'SBIN', label: 'State Bank of India' },
+                              { value: 'BHARTIARTL', label: 'Bharti Airtel' },
+                              { value: 'HINDUNILVR', label: 'Hindustan Unilever' },
+                              { value: 'LT', label: 'Larsen & Toubro' },
+                              { value: 'AXISBANK', label: 'Axis Bank' },
+                              { value: 'KOTAKBANK', label: 'Kotak Mahindra Bank' },
+                              { value: 'BAJFINANCE', label: 'Bajaj Finance' },
+                              { value: 'MARUTI', label: 'Maruti Suzuki' },
+                              { value: 'TITAN', label: 'Titan Company' },
+                              { value: 'SUNPHARMA', label: 'Sun Pharma' },
+                              { value: 'TATAMOTORS', label: 'Tata Motors' },
+                              { value: 'WIPRO', label: 'Wipro' },
+                              { value: 'TECHM', label: 'Tech Mahindra' },
+                              { value: 'ADANIENT', label: 'Adani Enterprises' },
+                            ]
+                              .filter(s => 
+                                s.value.toLowerCase().includes(nseSymbolSearchValue.toLowerCase()) ||
+                                s.label.toLowerCase().includes(nseSymbolSearchValue.toLowerCase())
+                              )
+                              .map((stock) => (
+                                <CommandItem
+                                  key={stock.value}
+                                  value={stock.value}
+                                  onSelect={() => {
+                                    setNseSelectedSymbol(stock.value);
+                                    setNseSymbolSearchOpen(false);
+                                    setNseSymbolSearchValue('');
+                                    
+                                    // Auto-fetch OHLC data
+                                    (async () => {
+                                      setNseOhlcLoading(true);
+                                      setNseOhlcError(null);
+                                      setNseOhlcData(null);
+                                      
+                                      try {
+                                        const response = await fetch(`/api/nse/equity/${stock.value}`);
+                                        const data = await response.json();
+                                        
+                                        if (data.success) {
+                                          setNseOhlcData(data);
+                                          setNseConnectionStatus('connected');
+                                        } else {
+                                          setNseOhlcError(data.error || 'Failed to fetch data');
+                                          setNseConnectionStatus('failed');
+                                        }
+                                      } catch (error: any) {
+                                        setNseOhlcError(error.message || 'Network error');
+                                        setNseConnectionStatus('failed');
+                                      } finally {
+                                        setNseOhlcLoading(false);
+                                      }
+                                    })();
+                                  }}
+                                  data-testid={`nse-stock-${stock.value}`}
+                                >
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{stock.value}</span>
+                                    <span className="text-xs text-slate-500">{stock.label}</span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={async () => {
+                      if (!nseSelectedSymbol) return;
+                      setNseOhlcLoading(true);
+                      setNseOhlcError(null);
+                      
+                      try {
+                        const response = await fetch(`/api/nse/equity/${nseSelectedSymbol}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                          setNseOhlcData(data);
+                          setNseConnectionStatus('connected');
+                        } else {
+                          setNseOhlcError(data.error || 'Failed to fetch data');
+                          setNseConnectionStatus('failed');
+                        }
+                      } catch (error: any) {
+                        setNseOhlcError(error.message || 'Network error');
+                        setNseConnectionStatus('failed');
+                      } finally {
+                        setNseOhlcLoading(false);
+                      }
+                    }}
+                    disabled={nseOhlcLoading || !nseSelectedSymbol}
+                    data-testid="button-nse-refresh"
+                  >
+                    <RefreshCw className={cn("h-4 w-4", nseOhlcLoading && "animate-spin")} />
+                  </Button>
+                  
+                  <Badge 
+                    className={cn(
+                      "text-xs",
+                      nseConnectionStatus === 'connected' && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                      nseConnectionStatus === 'failed' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+                      nseConnectionStatus === 'idle' && "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                    )}
+                  >
+                    {nseConnectionStatus === 'connected' && 'NSE Connected'}
+                    {nseConnectionStatus === 'failed' && 'Failed'}
+                    {nseConnectionStatus === 'idle' && 'Select Stock'}
+                  </Badge>
+                </div>
               </div>
 
-              {/* Test Controls */}
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Test Type Selection */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Test Type</Label>
-                      <Select value={nseTestType} onValueChange={(v: any) => setNseTestType(v)}>
-                        <SelectTrigger data-testid="select-nse-test-type">
-                          <SelectValue placeholder="Select test type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="connection">Connection Test</SelectItem>
-                          <SelectItem value="equity">Single Stock Quote</SelectItem>
-                          <SelectItem value="market">Market Data (NIFTY 50)</SelectItem>
-                          <SelectItem value="premarket">Pre-Market Data</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Symbol Input (for equity test) */}
-                    {nseTestType === 'equity' && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Stock Symbol</Label>
-                        <Input
-                          value={nseTestSymbol}
-                          onChange={(e) => setNseTestSymbol(e.target.value.toUpperCase())}
-                          placeholder="Enter symbol (e.g., RELIANCE, TCS)"
-                          data-testid="input-nse-symbol"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={async () => {
-                        setNseTestLoading(true);
-                        setNseTestError(null);
-                        setNseTestResult(null);
-                        setNseConnectionStatus('testing');
-                        
-                        try {
-                          let endpoint = '/api/nse/test';
-                          if (nseTestType === 'equity') {
-                            endpoint = `/api/nse/equity/${nseTestSymbol}`;
-                          } else if (nseTestType === 'market') {
-                            endpoint = '/api/nse/market/NIFTY%2050';
-                          } else if (nseTestType === 'premarket') {
-                            endpoint = '/api/nse/premarket/NIFTY%2050';
-                          }
-                          
-                          const response = await fetch(endpoint);
-                          const data = await response.json();
-                          
-                          setNseTestResult(data);
-                          setNseConnectionStatus(data.success ? 'connected' : 'failed');
-                          if (!data.success) {
-                            setNseTestError(data.error || 'Unknown error');
-                          }
-                        } catch (error: any) {
-                          setNseTestError(error.message || 'Network error');
-                          setNseConnectionStatus('failed');
-                        } finally {
-                          setNseTestLoading(false);
-                        }
-                      }}
-                      disabled={nseTestLoading}
-                      data-testid="button-nse-test"
-                    >
-                      {nseTestLoading ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Testing...
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4 mr-2" />
-                          Run Test
-                        </>
-                      )}
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setNseTestResult(null);
-                        setNseTestError(null);
-                        setNseConnectionStatus('idle');
-                      }}
-                      data-testid="button-nse-clear"
-                    >
-                      Clear Results
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Error Display */}
-              {nseTestError && (
+              {nseOhlcError && (
                 <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-2">
                       <X className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                       <div>
-                        <p className="font-medium text-red-800 dark:text-red-200">Error</p>
-                        <p className="text-sm text-red-600 dark:text-red-300">{nseTestError}</p>
+                        <p className="font-medium text-red-800 dark:text-red-200">Error fetching data</p>
+                        <p className="text-sm text-red-600 dark:text-red-300">{nseOhlcError}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Results Display */}
-              {nseTestResult && (
-                <Card>
-                  <CardContent className="p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-slate-900 dark:text-white">
-                        Test Results
+              {/* Loading State */}
+              {nseOhlcLoading && (
+                <Card className="bg-white dark:bg-gray-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-center py-12">
+                      <RefreshCw className="h-8 w-8 text-blue-500 animate-spin mr-3" />
+                      <span className="text-slate-600 dark:text-slate-400">Fetching {nseSelectedSymbol} data from NSE...</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* OHLC Data Display */}
+              {nseOhlcData && nseOhlcData.data && !nseOhlcLoading && (
+                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <CardContent className="p-6">
+                    {/* Stock Header */}
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">{nseOhlcData.data.symbol?.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white">{nseOhlcData.data.symbol}</h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">{nseOhlcData.data.companyName || 'NSE Equity'}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {nseOhlcData.data.lastPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </div>
+                        <div className={cn(
+                          "flex items-center justify-end gap-1 text-sm font-medium",
+                          (nseOhlcData.data.change || 0) >= 0 ? "text-green-600" : "text-red-600"
+                        )}>
+                          {(nseOhlcData.data.change || 0) >= 0 ? (
+                            <TrendingUp className="h-4 w-4" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4" />
+                          )}
+                          <span>
+                            {(nseOhlcData.data.change || 0) >= 0 ? '+' : ''}{nseOhlcData.data.change?.toFixed(2)} 
+                            ({(nseOhlcData.data.pChange || 0) >= 0 ? '+' : ''}{nseOhlcData.data.pChange?.toFixed(2)}%)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* OHLC Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Open</span>
+                        </div>
+                        <p className="text-lg font-bold text-slate-900 dark:text-white">
+                          {nseOhlcData.data.open?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </p>
+                      </div>
+                      
+                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="h-3 w-3 text-green-600" />
+                          <span className="text-xs font-medium text-green-600 uppercase tracking-wide">High</span>
+                        </div>
+                        <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                          {nseOhlcData.data.dayHigh?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </p>
+                      </div>
+                      
+                      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingDown className="h-3 w-3 text-red-600" />
+                          <span className="text-xs font-medium text-red-600 uppercase tracking-wide">Low</span>
+                        </div>
+                        <p className="text-lg font-bold text-red-700 dark:text-red-400">
+                          {nseOhlcData.data.dayLow?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </p>
+                      </div>
+                      
+                      <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">Prev Close</span>
+                        </div>
+                        <p className="text-lg font-bold text-purple-700 dark:text-purple-400">
+                          {nseOhlcData.data.previousClose?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Additional Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Volume</p>
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {nseOhlcData.data.totalTradedVolume?.toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Value (Cr)</p>
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {((nseOhlcData.data.totalTradedValue || 0) / 10000000).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">52W High</p>
+                        <p className="font-semibold text-green-600">
+                          {nseOhlcData.data.yearHigh?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">52W Low</p>
+                        <p className="font-semibold text-red-600">
+                          {nseOhlcData.data.yearLow?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Response Info */}
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-xs text-slate-500">
+                      <span>Last updated: {nseOhlcData.data.lastUpdateTime || nseOhlcData.timestamp}</span>
+                      <div className="flex items-center gap-2">
+                        {nseOhlcData.cached && <Badge variant="outline" className="text-xs">Cached</Badge>}
+                        <Badge variant="outline" className="text-xs">Latency: {nseOhlcData.latencyMs}ms</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Empty State - No Stock Selected */}
+              {!nseOhlcData && !nseOhlcLoading && !nseOhlcError && (
+                <Card className="bg-slate-50 dark:bg-slate-900/50 border-dashed">
+                  <CardContent className="p-12">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="h-16 w-16 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
+                        <Search className="h-8 w-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                        Search for a Stock
                       </h3>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline">
-                          Latency: {nseTestResult.latencyMs}ms
-                        </Badge>
-                        <Badge 
-                          className={nseTestResult.success 
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
-                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                          }
-                        >
-                          {nseTestResult.success ? 'Success' : 'Failed'}
-                        </Badge>
-                      </div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
+                        Use the search bar above to find a stock and view its OHLC data fetched directly from NSE India.
+                      </p>
                     </div>
-
-                    {/* Data Preview */}
-                    {nseTestResult.data && (
-                      <div className="space-y-3">
-                        {/* Single Quote Display */}
-                        {nseTestType === 'equity' && nseTestResult.data && (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Symbol</p>
-                              <p className="font-semibold text-slate-900 dark:text-white">{nseTestResult.data.symbol}</p>
-                            </div>
-                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Last Price</p>
-                              <p className="font-semibold text-slate-900 dark:text-white">
-                                {nseTestResult.data.lastPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                              </p>
-                            </div>
-                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Change</p>
-                              <p className={cn(
-                                "font-semibold",
-                                nseTestResult.data.change >= 0 ? "text-green-600" : "text-red-600"
-                              )}>
-                                {nseTestResult.data.change >= 0 ? '+' : ''}{nseTestResult.data.change?.toFixed(2)} ({nseTestResult.data.pChange?.toFixed(2)}%)
-                              </p>
-                            </div>
-                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Volume</p>
-                              <p className="font-semibold text-slate-900 dark:text-white">
-                                {nseTestResult.data.totalTradedVolume?.toLocaleString('en-IN')}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Market Data Table */}
-                        {(nseTestType === 'market' || nseTestType === 'premarket') && Array.isArray(nseTestResult.data) && (
-                          <div className="overflow-x-auto max-h-64">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Symbol</TableHead>
-                                  <TableHead>Last Price</TableHead>
-                                  <TableHead>Change</TableHead>
-                                  <TableHead>% Change</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {nseTestResult.data.slice(0, 10).map((item: any, idx: number) => (
-                                  <TableRow key={idx}>
-                                    <TableCell className="font-medium">{item.symbol}</TableCell>
-                                    <TableCell>{item.lastPrice?.toFixed(2)}</TableCell>
-                                    <TableCell className={item.change >= 0 ? "text-green-600" : "text-red-600"}>
-                                      {item.change >= 0 ? '+' : ''}{item.change?.toFixed(2)}
-                                    </TableCell>
-                                    <TableCell className={item.pChange >= 0 ? "text-green-600" : "text-red-600"}>
-                                      {item.pChange?.toFixed(2)}%
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                            {nseTestResult.data.length > 10 && (
-                              <p className="text-xs text-slate-500 mt-2">
-                                Showing 10 of {nseTestResult.data.length} records
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Connection Test Message */}
-                        {nseTestType === 'connection' && nseTestResult.data?.message && (
-                          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md">
-                            <p className="text-green-800 dark:text-green-200 font-medium">
-                              {nseTestResult.data.message}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Raw JSON (collapsible) */}
-                    <details className="mt-4">
-                      <summary className="cursor-pointer text-sm text-slate-500 dark:text-slate-400">
-                        View Raw JSON Response
-                      </summary>
-                      <pre className="mt-2 p-3 bg-slate-900 dark:bg-slate-950 text-slate-100 rounded-md text-xs overflow-x-auto max-h-48">
-                        {JSON.stringify(nseTestResult, null, 2)}
-                      </pre>
-                    </details>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Info Card */}
+              {/* Info Card - Limitations Notice */}
+              <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                <CardContent className="p-4">
+                  <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Cloud Server Limitations
+                  </h4>
+                  <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+                    <li>• NSE website uses Akamai bot protection that blocks cloud server IPs</li>
+                    <li>• Direct NSE data fetching may fail with 403 errors from Replit/cloud environments</li>
+                    <li>• Works reliably from local/residential networks only</li>
+                    <li>• For production, Fyers API (with authentication) remains the recommended solution</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Info Card - About */}
               <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
                 <CardContent className="p-4">
-                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">About This Test</h4>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">About NSE Data Feature</h4>
                   <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• Testing direct data fetching from NSE India website</li>
-                    <li>• If successful, this can replace Fyers API for production</li>
-                    <li>• No API key or daily token required</li>
-                    <li>• Fyers API remains active until NSE solution is verified</li>
+                    <li>• Experimental feature testing direct NSE data fetching</li>
+                    <li>• No API key or daily token required (unlike Fyers)</li>
+                    <li>• Data cached for 30 seconds with rate limiting protection</li>
+                    <li>• Currently blocked by NSE security in cloud environments</li>
                   </ul>
                 </CardContent>
               </Card>

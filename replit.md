@@ -10,6 +10,17 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## November 26, 2025 - NSE OHLC Data Tab UI
+
+Added new NSE OHLC Data display tab with:
+- Stock search bar with 20 popular NSE stocks (Reliance, TCS, HDFC Bank, etc.)
+- Professional OHLC data window showing Open, High, Low, Close prices
+- Additional stats: Volume, Value, 52W High/Low
+- Auto-fetch data when stock is selected
+- Refresh button and connection status badge
+
+**Known Limitation**: NSE website uses Akamai bot protection that blocks cloud server IPs. Direct data fetching returns 403 errors from Replit/cloud environments but works from local/residential networks. For production, Fyers API remains the recommended solution.
+
 ## November 26, 2025 - Replit Environment Migration
 
 Successfully migrated PERALA trading application to Replit environment with the following fixes:
