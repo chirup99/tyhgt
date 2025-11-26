@@ -4045,32 +4045,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userData = userDoc.data();
       
-      // Get followers and following counts
-      const followersSnapshot = await db.collection('follows').where('followingId', '==', userId).get();
-      const followersCount = followersSnapshot.size;
-      
-      const followingSnapshot = await db.collection('follows').where('followerId', '==', userId).get();
-      const followingCount = followingSnapshot.size;
-      
       console.log('✅ Profile found in Firebase:', {
         username: userData?.username,
         displayName: userData?.displayName,
-        followers: followersCount,
-        following: followingCount,
         hasUsername: !!userData?.username,
         hasDisplayName: !!userData?.displayName
       });
       
+      // Return profile immediately without waiting for counts
+      // Counts will be fetched separately via /api/user/followers-count endpoint
       res.json({ 
         success: true,
-        profile: {
-          ...userData,
-          followers: followersCount,
-          following: followingCount
-        },
+        profile: userData,
         userId: userId,
         email: decodedToken.email
       });
+      
+      // Fetch and cache counts asynchronously (non-blocking)
+      (async () => {
+        try {
+          const followersSnapshot = await db.collection('follows').where('followingId', '==', userId).get();
+          const followingSnapshot = await db.collection('follows').where('followerId', '==', userId).get();
+          console.log(`📊 Follower counts for ${userData?.username}: ${followersSnapshot.size} followers, ${followingSnapshot.size} following`);
+        } catch (e) {
+          console.error('Error fetching follower counts:', e);
+        }
+      })();
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({ message: 'Failed to get profile' });
