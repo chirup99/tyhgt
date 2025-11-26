@@ -7575,16 +7575,8 @@ ${
                     <ConnectionStatus />
                   </div>
                   
-                  {/* Angel One Status - Placeholder for future */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                      Angel One Connection
-                    </h4>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Connect using the Angel One tab above to see status
-                    </div>
-                  </div>
+                  {/* Angel One Status */}
+                  <AngelOneStatus />
                 </div>
 
                 {/* Error Panel and Recent Activity - Bottom */}
