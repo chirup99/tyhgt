@@ -1981,8 +1981,24 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
       queryClient.invalidateQueries({ queryKey: [`/api/users/${authorUsername}/follow-status`] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/social-posts'] });
-      // Invalidate followers/following lists for current user
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate follower counts for both users (using partial match)
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && 
+                 typeof key[0] === 'string' && 
+                 key[0].includes('/followers-count');
+        }
+      });
+      // Invalidate followers/following list dialogs
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && 
+                 typeof key[0] === 'string' && 
+                 (key[0].includes('/followers-list') || key[0].includes('/following-list'));
+        }
+      });
       toast({ description: isFollowing ? "Unfollowed successfully!" : "Following!" });
     },
     onError: (err: any, variables, context) => {
