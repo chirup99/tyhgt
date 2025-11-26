@@ -2305,8 +2305,12 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   const [angelOneOhlcError, setAngelOneOhlcError] = useState<string | null>(null);
   const [angelOneConnectionStatus, setAngelOneConnectionStatus] = useState<'idle' | 'connected' | 'disconnected' | 'error'>('idle');
   
-  // Angel One stock symbol tokens (required for API calls)
+  // Angel One stock symbol tokens (required for API calls) - Extended list
   const angelOneStockTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
+    // Indices
+    'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
+    'NIFTYBANK': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+    // Major Stocks - Expanded list
     'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
     'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
     'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
@@ -2327,6 +2331,27 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
     'TECHM': { token: '13538', exchange: 'NSE', tradingSymbol: 'TECHM-EQ' },
     'ADANIENT': { token: '25', exchange: 'NSE', tradingSymbol: 'ADANIENT-EQ' },
+    // Additional Nifty 50 stocks
+    'ASIANPAINT': { token: '236', exchange: 'NSE', tradingSymbol: 'ASIANPAINT-EQ' },
+    'COALINDIA': { token: '20374', exchange: 'NSE', tradingSymbol: 'COALINDIA-EQ' },
+    'NTPC': { token: '11630', exchange: 'NSE', tradingSymbol: 'NTPC-EQ' },
+    'POWERGRID': { token: '14977', exchange: 'NSE', tradingSymbol: 'POWERGRID-EQ' },
+    'ULTRACEMCO': { token: '11532', exchange: 'NSE', tradingSymbol: 'ULTRACEMCO-EQ' },
+    'ONGC': { token: '2475', exchange: 'NSE', tradingSymbol: 'ONGC-EQ' },
+    'DIVISLAB': { token: '10940', exchange: 'NSE', tradingSymbol: 'DIVISLAB-EQ' },
+    'HCLTECH': { token: '7229', exchange: 'NSE', tradingSymbol: 'HCLTECH-EQ' },
+    'INDUSINDBK': { token: '5258', exchange: 'NSE', tradingSymbol: 'INDUSINDBK-EQ' },
+    'BAJAJFINSV': { token: '16675', exchange: 'NSE', tradingSymbol: 'BAJAJFINSV-EQ' },
+    'DRREDDY': { token: '881', exchange: 'NSE', tradingSymbol: 'DRREDDY-EQ' },
+    'NESTLEIND': { token: '17963', exchange: 'NSE', tradingSymbol: 'NESTLEIND-EQ' },
+    'JSWSTEEL': { token: '11723', exchange: 'NSE', tradingSymbol: 'JSWSTEEL-EQ' },
+    'TATASTEEL': { token: '3499', exchange: 'NSE', tradingSymbol: 'TATASTEEL-EQ' },
+    'M&M': { token: '2031', exchange: 'NSE', tradingSymbol: 'M&M-EQ' },
+    'HINDALCO': { token: '1363', exchange: 'NSE', tradingSymbol: 'HINDALCO-EQ' },
+    'BPCL': { token: '526', exchange: 'NSE', tradingSymbol: 'BPCL-EQ' },
+    'GRASIM': { token: '1232', exchange: 'NSE', tradingSymbol: 'GRASIM-EQ' },
+    'EICHERMOT': { token: '910', exchange: 'NSE', tradingSymbol: 'EICHERMOT-EQ' },
+    'APOLLOHOSP': { token: '157', exchange: 'NSE', tradingSymbol: 'APOLLOHOSP-EQ' },
   };
   
   // 🚀 WEBSOCKET STREAMING DISABLED FOR MAXIMUM PERFORMANCE
@@ -5057,9 +5082,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     refetchOnWindowFocus: false // Reduce unnecessary refetches
   });
 
-  // OHLC data query - BACKGROUND POLLING DISABLED FOR PERFORMANCE
+  // 🔶 OHLC data query - Using Angel One API (BACKGROUND POLLING DISABLED FOR PERFORMANCE)
   const { data: ohlcData } = useQuery<HistoricalDataResponse>({
-    queryKey: ['/api/historical-data', ohlcSymbol, ohlcFromDate, ohlcToDate, ohlcTimeframe, timeRange, showTimeFilter],
+    queryKey: ['/api/angelone/historical', ohlcSymbol, ohlcFromDate, ohlcToDate, ohlcTimeframe, timeRange, showTimeFilter],
     enabled: true, // Enable manual fetching only
     refetchInterval: false, // DISABLED: No background polling for performance
     retry: false,
@@ -5080,31 +5105,90 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     fetchOhlcData.mutate();
   }, []); // Run once on mount
 
-  // OHLC fetch mutation - EXACT same logic as Historical Data tab
+  // 🔶 Angel One timeframe mapping - Convert numeric timeframe to Angel One interval format
+  const getAngelOneInterval = (timeframe: string): string => {
+    const intervalMap: { [key: string]: string } = {
+      '1': 'ONE_MINUTE',
+      '3': 'THREE_MINUTE',
+      '5': 'FIVE_MINUTE',
+      '10': 'TEN_MINUTE',
+      '15': 'FIFTEEN_MINUTE',
+      '30': 'THIRTY_MINUTE',
+      '60': 'ONE_HOUR',
+      '1D': 'ONE_DAY',
+      '1W': 'ONE_WEEK',
+      '1M': 'ONE_MONTH'
+    };
+    return intervalMap[timeframe] || 'ONE_MINUTE';
+  };
+
+  // 🔶 Get Angel One stock token from symbol (e.g., 'NSE:ICICIBANK-EQ' -> token info)
+  const getAngelOneStockToken = (symbol: string): { token: string, exchange: string, tradingSymbol: string } | null => {
+    const cleanSymbol = symbol.replace('NSE:', '').replace('-EQ', '').replace('-INDEX', '');
+    return angelOneStockTokens[cleanSymbol] || null;
+  };
+
+  // 🔶 OHLC fetch mutation - Using Angel One API for historical data
   const fetchOhlcData = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/historical-data', {
+      const stockToken = getAngelOneStockToken(ohlcSymbol);
+      if (!stockToken) {
+        throw new Error(`Stock token not found for ${ohlcSymbol}. Please select a supported stock.`);
+      }
+
+      const angelOneInterval = getAngelOneInterval(ohlcTimeframe);
+      
+      // Format dates for Angel One API (YYYY-MM-DD HH:mm)
+      const fromDateTime = `${ohlcFromDate} 09:15`;
+      const toDateTime = `${ohlcToDate} 15:30`;
+
+      console.log(`🔶 Fetching Angel One historical data: ${stockToken.tradingSymbol} ${angelOneInterval} from ${fromDateTime} to ${toDateTime}`);
+
+      const response = await fetch('/api/angelone/historical', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          symbol: ohlcSymbol,
-          resolution: ohlcTimeframe, // Use timeframe directly like Historical Data tab
-          range_from: ohlcFromDate,
-          range_to: ohlcToDate,
+          exchange: stockToken.exchange,
+          symbolToken: stockToken.token,
+          interval: angelOneInterval,
+          fromDate: fromDateTime,
+          toDate: toDateTime,
         }),
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch historical data');
+        throw new Error(errorData.message || 'Failed to fetch Angel One historical data');
       }
       
-      return response.json();
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Angel One API returned an error');
+      }
+
+      // Transform Angel One candle data to match the expected format
+      const transformedCandles = result.candles.map((candle: any) => ({
+        timestamp: Math.floor(candle.timestamp / 1000), // Convert to Unix seconds
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+        volume: candle.volume
+      }));
+
+      console.log(`🔶 Angel One returned ${transformedCandles.length} candles`);
+
+      return {
+        symbol: ohlcSymbol,
+        candles: transformedCandles,
+        source: 'angelone'
+      };
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['/api/historical-data', ohlcSymbol, ohlcFromDate, ohlcToDate, ohlcTimeframe, timeRange, showTimeFilter], data);
+      queryClient.setQueryData(['/api/angelone/historical', ohlcSymbol, ohlcFromDate, ohlcToDate, ohlcTimeframe, timeRange, showTimeFilter], data);
     },
   });
 
@@ -8017,8 +8101,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                       data-testid="button-trade-ohlc-toggle"
                     >
                       <div className="flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4 text-blue-400" />
+                        <BarChart3 className="h-4 w-4 text-orange-400" />
                         <span className="text-sm font-semibold text-white">OHLC Data</span>
+                        <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded font-medium">Angel One</span>
                         {ohlcSymbol && (
                           <span className="text-xs text-slate-400">({ohlcSymbol})</span>
                         )}

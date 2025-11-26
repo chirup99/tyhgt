@@ -358,3 +358,29 @@
 [x] 2723. ✅ Progress tracker updated with all [x] completion markers ✅
 [x] 2724. ✅✅✅ REPLIT ENVIRONMENT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 2725. ✅✅✅ PROJECT READY FOR USE - IMPORT SUCCESSFUL! ✅✅✅
+
+[x] 2726. NOVEMBER 26, 2025 - TRADE TAB OHLC DATA SWITCHED TO ANGEL ONE API
+[x] 2727. User Request: Replace Fyers API with Angel One API for OHLC data fetching in Trade tab
+[x] 2728. ✅ Created getAngelOneInterval() function to convert timeframes:
+[x] 2729.   - 1 -> ONE_MINUTE
+[x] 2730.   - 3 -> THREE_MINUTE  
+[x] 2731.   - 5 -> FIVE_MINUTE
+[x] 2732.   - 10 -> TEN_MINUTE
+[x] 2733.   - 15 -> FIFTEEN_MINUTE
+[x] 2734.   - 30 -> THIRTY_MINUTE
+[x] 2735.   - 60 -> ONE_HOUR
+[x] 2736.   - 1D -> ONE_DAY
+[x] 2737. ✅ Created getAngelOneStockToken() function to lookup stock tokens
+[x] 2738. ✅ Updated fetchOhlcData mutation to use /api/angelone/historical endpoint
+[x] 2739. ✅ Formats dates for Angel One API (YYYY-MM-DD HH:mm)
+[x] 2740. ✅ Transforms Angel One candle response to match expected format
+[x] 2741. ✅ Expanded angelOneStockTokens mapping to 40+ stocks:
+[x] 2742.   - Added NIFTY50 and NIFTYBANK indices
+[x] 2743.   - Added additional Nifty 50 stocks (ASIANPAINT, COALINDIA, NTPC, etc.)
+[x] 2744.   - Added BPCL, GRASIM, EICHERMOT, APOLLOHOSP, etc.
+[x] 2745. ✅ Updated OHLC query key to use Angel One endpoint
+[x] 2746. ✅ Updated UI header with orange "Angel One" badge
+[x] 2747. ✅ Changed icon color from blue to orange (Angel One branding)
+[x] 2748. ✅ Workflow restarted successfully
+[x] 2749. ✅ All services running on port 5000
+[x] 2750. ✅✅✅ TRADE TAB OHLC - ANGEL ONE API INTEGRATION COMPLETE! ✅✅✅
