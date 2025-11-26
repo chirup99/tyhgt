@@ -83,7 +83,7 @@ class AngelOneAPI {
     }
 
     try {
-      const totpToken = TOTP.generate(this.credentials.totpSecret);
+      const totpToken = await TOTP.generate(this.credentials.totpSecret);
       console.log('🔶 [Angel One] Generated TOTP token:', totpToken);
 
       const response = await this.smartApi.generateSession(
