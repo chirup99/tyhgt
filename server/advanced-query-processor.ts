@@ -41,8 +41,62 @@ interface QueryAnalysis {
 
 export class AdvancedQueryProcessor {
   
-  private analyzeQuery(query: string): QueryAnalysis {
-    const lowerQuery = query.toLowerCase();
+  private async normalizeQueryWithAI(query: string): Promise<{ normalizedQuery: string; detectedStocks: string[] }> {
+    try {
+      const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+      
+      const stocksList = [
+        'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL',
+        'ITC', 'WIPRO', 'ADANIENT', 'TATAMOTORS', 'MARUTI', 'BAJFINANCE',
+        'AXISBANK', 'KOTAKBANK', 'TECHM', 'HINDUNILVR', 'ASIANPAINT', 'TITAN',
+        'SUNPHARMA', 'LT', 'NESTLEIND', 'POWERGRID', 'NTPC', 'ONGC', 'COALINDIA',
+        'JIOFINANCE', 'NIFTY50', 'BANKNIFTY', 'SENSEX'
+      ];
+      
+      const prompt = `You are a smart financial query understanding AI. Your task is to:
+1. Fix typos and grammar in user queries (handle poor English)
+2. Extract stock symbols even if misspelled (e.g., "relaince" -> "RELIANCE", "TCS" -> "TCS")
+3. Understand the true intent even with typos
+
+Available stocks: ${stocksList.join(', ')}
+
+User query: "${query}"
+
+Return JSON:
+{
+  "normalizedQuery": "corrected and clear version of the query",
+  "detectedStocks": ["STOCK1", "STOCK2"],
+  "intent": "stock_analysis|comparison|journal_analysis|risk_analysis|general",
+  "confidence": 0.0-1.0
+}
+
+Examples:
+- "wht is TCS" -> "What is TCS" with intent stock_analysis
+- "relaince vs tata" -> "RELIANCE vs TATAMOTORS comparison" with intent comparison
+- "my trades with ITC" -> "Analyze my trading journal with ITC" with intent journal_analysis
+- "how much i loss on reliance" -> "How much loss did I incur on RELIANCE" with intent journal_analysis`;
+
+      const response = await model.generateContent(prompt);
+      const text = response.response.text();
+      
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        console.log(`[SMART-QUERY] Normalized: "${query}" -> "${parsed.normalizedQuery}"`);
+        return {
+          normalizedQuery: parsed.normalizedQuery || query,
+          detectedStocks: Array.isArray(parsed.detectedStocks) ? parsed.detectedStocks : []
+        };
+      }
+    } catch (error) {
+      console.log('[SMART-QUERY] AI normalization failed, using fallback');
+    }
+    
+    return { normalizedQuery: query, detectedStocks: [] };
+  }
+  
+  private analyzeQuery(query: string, normalizedData?: { normalizedQuery: string; detectedStocks: string[] }): QueryAnalysis {
+    const lowerQuery = (normalizedData?.normalizedQuery || query).toLowerCase();
     
     const stockSymbols: string[] = [];
     const indianStocks: Record<string, string> = {
@@ -64,6 +118,7 @@ export class AdvancedQueryProcessor {
       'sensex': 'SENSEX',
       'adani': 'ADANIENT',
       'tata motors': 'TATAMOTORS',
+      'tatamotors': 'TATAMOTORS',
       'maruti': 'MARUTI',
       'bajaj': 'BAJFINANCE',
       'axis bank': 'AXISBANK',
@@ -77,25 +132,31 @@ export class AdvancedQueryProcessor {
       'larsen': 'LT'
     };
     
+    // Use AI-detected stocks first
+    if (normalizedData?.detectedStocks && normalizedData.detectedStocks.length > 0) {
+      stockSymbols.push(...normalizedData.detectedStocks);
+    }
+    
+    // Also check keyword matching as fallback
     for (const [keyword, symbol] of Object.entries(indianStocks)) {
-      if (lowerQuery.includes(keyword)) {
+      if (lowerQuery.includes(keyword) && !stockSymbols.includes(symbol)) {
         stockSymbols.push(symbol);
       }
     }
     
     let intent: QueryAnalysis['intent'] = 'general';
     
-    const journalKeywords = ['journal', 'trade', 'trading', 'my trade', 'my performance', 'my p&l', 'my profit', 'my loss', 'how am i doing', 'my win', 'how many trade'];
-    const riskKeywords = ['risk', 'drawdown', 'exposure', 'var', 'volatility', 'sharpe', 'sortino', 'beta', 'max loss'];
-    const portfolioKeywords = ['portfolio', 'holding', 'position', 'allocation', 'diversification', 'investment'];
-    const performanceKeywords = ['performance', 'win rate', 'loss rate', 'profit factor', 'expectancy', 'streak', 'roi', 'return'];
+    const journalKeywords = ['journal', 'trade', 'trading', 'my trade', 'my performance', 'my p&l', 'my profit', 'my loss', 'how am i doing', 'my win', 'how many trade', 'analyze my'];
+    const riskKeywords = ['risk', 'drawdown', 'exposure', 'var', 'volatility', 'sharpe', 'sortino', 'beta', 'max loss', 'risk analysis'];
+    const portfolioKeywords = ['portfolio', 'holding', 'position', 'allocation', 'diversification', 'investment', 'compare'];
+    const performanceKeywords = ['performance', 'win rate', 'loss rate', 'profit factor', 'expectancy', 'streak', 'roi', 'return', 'how much'];
     const technicalKeywords = ['rsi', 'macd', 'ema', 'sma', 'bollinger', 'technical', 'indicator', 'support', 'resistance', 'trend'];
     
     if (journalKeywords.some(k => lowerQuery.includes(k))) {
       intent = 'journal';
     } else if (riskKeywords.some(k => lowerQuery.includes(k))) {
       intent = 'risk_analysis';
-    } else if (portfolioKeywords.some(k => lowerQuery.includes(k))) {
+    } else if (portfolioKeywords.some(k => lowerQuery.includes(k)) || stockSymbols.length > 1) {
       intent = 'portfolio';
     } else if (performanceKeywords.some(k => lowerQuery.includes(k))) {
       intent = 'performance';
@@ -111,25 +172,26 @@ export class AdvancedQueryProcessor {
       intent = 'ipo';
     }
     
-    const keywords = query
+    const keywords = (normalizedData?.normalizedQuery || query)
       .toLowerCase()
       .split(/\s+/)
       .filter(word => word.length > 3)
-      .filter(word => !['what', 'when', 'where', 'which', 'about', 'should', 'could', 'would', 'please', 'tell', 'show', 'give'].includes(word));
+      .filter(word => !['what', 'when', 'where', 'which', 'about', 'should', 'could', 'would', 'please', 'tell', 'show', 'give', 'analyze', 'compare'].includes(word));
     
-    const isComplexQuery = query.length > 50 || 
+    const isComplexQuery = (normalizedData?.normalizedQuery || query).length > 50 || 
       query.includes('?') || 
-      ['why', 'how', 'explain', 'analyze', 'compare', 'best', 'worst'].some(w => lowerQuery.includes(w));
+      ['why', 'how', 'explain', 'analyze', 'compare', 'best', 'worst', 'versus', 'vs'].some(w => lowerQuery.includes(w)) ||
+      stockSymbols.length > 1;
 
     return {
       intent,
-      stockSymbols,
+      stockSymbols: [...new Set(stockSymbols)], // Remove duplicates
       keywords,
       needsWebSearch: true,
-      needsJournalData: ['journal', 'risk_analysis', 'portfolio', 'performance'].includes(intent),
-      needsFyersData: stockSymbols.length > 0 || intent === 'stock_analysis' || intent === 'technical',
-      needsRiskAnalysis: ['risk_analysis', 'portfolio', 'performance'].includes(intent) || riskKeywords.some(k => lowerQuery.includes(k)),
-      needsPortfolioAnalysis: ['portfolio', 'performance'].includes(intent) || portfolioKeywords.some(k => lowerQuery.includes(k)),
+      needsJournalData: ['journal', 'risk_analysis', 'portfolio', 'performance'].includes(intent) || lowerQuery.includes('my'),
+      needsFyersData: stockSymbols.length > 0 || intent === 'stock_analysis' || intent === 'technical' || intent === 'portfolio',
+      needsRiskAnalysis: ['risk_analysis', 'portfolio', 'performance'].includes(intent) || riskKeywords.some(k => lowerQuery.includes(k)) || lowerQuery.includes('loss'),
+      needsPortfolioAnalysis: ['portfolio', 'performance'].includes(intent) || portfolioKeywords.some(k => lowerQuery.includes(k)) || stockSymbols.length > 1,
       isComplexQuery
     };
   }
