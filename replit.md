@@ -10,6 +10,35 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## November 26, 2025 - Angel One SmartAPI Integration
+
+Added Angel One SmartAPI as a free alternative to Fyers API:
+
+**Backend:**
+- Created `server/angel-one-api.ts` with complete API wrapper:
+  - TOTP-based authentication (no daily token refresh needed)
+  - Session management with JWT tokens
+  - Profile, LTP, quotes, candle data, holdings, positions, and order book methods
+  - Singleton pattern with proper exports
+
+**Frontend:**
+- Created `client/src/components/auth-button-angelone.tsx` for Angel One connection
+- Updated Market Dashboard in `home.tsx` with tabs to switch between:
+  - Fyers (Paid) - requires daily token refresh
+  - Angel One (Free) - uses automatic TOTP authentication
+
+**API Routes Added:**
+- `POST /api/angelone/connect` - Connect with credentials
+- `GET /api/angelone/status` - Get connection status
+- `GET /api/angelone/profile` - Get user profile
+- `POST /api/angelone/disconnect` - Logout
+- `GET /api/angelone/ltp/:exchange/:symbol/:token` - Get last traded price
+- `GET /api/angelone/historical` - Get historical candle data
+- `GET /api/angelone/holdings` - Get holdings
+- `GET /api/angelone/positions` - Get positions
+
+**Note:** Angel One credentials (Client Code, PIN, API Key, TOTP Secret) are stored only in memory during the session.
+
 ## November 26, 2025 - NSE OHLC Data Tab UI
 
 Added new NSE OHLC Data display tab with:

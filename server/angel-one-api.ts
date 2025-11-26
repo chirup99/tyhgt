@@ -145,7 +145,7 @@ class AngelOneAPI {
     }
 
     try {
-      const response = await this.smartApi.getProfile(this.session.refreshToken);
+      const response = await this.smartApi.getProfile();
       
       if (response.status && response.data) {
         this.profileData = response.data;
