@@ -842,7 +842,20 @@ function ProfileHeader() {
   // Get username for queries
   const currentUsername = profileData?.username || currentUser?.email?.split('@')[0] || '';
 
-  // Fetch followers list
+  // Fetch follower and following counts (lightweight query)
+  const { data: countsData = { followers: 0, following: 0 } } = useQuery({
+    queryKey: [`/api/users/${currentUsername}/followers-count`],
+    queryFn: async () => {
+      if (!currentUsername) return { followers: 0, following: 0 };
+      const response = await fetch(`/api/users/${currentUsername}/followers-count`);
+      if (!response.ok) return { followers: 0, following: 0 };
+      return response.json();
+    },
+    enabled: !!currentUsername,
+    staleTime: 60000, // Cache for 1 minute
+  });
+
+  // Fetch followers list (only when dialog opens)
   const { data: followersList = { followers: [] }, refetch: refetchFollowers } = useQuery({
     queryKey: [`/api/users/${currentUsername}/followers-list`],
     queryFn: async () => {
@@ -854,7 +867,7 @@ function ProfileHeader() {
     enabled: !!currentUsername && showFollowersDialog
   });
 
-  // Fetch following list
+  // Fetch following list (only when dialog opens)
   const { data: followingList = { following: [] }, refetch: refetchFollowing } = useQuery({
     queryKey: [`/api/users/${currentUsername}/following-list`],
     queryFn: async () => {
@@ -916,8 +929,8 @@ function ProfileHeader() {
   const displayName = profileData?.displayName || currentUser?.displayName || '';
   const username = profileData?.username || currentUser?.email?.split('@')[0] || '';
   const bio = profileData?.bio || '';
-  const following = profileData?.following || 0;
-  const followers = profileData?.followers || 0;
+  const following = countsData?.following || 0;
+  const followers = countsData?.followers || 0;
   const profilePicUrl = profileData?.profilePicUrl;
   const coverPicUrl = profileData?.coverPicUrl;
 
