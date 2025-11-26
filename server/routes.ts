@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import axios from "axios";
 import { storage } from "./storage";
 import { fyersApi } from "./fyers-api";
+import { angelOneApi } from "./angel-one-api";
 import { AnalysisProcessor } from "./analysis-processor";
 import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, socialPostLikes, socialPostComments, socialPostReposts, userFollows, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse, insertVerifiedReportSchema } from "@shared/schema";
 import { nanoid } from "nanoid";
@@ -7453,6 +7454,239 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // ============================================================
+  // ANGEL ONE API ROUTES
+  // ============================================================
+
+  // Angel One - Set credentials and connect
+  app.post("/api/angelone/connect", async (req, res) => {
+    try {
+      const { clientCode, pin, apiKey, totpSecret } = req.body;
+      
+      if (!clientCode || !pin || !apiKey || !totpSecret) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "All fields required: Client Code, PIN, API Key, and TOTP Secret" 
+        });
+      }
+
+      console.log('🔶 [ANGEL ONE] Connecting with credentials...');
+      console.log(`📝 [ANGEL ONE] Client Code: ${clientCode}`);
+
+      angelOneApi.setCredentials({
+        clientCode: clientCode.trim(),
+        pin: pin.trim(),
+        apiKey: apiKey.trim(),
+        totpSecret: totpSecret.trim()
+      });
+
+      const session = await angelOneApi.generateSession();
+      
+      if (session) {
+        console.log('✅ [ANGEL ONE] Connected successfully');
+        
+        const profile = await angelOneApi.getProfile();
+        
+        res.json({ 
+          success: true,
+          message: "✅ Angel One Connected Successfully",
+          authenticated: true,
+          connected: true,
+          profile: profile ? {
+            name: profile.name,
+            email: profile.email,
+            clientCode: profile.clientcode,
+            broker: profile.broker
+          } : null
+        });
+      } else {
+        throw new Error('Failed to generate session');
+      }
+
+    } catch (error: any) {
+      console.error('❌ [ANGEL ONE] Connection error:', error.message);
+      res.status(500).json({ 
+        success: false,
+        message: error.message || "Failed to connect to Angel One",
+        error: error.message
+      });
+    }
+  });
+
+  // Angel One - Disconnect
+  app.post("/api/angelone/disconnect", async (req, res) => {
+    try {
+      console.log('🔶 [ANGEL ONE] Disconnecting...');
+      angelOneApi.logout();
+      
+      res.json({ 
+        success: true,
+        message: "✅ Angel One Disconnected",
+        authenticated: false,
+        connected: false
+      });
+    } catch (error: any) {
+      console.error('❌ [ANGEL ONE] Disconnect error:', error.message);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to disconnect from Angel One"
+      });
+    }
+  });
+
+  // Angel One - Get connection status
+  app.get("/api/angelone/status", async (req, res) => {
+    try {
+      const status = angelOneApi.getConnectionStatus();
+      res.json({ 
+        success: true,
+        ...status
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get profile
+  app.get("/api/angelone/profile", async (req, res) => {
+    try {
+      if (!angelOneApi.isConnected()) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Angel One not connected" 
+        });
+      }
+
+      const profile = await angelOneApi.getProfile();
+      res.json({ 
+        success: true,
+        profile
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get LTP (Last Traded Price)
+  app.post("/api/angelone/ltp", async (req, res) => {
+    try {
+      if (!angelOneApi.isConnected()) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Angel One not connected" 
+        });
+      }
+
+      const { exchange, tradingSymbol, symbolToken } = req.body;
+      
+      if (!exchange || !tradingSymbol || !symbolToken) {
+        return res.status(400).json({ 
+          success: false,
+          message: "exchange, tradingSymbol, and symbolToken are required" 
+        });
+      }
+
+      const quote = await angelOneApi.getLTP(exchange, tradingSymbol, symbolToken);
+      res.json({ 
+        success: true,
+        quote
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get historical candle data
+  app.post("/api/angelone/historical", async (req, res) => {
+    try {
+      if (!angelOneApi.isConnected()) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Angel One not connected" 
+        });
+      }
+
+      const { exchange, symbolToken, interval, fromDate, toDate } = req.body;
+      
+      if (!exchange || !symbolToken || !interval || !fromDate || !toDate) {
+        return res.status(400).json({ 
+          success: false,
+          message: "exchange, symbolToken, interval, fromDate, and toDate are required" 
+        });
+      }
+
+      const candles = await angelOneApi.getCandleData(exchange, symbolToken, interval, fromDate, toDate);
+      res.json({ 
+        success: true,
+        candles
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get holdings
+  app.get("/api/angelone/holdings", async (req, res) => {
+    try {
+      if (!angelOneApi.isConnected()) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Angel One not connected" 
+        });
+      }
+
+      const holdings = await angelOneApi.getHoldings();
+      res.json({ 
+        success: true,
+        holdings
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get positions
+  app.get("/api/angelone/positions", async (req, res) => {
+    try {
+      if (!angelOneApi.isConnected()) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Angel One not connected" 
+        });
+      }
+
+      const positions = await angelOneApi.getPositions();
+      res.json({ 
+        success: true,
+        positions
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // ============================================================
+  // END ANGEL ONE API ROUTES
+  // ============================================================
 
   // Exchange auth code for access token
   app.post("/api/auth/exchange", async (req, res) => {
