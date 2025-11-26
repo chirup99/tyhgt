@@ -535,7 +535,7 @@ const getNearMonthExpiry = () => {
     }
   }
   
-  // Format as DDMMMYY for Fyers API (e.g., 26SEP24)
+  // Format as DDMMMYY for expiry format (e.g., 26SEP24)
   const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   const day = lastThursday.getDate().toString().padStart(2, '0');
   const month = months[lastThursday.getMonth()];
@@ -1405,28 +1405,51 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       
       console.log(`📊 Testing with: Symbol=${testSymbol}, Timeframe=${testTimeframe}, From=${testFromDate}, To=${testToDate}`);
       
-      // FIXED: Use correct POST endpoint format that actually exists
-      const response = await fetch('/api/historical-data', {
+      // Get Angel One stock token for the symbol
+      const stockToken = getAngelOneStockToken(testSymbol);
+      if (!stockToken) {
+        throw new Error(`Stock token not found for ${testSymbol}. Please select a supported stock.`);
+      }
+      
+      const angelOneInterval = getAngelOneInterval(testTimeframe);
+      const fromDateTime = `${testFromDate} 09:15`;
+      const toDateTime = `${testToDate} 15:30`;
+      
+      // Use Angel One API for historical data
+      const response = await fetch('/api/angelone/historical', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          symbol: testSymbol,
-          resolution: testTimeframe,
-          range_from: testFromDate,
-          range_to: testToDate
+          exchange: stockToken.exchange,
+          symbolToken: stockToken.token,
+          interval: angelOneInterval,
+          fromDate: fromDateTime,
+          toDate: toDateTime
         })
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch data: ${response.status} - ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to fetch data: ${response.status}`);
       }
       
-      const candleData = await response.json();
+      const result = await response.json();
       
-      if (!candleData?.candles || candleData.candles.length === 0) {
-        throw new Error('No candle data available');
+      if (!result.success || !result.candles || result.candles.length === 0) {
+        throw new Error('No candle data available from Angel One');
       }
+      
+      // Transform Angel One candle data to match expected format
+      const candleData = {
+        candles: result.candles.map((candle: any) => ({
+          timestamp: Math.floor(candle.timestamp / 1000),
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+          volume: candle.volume
+        }))
+      };
       
       // Calculate indicators based on strategy type
       const candles = candleData.candles;
@@ -4666,24 +4689,45 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     try {
       const pricePromises = symbols.map(async (symbol) => {
         try {
-          const response = await fetch(`/api/live-quotes/NSE:${symbol}-EQ`);
+          // Use Angel One LTP API
+          const stockToken = angelOneStockTokens[symbol];
+          if (!stockToken) {
+            console.log(`⚠️ No Angel One token for ${symbol}, skipping`);
+            return null;
+          }
+          
+          const response = await fetch('/api/angelone/ltp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              exchange: stockToken.exchange,
+              tradingSymbol: stockToken.tradingSymbol,
+              symbolToken: stockToken.token
+            })
+          });
+          
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.data) {
+              const ltp = data.data.ltp || data.data.last || 0;
+              const prevClose = data.data.close || ltp;
+              const change = ltp - prevClose;
+              const changePercent = prevClose ? ((change / prevClose) * 100) : 0;
+              
               return {
                 symbol,
-                price: data.data.ltp,
-                change: data.data.ch,
-                changePercent: data.data.chp,
-                isPositive: data.data.ch >= 0,
-                volume: data.data.volume,
-                timestamp: data.data.timestamp,
+                price: ltp,
+                change: change,
+                changePercent: changePercent,
+                isPositive: change >= 0,
+                volume: data.data.volume || 0,
+                timestamp: Date.now(),
                 isLastTraded: true
               };
             }
           }
         } catch (error) {
-          console.error(`Failed to fetch price for ${symbol}:`, error);
+          console.error(`Failed to fetch Angel One price for ${symbol}:`, error);
         }
         return null;
       });
@@ -4771,7 +4815,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               // Convert NSE:SYMBOL-EQ back to SYMBOL for UI
               const symbol = fullSymbol.replace('NSE:', '').replace('-EQ', '');
               
-              // Map Fyers API field names to frontend expected names
+              // Map Angel One API field names to frontend expected names
               const price = (priceData as any).price || (priceData as any).ltp || (priceData as any).close || 0;
               const change = (priceData as any).change || (priceData as any).ch || 0;
               const changePercent = (priceData as any).changePercent || (priceData as any).chp || 0;

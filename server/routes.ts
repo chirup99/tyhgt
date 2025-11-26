@@ -54,6 +54,95 @@ import { createBackupDataService, BackupQueryParams } from './backup-data-servic
 import { detectPatterns } from './routes/pattern-detection';
 import { nseApi } from './nse-api';
 
+// 🔶 Angel One Stock Token Mappings for historical data
+const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
+  'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
+  'BANKNIFTY': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+  'SENSEX': { token: '99919000', exchange: 'BSE', tradingSymbol: 'SENSEX' },
+  'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
+  'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
+  'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
+  'ICICIBANK': { token: '4963', exchange: 'NSE', tradingSymbol: 'ICICIBANK-EQ' },
+  'INFY': { token: '1594', exchange: 'NSE', tradingSymbol: 'INFY-EQ' },
+  'ITC': { token: '1660', exchange: 'NSE', tradingSymbol: 'ITC-EQ' },
+  'HINDUNILVR': { token: '1394', exchange: 'NSE', tradingSymbol: 'HINDUNILVR-EQ' },
+  'SBIN': { token: '3045', exchange: 'NSE', tradingSymbol: 'SBIN-EQ' },
+  'BHARTIARTL': { token: '10604', exchange: 'NSE', tradingSymbol: 'BHARTIARTL-EQ' },
+  'KOTAKBANK': { token: '1922', exchange: 'NSE', tradingSymbol: 'KOTAKBANK-EQ' },
+  'LT': { token: '11483', exchange: 'NSE', tradingSymbol: 'LT-EQ' },
+  'AXISBANK': { token: '5900', exchange: 'NSE', tradingSymbol: 'AXISBANK-EQ' },
+  'MARUTI': { token: '10999', exchange: 'NSE', tradingSymbol: 'MARUTI-EQ' },
+  'ASIANPAINT': { token: '236', exchange: 'NSE', tradingSymbol: 'ASIANPAINT-EQ' },
+  'TITAN': { token: '3506', exchange: 'NSE', tradingSymbol: 'TITAN-EQ' },
+  'SUNPHARMA': { token: '3351', exchange: 'NSE', tradingSymbol: 'SUNPHARMA-EQ' },
+  'ULTRACEMCO': { token: '11532', exchange: 'NSE', tradingSymbol: 'ULTRACEMCO-EQ' },
+  'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
+  'HCLTECH': { token: '7229', exchange: 'NSE', tradingSymbol: 'HCLTECH-EQ' },
+  'TECHM': { token: '13538', exchange: 'NSE', tradingSymbol: 'TECHM-EQ' },
+  'NTPC': { token: '11630', exchange: 'NSE', tradingSymbol: 'NTPC-EQ' },
+  'POWERGRID': { token: '14977', exchange: 'NSE', tradingSymbol: 'POWERGRID-EQ' },
+  'ONGC': { token: '2475', exchange: 'NSE', tradingSymbol: 'ONGC-EQ' },
+  'COALINDIA': { token: '20374', exchange: 'NSE', tradingSymbol: 'COALINDIA-EQ' },
+  'BAJFINANCE': { token: '317', exchange: 'NSE', tradingSymbol: 'BAJFINANCE-EQ' },
+  'INDUSINDBK': { token: '5258', exchange: 'NSE', tradingSymbol: 'INDUSINDBK-EQ' },
+  'DIVISLAB': { token: '10940', exchange: 'NSE', tradingSymbol: 'DIVISLAB-EQ' },
+  'ADANIENT': { token: '25', exchange: 'NSE', tradingSymbol: 'ADANIENT-EQ' },
+  'TATAMOTORS': { token: '3456', exchange: 'NSE', tradingSymbol: 'TATAMOTORS-EQ' },
+  'TATASTEEL': { token: '3499', exchange: 'NSE', tradingSymbol: 'TATASTEEL-EQ' },
+  'BAJAJFINSV': { token: '16675', exchange: 'NSE', tradingSymbol: 'BAJAJFINSV-EQ' },
+  'JSWSTEEL': { token: '11723', exchange: 'NSE', tradingSymbol: 'JSWSTEEL-EQ' },
+  'NESTLEIND': { token: '17963', exchange: 'NSE', tradingSymbol: 'NESTLEIND-EQ' },
+  'ADANIPORTS': { token: '15083', exchange: 'NSE', tradingSymbol: 'ADANIPORTS-EQ' },
+  'DRREDDY': { token: '881', exchange: 'NSE', tradingSymbol: 'DRREDDY-EQ' },
+  'CIPLA': { token: '694', exchange: 'NSE', tradingSymbol: 'CIPLA-EQ' },
+  'APOLLOHOSP': { token: '157', exchange: 'NSE', tradingSymbol: 'APOLLOHOSP-EQ' },
+  'BPCL': { token: '526', exchange: 'NSE', tradingSymbol: 'BPCL-EQ' },
+  'EICHERMOT': { token: '910', exchange: 'NSE', tradingSymbol: 'EICHERMOT-EQ' },
+  'GRASIM': { token: '1232', exchange: 'NSE', tradingSymbol: 'GRASIM-EQ' },
+  'M&M': { token: '2031', exchange: 'NSE', tradingSymbol: 'M&M-EQ' },
+  'HEROMOTOCO': { token: '1348', exchange: 'NSE', tradingSymbol: 'HEROMOTOCO-EQ' },
+  'TATACONSUM': { token: '3432', exchange: 'NSE', tradingSymbol: 'TATACONSUM-EQ' },
+  'UPL': { token: '11287', exchange: 'NSE', tradingSymbol: 'UPL-EQ' },
+  'BRITANNIA': { token: '547', exchange: 'NSE', tradingSymbol: 'BRITANNIA-EQ' },
+  'HINDALCO': { token: '1363', exchange: 'NSE', tradingSymbol: 'HINDALCO-EQ' },
+  'SBILIFE': { token: '21808', exchange: 'NSE', tradingSymbol: 'SBILIFE-EQ' },
+  'HDFCLIFE': { token: '467', exchange: 'NSE', tradingSymbol: 'HDFCLIFE-EQ' }
+};
+
+// 🔶 Convert timeframe to Angel One interval format
+function getAngelOneInterval(timeframe: string): string {
+  const intervalMap: { [key: string]: string } = {
+    '1': 'ONE_MINUTE',
+    '3': 'THREE_MINUTE',
+    '5': 'FIVE_MINUTE',
+    '5m': 'FIVE_MINUTE',
+    '10': 'TEN_MINUTE',
+    '15': 'FIFTEEN_MINUTE',
+    '15m': 'FIFTEEN_MINUTE',
+    '30': 'THIRTY_MINUTE',
+    '60': 'ONE_HOUR',
+    '1h': 'ONE_HOUR',
+    '1D': 'ONE_DAY',
+    '1d': 'ONE_DAY',
+    '5D': 'ONE_DAY',
+    '5d': 'ONE_DAY',
+    '1M': 'ONE_DAY',
+    '6M': 'ONE_DAY',
+    '1Y': 'ONE_DAY',
+    '5Y': 'ONE_DAY',
+    '1W': 'ONE_WEEK',
+    'ONE_MINUTE': 'ONE_MINUTE',
+    'FIVE_MINUTE': 'FIVE_MINUTE',
+    'FIFTEEN_MINUTE': 'FIFTEEN_MINUTE',
+    'THIRTY_MINUTE': 'THIRTY_MINUTE',
+    'ONE_HOUR': 'ONE_HOUR',
+    'ONE_DAY': 'ONE_DAY',
+    'ONE_WEEK': 'ONE_WEEK',
+    'ONE_MONTH': 'ONE_MONTH'
+  };
+  return intervalMap[timeframe] || 'ONE_MINUTE';
+}
+
 const patternDetector = new IntradayPatternDetector(fyersApi);
 const enhanced4CandleProcessor = new Enhanced4CandleProcessor(fyersApi);
 const correctedSlopeCalculator = new CorrectedSlopeCalculator(fyersApi);
@@ -2962,79 +3051,127 @@ async function fetchFyersChartDataForDate(symbol: string, dateStr: string, timef
   }
 }
 
-// Get real historical price data for charts (Fyers API only)
+// 🔶 Get real historical price data for charts (Angel One API)
 async function getRealChartData(symbol: string, timeframe: string) {
   try {
-    console.log(`📈 Fetching real chart data for ${symbol} (${timeframe}) - Fyers API only`);
+    console.log(`🔶 Fetching real chart data for ${symbol} (${timeframe}) - Angel One API`);
     
-    // Only use Fyers API - no fallback data sources
-    const fyersData = await fetchFyersChartData(symbol, timeframe);
-    console.log(`🔍 [DEBUG] Fyers data result for ${symbol}:`, { hasData: !!fyersData, length: fyersData?.length, timeframe });
+    // Get Angel One stock token
+    const cleanSymbol = symbol.replace(/^\$+/, '').replace('NSE:', '').replace('-EQ', '').replace('-INDEX', '');
+    const stockToken = ANGEL_ONE_STOCK_TOKENS[cleanSymbol];
     
-    if (fyersData && Array.isArray(fyersData) && fyersData.length > 0) {
-      console.log(`✅ Fyers API returned ${fyersData.length} data points for ${symbol}`);
-      return fyersData;
+    if (!stockToken) {
+      console.log(`⚠️ No Angel One token for ${symbol}, falling back to Fyers`);
+      return await fetchFyersChartData(symbol, timeframe);
     }
     
-    // 🔄 MARKET HOLIDAY FALLBACK: For intraday timeframes, try previous trading days
-    // This triggers when fyersData is null OR empty array
+    // Calculate date range based on timeframe
+    const now = new Date();
+    let fromDate = new Date();
+    let days = 1;
+    
+    switch (timeframe) {
+      case '5m':
+      case '15m':
+      case '1h':
+      case '1d':
+      case '1D':
+        days = 1;
+        break;
+      case '5d':
+      case '5D':
+        days = 5;
+        break;
+      case '1M':
+        days = 30;
+        break;
+      case '6M':
+        days = 180;
+        break;
+      case '1Y':
+        days = 365;
+        break;
+      case '5Y':
+        days = 1825;
+        break;
+    }
+    
+    // Handle weekends for intraday timeframes
+    const dayOfWeek = now.getDay();
     if (['5m', '15m', '1h', '1d', '1D'].includes(timeframe)) {
-      console.log(`🔄 [HOLIDAY-FALLBACK] No data for today, trying previous trading days for ${symbol}...`);
-      
-      // Try up to 7 days back to find the last trading day
-      for (let daysBack = 1; daysBack <= 7; daysBack++) {
-        const fallbackDate = new Date();
-        fallbackDate.setDate(fallbackDate.getDate() - daysBack);
-        
-        // Skip weekends (Saturday=6, Sunday=0)
-        if (fallbackDate.getDay() === 0 || fallbackDate.getDay() === 6) {
-          continue;
-        }
-        
-        const dateStr = fallbackDate.toISOString().split('T')[0];
-        console.log(`🔄 [HOLIDAY-FALLBACK] Trying date: ${dateStr} (${daysBack} days back)`);
-        
-        try {
-          const fallbackData = await fetchFyersChartDataForDate(symbol, dateStr, timeframe);
-          if (fallbackData && Array.isArray(fallbackData) && fallbackData.length > 0) {
-            console.log(`✅ [HOLIDAY-FALLBACK] Found ${fallbackData.length} data points for ${symbol} on ${dateStr}`);
-            return fallbackData;
-          }
-        } catch (error) {
-          console.log(`❌ [HOLIDAY-FALLBACK] Failed to get data for ${dateStr}:`, error);
-        }
+      if (dayOfWeek === 0) { // Sunday - use Friday
+        now.setDate(now.getDate() - 2);
+      } else if (dayOfWeek === 6) { // Saturday - use Friday
+        now.setDate(now.getDate() - 1);
       }
+    }
+    
+    fromDate.setDate(now.getDate() - days);
+    
+    // Format dates for Angel One API (YYYY-MM-DD HH:mm)
+    const toDateTime = `${now.toISOString().split('T')[0]} 15:30`;
+    const fromDateTime = `${fromDate.toISOString().split('T')[0]} 09:15`;
+    
+    const angelOneInterval = getAngelOneInterval(timeframe);
+    
+    console.log(`🔶 Angel One request: ${stockToken.tradingSymbol} ${angelOneInterval} from ${fromDateTime} to ${toDateTime}`);
+    
+    // Check if Angel One is authenticated
+    if (!angelOneApi.isAuthenticated) {
+      console.log(`⚠️ Angel One not authenticated, falling back to Fyers`);
+      return await fetchFyersChartData(symbol, timeframe);
+    }
+    
+    try {
+      const candleData = await angelOneApi.getCandleData(
+        stockToken.exchange,
+        stockToken.token,
+        angelOneInterval,
+        fromDateTime,
+        toDateTime
+      );
       
-      console.log(`❌ [HOLIDAY-FALLBACK] No trading day data found for ${symbol} in the last 7 days`);
+      if (candleData && Array.isArray(candleData) && candleData.length > 0) {
+        // Format data for chart display
+        const formattedData = candleData.map((candle: any) => {
+          const timestamp = new Date(candle.timestamp);
+          const hours = timestamp.getHours();
+          const minutes = timestamp.getMinutes();
+          const timeLabel = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          
+          return {
+            time: timeLabel,
+            price: Math.round(candle.close * 100) / 100,
+            volume: candle.volume || 0
+          };
+        });
+        
+        console.log(`✅ Angel One returned ${formattedData.length} data points for ${symbol}`);
+        return formattedData;
+      }
+    } catch (angelError: any) {
+      console.log(`⚠️ Angel One error for ${symbol}:`, angelError.message);
     }
     
-    // For 5Y timeframe, Fyers API has historical data limitations
-    // Generate reasonable historical data based on current price patterns
-    if (timeframe === '5Y') {
-      console.log(`📊 Fyers API doesn't support 5Y historical data, generating fallback chart data for ${symbol}`);
-      return generateFallback5YData(symbol);
-    }
-    
-    // If Fyers API fails or returns no data, return empty array
-    console.log(`⚠️ Fyers API returned no data for ${symbol} (${timeframe}) - no fallback used`);
-    return [];
+    // Fallback to Fyers if Angel One fails
+    console.log(`🔄 Falling back to Fyers for ${symbol}`);
+    return await fetchFyersChartData(symbol, timeframe);
     
   } catch (error) {
-    console.error(`❌ Error fetching Fyers chart data for ${symbol}:`, error);
-    // Return empty array instead of fallback data
+    console.error(`❌ Error fetching chart data for ${symbol}:`, error);
     return [];
   }
 }
 
-// Generate fallback 5Y chart data when Fyers API doesn't support such long historical periods
+// Generate fallback 5Y chart data when historical data is too long
 async function generateFallback5YData(symbol: string) {
   try {
     console.log(`📊 Generating 5Y fallback chart data for ${symbol}...`);
     
-    // Try to get current price from 1Y data for baseline
+    // Try to get current price from 1Y data for baseline using Angel One
     let currentPrice = 3000; // Default fallback
     try {
-      const oneYearData = await fetchFyersChartData(symbol, '1Y');
+      const oneYearData = await getRealChartData(symbol, '1Y');
       if (oneYearData && oneYearData.length > 0) {
         currentPrice = oneYearData[oneYearData.length - 1].price;
       }
