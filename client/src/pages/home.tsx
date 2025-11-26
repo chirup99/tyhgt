@@ -8,6 +8,7 @@ import React, {
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { AuthButton } from "@/components/auth-button";
+import { AuthButtonAngelOne } from "@/components/auth-button-angelone";
 import { ConnectionStatus } from "@/components/connection-status";
 import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
 import { SigninDataWindow } from "@/components/signin-data-window";
@@ -7517,27 +7518,71 @@ ${
                   <ApiStatistics />
                 </div>
 
-                {/* Fyers Connection Window - Split into half with bottom empty space */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Fyers Connection Window */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Fyers API Connection</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Connect your Fyers API to get started</p>
-                        </div>
+                {/* API Provider Selection - Fyers vs Angel One */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Trading API Connection</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Choose your broker API provider</p>
                       </div>
                     </div>
-                    <div className="p-6">
-                      <AuthButton />
-                    </div>
                   </div>
+                  <div className="p-6">
+                    <Tabs defaultValue="angelone" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-6">
+                        <TabsTrigger value="fyers" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800 dark:data-[state=active]:bg-green-900 dark:data-[state=active]:text-green-200" data-testid="tab-fyers">
+                          Fyers (Paid)
+                        </TabsTrigger>
+                        <TabsTrigger value="angelone" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 dark:data-[state=active]:bg-orange-900 dark:data-[state=active]:text-orange-200" data-testid="tab-angelone">
+                          Angel One (Free)
+                        </TabsTrigger>
+                      </TabsList>
 
-                  {/* Bottom Empty Space - Placeholder for future features */}
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[250px] flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">Ready for more features</p>
+                      <TabsContent value="fyers">
+                        <div className="space-y-4">
+                          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                              <strong>Note:</strong> Fyers API requires daily token refresh. Get your token from the Fyers dashboard.
+                            </p>
+                          </div>
+                          <AuthButton />
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="angelone">
+                        <div className="space-y-4">
+                          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                            <p className="text-sm text-green-800 dark:text-green-200">
+                              <strong>Recommended:</strong> Angel One SmartAPI is free and uses automatic TOTP authentication. No daily token refresh needed!
+                            </p>
+                          </div>
+                          <AuthButtonAngelOne />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </div>
+
+                {/* Connection Status Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Fyers Status */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                      Fyers Connection
+                    </h4>
+                    <ConnectionStatus />
+                  </div>
+                  
+                  {/* Angel One Status - Placeholder for future */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                      Angel One Connection
+                    </h4>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      Connect using the Angel One tab above to see status
                     </div>
                   </div>
                 </div>
