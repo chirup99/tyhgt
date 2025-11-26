@@ -5726,6 +5726,85 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               </div>
             </CardContent>
           </Card>
+
+          {/* OHLC Data Window Below Chart */}
+          <Card className="bg-slate-900 dark:bg-slate-900 border-slate-700 mt-4">
+            <CardContent className="p-4">
+              <div className="space-y-4">
+                {/* OHLC Header */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-blue-400" />
+                    OHLC Data - {selectedTimeframe} Candle
+                  </h3>
+                  <span className="text-xs text-slate-400">Nifty 50 Index</span>
+                </div>
+
+                {/* OHLC Values Grid */}
+                {niftyChartData && niftyChartData.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {/* Open */}
+                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                      <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Open</p>
+                      <p className="text-base font-semibold text-white">
+                        ₹{niftyChartData[0]?.price?.toFixed(2) || '--'}
+                      </p>
+                    </div>
+
+                    {/* High */}
+                    <div className="bg-green-900/20 rounded-lg p-3 border border-green-800/30">
+                      <p className="text-xs text-green-400 mb-1 font-medium uppercase tracking-wide">High</p>
+                      <p className="text-base font-semibold text-green-400">
+                        ₹{Math.max(...niftyChartData.map((d: any) => d.price || 0)).toFixed(2)}
+                      </p>
+                    </div>
+
+                    {/* Low */}
+                    <div className="bg-red-900/20 rounded-lg p-3 border border-red-800/30">
+                      <p className="text-xs text-red-400 mb-1 font-medium uppercase tracking-wide">Low</p>
+                      <p className="text-base font-semibold text-red-400">
+                        ₹{Math.min(...niftyChartData.map((d: any) => d.price || Infinity)).toFixed(2)}
+                      </p>
+                    </div>
+
+                    {/* Close */}
+                    <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800/30">
+                      <p className="text-xs text-purple-400 mb-1 font-medium uppercase tracking-wide">Close</p>
+                      <p className="text-base font-semibold text-purple-400">
+                        ₹{niftyChartData[niftyChartData.length - 1]?.price?.toFixed(2) || '--'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-6">
+                    <p className="text-sm text-slate-400">Select timeframe above to view OHLC data</p>
+                  </div>
+                )}
+
+                {/* Additional Stats */}
+                {niftyChartData && niftyChartData.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700">
+                    <div className="text-center">
+                      <p className="text-xs text-slate-400 mb-1">Candles</p>
+                      <p className="text-sm font-semibold text-slate-300">{niftyChartData.length}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-slate-400 mb-1">Range</p>
+                      <p className="text-sm font-semibold text-slate-300">
+                        ₹{(Math.max(...niftyChartData.map((d: any) => d.price || 0)) - Math.min(...niftyChartData.map((d: any) => d.price || Infinity))).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-slate-400 mb-1">Change</p>
+                      <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{percentChange}%
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Feed Stocks Container */}
