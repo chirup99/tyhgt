@@ -85,3 +85,16 @@
 [x] 2461. ✅ Screenshot verified application is functional
 [x] 2462. ✅ Progress tracker updated with migration completion
 [x] 2463. ✅✅✅ REPLIT ENVIRONMENT MIGRATION COMPLETE! ✅✅✅
+
+[x] 2464. NOVEMBER 26, 2025 - HOME SCREEN DEFAULT VIEW FIX
+[x] 2465. User Issue: Landing page was showing instead of home screen for unauthenticated users
+[x] 2466. User Requirement: Home screen should display by default, redirect to login only when interacting with protected content
+[x] 2467. ✅ Fixed home.tsx - Removed automatic redirect to /login after 500ms timeout
+[x] 2468. ✅ Added isViewOnlyMode state for unauthenticated users
+[x] 2469. ✅ Changed setLocation('/login') redirect to setIsViewOnlyMode(true)
+[x] 2470. ✅ Renamed variable to avoid conflict with existing isDemoMode (heatmap toggle)
+[x] 2471. ✅ Users can now view home screen without being logged in
+[x] 2472. ✅ setTabWithAuthCheck still redirects to login only when users try to interact with protected features
+[x] 2473. ✅ Workflow restarted and verified with screenshot
+[x] 2474. ✅ Console shows: "🎯 No auth found - enabling view-only mode (no redirect)"
+[x] 2475. ✅✅✅ HOME SCREEN DEFAULT VIEW FIX COMPLETE! ✅✅✅

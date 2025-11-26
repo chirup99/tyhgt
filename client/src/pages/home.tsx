@@ -1841,11 +1841,14 @@ export default function Home() {
   
   // Auth state initialization - wait for Firebase to sync
   const [authInitialized, setAuthInitialized] = useState(false);
+  // View-only mode for unauthenticated users - they can view but not interact with protected features
+  const [isViewOnlyMode, setIsViewOnlyMode] = useState(false);
 
   // Get current user data from Firebase
   const { currentUser } = useCurrentUser();
   
-  // Initialize Firebase auth sync with localStorage
+  // Initialize Firebase auth sync with localStorage - NO AUTOMATIC REDIRECT
+  // Users can view the home screen, redirect only happens when they try to interact with protected content
   useEffect(() => {
     const userId = localStorage.getItem('currentUserId');
     const userEmail = localStorage.getItem('currentUserEmail');
@@ -1853,24 +1856,27 @@ export default function Home() {
     if (userId && userEmail && userId !== 'null' && userEmail !== 'null') {
       console.log('✅ Auth initialized from localStorage:', { userId, userEmail });
       setAuthInitialized(true);
+      setIsViewOnlyMode(false);
     } else {
-      // Wait for Firebase auth state with timeout
+      // Wait for Firebase auth state with timeout - but DON'T redirect, just enable view-only mode
       const timer = setTimeout(() => {
         const finalUserId = localStorage.getItem('currentUserId');
         const finalUserEmail = localStorage.getItem('currentUserEmail');
         
         if (!finalUserId || !finalUserEmail || finalUserId === 'null' || finalUserEmail === 'null') {
-          console.log('❌ No auth found after timeout, redirecting to login');
-          setLocation('/login');
+          console.log('🎯 No auth found - enabling view-only mode (no redirect)');
+          setIsViewOnlyMode(true);
+          setAuthInitialized(true); // Mark as initialized so UI renders
         } else {
           console.log('✅ Auth initialized after delay:', { finalUserId, finalUserEmail });
           setAuthInitialized(true);
+          setIsViewOnlyMode(false);
         }
       }, 500); // Wait 500ms for Firebase auth to sync
       
       return () => clearTimeout(timer);
     }
-  }, [setLocation]);
+  }, []);
 
   // AI Search state
   const [searchQuery, setSearchQuery] = useState("");
