@@ -23,12 +23,14 @@ interface AngelOneStatus {
 
 export function AuthButtonAngelOne() {
   const { toast } = useToast();
-  const [clientCode, setClientCode] = useState("");
-  const [pin, setPin] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [totpSecret, setTotpSecret] = useState("");
+  const [clientCode, setClientCode] = useState(import.meta.env.VITE_ANGEL_ONE_CLIENT_CODE || "");
+  const [pin, setPin] = useState(import.meta.env.VITE_ANGEL_ONE_PIN || "");
+  const [apiKey, setApiKey] = useState(import.meta.env.VITE_ANGEL_ONE_API_KEY || "");
+  const [totpSecret, setTotpSecret] = useState(import.meta.env.VITE_ANGEL_ONE_TOTP_SECRET || "");
   const [showPin, setShowPin] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  
+  const hasEnvCredentials = !!(import.meta.env.VITE_ANGEL_ONE_CLIENT_CODE && import.meta.env.VITE_ANGEL_ONE_API_KEY);
 
   const { data: angelStatus } = useQuery<AngelOneStatus>({
     queryKey: ["/api/angelone/status"],
@@ -133,6 +135,39 @@ export function AuthButtonAngelOne() {
             {disconnectMutation.isPending ? "..." : "Disconnect"}
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (hasEnvCredentials) {
+    return (
+      <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <h3 className="text-sm font-medium text-green-900 dark:text-green-200">
+              Credentials Found in Environment
+            </h3>
+          </div>
+          <p className="text-xs text-green-700 dark:text-green-300 mb-3">
+            Angel One SmartAPI credentials are configured. Click below to connect automatically.
+          </p>
+        </div>
+        <Button
+          onClick={() => connectMutation.mutate({
+            clientCode: clientCode.trim(),
+            pin: pin.trim(),
+            apiKey: apiKey.trim(),
+            totpSecret: totpSecret.trim(),
+          })}
+          disabled={connectMutation.isPending || !clientCode.trim()}
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+          size="sm"
+          data-testid="button-angelone-connect-env"
+        >
+          <Key className="mr-2 h-4 w-4" />
+          {connectMutation.isPending ? 'Connecting...' : 'Connect with Environment Credentials'}
+        </Button>
       </div>
     );
   }
