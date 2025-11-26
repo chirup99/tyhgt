@@ -51,6 +51,7 @@ import { sentimentAnalyzer, type SentimentAnalysisRequest } from './sentiment-an
 import backupRoutes, { initializeBackupRoutes } from './backup-routes';
 import { createBackupDataService, BackupQueryParams } from './backup-data-service';
 import { detectPatterns } from './routes/pattern-detection';
+import { nseApi } from './nse-api';
 
 const patternDetector = new IntradayPatternDetector(fyersApi);
 const enhanced4CandleProcessor = new Enhanced4CandleProcessor(fyersApi);
@@ -16647,6 +16648,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         error: 'Failed to fetch verified report',
         message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // ============================================
+  // NSE API Routes - Testing for Production Alternative to Fyers
+  // ============================================
+  
+  // Helper to get HTTP status from NSE error code
+  const getNseHttpStatus = (errorCode?: string): number => {
+    switch (errorCode) {
+      case 'INVALID_SYMBOL':
+      case 'INVALID_CATEGORY':
+        return 400;
+      case 'RATE_LIMITED':
+        return 429;
+      case 'SESSION_FAILED':
+      case 'NETWORK_ERROR':
+        return 503;
+      default:
+        return 500;
+    }
+  };
+  
+  // Test NSE connection
+  app.get('/api/nse/test', async (req, res) => {
+    try {
+      console.log('[NSE-ROUTES] Testing NSE connection...');
+      const result = await nseApi.testConnection();
+      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
+      res.status(status).json(result);
+    } catch (error: any) {
+      console.error('[NSE-ROUTES] Connection test error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error during connection test',
+        errorCode: 'UNKNOWN',
+        timestamp: new Date().toISOString(),
+        latencyMs: 0
+      });
+    }
+  });
+  
+  // Get equity quote for a single symbol
+  app.get('/api/nse/equity/:symbol', async (req, res) => {
+    try {
+      const { symbol } = req.params;
+      console.log(`[NSE-ROUTES] Fetching equity quote for: ${symbol}`);
+      const result = await nseApi.getEquityQuote(symbol);
+      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
+      res.status(status).json(result);
+    } catch (error: any) {
+      console.error('[NSE-ROUTES] Equity quote error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error fetching equity quote',
+        errorCode: 'UNKNOWN',
+        timestamp: new Date().toISOString(),
+        latencyMs: 0
+      });
+    }
+  });
+  
+  // Get equity market data for a category (NIFTY 50, NIFTY BANK, etc.)
+  app.get('/api/nse/market/:category', async (req, res) => {
+    try {
+      const { category } = req.params;
+      console.log(`[NSE-ROUTES] Fetching market data for category: ${category}`);
+      const result = await nseApi.getEquityMarketData(decodeURIComponent(category));
+      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
+      res.status(status).json(result);
+    } catch (error: any) {
+      console.error('[NSE-ROUTES] Market data error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error fetching market data',
+        errorCode: 'UNKNOWN',
+        timestamp: new Date().toISOString(),
+        latencyMs: 0
+      });
+    }
+  });
+  
+  // Get pre-market data
+  app.get('/api/nse/premarket/:category', async (req, res) => {
+    try {
+      const { category } = req.params;
+      console.log(`[NSE-ROUTES] Fetching pre-market data for: ${category}`);
+      const result = await nseApi.getPreMarketData(decodeURIComponent(category));
+      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
+      res.status(status).json(result);
+    } catch (error: any) {
+      console.error('[NSE-ROUTES] Pre-market data error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error fetching pre-market data',
+        errorCode: 'UNKNOWN',
+        timestamp: new Date().toISOString(),
+        latencyMs: 0
+      });
+    }
+  });
+  
+  // Get option chain data
+  app.get('/api/nse/options/:symbol', async (req, res) => {
+    try {
+      const { symbol } = req.params;
+      const isIndex = req.query.index === 'true';
+      console.log(`[NSE-ROUTES] Fetching option chain for: ${symbol} (isIndex: ${isIndex})`);
+      const result = await nseApi.getOptionChain(symbol, isIndex);
+      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
+      res.status(status).json(result);
+    } catch (error: any) {
+      console.error('[NSE-ROUTES] Option chain error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error fetching option chain',
+        errorCode: 'UNKNOWN',
+        timestamp: new Date().toISOString(),
+        latencyMs: 0
       });
     }
   });

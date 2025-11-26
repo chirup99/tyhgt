@@ -2280,6 +2280,14 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
   const [optionError, setOptionError] = useState<string | null>(null);
   
+  // NSE Testing State - for NSE Text tab
+  const [nseTestSymbol, setNseTestSymbol] = useState('RELIANCE');
+  const [nseTestResult, setNseTestResult] = useState<any>(null);
+  const [nseTestLoading, setNseTestLoading] = useState(false);
+  const [nseTestError, setNseTestError] = useState<string | null>(null);
+  const [nseConnectionStatus, setNseConnectionStatus] = useState<'idle' | 'testing' | 'connected' | 'failed'>('idle');
+  const [nseTestType, setNseTestType] = useState<'connection' | 'equity' | 'market' | 'premarket'>('connection');
+  
   // 🚀 WEBSOCKET STREAMING DISABLED FOR MAXIMUM PERFORMANCE
   const connectWebSocket = () => {
     // WebSocket connections disabled to eliminate performance overhead
@@ -5449,7 +5457,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </TabsTrigger>
             <TabsTrigger value="visualai" className="flex items-center gap-2" data-testid="button-tab-visualai">
               <Sparkles className="h-4 w-4" />
-              NSE Test
+              Test AI
             </TabsTrigger>
             <TabsTrigger value="nsetext" className="flex items-center gap-2" data-testid="button-tab-nsetext">
               <FileText className="h-4 w-4" />
@@ -11893,14 +11901,278 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             </Card>
           </TabsContent>
 
-          {/* NSE Text Tab Content - Empty Tab */}
+          {/* NSE Text Tab Content - NSE API Testing */}
           <TabsContent value="nsetext" className="p-6 space-y-6">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">NSE Text</p>
-                <p className="text-sm">Coming soon...</p>
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    NSE Data Fetching Test
+                  </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Testing NSE website data fetching as alternative to Fyers API
+                  </p>
+                </div>
+                <Badge 
+                  className={cn(
+                    "text-xs",
+                    nseConnectionStatus === 'connected' && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                    nseConnectionStatus === 'failed' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+                    nseConnectionStatus === 'testing' && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+                    nseConnectionStatus === 'idle' && "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                  )}
+                >
+                  {nseConnectionStatus === 'connected' && 'Connected'}
+                  {nseConnectionStatus === 'failed' && 'Failed'}
+                  {nseConnectionStatus === 'testing' && 'Testing...'}
+                  {nseConnectionStatus === 'idle' && 'Not Tested'}
+                </Badge>
               </div>
+
+              {/* Test Controls */}
+              <Card>
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Test Type Selection */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Test Type</Label>
+                      <Select value={nseTestType} onValueChange={(v: any) => setNseTestType(v)}>
+                        <SelectTrigger data-testid="select-nse-test-type">
+                          <SelectValue placeholder="Select test type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="connection">Connection Test</SelectItem>
+                          <SelectItem value="equity">Single Stock Quote</SelectItem>
+                          <SelectItem value="market">Market Data (NIFTY 50)</SelectItem>
+                          <SelectItem value="premarket">Pre-Market Data</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Symbol Input (for equity test) */}
+                    {nseTestType === 'equity' && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Stock Symbol</Label>
+                        <Input
+                          value={nseTestSymbol}
+                          onChange={(e) => setNseTestSymbol(e.target.value.toUpperCase())}
+                          placeholder="Enter symbol (e.g., RELIANCE, TCS)"
+                          data-testid="input-nse-symbol"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        setNseTestLoading(true);
+                        setNseTestError(null);
+                        setNseTestResult(null);
+                        setNseConnectionStatus('testing');
+                        
+                        try {
+                          let endpoint = '/api/nse/test';
+                          if (nseTestType === 'equity') {
+                            endpoint = `/api/nse/equity/${nseTestSymbol}`;
+                          } else if (nseTestType === 'market') {
+                            endpoint = '/api/nse/market/NIFTY%2050';
+                          } else if (nseTestType === 'premarket') {
+                            endpoint = '/api/nse/premarket/NIFTY%2050';
+                          }
+                          
+                          const response = await fetch(endpoint);
+                          const data = await response.json();
+                          
+                          setNseTestResult(data);
+                          setNseConnectionStatus(data.success ? 'connected' : 'failed');
+                          if (!data.success) {
+                            setNseTestError(data.error || 'Unknown error');
+                          }
+                        } catch (error: any) {
+                          setNseTestError(error.message || 'Network error');
+                          setNseConnectionStatus('failed');
+                        } finally {
+                          setNseTestLoading(false);
+                        }
+                      }}
+                      disabled={nseTestLoading}
+                      data-testid="button-nse-test"
+                    >
+                      {nseTestLoading ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Testing...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4 mr-2" />
+                          Run Test
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setNseTestResult(null);
+                        setNseTestError(null);
+                        setNseConnectionStatus('idle');
+                      }}
+                      data-testid="button-nse-clear"
+                    >
+                      Clear Results
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Error Display */}
+              {nseTestError && (
+                <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-2">
+                      <X className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-red-800 dark:text-red-200">Error</p>
+                        <p className="text-sm text-red-600 dark:text-red-300">{nseTestError}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Results Display */}
+              {nseTestResult && (
+                <Card>
+                  <CardContent className="p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">
+                        Test Results
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Badge variant="outline">
+                          Latency: {nseTestResult.latencyMs}ms
+                        </Badge>
+                        <Badge 
+                          className={nseTestResult.success 
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
+                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                          }
+                        >
+                          {nseTestResult.success ? 'Success' : 'Failed'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Data Preview */}
+                    {nseTestResult.data && (
+                      <div className="space-y-3">
+                        {/* Single Quote Display */}
+                        {nseTestType === 'equity' && nseTestResult.data && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Symbol</p>
+                              <p className="font-semibold text-slate-900 dark:text-white">{nseTestResult.data.symbol}</p>
+                            </div>
+                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Last Price</p>
+                              <p className="font-semibold text-slate-900 dark:text-white">
+                                {nseTestResult.data.lastPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                              </p>
+                            </div>
+                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Change</p>
+                              <p className={cn(
+                                "font-semibold",
+                                nseTestResult.data.change >= 0 ? "text-green-600" : "text-red-600"
+                              )}>
+                                {nseTestResult.data.change >= 0 ? '+' : ''}{nseTestResult.data.change?.toFixed(2)} ({nseTestResult.data.pChange?.toFixed(2)}%)
+                              </p>
+                            </div>
+                            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Volume</p>
+                              <p className="font-semibold text-slate-900 dark:text-white">
+                                {nseTestResult.data.totalTradedVolume?.toLocaleString('en-IN')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Market Data Table */}
+                        {(nseTestType === 'market' || nseTestType === 'premarket') && Array.isArray(nseTestResult.data) && (
+                          <div className="overflow-x-auto max-h-64">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Symbol</TableHead>
+                                  <TableHead>Last Price</TableHead>
+                                  <TableHead>Change</TableHead>
+                                  <TableHead>% Change</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {nseTestResult.data.slice(0, 10).map((item: any, idx: number) => (
+                                  <TableRow key={idx}>
+                                    <TableCell className="font-medium">{item.symbol}</TableCell>
+                                    <TableCell>{item.lastPrice?.toFixed(2)}</TableCell>
+                                    <TableCell className={item.change >= 0 ? "text-green-600" : "text-red-600"}>
+                                      {item.change >= 0 ? '+' : ''}{item.change?.toFixed(2)}
+                                    </TableCell>
+                                    <TableCell className={item.pChange >= 0 ? "text-green-600" : "text-red-600"}>
+                                      {item.pChange?.toFixed(2)}%
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                            {nseTestResult.data.length > 10 && (
+                              <p className="text-xs text-slate-500 mt-2">
+                                Showing 10 of {nseTestResult.data.length} records
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Connection Test Message */}
+                        {nseTestType === 'connection' && nseTestResult.data?.message && (
+                          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md">
+                            <p className="text-green-800 dark:text-green-200 font-medium">
+                              {nseTestResult.data.message}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Raw JSON (collapsible) */}
+                    <details className="mt-4">
+                      <summary className="cursor-pointer text-sm text-slate-500 dark:text-slate-400">
+                        View Raw JSON Response
+                      </summary>
+                      <pre className="mt-2 p-3 bg-slate-900 dark:bg-slate-950 text-slate-100 rounded-md text-xs overflow-x-auto max-h-48">
+                        {JSON.stringify(nseTestResult, null, 2)}
+                      </pre>
+                    </details>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Info Card */}
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="p-4">
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">About This Test</h4>
+                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>• Testing direct data fetching from NSE India website</li>
+                    <li>• If successful, this can replace Fyers API for production</li>
+                    <li>• No API key or daily token required</li>
+                    <li>• Fyers API remains active until NSE solution is verified</li>
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
           
