@@ -4198,6 +4198,18 @@ ${
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   
+  // Dynamic instrument search state
+  const [searchedInstruments, setSearchedInstruments] = useState<Array<{
+    symbol: string;
+    name: string;
+    token: string;
+    exchange: string;
+    instrumentType: string;
+    displayName: string;
+    tradingSymbol: string;
+  }>>([]);
+  const [isSearchingInstruments, setIsSearchingInstruments] = useState(false);
+  
   // TradingView-style chart refs for Journal
   const journalChartContainerRef = useRef<HTMLDivElement>(null);
   const journalChartRef = useRef<IChartApi | null>(null);
@@ -4339,6 +4351,44 @@ ${
       toDate: today,
     };
   };
+
+  // 🔍 Fetch instruments from Angel One master file API
+  const fetchInstruments = async (searchQuery: string) => {
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchedInstruments([]);
+      return;
+    }
+
+    setIsSearchingInstruments(true);
+    try {
+      const response = await fetch(`/api/angelone/search-instruments?query=${encodeURIComponent(searchQuery)}&limit=50`);
+      const data = await response.json();
+      
+      if (data.success && data.instruments) {
+        setSearchedInstruments(data.instruments);
+      } else {
+        setSearchedInstruments([]);
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch instruments:', error);
+      setSearchedInstruments([]);
+    } finally {
+      setIsSearchingInstruments(false);
+    }
+  };
+
+  // useEffect to fetch instruments when search query changes (with debouncing)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (stockSearchQuery.length >= 2) {
+        fetchInstruments(stockSearchQuery);
+      } else {
+        setSearchedInstruments([]);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [stockSearchQuery]);
 
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
   const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
@@ -9802,99 +9852,80 @@ ${
                                         data-testid="input-stock-search"
                                       />
                                       <div className="max-h-64 overflow-y-auto space-y-1 custom-thin-scrollbar">
-                                        {[
-                                          {
-                                            value: "NSE:NIFTY50-INDEX",
-                                            label: "NIFTY 50",
-                                          },
-                                          {
-                                            value: "NSE:SENSEX-INDEX",
-                                            label: "SENSEX",
-                                          },
-                                          {
-                                            value: "NSE:BANKNIFTY-INDEX",
-                                            label: "BANK NIFTY",
-                                          },
-                                          {
-                                            value: "NSE:RELIANCE-EQ",
-                                            label: "RELIANCE",
-                                          },
-                                          { value: "NSE:TCS-EQ", label: "TCS" },
-                                          {
-                                            value: "NSE:HDFCBANK-EQ",
-                                            label: "HDFC BANK",
-                                          },
-                                          {
-                                            value: "NSE:INFY-EQ",
-                                            label: "INFOSYS",
-                                          },
-                                          {
-                                            value: "NSE:ICICIBANK-EQ",
-                                            label: "ICICI BANK",
-                                          },
-                                          {
-                                            value: "NSE:SBIN-EQ",
-                                            label: "SBI",
-                                          },
-                                          {
-                                            value: "NSE:BHARTIARTL-EQ",
-                                            label: "BHARTI AIRTEL",
-                                          },
-                                          { value: "NSE:ITC-EQ", label: "ITC" },
-                                          {
-                                            value: "NSE:KOTAKBANK-EQ",
-                                            label: "KOTAK BANK",
-                                          },
-                                          { value: "NSE:LT-EQ", label: "L&T" },
-                                          {
-                                            value: "NSE:AXISBANK-EQ",
-                                            label: "AXIS BANK",
-                                          },
-                                          {
-                                            value: "NSE:WIPRO-EQ",
-                                            label: "WIPRO",
-                                          },
-                                          {
-                                            value: "MCX:GOLD-COM",
-                                            label: "GOLD",
-                                          },
-                                          {
-                                            value: "MCX:CRUDEOIL-COM",
-                                            label: "CRUDE OIL",
-                                          },
-                                          {
-                                            value: "MCX:SILVER-COM",
-                                            label: "SILVER",
-                                          },
-                                        ]
-                                          .filter((stock) =>
-                                            stock.label
-                                              .toLowerCase()
-                                              .includes(
-                                                stockSearchQuery.toLowerCase(),
-                                              ),
-                                          )
-                                          .map((stock) => (
-                                            <button
-                                              key={stock.value}
-                                              onClick={() => {
-                                                setSelectedJournalSymbol(
-                                                  stock.value,
-                                                );
-                                                setShowStockSearch(false);
-                                                setStockSearchQuery("");
-                                              }}
-                                              className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                                                selectedJournalSymbol ===
-                                                stock.value
-                                                  ? "bg-blue-100 dark:bg-blue-900 font-medium"
-                                                  : ""
-                                              }`}
-                                              data-testid={`stock-option-${stock.value}`}
-                                            >
-                                              {stock.label}
-                                            </button>
-                                          ))}
+                                        {/* Loading State */}
+                                        {isSearchingInstruments && (
+                                          <div className="flex items-center justify-center py-4">
+                                            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                            <span className="ml-2 text-sm text-gray-500">Searching...</span>
+                                          </div>
+                                        )}
+                                        
+                                        {/* No Results */}
+                                        {!isSearchingInstruments && stockSearchQuery.length >= 2 && searchedInstruments.length === 0 && (
+                                          <div className="px-3 py-4 text-center text-sm text-gray-500">
+                                            No instruments found for "{stockSearchQuery}"
+                                          </div>
+                                        )}
+                                        
+                                        {/* Prompt to search */}
+                                        {stockSearchQuery.length < 2 && (
+                                          <div className="px-3 py-4 text-center text-sm text-gray-500">
+                                            Type at least 2 characters to search across NSE, BSE, MCX
+                                          </div>
+                                        )}
+                                        
+                                        {/* Search Results */}
+                                        {!isSearchingInstruments && searchedInstruments.map((instrument) => (
+                                          <button
+                                            key={`${instrument.exchange}:${instrument.symbol}`}
+                                            onClick={() => {
+                                              // Format symbol for frontend use
+                                              const formattedSymbol = `${instrument.exchange}:${instrument.symbol}`;
+                                              setSelectedJournalSymbol(formattedSymbol);
+                                              
+                                              // Update token mapping for this instrument
+                                              journalAngelOneTokens[instrument.name] = {
+                                                token: instrument.token,
+                                                exchange: instrument.exchange,
+                                                tradingSymbol: instrument.tradingSymbol
+                                              };
+                                              
+                                              setShowStockSearch(false);
+                                              setStockSearchQuery("");
+                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                              selectedJournalSymbol === `${instrument.exchange}:${instrument.symbol}`
+                                                ? "bg-blue-100 dark:bg-blue-900 font-medium"
+                                                : ""
+                                            }`}
+                                            data-testid={`stock-option-${instrument.exchange}:${instrument.symbol}`}
+                                          >
+                                            <div className="flex items-center justify-between gap-2">
+                                              <span className="flex-1 font-medium">{instrument.name}</span>
+                                              <div className="flex items-center gap-1">
+                                                {/* Exchange Badge */}
+                                                <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${
+                                                  instrument.exchange === 'NSE' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
+                                                  instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
+                                                  instrument.exchange === 'MCX' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
+                                                  'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                                }`}>
+                                                  {instrument.exchange}
+                                                </span>
+                                                {/* Instrument Type Badge */}
+                                                <span className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                                                  {instrument.instrumentType}
+                                                </span>
+                                              </div>
+                                            </div>
+                                            {/* Show symbol if different from name */}
+                                            {instrument.symbol !== instrument.name && (
+                                              <div className="text-xs text-gray-500 mt-0.5">
+                                                {instrument.symbol}
+                                              </div>
+                                            )}
+                                          </button>
+                                        ))}
                                       </div>
                                     </div>
                                   </PopoverContent>
