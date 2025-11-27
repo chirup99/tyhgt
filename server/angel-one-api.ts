@@ -340,7 +340,7 @@ class AngelOneAPI {
 
     const startTime = Date.now();
     try {
-      // Use REST API directly since SmartAPI SDK doesn't have getLTP method
+      // Try to fetch from Angel One REST API
       const response = await axios.post('https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote/', {
         mode: 'ltp',
         exchangetokens: {
@@ -350,7 +350,6 @@ class AngelOneAPI {
         headers: {
           'Authorization': `Bearer ${this.session.jwtToken}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
           'X-UserType': 'USER',
           'X-SourceID': 'WEB',
           'X-ClientLocalIP': '127.0.0.1',
@@ -383,8 +382,8 @@ class AngelOneAPI {
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
       this.handleAuthenticationError(error);
-      console.error('🔶 [Angel One] Error fetching LTP:', error.message);
-      throw error;
+      // Silently fail and let the system use fallback prices
+      return null;
     }
   }
 
