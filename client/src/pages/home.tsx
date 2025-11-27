@@ -9943,11 +9943,15 @@ ${
                               />
                               
                               {/* Live OHLC Ticker - Top Left Corner Overlay */}
-                              {liveOhlc && (
+                              {(liveOhlc || (journalChartData && journalChartData.length > 0)) && (
                                 <div className="absolute top-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded font-mono text-xs border border-green-500/50 pointer-events-none"
                                   data-testid="live-ohlc-ticker"
                                 >
-                                  O{liveOhlc.open.toFixed(2)} H{liveOhlc.high.toFixed(2)} L{liveOhlc.low.toFixed(2)} C{liveOhlc.close.toFixed(2)} <span className={liveOhlc.change >= 0 ? 'text-green-400' : 'text-red-400'}>(+{liveOhlc.change.toFixed(2)}%)</span>
+                                  {liveOhlc ? (
+                                    <>O{liveOhlc.open.toFixed(2)} H{liveOhlc.high.toFixed(2)} L{liveOhlc.low.toFixed(2)} C{liveOhlc.close.toFixed(2)} <span className={liveOhlc.change >= 0 ? 'text-green-400' : 'text-red-400'}>(+{liveOhlc.change.toFixed(2)}%)</span></>
+                                  ) : (
+                                    <>O{journalChartData[journalChartData.length - 1].open.toFixed(2)} H{journalChartData[journalChartData.length - 1].high.toFixed(2)} L{journalChartData[journalChartData.length - 1].low.toFixed(2)} C{journalChartData[journalChartData.length - 1].close.toFixed(2)}</>
+                                  )}
                                 </div>
                               )}
                               
