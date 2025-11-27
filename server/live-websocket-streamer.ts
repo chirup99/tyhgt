@@ -113,11 +113,13 @@ export class LiveWebSocketStreamer {
         const quotes = await angelOneApi.getQuotes(symbolsData);
         
         if (quotes && quotes.length > 0) {
+          const marketOpen = this.isMarketHours();
           quotes.forEach(quote => {
             const nseSymbol = `NSE:${quote.tradingSymbol}`;
+            const displayPrice = marketOpen ? quote.ltp : quote.close;
             this.priceData.set(nseSymbol, {
               symbol: nseSymbol,
-              price: quote.ltp,
+              price: displayPrice,
               change: parseFloat((quote.change || 0).toFixed(2)),
               changePercent: parseFloat((quote.changePercent || 0).toFixed(2)),
               volume: quote.volume,
@@ -125,17 +127,18 @@ export class LiveWebSocketStreamer {
               open: quote.open,
               high: quote.high,
               low: quote.low,
-              close: quote.ltp,
+              close: quote.close || quote.ltp,
               lastUpdate: new Date().toISOString(),
-              isLive: true,
-              source: 'angelone'
+              isLive: marketOpen,
+              source: 'angelone',
+              isMarketOpen: marketOpen
             });
             
             this.ohlcBars.set(nseSymbol, []);
             this.currentBars.set(nseSymbol, this.createNewBar(nseSymbol, quote.ltp));
           });
           
-          console.log(`✅ Initialized ${quotes.length} symbols with real Angel One prices`);
+          console.log(`✅ Initialized ${quotes.length} symbols with real Angel One prices (Market: ${marketOpen ? 'OPEN' : 'CLOSED'})`);
           this.healthStatus.dataSource = 'angelone';
           return;
         }
@@ -147,6 +150,7 @@ export class LiveWebSocketStreamer {
     }
     
     // Only use minimal fallback if real data fails
+    const marketOpen = this.isMarketHours();
     this.symbols.forEach(symbol => {
       const tokenData = ANGEL_ONE_STOCK_TOKENS[symbol];
       const nseSymbol = tokenData ? `NSE:${tokenData.tradingSymbol}` : `NSE:${symbol}-EQ`;
@@ -163,7 +167,8 @@ export class LiveWebSocketStreamer {
         close: 0,
         lastUpdate: new Date().toISOString(),
         isLive: false,
-        source: 'fallback'
+        source: 'fallback',
+        isMarketOpen: marketOpen
       });
       
       this.ohlcBars.set(nseSymbol, []);
@@ -276,15 +281,13 @@ export class LiveWebSocketStreamer {
   }
 
   private async fetchRealTimeData() {
-    if (!this.isMarketHours()) {
-      return;
-    }
-    
     // Check if Angel One is connected
     if (!angelOneApi.isConnected()) {
       console.log('⏳ Waiting for Angel One authentication...');
       return;
     }
+    
+    const marketOpen = this.isMarketHours();
     
     try {
       console.log('📡 Fetching real-time data from Angel One API...');
@@ -305,9 +308,10 @@ export class LiveWebSocketStreamer {
         
         quotes.forEach(quote => {
           const nseSymbol = `NSE:${quote.tradingSymbol}`;
+          const displayPrice = marketOpen ? quote.ltp : quote.close;
           const updatedData: LivePriceData = {
             symbol: nseSymbol,
-            price: quote.ltp,
+            price: displayPrice,
             change: parseFloat((quote.change || 0).toFixed(2)),
             changePercent: parseFloat((quote.changePercent || 0).toFixed(2)),
             volume: quote.volume,
@@ -315,10 +319,11 @@ export class LiveWebSocketStreamer {
             open: quote.open,
             high: quote.high,
             low: quote.low,
-            close: quote.ltp,
+            close: quote.close || quote.ltp,
             lastUpdate: new Date().toISOString(),
-            isLive: true,
-            source: 'angelone'
+            isLive: marketOpen,
+            source: 'angelone',
+            isMarketOpen: marketOpen
           };
           
           this.priceData.set(nseSymbol, updatedData);
@@ -326,7 +331,7 @@ export class LiveWebSocketStreamer {
         });
         
         this.healthStatus.lastSuccessfulUpdate = Date.now();
-        console.log(`✅ Updated ${quotes.length} symbols with real Angel One data`);
+        console.log(`✅ Updated ${quotes.length} symbols with real Angel One data (Market: ${marketOpen ? 'OPEN' : 'CLOSED'})`);
       }
     } catch (error: any) {
       console.log('⚠️ Real-time Angel One data fetch failed:', error.message);
