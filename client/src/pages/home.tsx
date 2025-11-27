@@ -4606,6 +4606,8 @@ ${
 
       console.log('🔶 Fetching Angel One historical data for journal chart:', requestBody);
 
+      console.log('🔶 Making request to /api/angelone/historical with body:', requestBody);
+      
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
         method: "POST",
         headers: {
@@ -4615,10 +4617,13 @@ ${
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch chart data: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`🔶 API Error ${response.status}:`, errorText);
+        throw new Error(`Failed to fetch chart data: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('🔶 API Response received:', { success: data.success, candlesLength: data.candles?.length, dataLength: data.data?.length });
       
       // Transform Angel One candle data to chart format
       // Angel One returns either:
@@ -10315,7 +10320,7 @@ ${
                             </div>
 
                             {/* TradingView Light Theme Chart Container - Clean */}
-                            <div className="flex-1 relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="flex-1 relative flex flex-col h-full min-h-[400px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                               {journalChartLoading && (
                                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                   <div className="flex flex-col items-center gap-4">
@@ -10331,12 +10336,12 @@ ${
                                 </div>
                               )}
                               
-                              {/* Chart Container - Full Space */}
+                              {/* Chart Container - Full Space with explicit height */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="flex-1 w-full relative bg-white dark:bg-gray-800 min-h-[300px]"
+                                className="flex-1 w-full relative bg-white dark:bg-gray-800"
                                 data-testid="journal-tradingview-chart"
-                                style={{ height: '100%' }}
+                                style={{ height: '100%', minHeight: '400px' }}
                               />
                               
                               {/* Live OHLC Ticker - Top Left Corner Overlay */}
