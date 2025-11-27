@@ -4564,6 +4564,27 @@ ${
           secondsVisible: false,
           barSpacing: 8,
           minBarSpacing: 4,
+          tickMarkFormatter: (time: number) => {
+            // Convert UTC timestamp to IST (UTC+5:30) and format for display
+            const date = new Date(time * 1000);
+            // Add IST offset: 5 hours 30 minutes = 330 minutes
+            const istDate = new Date(date.getTime() + (330 * 60 * 1000));
+            const hours = istDate.getUTCHours().toString().padStart(2, '0');
+            const minutes = istDate.getUTCMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+          },
+        },
+        localization: {
+          timeFormatter: (time: number) => {
+            // Format time for crosshair tooltip in IST
+            const date = new Date(time * 1000);
+            const istDate = new Date(date.getTime() + (330 * 60 * 1000));
+            const hours = istDate.getUTCHours().toString().padStart(2, '0');
+            const minutes = istDate.getUTCMinutes().toString().padStart(2, '0');
+            const day = istDate.getUTCDate().toString().padStart(2, '0');
+            const month = (istDate.getUTCMonth() + 1).toString().padStart(2, '0');
+            return `${day}/${month} ${hours}:${minutes} IST`;
+          },
         },
         width: containerWidth,
         height: containerHeight,
@@ -4589,7 +4610,7 @@ ${
 
       const ema12Series = chart.addSeries(LineSeries, {
         color: '#0066ff',
-        lineWidth: 2.5,
+        lineWidth: 2,
         priceLineVisible: false,
         lastValueVisible: true,
         crosshairMarkerVisible: true,
@@ -4598,7 +4619,7 @@ ${
 
       const ema26Series = chart.addSeries(LineSeries, {
         color: '#ff6600',
-        lineWidth: 2.5,
+        lineWidth: 2,
         priceLineVisible: false,
         lastValueVisible: true,
         crosshairMarkerVisible: true,
