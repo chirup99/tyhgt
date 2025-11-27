@@ -4468,146 +4468,94 @@ ${
     return ema;
   };
 
-  // Track if chart is initialized for this tab session
-  const [journalChartInitialized, setJournalChartInitialized] = useState(false);
-
-  // Initialize TradingView-style chart for Journal (when tab becomes active)
+  // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
-    // Only initialize when Trading Journal tab is active
     if (activeTab !== 'trading-journal') {
+      if (journalChartRef.current) {
+        try {
+          journalChartRef.current.remove();
+        } catch (e) {}
+        journalChartRef.current = null;
+        journalCandlestickSeriesRef.current = null;
+        journalEma12SeriesRef.current = null;
+        journalEma26SeriesRef.current = null;
+      }
       return;
     }
 
-    let isCancelled = false;
-    let resizeHandler: (() => void) | null = null;
-
-    // Small delay to ensure container is properly mounted and visible
-    const initTimer = setTimeout(() => {
-      if (isCancelled) return;
-      if (!journalChartContainerRef.current) {
-        console.log('🔶 Chart container not ready yet');
-        return;
-      }
-      
-      // Clean up any existing chart first
-      if (journalChartRef.current) {
-        try {
-          journalChartRef.current.remove();
-        } catch (e) {}
-        journalChartRef.current = null;
-        journalCandlestickSeriesRef.current = null;
-        journalEma12SeriesRef.current = null;
-        journalEma26SeriesRef.current = null;
-      }
-      
-      try {
-        console.log('🔶 Initializing TradingView chart for Journal...');
-        
-        const containerWidth = journalChartContainerRef.current.clientWidth || 400;
-        
-        const chart = createChart(journalChartContainerRef.current, {
-          layout: {
-            background: { type: ColorType.Solid, color: '#131722' },
-            textColor: '#d1d4dc',
-          },
-          grid: {
-            vertLines: { color: '#363c4e' },
-            horzLines: { color: '#363c4e' },
-          },
-          crosshair: {
-            mode: 1,
-            vertLine: { color: '#758696', width: 1, style: 3 },
-            horzLine: { color: '#758696', width: 1, style: 3 },
-          },
-          rightPriceScale: {
-            borderColor: '#485c7b',
-            scaleMargins: { top: 0.1, bottom: 0.1 },
-          },
-          timeScale: {
-            borderColor: '#485c7b',
-            timeVisible: true,
-            secondsVisible: false,
-          },
-          width: containerWidth,
-          height: 320,
-        });
-
-        const candlestickSeries = chart.addCandlestickSeries({
-          upColor: '#26a69a',
-          downColor: '#ef5350',
-          borderUpColor: '#26a69a',
-          borderDownColor: '#ef5350',
-          wickUpColor: '#26a69a',
-          wickDownColor: '#ef5350',
-        });
-
-        const ema12Series = chart.addLineSeries({
-          color: '#2196F3',
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: false,
-        });
-
-        const ema26Series = chart.addLineSeries({
-          color: '#FF9800',
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: false,
-        });
-
-        journalChartRef.current = chart;
-        journalCandlestickSeriesRef.current = candlestickSeries;
-        journalEma12SeriesRef.current = ema12Series;
-        journalEma26SeriesRef.current = ema26Series;
-        setJournalChartInitialized(true);
-        
-        console.log('🔶 TradingView chart initialized successfully');
-
-        resizeHandler = () => {
-          if (journalChartContainerRef.current && journalChartRef.current) {
-            journalChartRef.current.applyOptions({ 
-              width: journalChartContainerRef.current.clientWidth 
-            });
-          }
-        };
-
-        window.addEventListener('resize', resizeHandler);
-
-      } catch (error) {
-        console.error('Error initializing journal chart:', error);
-      }
-    }, 200);
-
-    return () => {
-      isCancelled = true;
-      clearTimeout(initTimer);
-      if (resizeHandler) {
-        window.removeEventListener('resize', resizeHandler);
-      }
-      // Clean up chart when leaving the tab or unmounting
-      if (journalChartRef.current) {
-        try {
-          journalChartRef.current.remove();
-        } catch (e) {}
-        journalChartRef.current = null;
-        journalCandlestickSeriesRef.current = null;
-        journalEma12SeriesRef.current = null;
-        journalEma26SeriesRef.current = null;
-        setJournalChartInitialized(false);
-      }
-    };
-  }, [activeTab]);
-
-  // Update chart data when journalChartData changes or chart is initialized
-  useEffect(() => {
+    if (!journalChartContainerRef.current) return;
     if (!journalChartData || journalChartData.length === 0) return;
-    if (!journalChartInitialized) return;
-    if (!journalCandlestickSeriesRef.current || !journalChartRef.current) return;
-    if (!journalEma12SeriesRef.current || !journalEma26SeriesRef.current) return;
+
+    // Clean up existing chart
+    if (journalChartRef.current) {
+      try {
+        journalChartRef.current.remove();
+      } catch (e) {}
+      journalChartRef.current = null;
+      journalCandlestickSeriesRef.current = null;
+      journalEma12SeriesRef.current = null;
+      journalEma26SeriesRef.current = null;
+    }
 
     try {
-      console.log(`🔶 Updating chart with ${journalChartData.length} candles...`);
+      const containerWidth = journalChartContainerRef.current.clientWidth || 400;
       
+      const chart = createChart(journalChartContainerRef.current, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#131722' },
+          textColor: '#d1d4dc',
+        },
+        grid: {
+          vertLines: { color: '#363c4e' },
+          horzLines: { color: '#363c4e' },
+        },
+        crosshair: {
+          mode: 1,
+          vertLine: { color: '#758696', width: 1, style: 3 },
+          horzLine: { color: '#758696', width: 1, style: 3 },
+        },
+        rightPriceScale: {
+          borderColor: '#485c7b',
+          scaleMargins: { top: 0.1, bottom: 0.1 },
+        },
+        timeScale: {
+          borderColor: '#485c7b',
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        width: containerWidth,
+        height: 320,
+      });
+
+      const candlestickSeries = chart.addCandlestickSeries({
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderUpColor: '#26a69a',
+        borderDownColor: '#ef5350',
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+      });
+
+      const ema12Series = chart.addLineSeries({
+        color: '#2196F3',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+
+      const ema26Series = chart.addLineSeries({
+        color: '#FF9800',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+
+      journalChartRef.current = chart;
+      journalCandlestickSeriesRef.current = candlestickSeries;
+      journalEma12SeriesRef.current = ema12Series;
+      journalEma26SeriesRef.current = ema26Series;
+
+      // Set data immediately
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
       const chartData = sortedData.map((candle: any) => ({
@@ -4618,7 +4566,7 @@ ${
         close: candle.close,
       }));
 
-      journalCandlestickSeriesRef.current.setData(chartData);
+      candlestickSeries.setData(chartData);
 
       const closePrices = sortedData.map((c: any) => c.close);
       const ema12 = calculateEMA(closePrices, 12);
@@ -4635,18 +4583,31 @@ ${
       })).filter(d => d.time);
 
       if (ema12Data.length > 0) {
-        journalEma12SeriesRef.current.setData(ema12Data);
+        ema12Series.setData(ema12Data);
       }
       if (ema26Data.length > 0) {
-        journalEma26SeriesRef.current.setData(ema26Data);
+        ema26Series.setData(ema26Data);
       }
 
-      journalChartRef.current.timeScale().fitContent();
-      console.log(`🔶 Chart rendered with ${chartData.length} candles`);
+      chart.timeScale().fitContent();
+
+      const handleResize = () => {
+        if (journalChartContainerRef.current && journalChartRef.current) {
+          journalChartRef.current.applyOptions({
+            width: journalChartContainerRef.current.clientWidth,
+          });
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
     } catch (error) {
-      console.error('Error updating journal chart data:', error);
+      console.error('Error rendering journal chart:', error);
     }
-  }, [journalChartData, journalChartInitialized]);
+  }, [activeTab, journalChartData]);
 
   // Convert trade history to chart markers
   const getTradeMarkersForChart = useCallback(() => {
