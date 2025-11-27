@@ -9509,30 +9509,133 @@ ${
                               </div>
                             </div>
 
-                            {/* Visual Chart Window - Full Width No Padding */}
-                            <div className="flex-1 relative -mx-0">
-                              {journalChartLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 z-10 rounded-lg">
+                            {/* Simple OHLC Data Window - Like Trading Master */}
+                            <div className="flex-1 relative">
+                              {journalChartLoading ? (
+                                <div className="h-[350px] flex items-center justify-center bg-gray-900/50 rounded-lg">
                                   <div className="flex items-center gap-2 text-white">
                                     <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
                                     <span className="text-sm">Loading from Angel One...</span>
                                   </div>
                                 </div>
+                              ) : journalChartData && journalChartData.length > 0 ? (
+                                <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg border border-slate-600 shadow-lg">
+                                  <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
+                                    <BarChart3 className="h-4 w-4 text-orange-400" />
+                                    OHLC Data Window - {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
+                                  </h3>
+                                  
+                                  {/* Latest Candle OHLC Stats */}
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Open</div>
+                                      <div className="text-white text-lg font-semibold">
+                                        ₹{journalChartData[journalChartData.length - 1]?.open?.toFixed(2) || '-'}
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">High</div>
+                                      <div className="text-green-400 text-lg font-semibold">
+                                        ₹{journalChartData[journalChartData.length - 1]?.high?.toFixed(2) || '-'}
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Low</div>
+                                      <div className="text-red-400 text-lg font-semibold">
+                                        ₹{journalChartData[journalChartData.length - 1]?.low?.toFixed(2) || '-'}
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Close</div>
+                                      <div className="text-white text-lg font-semibold">
+                                        ₹{journalChartData[journalChartData.length - 1]?.close?.toFixed(2) || '-'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Additional Stats */}
+                                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Volume</div>
+                                      <div className="text-slate-300 text-sm font-semibold">
+                                        {journalChartData[journalChartData.length - 1]?.volume 
+                                          ? (journalChartData[journalChartData.length - 1].volume / 1000000).toFixed(2) + 'M'
+                                          : '-'}
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Total Candles</div>
+                                      <div className="text-slate-300 text-sm font-semibold">
+                                        {journalChartData.length}
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Timeframe</div>
+                                      <div className="text-slate-300 text-sm font-semibold">
+                                        {selectedJournalInterval}min
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
+                                      <div className="text-slate-400 text-xs font-medium mb-1">Day Range</div>
+                                      <div className="text-slate-300 text-sm font-semibold">
+                                        ₹{Math.min(...journalChartData.map((c: any) => c.low || Infinity)).toFixed(2)} - ₹{Math.max(...journalChartData.map((c: any) => c.high || 0)).toFixed(2)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* OHLC Table - Last 10 Candles */}
+                                  <div className="mt-3 max-h-[180px] overflow-y-auto rounded-lg border border-slate-600/30">
+                                    <table className="w-full text-xs">
+                                      <thead className="bg-slate-700/50 sticky top-0">
+                                        <tr>
+                                          <th className="text-left p-2 text-slate-400 font-medium">Time</th>
+                                          <th className="text-right p-2 text-slate-400 font-medium">Open</th>
+                                          <th className="text-right p-2 text-green-400 font-medium">High</th>
+                                          <th className="text-right p-2 text-red-400 font-medium">Low</th>
+                                          <th className="text-right p-2 text-slate-400 font-medium">Close</th>
+                                          <th className="text-right p-2 text-slate-400 font-medium">Vol</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {journalChartData.slice(-15).reverse().map((candle: any, index: number) => {
+                                          const candleTime = new Date(candle.time * 1000);
+                                          const isGreen = candle.close >= candle.open;
+                                          return (
+                                            <tr key={index} className="border-t border-slate-700/30 hover:bg-slate-700/20">
+                                              <td className="p-2 text-slate-300">
+                                                {candleTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                              </td>
+                                              <td className="p-2 text-right text-slate-300">₹{candle.open?.toFixed(2)}</td>
+                                              <td className="p-2 text-right text-green-400">₹{candle.high?.toFixed(2)}</td>
+                                              <td className="p-2 text-right text-red-400">₹{candle.low?.toFixed(2)}</td>
+                                              <td className={`p-2 text-right font-medium ${isGreen ? 'text-green-400' : 'text-red-400'}`}>
+                                                ₹{candle.close?.toFixed(2)}
+                                              </td>
+                                              <td className="p-2 text-right text-slate-400">
+                                                {candle.volume ? (candle.volume / 1000).toFixed(0) + 'K' : '-'}
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                  
+                                  {/* Data Status */}
+                                  <div className="mt-3 text-xs text-slate-400 flex items-center justify-between p-2 bg-slate-800/50 rounded">
+                                    <span>Angel One Historical Data</span>
+                                    <span className="text-green-400">Ready for analysis</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="h-[350px] border border-slate-700 rounded-lg bg-slate-800/30 flex items-center justify-center">
+                                  <div className="text-slate-400 text-sm text-center">
+                                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-slate-500" />
+                                    <div>No OHLC data loaded</div>
+                                    <div className="text-xs mt-1">Select symbol and click Fetch to load data</div>
+                                  </div>
+                                </div>
                               )}
-                              <MinimalChart
-                                height={350}
-                                ohlcData={journalChartData}
-                                symbol={selectedJournalSymbol
-                                  .replace("NSE:", "")
-                                  .replace("-EQ", "")
-                                  .replace("-INDEX", "")}
-                                isInteractiveMode={false}
-                                enablePointSelection={false}
-                                chartType="candles"
-                                indicators={{}}
-                                tradeMarkers={getTradeMarkersForChart()}
-                                hideControls={true}
-                              />
                             </div>
                           </div>
                         </div>

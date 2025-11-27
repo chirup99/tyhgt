@@ -191,3 +191,24 @@
 [x] 2924.   - Angel One 401 errors (requires user authentication setup)
 [x] 2925. ✅ Migration complete - application ready for use
 [x] 2926. ✅✅✅ REPLIT ENVIRONMENT MIGRATION 100% COMPLETE! ✅✅✅
+
+[x] 2927. NOVEMBER 27, 2025 - TRADING JOURNAL CHART SIMPLIFICATION
+[x] 2928. Task: Simplify Trading Journal top chart to use simple OHLC data window (like Trading Master)
+[x] 2929. ✅ Identified complex chart implementation:
+[x] 2930.   - Using MinimalChart component with trade markers overlay
+[x] 2931.   - Complex getTradeMarkersForChart() logic for trade overlays
+[x] 2932.   - Heavy chart rendering for simple data display
+[x] 2933. ✅ Replaced with simple OHLC Data Window:
+[x] 2934.   - Removed MinimalChart component usage
+[x] 2935.   - Added OHLC stats grid (Open/High/Low/Close)
+[x] 2936.   - Added additional stats (Volume, Total Candles, Timeframe, Day Range)
+[x] 2937.   - Added OHLC table showing last 15 candles with scrollable view
+[x] 2938.   - Color-coded green/red for bullish/bearish candles
+[x] 2939.   - Same styling as Trading Master OHLC Data Window
+[x] 2940. ✅ Kept existing Angel One fetch logic:
+[x] 2941.   - fetchJournalChartData() still works
+[x] 2942.   - Symbol selection dropdown preserved
+[x] 2943.   - Timeframe selector preserved
+[x] 2944.   - Fetch button with loading state preserved
+[x] 2945. ✅ Workflow restarted successfully
+[x] 2946. ✅✅✅ TRADING JOURNAL CHART SIMPLIFICATION 100% COMPLETE! ✅✅✅
