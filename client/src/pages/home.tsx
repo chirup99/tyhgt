@@ -4636,17 +4636,6 @@ ${
     }
   }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
 
-  // Continuous 700ms auto-fetch polling for live chart updates
-  useEffect(() => {
-    if (activeTab !== 'journal') return;
-
-    const pollInterval = setInterval(() => {
-      fetchJournalChartData();
-    }, 700);
-
-    return () => clearInterval(pollInterval);
-  }, [activeTab, fetchJournalChartData]);
-
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
     if (activeTab !== 'journal') {
