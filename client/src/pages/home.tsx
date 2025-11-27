@@ -9927,13 +9927,21 @@ ${
                                             
                                             switch(selectedInstrumentCategory) {
                                               case 'stock':
-                                                return i.instrumentType === 'EQ' && (i.exchange === 'NSE' || i.exchange === 'BSE');
+                                                // NSE/BSE stocks have empty instrumentType, symbol ends with -EQ
+                                                return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
+                                                  (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || i.symbol?.endsWith('-EQ'));
                                               case 'commodity':
-                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM');
+                                                // MCX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
+                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM');
                                               case 'fo':
-                                                return ((i.instrumentType === 'FUTSTK' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTIDX') && i.exchange !== 'MCX') || (i.exchange === 'MCX' && (i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM'));
+                                                // F&O: Futures and Options on NSE/BSE (not MCX commodities in this category)
+                                                return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
+                                                  (i.instrumentType === 'FUTSTK' || i.instrumentType === 'FUTIDX' || 
+                                                   i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTIDX' || 
+                                                   i.instrumentType === 'OPTFUT');
                                               case 'index':
-                                                return i.instrumentType === 'INDEX' || i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'AMXIDX';
+                                                // Indices: AMXIDX is the main index type from Angel One
+                                                return i.instrumentType === 'AMXIDX' || i.instrumentType === 'INDEX';
                                               default:
                                                 return true;
                                             }
@@ -9958,13 +9966,21 @@ ${
                                             
                                             switch(selectedInstrumentCategory) {
                                               case 'stock':
-                                                return i.instrumentType === 'EQ' && (i.exchange === 'NSE' || i.exchange === 'BSE');
+                                                // NSE/BSE stocks have empty instrumentType, symbol ends with -EQ
+                                                return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
+                                                  (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || i.symbol?.endsWith('-EQ'));
                                               case 'commodity':
-                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM');
+                                                // MCX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
+                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM');
                                               case 'fo':
-                                                return ((i.instrumentType === 'FUTSTK' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTIDX') && i.exchange !== 'MCX') || (i.exchange === 'MCX' && (i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM'));
+                                                // F&O: Futures and Options on NSE/BSE (not MCX commodities in this category)
+                                                return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
+                                                  (i.instrumentType === 'FUTSTK' || i.instrumentType === 'FUTIDX' || 
+                                                   i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTIDX' || 
+                                                   i.instrumentType === 'OPTFUT');
                                               case 'index':
-                                                return i.instrumentType === 'INDEX' || i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'AMXIDX';
+                                                // Indices: AMXIDX is the main index type from Angel One
+                                                return i.instrumentType === 'AMXIDX' || i.instrumentType === 'INDEX';
                                               default:
                                                 return true;
                                             }

@@ -350,6 +350,37 @@
 [x] 3286. ✅✅✅ FINAL REPLIT ENVIRONMENT MIGRATION 100% COMPLETE! ✅✅✅
 [x] 3287. 🎉🎉🎉 PROJECT FULLY MIGRATED, VERIFIED, AND READY FOR USE! 🎉🎉🎉
 
+[x] 3288. NOVEMBER 27, 2025 - TRADING JOURNAL CATEGORY FILTER FIX
+[x] 3289. Task: Fix commodity, F&O, index, and stocks not loading in Trading Journal chart stock selector
+[x] 3290. ✅ Root cause identified:
+[x] 3291.   - Category filter logic was checking for wrong instrumentType values
+[x] 3292.   - Angel One API returns empty instrumentType for NSE/BSE stocks (not 'EQ')
+[x] 3293.   - Symbol ends with '-EQ' suffix but instrumentType field is empty
+[x] 3294.   - This caused Stock category filter to match nothing
+[x] 3295. ✅ Fixed Stock category filter:
+[x] 3296.   - Now checks for empty/null instrumentType OR symbol ending with '-EQ'
+[x] 3297.   - Includes NSE and BSE exchanges
+[x] 3298.   - Works with actual Angel One API response format
+[x] 3299. ✅ Fixed Commodity category filter:
+[x] 3300.   - MCX exchange with COMDTY (spot), FUTCOM (futures), OPTFUT/OPTCOM (options)
+[x] 3301.   - Properly filters MCX commodities like Gold, Crude Oil, Silver
+[x] 3302. ✅ Fixed F&O category filter:
+[x] 3303.   - NSE/BSE Futures: FUTSTK, FUTIDX
+[x] 3304.   - NSE/BSE Options: OPTSTK, OPTIDX, OPTFUT
+[x] 3305.   - Excludes MCX commodities from F&O category
+[x] 3306. ✅ Fixed Index category filter:
+[x] 3307.   - AMXIDX (main index type from Angel One)
+[x] 3308.   - INDEX (fallback type)
+[x] 3309.   - Nifty 50, Bank Nifty, etc. now properly categorized
+[x] 3310. ✅ Updated both filter blocks in client/src/pages/home.tsx:
+[x] 3311.   - Lines 9926-9950: No Results check filter
+[x] 3312.   - Lines 9965-9990: Search Results display filter
+[x] 3313. ✅ Verified API endpoint working correctly:
+[x] 3314.   - /api/angelone/search-instruments returns proper data
+[x] 3315.   - Stocks, Commodities, Indices all searchable
+[x] 3316. ✅ Workflow restarted successfully on port 5000
+[x] 3317. ✅✅✅ TRADING JOURNAL CATEGORY FILTER FIX 100% COMPLETE! ✅✅✅
+
 [x] 3288. NOVEMBER 27, 2025 - REPLIT ENVIRONMENT MIGRATION (LATEST SESSION)
 [x] 3289. Task: Complete migration from Replit Agent to Replit environment - All items marked as completed
 [x] 3290. ✅ Identified workflow startup issue:
