@@ -417,6 +417,74 @@ export function AdvancedCandlestickChart({
     retry: false,
   });
 
+  // 🔴 Angel One Live Streaming State - 700ms OHLC Updates
+  const [liveCandle, setLiveCandle] = useState<CandleData | null>(null);
+
+  // 🔴 Connect to Angel One Live Stream (700ms OHLC updates)
+  useEffect(() => {
+    // Symbol to Angel One token mapping
+    const angelOneMapping: { [key: string]: { symbol: string; token: string; exchange: string } } = {
+      'NSE:NIFTY50-INDEX': { symbol: 'NIFTY50', token: '99926000', exchange: 'NSE' },
+      'NSE:INFY-EQ': { symbol: 'INFY', token: '1594', exchange: 'NSE' },
+      'NSE:RELIANCE-EQ': { symbol: 'RELIANCE', token: '2885', exchange: 'NSE' },
+      'NSE:TCS-EQ': { symbol: 'TCS', token: '11536', exchange: 'NSE' },
+    };
+
+    const tokenData = angelOneMapping[selectedSymbol];
+    if (!tokenData) {
+      console.log('⚠️ No Angel One mapping for', selectedSymbol);
+      return;
+    }
+
+    const { symbol, token, exchange } = tokenData;
+    const url = `/api/angelone/live-stream?symbol=${symbol}&symbolToken=${token}&exchange=${exchange}`;
+    
+    console.log('🔴 [SSE] Connecting to Angel One live stream:', {
+      symbol,
+      token,
+      exchange,
+      url
+    });
+
+    const eventSource = new EventSource(url);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // Convert Angel One OHLC data to candle format
+        const newCandle: CandleData = {
+          timestamp: data.time * 1000, // Convert seconds to milliseconds
+          open: data.open,
+          high: data.high,
+          low: data.low,
+          close: data.close,
+          volume: 0 // Angel One doesn't provide volume in live stream
+        };
+        
+        setLiveCandle(newCandle);
+        console.log('🔴 [700ms] Live candle update:', {
+          time: new Date(newCandle.timestamp).toLocaleTimeString(),
+          open: newCandle.open,
+          high: newCandle.high,
+          low: newCandle.low,
+          close: newCandle.close
+        });
+      } catch (error) {
+        console.error('🔴 [SSE] Parse error:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('🔴 [SSE] Connection error:', error);
+      eventSource.close();
+    };
+
+    return () => {
+      console.log('🔴 [SSE] Disconnecting from live stream');
+      eventSource.close();
+    };
+  }, [selectedSymbol]);
+
   // Get current live price for selected symbol
   const getCurrentLivePrice = (): number | null => {
     if (!liveMarketData) return null;
@@ -945,16 +1013,35 @@ export function AdvancedCandlestickChart({
     // Then apply hard limit to exact expected count
     const finalCandles = uniqueCandles.slice(0, expectedCandles);
     
+    // 🔴 Append live candle if available (700ms Angel One updates)
+    if (liveCandle && !replayState.isReplayMode) {
+      // Check if live candle is newer than last historical candle
+      const lastHistoricalCandle = finalCandles[finalCandles.length - 1];
+      if (!lastHistoricalCandle || liveCandle.timestamp > lastHistoricalCandle.timestamp) {
+        finalCandles.push(liveCandle);
+        console.log('🔴 [LIVE] Appended live candle to chart:', {
+          liveTime: new Date(liveCandle.timestamp).toLocaleTimeString(),
+          lastHistoricalTime: lastHistoricalCandle ? new Date(lastHistoricalCandle.timestamp).toLocaleTimeString() : 'none',
+          totalCandles: finalCandles.length
+        });
+      } else if (lastHistoricalCandle && liveCandle.timestamp === lastHistoricalCandle.timestamp) {
+        // Update the last candle with live data
+        finalCandles[finalCandles.length - 1] = liveCandle;
+        console.log('🔴 [LIVE] Updated last candle with live data');
+      }
+    }
+    
     console.warn('🔧 Mathematical Candle Limiting:', {
       original: actualCandles,
       afterDeduplication: uniqueCandles.length,
       expected: expectedCandles,
       finalDisplayed: finalCandles.length,
+      liveCandle: liveCandle ? 'present' : 'none',
       status: 'EXACT_MATCH'
     });
     
     return finalCandles;
-  }, [historicalData?.candles, replayState.isReplayMode, replayState.currentIndex, selectedSymbol, selectedTimeframe, calculateExpectedCandles]);
+  }, [historicalData?.candles, replayState.isReplayMode, replayState.currentIndex, selectedSymbol, selectedTimeframe, calculateExpectedCandles, liveCandle]);
 
   // Wheel event for zoom
   const handleWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
