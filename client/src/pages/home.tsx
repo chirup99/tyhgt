@@ -4194,6 +4194,7 @@ ${
   const [selectedJournalInterval, setSelectedJournalInterval] = useState("15");
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
+  const [selectedInstrumentCategory, setSelectedInstrumentCategory] = useState("all");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
@@ -9872,12 +9873,12 @@ ${
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent
-                                    className="w-72 p-3"
+                                    className="w-80 p-3"
                                     align="start"
                                   >
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                       <Input
-                                        placeholder="Search stocks..."
+                                        placeholder="Search stocks, commodities, F&O..."
                                         value={stockSearchQuery}
                                         onChange={(e) =>
                                           setStockSearchQuery(e.target.value)
@@ -9885,6 +9886,31 @@ ${
                                         className="text-sm"
                                         data-testid="input-stock-search"
                                       />
+                                      
+                                      {/* Category Filter Buttons */}
+                                      <div className="flex flex-wrap gap-2">
+                                        {[
+                                          { id: 'all', label: 'All' },
+                                          { id: 'stock', label: 'Stock' },
+                                          { id: 'commodity', label: 'Commodity' },
+                                          { id: 'fo', label: 'F&O' },
+                                          { id: 'index', label: 'Index' }
+                                        ].map(cat => (
+                                          <button
+                                            key={cat.id}
+                                            onClick={() => setSelectedInstrumentCategory(cat.id)}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                                              selectedInstrumentCategory === cat.id
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                            }`}
+                                            data-testid={`category-filter-${cat.id}`}
+                                          >
+                                            {cat.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                      
                                       <div className="max-h-64 overflow-y-auto space-y-1 custom-thin-scrollbar">
                                         {/* Loading State */}
                                         {isSearchingInstruments && (
@@ -9895,36 +9921,54 @@ ${
                                         )}
                                         
                                         {/* No Results */}
-                                        {!isSearchingInstruments && stockSearchQuery.length >= 2 && searchedInstruments.length === 0 && (
+                                        {!isSearchingInstruments && stockSearchQuery.length >= 2 && (
+                                          searchedInstruments.filter((i) => {
+                                            const typeMap: Record<string, string[]> = {
+                                              stock: ['EQ'],
+                                              commodity: ['FUTCOM', 'OPTCOM'],
+                                              fo: ['FUTIDX', 'FUTCOM', 'FUTSTK', 'OPTIDX', 'OPTSTK', 'OPTFUT', 'OPTCOM'],
+                                              index: ['INDEX', 'FUTIDX', 'OPTIDX']
+                                            };
+                                            if (selectedInstrumentCategory === 'all') return true;
+                                            return typeMap[selectedInstrumentCategory]?.includes(i.instrumentType) || false;
+                                          }).length === 0
+                                        ) && (
                                           <div className="px-3 py-4 text-center text-sm text-gray-500">
-                                            No instruments found for "{stockSearchQuery}"
+                                            No {selectedInstrumentCategory !== 'all' ? selectedInstrumentCategory : ''} instruments found
                                           </div>
                                         )}
                                         
                                         {/* Prompt to search */}
                                         {stockSearchQuery.length < 2 && (
                                           <div className="px-3 py-4 text-center text-sm text-gray-500">
-                                            Type at least 2 characters to search across NSE, BSE, MCX
+                                            Type at least 2 characters to search
                                           </div>
                                         )}
                                         
                                         {/* Search Results */}
-                                        {!isSearchingInstruments && searchedInstruments.map((instrument) => (
+                                        {!isSearchingInstruments && stockSearchQuery.length >= 2 && searchedInstruments
+                                          .filter((i) => {
+                                            const typeMap: Record<string, string[]> = {
+                                              stock: ['EQ'],
+                                              commodity: ['FUTCOM', 'OPTCOM'],
+                                              fo: ['FUTIDX', 'FUTCOM', 'FUTSTK', 'OPTIDX', 'OPTSTK', 'OPTFUT', 'OPTCOM'],
+                                              index: ['INDEX', 'FUTIDX', 'OPTIDX']
+                                            };
+                                            if (selectedInstrumentCategory === 'all') return true;
+                                            return typeMap[selectedInstrumentCategory]?.includes(i.instrumentType) || false;
+                                          })
+                                          .map((instrument) => (
                                           <button
                                             key={`${instrument.exchange}:${instrument.symbol}`}
                                             onClick={() => {
-                                              // Format symbol for frontend use
                                               const formattedSymbol = `${instrument.exchange}:${instrument.symbol}`;
                                               setSelectedJournalSymbol(formattedSymbol);
-                                              
-                                              // Store instrument details for chart loading
                                               setSelectedInstrument({
                                                 symbol: instrument.symbol,
                                                 token: instrument.token,
                                                 exchange: instrument.exchange,
                                                 tradingSymbol: instrument.tradingSymbol
                                               });
-                                              
                                               setShowStockSearch(false);
                                               setStockSearchQuery("");
                                             }}
@@ -9938,7 +9982,6 @@ ${
                                             <div className="flex items-center justify-between gap-2">
                                               <span className="flex-1 font-medium">{instrument.name}</span>
                                               <div className="flex items-center gap-1">
-                                                {/* Exchange Badge */}
                                                 <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${
                                                   instrument.exchange === 'NSE' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
                                                   instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
@@ -9947,13 +9990,11 @@ ${
                                                 }`}>
                                                   {instrument.exchange}
                                                 </span>
-                                                {/* Instrument Type Badge */}
                                                 <span className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
                                                   {instrument.instrumentType}
                                                 </span>
                                               </div>
                                             </div>
-                                            {/* Show symbol if different from name */}
                                             {instrument.symbol !== instrument.name && (
                                               <div className="text-xs text-gray-500 mt-0.5">
                                                 {instrument.symbol}
