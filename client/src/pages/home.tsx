@@ -174,6 +174,7 @@ import {
   Filter,
   Radar,
   Loader2,
+  RefreshCcw,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -4194,6 +4195,91 @@ ${
   const [selectedJournalInterval, setSelectedJournalInterval] = useState("15");
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
+  
+  // Option Chain state
+  const [showOptionChain, setShowOptionChain] = useState(false);
+  const [optionChainData, setOptionChainData] = useState<any>(null);
+  const [optionChainLoading, setOptionChainLoading] = useState(false);
+  const [selectedOptionExpiry, setSelectedOptionExpiry] = useState<string>("");
+  
+  // List of F&O eligible stocks and indices (that have options trading)
+  const foEligibleSymbols = [
+    'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL', 
+    'KOTAKBANK', 'LT', 'ITC', 'AXISBANK', 'HINDUNILVR', 'BAJFINANCE', 'MARUTI',
+    'ASIANPAINT', 'TITAN', 'TATAMOTORS', 'SUNPHARMA', 'WIPRO', 'ULTRACEMCO',
+    'TECHM', 'HCLTECH', 'NTPC', 'POWERGRID', 'ONGC', 'COALINDIA', 'M&M',
+    'TATASTEEL', 'JSWSTEEL', 'HINDALCO', 'ADANIPORTS', 'BPCL', 'GRASIM',
+    'DRREDDY', 'CIPLA', 'APOLLOHOSP', 'DIVISLAB', 'EICHERMOT', 'TATACONSUM',
+    'BAJAJFINSV', 'HDFCLIFE', 'SBILIFE', 'INDUSINDBK', 'BRITANNIA', 'NESTLEIND',
+    'NIFTY', 'BANKNIFTY', 'NIFTY50', 'NIFTYIT', 'FINNIFTY', 'MIDCPNIFTY'
+  ];
+  
+  // Check if current instrument has options available
+  const hasOptionsAvailable = (): boolean => {
+    if (!selectedInstrument) return false;
+    
+    const symbol = selectedInstrument.symbol.replace('-EQ', '').replace('-INDEX', '').toUpperCase();
+    const type = selectedInstrument.instrumentType || '';
+    const exchange = selectedInstrument.exchange;
+    
+    // Indices always have options
+    if (type === 'AMXIDX' || type === 'INDEX') return true;
+    
+    // Futures have corresponding options
+    if (type === 'FUTIDX' || type === 'FUTSTK') return true;
+    
+    // F&O eligible stocks on NSE
+    if ((exchange === 'NSE' || exchange === 'BSE') && (!type || type === '' || type === 'EQ')) {
+      return foEligibleSymbols.some(s => symbol.includes(s) || s.includes(symbol));
+    }
+    
+    return false;
+  };
+  
+  // Get underlying symbol for option chain
+  const getUnderlyingSymbol = (): string => {
+    if (!selectedInstrument) return 'NIFTY';
+    
+    const symbol = selectedInstrument.symbol.replace('-EQ', '').replace('-INDEX', '').toUpperCase();
+    
+    // For indices
+    if (symbol.includes('NIFTY50') || symbol === 'NIFTY 50') return 'NIFTY';
+    if (symbol.includes('BANKNIFTY') || symbol.includes('NIFTY BANK')) return 'BANKNIFTY';
+    if (symbol.includes('FINNIFTY')) return 'FINNIFTY';
+    if (symbol.includes('MIDCPNIFTY')) return 'MIDCPNIFTY';
+    
+    // For futures, extract underlying
+    if (symbol.includes('FUT')) {
+      const match = symbol.match(/^([A-Z]+)/);
+      if (match) return match[1];
+    }
+    
+    return symbol;
+  };
+  
+  // Fetch option chain data
+  const fetchOptionChainData = async () => {
+    const underlying = getUnderlyingSymbol();
+    if (!underlying) return;
+    
+    setOptionChainLoading(true);
+    try {
+      const response = await fetch(`/api/options/chain?symbol=${underlying}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setOptionChainData(data.data);
+        // Set default expiry to the first available
+        if (data.data.expiryDates && data.data.expiryDates.length > 0 && !selectedOptionExpiry) {
+          setSelectedOptionExpiry(data.data.expiryDates[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching option chain:', error);
+    } finally {
+      setOptionChainLoading(false);
+    }
+  };
   const [selectedInstrumentCategory, setSelectedInstrumentCategory] = useState("all");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
@@ -4256,6 +4342,7 @@ ${
     token: string;
     exchange: string;
     tradingSymbol: string;
+    instrumentType?: string;
   } | null>(null);
   
   // TradingView-style chart refs for Journal
@@ -10010,7 +10097,8 @@ ${
                                                         symbol: instrument.symbol,
                                                         token: instrument.token,
                                                         exchange: instrument.exchange,
-                                                        tradingSymbol: instrument.tradingSymbol
+                                                        tradingSymbol: instrument.tradingSymbol,
+                                                        instrumentType: instrument.instrumentType
                                                       });
                                                       setShowStockSearch(false);
                                                       setStockSearchQuery("");
@@ -10112,7 +10200,8 @@ ${
                                                 symbol: instrument.symbol,
                                                 token: instrument.token,
                                                 exchange: instrument.exchange,
-                                                tradingSymbol: instrument.tradingSymbol
+                                                tradingSymbol: instrument.tradingSymbol,
+                                                instrumentType: instrument.instrumentType
                                               });
                                               setShowStockSearch(false);
                                               setStockSearchQuery("");
@@ -10176,6 +10265,23 @@ ${
                                 <span className="hidden md:flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded">
                                   Angel One
                                 </span>
+                                
+                                {/* Option Chain Icon - Only visible for F&O eligible instruments */}
+                                {hasOptionsAvailable() && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setShowOptionChain(true);
+                                      fetchOptionChainData();
+                                    }}
+                                    className="h-8 w-8 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 text-purple-700 dark:text-purple-300"
+                                    title="View Option Chain"
+                                    data-testid="button-option-chain"
+                                  >
+                                    <Grid3X3 className="h-4 w-4" />
+                                  </Button>
+                                )}
 
                                 {/* Live Streaming Status & OHLC Data */}
                                 {isJournalStreaming && journalLiveData && (
@@ -13970,6 +14076,147 @@ ${
                   Submit
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Option Chain Modal */}
+        <Dialog open={showOptionChain} onOpenChange={setShowOptionChain}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto custom-thin-scrollbar">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <Grid3X3 className="h-5 w-5 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent font-bold">
+                  Option Chain - {getUnderlyingSymbol()}
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Expiry Date Selector */}
+              {optionChainData?.expiryDates && optionChainData.expiryDates.length > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Expiry:</span>
+                  <select
+                    value={selectedOptionExpiry}
+                    onChange={(e) => setSelectedOptionExpiry(e.target.value)}
+                    className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm"
+                    data-testid="select-option-expiry"
+                  >
+                    {optionChainData.expiryDates.map((date: string) => (
+                      <option key={date} value={date}>{date}</option>
+                    ))}
+                  </select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={fetchOptionChainData}
+                    disabled={optionChainLoading}
+                    data-testid="button-refresh-option-chain"
+                  >
+                    <RefreshCcw className={`h-4 w-4 ${optionChainLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {optionChainLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-gray-500">Loading option chain...</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Option Chain Table */}
+              {!optionChainLoading && optionChainData?.chain && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-100 dark:bg-gray-800 sticky top-0">
+                      <tr>
+                        <th colSpan={5} className="py-2 px-2 text-center font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800">
+                          CALLS
+                        </th>
+                        <th className="py-2 px-3 text-center font-bold bg-gray-200 dark:bg-gray-700 border-x border-gray-300 dark:border-gray-600">
+                          STRIKE
+                        </th>
+                        <th colSpan={5} className="py-2 px-2 text-center font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
+                          PUTS
+                        </th>
+                      </tr>
+                      <tr className="text-gray-600 dark:text-gray-400">
+                        <th className="py-1.5 px-2 text-right">OI</th>
+                        <th className="py-1.5 px-2 text-right">Chg OI</th>
+                        <th className="py-1.5 px-2 text-right">Vol</th>
+                        <th className="py-1.5 px-2 text-right">IV</th>
+                        <th className="py-1.5 px-2 text-right bg-green-50 dark:bg-green-900/10">LTP</th>
+                        <th className="py-1.5 px-3 text-center font-bold bg-gray-200 dark:bg-gray-700">Price</th>
+                        <th className="py-1.5 px-2 text-left bg-red-50 dark:bg-red-900/10">LTP</th>
+                        <th className="py-1.5 px-2 text-left">IV</th>
+                        <th className="py-1.5 px-2 text-left">Vol</th>
+                        <th className="py-1.5 px-2 text-left">Chg OI</th>
+                        <th className="py-1.5 px-2 text-left">OI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(optionChainData.chain[selectedOptionExpiry] || Object.values(optionChainData.chain)[0] || [])
+                        .slice(0, 30)
+                        .map((row: any, idx: number) => {
+                          const isATM = row.isATM || false;
+                          return (
+                            <tr 
+                              key={idx} 
+                              className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${isATM ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
+                            >
+                              <td className="py-1.5 px-2 text-right text-gray-700 dark:text-gray-300">{row.call?.oi?.toLocaleString() || '-'}</td>
+                              <td className={`py-1.5 px-2 text-right ${(row.call?.oiChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {row.call?.oiChange?.toLocaleString() || '-'}
+                              </td>
+                              <td className="py-1.5 px-2 text-right text-gray-600 dark:text-gray-400">{row.call?.volume?.toLocaleString() || '-'}</td>
+                              <td className="py-1.5 px-2 text-right text-gray-600 dark:text-gray-400">{row.call?.iv?.toFixed(1) || '-'}</td>
+                              <td className="py-1.5 px-2 text-right font-medium text-green-600 dark:text-green-400 bg-green-50/50 dark:bg-green-900/10">
+                                {row.call?.ltp?.toFixed(2) || '-'}
+                              </td>
+                              <td className={`py-1.5 px-3 text-center font-bold bg-gray-100 dark:bg-gray-700 ${isATM ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                                {row.strikePrice?.toLocaleString()}
+                              </td>
+                              <td className="py-1.5 px-2 text-left font-medium text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-900/10">
+                                {row.put?.ltp?.toFixed(2) || '-'}
+                              </td>
+                              <td className="py-1.5 px-2 text-left text-gray-600 dark:text-gray-400">{row.put?.iv?.toFixed(1) || '-'}</td>
+                              <td className="py-1.5 px-2 text-left text-gray-600 dark:text-gray-400">{row.put?.volume?.toLocaleString() || '-'}</td>
+                              <td className={`py-1.5 px-2 text-left ${(row.put?.oiChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {row.put?.oiChange?.toLocaleString() || '-'}
+                              </td>
+                              <td className="py-1.5 px-2 text-left text-gray-700 dark:text-gray-300">{row.put?.oi?.toLocaleString() || '-'}</td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* No Data State */}
+              {!optionChainLoading && (!optionChainData || !optionChainData.chain) && (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                  <Grid3X3 className="h-12 w-12 mb-3 opacity-50" />
+                  <p className="text-lg font-medium">No Option Chain Data</p>
+                  <p className="text-sm">Option chain data is not available for this instrument.</p>
+                  <Button
+                    className="mt-4"
+                    variant="outline"
+                    onClick={fetchOptionChainData}
+                    data-testid="button-retry-option-chain"
+                  >
+                    <RefreshCcw className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Button>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
