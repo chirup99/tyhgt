@@ -7627,6 +7627,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (session) {
         console.log('✅ [ANGEL ONE] Connected successfully');
         
+        // Notify live price streamer that Angel One is now authenticated
+        liveWebSocketStreamer.onAngelOneAuthenticated();
+        
         const profile = await angelOneApi.getProfile();
         
         res.json({ 

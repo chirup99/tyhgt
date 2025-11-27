@@ -1,4 +1,4 @@
-import { fyersApi } from "./fyers-api";
+import { angelOneApi } from "./angel-one-api";
 import { broadcastToSSEClients } from "./live-price-routes";
 import { WebSocket } from "ws";
 
@@ -15,7 +15,7 @@ export interface LivePriceData {
   close: number;
   lastUpdate: string;
   isLive: boolean;
-  source: 'websocket' | 'quotes' | 'fallback';
+  source: 'websocket' | 'quotes' | 'fallback' | 'angelone';
 }
 
 export interface OHLCBar {
@@ -29,6 +29,33 @@ export interface OHLCBar {
   isComplete: boolean;
 }
 
+// Angel One stock token mappings for live price streaming
+const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
+  'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
+  'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
+  'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
+  'ICICIBANK': { token: '4963', exchange: 'NSE', tradingSymbol: 'ICICIBANK-EQ' },
+  'INFY': { token: '1594', exchange: 'NSE', tradingSymbol: 'INFY-EQ' },
+  'ITC': { token: '1660', exchange: 'NSE', tradingSymbol: 'ITC-EQ' },
+  'HINDUNILVR': { token: '1394', exchange: 'NSE', tradingSymbol: 'HINDUNILVR-EQ' },
+  'SBIN': { token: '3045', exchange: 'NSE', tradingSymbol: 'SBIN-EQ' },
+  'BHARTIARTL': { token: '10604', exchange: 'NSE', tradingSymbol: 'BHARTIARTL-EQ' },
+  'KOTAKBANK': { token: '1922', exchange: 'NSE', tradingSymbol: 'KOTAKBANK-EQ' },
+  'LT': { token: '11483', exchange: 'NSE', tradingSymbol: 'LT-EQ' },
+  'AXISBANK': { token: '5900', exchange: 'NSE', tradingSymbol: 'AXISBANK-EQ' },
+  'MARUTI': { token: '10999', exchange: 'NSE', tradingSymbol: 'MARUTI-EQ' },
+  'ASIANPAINT': { token: '236', exchange: 'NSE', tradingSymbol: 'ASIANPAINT-EQ' },
+  'TITAN': { token: '3506', exchange: 'NSE', tradingSymbol: 'TITAN-EQ' },
+  'SUNPHARMA': { token: '3351', exchange: 'NSE', tradingSymbol: 'SUNPHARMA-EQ' },
+  'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
+  'TATAMOTORS': { token: '3456', exchange: 'NSE', tradingSymbol: 'TATAMOTORS-EQ' },
+  'TATASTEEL': { token: '3499', exchange: 'NSE', tradingSymbol: 'TATASTEEL-EQ' },
+  'ADANIENT': { token: '25', exchange: 'NSE', tradingSymbol: 'ADANIENT-EQ' },
+  'BAJFINANCE': { token: '317', exchange: 'NSE', tradingSymbol: 'BAJFINANCE-EQ' },
+  'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
+  'BANKNIFTY': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+};
+
 export class LiveWebSocketStreamer {
   private connections = new Set<WebSocket>();
   private priceData = new Map<string, LivePriceData>();
@@ -39,7 +66,8 @@ export class LiveWebSocketStreamer {
     quotesApiWorking: false,
     lastSuccessfulUpdate: 0,
     connectionAttempts: 0,
-    errors: [] as string[]
+    errors: [] as string[],
+    dataSource: 'angelone' as 'angelone' | 'fallback'
   };
   
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -49,64 +77,80 @@ export class LiveWebSocketStreamer {
   private backoffDelay = 1000; // Start with 1 second
   private maxBackoffDelay = 30000; // Max 30 seconds
   
-  // Symbols to track
+  // Symbols to track (using simple names for Angel One)
   private readonly symbols = [
-    'NSE:RELIANCE-EQ', 
-    'NSE:TCS-EQ', 
-    'NSE:INFY-EQ', 
-    'NSE:HDFCBANK-EQ', 
-    'NSE:ICICIBANK-EQ', 
-    'NSE:ITC-EQ'
+    'RELIANCE', 
+    'TCS', 
+    'INFY', 
+    'HDFCBANK', 
+    'ICICIBANK', 
+    'ITC'
   ];
   
   private readonly maxBarsPerSymbol = 500; // Ring buffer size
   
   constructor() {
-    console.log('🚀 Live WebSocket Streamer initialized for real-time price streaming');
+    console.log('🚀 Live WebSocket Streamer initialized for real-time price streaming (Angel One API)');
     this.initializePriceData();
     this.startStreaming();
   }
 
   private async initializePriceData() {
-    console.log('🚀 Initializing with real Fyers API prices...');
+    console.log('🚀 Initializing with Angel One API prices...');
     
-    // Initialize with real data immediately
+    // Initialize with Angel One real data
     try {
-      const quotes = await fyersApi.getQuotes(this.symbols);
-      
-      if (quotes && quotes.length > 0) {
-        quotes.forEach(quote => {
-          this.priceData.set(quote.symbol, {
-            symbol: quote.symbol,
-            price: quote.ltp,
-            change: parseFloat((quote.change || 0).toFixed(2)),
-            changePercent: parseFloat((quote.change_percentage || 0).toFixed(2)),
-            volume: quote.volume,
-            timestamp: Math.floor(Date.now() / 1000),
-            open: quote.open_price,
-            high: quote.high_price,
-            low: quote.low_price,
-            close: quote.ltp,
-            lastUpdate: new Date().toISOString(),
-            isLive: true,
-            source: 'quotes'
+      if (angelOneApi.isConnected()) {
+        const symbolsData = this.symbols
+          .filter(s => ANGEL_ONE_STOCK_TOKENS[s])
+          .map(s => ({
+            exchange: ANGEL_ONE_STOCK_TOKENS[s].exchange,
+            tradingSymbol: ANGEL_ONE_STOCK_TOKENS[s].tradingSymbol,
+            symbolToken: ANGEL_ONE_STOCK_TOKENS[s].token
+          }));
+        
+        const quotes = await angelOneApi.getQuotes(symbolsData);
+        
+        if (quotes && quotes.length > 0) {
+          quotes.forEach(quote => {
+            const nseSymbol = `NSE:${quote.tradingSymbol}`;
+            this.priceData.set(nseSymbol, {
+              symbol: nseSymbol,
+              price: quote.ltp,
+              change: parseFloat((quote.change || 0).toFixed(2)),
+              changePercent: parseFloat((quote.changePercent || 0).toFixed(2)),
+              volume: quote.volume,
+              timestamp: Math.floor(Date.now() / 1000),
+              open: quote.open,
+              high: quote.high,
+              low: quote.low,
+              close: quote.ltp,
+              lastUpdate: new Date().toISOString(),
+              isLive: true,
+              source: 'angelone'
+            });
+            
+            this.ohlcBars.set(nseSymbol, []);
+            this.currentBars.set(nseSymbol, this.createNewBar(nseSymbol, quote.ltp));
           });
           
-          this.ohlcBars.set(quote.symbol, []);
-          this.currentBars.set(quote.symbol, this.createNewBar(quote.symbol, quote.ltp));
-        });
-        
-        console.log(`✅ Initialized ${quotes.length} symbols with real Fyers prices`);
-        return;
+          console.log(`✅ Initialized ${quotes.length} symbols with real Angel One prices`);
+          this.healthStatus.dataSource = 'angelone';
+          return;
+        }
+      } else {
+        console.log('⚠️ Angel One not connected, waiting for authentication...');
       }
     } catch (error) {
-      console.log('⚠️ Failed to initialize with real prices, using minimal fallback');
+      console.log('⚠️ Failed to initialize with Angel One prices, using minimal fallback');
     }
     
     // Only use minimal fallback if real data fails
     this.symbols.forEach(symbol => {
-      this.priceData.set(symbol, {
-        symbol,
+      const tokenData = ANGEL_ONE_STOCK_TOKENS[symbol];
+      const nseSymbol = tokenData ? `NSE:${tokenData.tradingSymbol}` : `NSE:${symbol}-EQ`;
+      this.priceData.set(nseSymbol, {
+        symbol: nseSymbol,
         price: 0,
         change: 0,
         changePercent: 0,
@@ -121,9 +165,10 @@ export class LiveWebSocketStreamer {
         source: 'fallback'
       });
       
-      this.ohlcBars.set(symbol, []);
-      this.currentBars.set(symbol, this.createNewBar(symbol, 0));
+      this.ohlcBars.set(nseSymbol, []);
+      this.currentBars.set(nseSymbol, this.createNewBar(nseSymbol, 0));
     });
+    this.healthStatus.dataSource = 'fallback';
   }
 
   private createNewBar(symbol: string, price: number): OHLCBar {
@@ -184,41 +229,46 @@ export class LiveWebSocketStreamer {
     this.healthStatus.connectionAttempts++;
     
     try {
-      console.log('🔌 Attempting WebSocket connection to Fyers market data...');
+      console.log('🔌 Attempting connection to Angel One market data API...');
       
-      // For now, simulate WebSocket since Fyers WebSocket requires specific setup
-      // In production, this would connect to Fyers WebSocket API
-      await this.simulateWebSocketConnection();
+      // Use Angel One API for real-time data
+      await this.initializeAngelOneConnection();
       
     } catch (error: any) {
-      console.error('❌ WebSocket connection failed:', error.message);
-      this.healthStatus.errors.push(`WebSocket: ${error.message}`);
+      console.error('❌ Angel One connection failed:', error.message);
+      this.healthStatus.errors.push(`AngelOne: ${error.message}`);
       this.scheduleReconnect();
     } finally {
       this.isConnecting = false;
     }
   }
 
-  private async simulateWebSocketConnection() {
-    // Use real Fyers API data instead of simulated WebSocket
-    this.healthStatus.websocketConnected = false; // Force real data usage
+  private async initializeAngelOneConnection() {
+    // Use Angel One API data for real-time prices
+    this.healthStatus.websocketConnected = false;
     this.backoffDelay = 1000; // Reset backoff
-    console.log('✅ Real-time Fyers API connection established');
     
-    // Start using real Fyers API data as primary source
+    if (angelOneApi.isConnected()) {
+      console.log('✅ Real-time Angel One API connection established');
+      this.healthStatus.dataSource = 'angelone';
+    } else {
+      console.log('⚠️ Angel One not authenticated yet, will retry...');
+    }
+    
+    // Start using real Angel One API data as primary source
     this.startRealDataStreaming();
   }
 
   private startRealDataStreaming() {
-    // Use real Fyers API data as primary streaming source
-    console.log('🚀 Starting real-time Fyers API data streaming...');
+    // Use real Angel One API data as primary streaming source
+    console.log('🚀 Starting real-time Angel One API data streaming...');
     
     // Initialize with immediate fetch, then continue with regular intervals
     this.fetchRealTimeData();
     
     const updateInterval = setInterval(() => {
       this.fetchRealTimeData();
-    }, 1500); // Update every 1.5 seconds with real Fyers data
+    }, 2000); // Update every 2 seconds with real Angel One data
     
     // Store interval for cleanup
     this.streamingTimer = updateInterval;
@@ -229,47 +279,65 @@ export class LiveWebSocketStreamer {
       return;
     }
     
+    // Check if Angel One is connected
+    if (!angelOneApi.isConnected()) {
+      console.log('⏳ Waiting for Angel One authentication...');
+      return;
+    }
+    
     try {
-      console.log('📡 Fetching real-time data from Fyers API...');
-      const quotes = await fyersApi.getQuotes(this.symbols);
+      console.log('📡 Fetching real-time data from Angel One API...');
+      
+      const symbolsData = this.symbols
+        .filter(s => ANGEL_ONE_STOCK_TOKENS[s])
+        .map(s => ({
+          exchange: ANGEL_ONE_STOCK_TOKENS[s].exchange,
+          tradingSymbol: ANGEL_ONE_STOCK_TOKENS[s].tradingSymbol,
+          symbolToken: ANGEL_ONE_STOCK_TOKENS[s].token
+        }));
+      
+      const quotes = await angelOneApi.getQuotes(symbolsData);
       
       if (quotes && quotes.length > 0) {
         this.healthStatus.quotesApiWorking = true;
+        this.healthStatus.dataSource = 'angelone';
         
         quotes.forEach(quote => {
+          const nseSymbol = `NSE:${quote.tradingSymbol}`;
           const updatedData: LivePriceData = {
-            symbol: quote.symbol,
+            symbol: nseSymbol,
             price: quote.ltp,
             change: parseFloat((quote.change || 0).toFixed(2)),
-            changePercent: parseFloat((quote.change_percentage || 0).toFixed(2)),
+            changePercent: parseFloat((quote.changePercent || 0).toFixed(2)),
             volume: quote.volume,
             timestamp: Math.floor(Date.now() / 1000),
-            open: quote.open_price,
-            high: quote.high_price,
-            low: quote.low_price,
+            open: quote.open,
+            high: quote.high,
+            low: quote.low,
             close: quote.ltp,
             lastUpdate: new Date().toISOString(),
             isLive: true,
-            source: 'quotes'
+            source: 'angelone'
           };
           
-          this.priceData.set(quote.symbol, updatedData);
-          this.updateOHLCBar(quote.symbol, quote.ltp, quote.volume);
+          this.priceData.set(nseSymbol, updatedData);
+          this.updateOHLCBar(nseSymbol, quote.ltp, quote.volume);
         });
         
         this.healthStatus.lastSuccessfulUpdate = Date.now();
-        console.log(`✅ Updated ${quotes.length} symbols with real Fyers data`);
+        console.log(`✅ Updated ${quotes.length} symbols with real Angel One data`);
       }
     } catch (error: any) {
-      console.log('⚠️ Real-time Fyers data fetch failed:', error.message);
+      console.log('⚠️ Real-time Angel One data fetch failed:', error.message);
       this.healthStatus.quotesApiWorking = false;
+      this.healthStatus.dataSource = 'fallback';
       this.healthStatus.errors.push(`RealTime: ${error.message}`);
     }
   }
 
   private simulateLivePriceUpdates() {
-    // DEPRECATED: This method is no longer used - replaced with real Fyers API data
-    console.log('⚠️ Simulated price updates are disabled - using real Fyers API data');
+    // DEPRECATED: This method is no longer used - replaced with real Angel One API data
+    console.log('⚠️ Simulated price updates are disabled - using real Angel One API data');
   }
 
   private updatePriceData(symbol: string, price: number, volume: number) {
@@ -447,6 +515,79 @@ export class LiveWebSocketStreamer {
       activeConnections: this.connections.size,
       totalSymbols: this.symbols.length
     };
+  }
+
+  // Called when Angel One authentication succeeds - triggers immediate data fetch
+  async onAngelOneAuthenticated() {
+    console.log('🔔 Angel One authentication detected - triggering price fetch...');
+    this.healthStatus.dataSource = 'angelone';
+    
+    // Force fetch real-time data immediately (bypassing market hours check for initial load)
+    await this.forceInitialFetch();
+    
+    // Also reinitialize with Angel One data
+    await this.initializePriceData();
+    
+    console.log('✅ Angel One price streaming activated');
+  }
+
+  // Force initial fetch - used when Angel One authenticates (ignores market hours for initial load)
+  private async forceInitialFetch() {
+    if (!angelOneApi.isConnected()) {
+      console.log('⚠️ Cannot force fetch - Angel One not connected');
+      return;
+    }
+    
+    try {
+      console.log('📡 Force fetching initial data from Angel One API...');
+      
+      const symbolsData = this.symbols
+        .filter(s => ANGEL_ONE_STOCK_TOKENS[s])
+        .map(s => ({
+          exchange: ANGEL_ONE_STOCK_TOKENS[s].exchange,
+          tradingSymbol: ANGEL_ONE_STOCK_TOKENS[s].tradingSymbol,
+          symbolToken: ANGEL_ONE_STOCK_TOKENS[s].token
+        }));
+      
+      console.log(`📊 Requesting quotes for ${symbolsData.length} symbols:`, symbolsData.map(s => s.tradingSymbol));
+      
+      const quotes = await angelOneApi.getQuotes(symbolsData);
+      
+      if (quotes && quotes.length > 0) {
+        this.healthStatus.quotesApiWorking = true;
+        this.healthStatus.dataSource = 'angelone';
+        
+        quotes.forEach(quote => {
+          const nseSymbol = `NSE:${quote.tradingSymbol}`;
+          const updatedData: LivePriceData = {
+            symbol: nseSymbol,
+            price: quote.ltp,
+            change: parseFloat((quote.change || 0).toFixed(2)),
+            changePercent: parseFloat((quote.changePercent || 0).toFixed(2)),
+            volume: quote.volume || 0,
+            timestamp: Math.floor(Date.now() / 1000),
+            open: quote.open || quote.ltp,
+            high: quote.high || quote.ltp,
+            low: quote.low || quote.ltp,
+            close: quote.ltp,
+            lastUpdate: new Date().toISOString(),
+            isLive: true,
+            source: 'angelone'
+          };
+          
+          this.priceData.set(nseSymbol, updatedData);
+          this.updateOHLCBar(nseSymbol, quote.ltp, quote.volume || 0);
+        });
+        
+        this.healthStatus.lastSuccessfulUpdate = Date.now();
+        console.log(`✅ Initial fetch: Updated ${quotes.length} symbols with Angel One data`);
+      } else {
+        console.log('⚠️ No quotes returned from Angel One API');
+      }
+    } catch (error: any) {
+      console.error('❌ Force initial fetch failed:', error.message);
+      this.healthStatus.errors.push(`InitialFetch: ${error.message}`);
+    }
   }
 
   // Cleanup

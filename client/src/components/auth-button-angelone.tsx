@@ -264,7 +264,7 @@ export function AuthButtonAngelOne() {
     
     // If we have env credentials but failed to connect, show retry button with disconnect option
     return (
-      <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+      <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6 font-normal">
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="h-4 w-4 text-orange-600" />
@@ -304,7 +304,7 @@ export function AuthButtonAngelOne() {
   }
 
   return (
-    <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+    <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6 font-normal">
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <Shield className="h-4 w-4 text-orange-600" />
