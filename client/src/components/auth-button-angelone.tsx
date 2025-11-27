@@ -334,7 +334,7 @@ export function AuthButtonAngelOne() {
 
         <div className="relative">
           <Label htmlFor="angelTotpSecret" className="text-xs text-orange-900 dark:text-orange-200">
-            TOTP Secret (from Authenticator setup)
+            TOTP Secret (One-time setup key)
           </Label>
           <div className="relative mt-1">
             <Input
@@ -355,7 +355,7 @@ export function AuthButtonAngelOne() {
             </button>
           </div>
           <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-            Get this from Angel One SmartAPI setup when you enable 2FA
+            Permanent key from Angel One SmartAPI 2FA setup (doesn't change, only the generated 6-digit code changes)
           </p>
         </div>
 
