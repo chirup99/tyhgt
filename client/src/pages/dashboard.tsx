@@ -3,19 +3,14 @@ import { useLocation } from "wouter";
 import { AuthButton } from "@/components/auth-button";
 import { ConnectionStatus } from "@/components/connection-status";
 import { ApiStatistics } from "@/components/api-statistics";
-import { FyersConnectionWindow } from "@/components/fyers-connection-window";
 import { ErrorPanel } from "@/components/error-panel";
 import { TradingViewWidget } from "@/components/tradingview-widget";
 import { AdvancedCandlestickChart } from "@/components/advanced-candlestick-chart";
-import { FyersTradingViewChart } from "@/components/fyers-tradingview-chart";
 import { EnhancedTradingViewWidget } from "@/components/enhanced-tradingview-widget";
-import { FyersTradingViewIntegratedChart } from "@/components/fyers-tradingview-integrated-chart";
-import { FyersTradingViewDatafeed } from "@/components/fyers-tradingview-datafeed";
 import { TradingViewStyleChart } from "@/components/tradingview-style-chart";
 import { IndicatorCrossingsDisplay } from "@/components/indicator-crossings-display";
 import { BattuScanSimulation } from "@/components/battu-scan-simulation";
 import { FourCandleRuleScanner } from "@/components/four-candle-rule-scanner";
-import { StockNewsSearch } from "@/components/stock-news-search";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
 import SimpleCompleteScanner from "@/components/simple-complete-scanner";
 import { BattuDocumentationDisplay } from "@/components/battu-documentation-display";
@@ -195,9 +190,11 @@ export default function Dashboard() {
           <HistoricalDataStatus />
         </div>
 
-        {/* Fyers Connection and Bottom Section - Split into half */}
+        {/* Angel One Live Trading Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <FyersConnectionWindow />
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 h-full min-h-[300px] flex items-center justify-center">
+            <p className="text-gray-500 dark:text-gray-400">Angel One integration ready</p>
+          </div>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 h-full min-h-[300px]"></div>
         </div>
         
