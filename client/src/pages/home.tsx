@@ -4485,7 +4485,7 @@ ${
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
-    if (activeTab !== 'trading-journal') {
+    if (activeTab !== 'journal') {
       if (journalChartRef.current) {
         try {
           journalChartRef.current.remove();
