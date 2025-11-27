@@ -9923,14 +9923,20 @@ ${
                                         {/* No Results */}
                                         {!isSearchingInstruments && stockSearchQuery.length >= 2 && (
                                           searchedInstruments.filter((i) => {
-                                            const typeMap: Record<string, string[]> = {
-                                              stock: ['EQ'],
-                                              commodity: ['FUTCOM', 'OPTCOM'],
-                                              fo: ['FUTIDX', 'FUTCOM', 'FUTSTK', 'OPTIDX', 'OPTSTK', 'OPTFUT', 'OPTCOM'],
-                                              index: ['INDEX', 'FUTIDX', 'OPTIDX']
-                                            };
                                             if (selectedInstrumentCategory === 'all') return true;
-                                            return typeMap[selectedInstrumentCategory]?.includes(i.instrumentType) || false;
+                                            
+                                            switch(selectedInstrumentCategory) {
+                                              case 'stock':
+                                                return i.instrumentType === 'EQ' && (i.exchange === 'NSE' || i.exchange === 'BSE');
+                                              case 'commodity':
+                                                return i.exchange === 'MCX';
+                                              case 'fo':
+                                                return (i.instrumentType.includes('FUT') || i.instrumentType.includes('OPT')) && i.exchange !== 'MCX';
+                                              case 'index':
+                                                return i.instrumentType === 'INDEX' || i.instrumentType.includes('FUTIDX') || i.instrumentType.includes('OPTIDX');
+                                              default:
+                                                return true;
+                                            }
                                           }).length === 0
                                         ) && (
                                           <div className="px-3 py-4 text-center text-sm text-gray-500">
@@ -9948,14 +9954,20 @@ ${
                                         {/* Search Results */}
                                         {!isSearchingInstruments && stockSearchQuery.length >= 2 && searchedInstruments
                                           .filter((i) => {
-                                            const typeMap: Record<string, string[]> = {
-                                              stock: ['EQ'],
-                                              commodity: ['FUTCOM', 'OPTCOM'],
-                                              fo: ['FUTIDX', 'FUTCOM', 'FUTSTK', 'OPTIDX', 'OPTSTK', 'OPTFUT', 'OPTCOM'],
-                                              index: ['INDEX', 'FUTIDX', 'OPTIDX']
-                                            };
                                             if (selectedInstrumentCategory === 'all') return true;
-                                            return typeMap[selectedInstrumentCategory]?.includes(i.instrumentType) || false;
+                                            
+                                            switch(selectedInstrumentCategory) {
+                                              case 'stock':
+                                                return i.instrumentType === 'EQ' && (i.exchange === 'NSE' || i.exchange === 'BSE');
+                                              case 'commodity':
+                                                return i.exchange === 'MCX';
+                                              case 'fo':
+                                                return (i.instrumentType.includes('FUT') || i.instrumentType.includes('OPT')) && i.exchange !== 'MCX';
+                                              case 'index':
+                                                return i.instrumentType === 'INDEX' || i.instrumentType.includes('FUTIDX') || i.instrumentType.includes('OPTIDX');
+                                              default:
+                                                return true;
+                                            }
                                           })
                                           .map((instrument) => (
                                           <button
