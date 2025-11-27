@@ -4525,138 +4525,49 @@ ${
     }
 
     // Start new SSE connection
-    const interval = getJournalAngelOneInterval(selectedJournalInterval);
-    const sseUrl = getFullApiUrl(`/api/angelone/live-stream?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&interval=${interval}`);
+    const sseUrl = getFullApiUrl(`/api/angelone/live-stream?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}`);
     
-    console.log('🔴 [SSE] Connecting to live stream:', sseUrl);
+    console.log('📡 [SSE] Connecting for live prices');
     
     const eventSource = new EventSource(sseUrl);
     journalEventSourceRef.current = eventSource;
 
     eventSource.onopen = () => {
-      console.log('🔴 [SSE] Connected to live stream');
+      console.log('📡 [SSE] Connected');
       setIsJournalStreaming(true);
     };
 
     eventSource.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        setJournalLiveData({
-          ltp: data.ltp,
-          countdown: data.countdown,
-          currentCandle: data.currentCandle,
-          isMarketOpen: data.isMarketOpen
-        });
-
-        // Update chart with live candle data if chart exists and valid
-        if (journalCandlestickSeriesRef.current && data.currentCandle && data.ltp > 0) {
-          // Add slight delay for animation effect
-          setTimeout(() => {
-            const liveCandle = {
-              time: data.currentCandle.time as any,
-              open: data.currentCandle.open,
-              high: data.currentCandle.high,
-              low: data.currentCandle.low,
-              close: data.currentCandle.close
-            };
-            
-            // Update the last bar in the series with smooth animation
-            journalCandlestickSeriesRef.current.update(liveCandle);
-            
-            // Update volume if available
-            if (journalVolumeSeriesRef.current && data.currentCandle.volume) {
-              journalVolumeSeriesRef.current.update({
-                time: data.currentCandle.time as any,
-                value: data.currentCandle.volume,
-                color: data.currentCandle.close >= data.currentCandle.open ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'
-              });
-            }
-            
-            // Update EMA 12 if we have the chart data
-            if (journalEma12SeriesRef.current && journalChartData && journalChartData.length > 0) {
-              const closePrices = journalChartData.map(c => c.close);
-              closePrices.push(data.currentCandle.close);
-              const ema12Values = calculateEMA(closePrices, 12);
-              if (ema12Values.length > 0) {
-                journalEma12SeriesRef.current.update({
-                  time: data.currentCandle.time as any,
-                  value: ema12Values[ema12Values.length - 1]
-                });
-              }
-            }
-            
-            // Update EMA 26 if we have the chart data
-            if (journalEma26SeriesRef.current && journalChartData && journalChartData.length > 0) {
-              const closePrices = journalChartData.map(c => c.close);
-              closePrices.push(data.currentCandle.close);
-              const ema26Values = calculateEMA(closePrices, 26);
-              if (ema26Values.length > 0) {
-                journalEma26SeriesRef.current.update({
-                  time: data.currentCandle.time as any,
-                  value: ema26Values[ema26Values.length - 1]
-                });
-              }
-            }
-            
-            // Update price line with countdown
-            if (journalCandlestickSeriesRef.current) {
-              try {
-                if (journalPriceLineRef.current) {
-                  journalCandlestickSeriesRef.current.removePriceLine(journalPriceLineRef.current);
-                }
-                journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
-                  price: data.ltp,
-                  color: '#9333ea',
-                  lineWidth: 2,
-                  lineStyle: 2,
-                  axisLabelVisible: true,
-                  title: `${data.countdown.formatted}`
-                });
-              } catch (err) {
-                console.debug('🔴 [CHART] Price line:', err);
-              }
-            }
-          }, 50); // 50ms delay for animation effect
+        const candle = JSON.parse(event.data);
+        console.log('💹 [PRICE] LTP:', candle.close, 'H:', candle.high, 'L:', candle.low);
+        
+        // Update chart candlestick
+        if (journalCandlestickSeriesRef.current && candle.close > 0) {
+          journalCandlestickSeriesRef.current.update({
+            time: candle.time as any,
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close
+          });
         }
       } catch (err) {
-        console.debug('🔴 [SSE] Parse error:', err);
+        // Silent
       }
     };
 
-    eventSource.onerror = (error) => {
-      console.warn('🔴 [SSE] Connection error, will retry...', error);
+    eventSource.onerror = () => {
       setIsJournalStreaming(false);
     };
 
-    // Cleanup on unmount or symbol/interval change
     return () => {
       if (eventSource) {
         eventSource.close();
-        console.log('🔴 [SSE] Disconnected from live stream (cleanup)');
       }
       setIsJournalStreaming(false);
     };
   }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
-
-  // Calculate EMA for chart indicators
-  const calculateEMA = (data: number[], period: number): number[] => {
-    const ema: number[] = [];
-    const multiplier = 2 / (period + 1);
-    
-    if (data.length < period) return ema;
-    
-    let sum = 0;
-    for (let i = 0; i < period; i++) {
-      sum += data[i];
-    }
-    ema.push(sum / period);
-    
-    for (let i = period; i < data.length; i++) {
-      ema.push((data[i] - ema[ema.length - 1]) * multiplier + ema[ema.length - 1]);
-    }
-    
-    return ema;
-  };
 
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
