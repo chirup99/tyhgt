@@ -4509,6 +4509,12 @@ ${
       return;
     }
 
+    // Only start SSE if we have historical chart data loaded
+    if (!journalChartData || journalChartData.length === 0) {
+      console.log('📡 [SSE] Waiting for historical chart data to load...');
+      return;
+    }
+
     // Get stock token info for selected symbol
     const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
     const stockToken = journalAngelOneTokens[cleanSymbol];
@@ -4765,7 +4771,7 @@ ${
         window.removeEventListener('resize', handleResize);
       };
     } catch (error) {
-      console.error('Error rendering journal chart:', error);
+      console.error('Error rendering journal chart:', error instanceof Error ? error.message : String(error), error);
     }
   }, [activeTab, journalChartData]);
 

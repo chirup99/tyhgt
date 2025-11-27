@@ -2,6 +2,7 @@
 import { SmartAPI } from 'smartapi-javascript';
 // @ts-ignore - totp-generator import compatibility
 import { TOTP } from 'totp-generator';
+import axios from 'axios';
 
 export interface AngelOneCredentials {
   clientCode: string;
@@ -326,7 +327,6 @@ class AngelOneAPI {
     const startTime = Date.now();
     try {
       // Use REST API directly since SmartAPI SDK doesn't have getLTP method
-      const axios = require('axios');
       const response = await axios.post('https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote/', {
         mode: 'ltp',
         exchangetokens: {
