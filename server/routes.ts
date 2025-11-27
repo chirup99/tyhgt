@@ -7850,6 +7850,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🔍 Angel One - Search ALL instruments (NSE, BSE, MCX) from master file
+  let instrumentCache: any[] = [];
+  let instrumentCacheTime = 0;
+  const INSTRUMENT_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+  app.get("/api/angelone/search-instruments", async (req, res) => {
+    try {
+      const { query, exchange, limit } = req.query;
+      
+      // Fetch or use cached instrument data
+      const now = Date.now();
+      if (instrumentCache.length === 0 || (now - instrumentCacheTime) > INSTRUMENT_CACHE_DURATION) {
+        console.log('📥 Fetching fresh instrument master file from Angel One...');
+        try {
+          const response = await axios.get('https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json');
+          instrumentCache = response.data;
+          instrumentCacheTime = now;
+          console.log(`✅ Loaded ${instrumentCache.length} instruments into cache`);
+        } catch (error: any) {
+          console.error('❌ Failed to fetch instrument master file:', error.message);
+          return res.status(500).json({ 
+            success: false,
+            message: "Failed to fetch instrument data",
+            instruments: []
+          });
+        }
+      }
+
+      let results = instrumentCache;
+
+      // Filter by exchange if specified
+      if (exchange && typeof exchange === 'string') {
+        const exchanges = exchange.split(',').map(e => e.trim().toUpperCase());
+        results = results.filter(inst => exchanges.includes(inst.exch_seg));
+      } else {
+        // Default to NSE, BSE, MCX only
+        results = results.filter(inst => ['NSE', 'BSE', 'MCX'].includes(inst.exch_seg));
+      }
+
+      // Search by query if provided
+      if (query && typeof query === 'string' && query.trim().length > 0) {
+        const searchTerm = query.trim().toUpperCase();
+        results = results.filter(inst => 
+          inst.name?.toUpperCase().includes(searchTerm) ||
+          inst.symbol?.toUpperCase().includes(searchTerm)
+        );
+      }
+
+      // Limit results
+      const maxResults = limit ? parseInt(limit as string, 10) : 100;
+      results = results.slice(0, maxResults);
+
+      // Format results for frontend
+      const formattedResults = results.map(inst => ({
+        symbol: inst.symbol,
+        name: inst.name,
+        token: inst.token,
+        exchange: inst.exch_seg,
+        instrumentType: inst.instrumenttype,
+        expiry: inst.expiry || null,
+        strike: inst.strike || null,
+        lotSize: inst.lotsize || null,
+        displayName: `${inst.name} (${inst.exch_seg})`,
+        tradingSymbol: inst.symbol
+      }));
+
+      res.json({ 
+        success: true,
+        instruments: formattedResults,
+        total: formattedResults.length
+      });
+    } catch (error: any) {
+      console.error('❌ Instrument search error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: error.message,
+        instruments: []
+      });
+    }
+  });
+
   // Angel One - Get holdings
   app.get("/api/angelone/holdings", async (req, res) => {
     try {
