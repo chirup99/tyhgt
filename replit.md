@@ -10,43 +10,35 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
-## November 27, 2025 - Auto-Fetch Trading Journal with 700ms Live OHLC Streaming
+## November 27, 2025 - Tick-by-Tick Live Candle Animation at 700ms
 
-Completed fully automated Trading Journal chart experience with live price updates:
+Completed fully animated Trading Journal chart with live price movement:
 
-**Frontend Automation:**
-- Removed manual "Fetch" button - chart now auto-fetches when:
-  - User navigates to Trading Journal tab
-  - User changes symbol selection
-  - User changes timeframe interval
-- Continuous 700ms polling: Chart data refreshes automatically every 700ms while on journal tab
-- No user action required to load or update chart data
+**Frontend Animation Setup:**
+- Removed manual "Fetch" button - chart auto-fetches on tab/symbol/interval change
+- NO continuous polling - uses only SSE live streaming for smooth updates
+- Tick-by-tick candlestick movement with 50ms animation delay
+- Live price updates every 700ms from Angel One API via SSE
 
-**Live OHLC Display (700ms Updates):**
-- Added real-time OHLC data display in chart header:
-  - O (Open): Current candle open price
-  - H (High): Current candle high price
-  - L (Low): Current candle low price
-  - C (Close): Current candle close price (bold)
-- Updates every 700ms via SSE streaming from Angel One API
-- Color-coded badge: indigo theme with dark mode support
+**Live OHLC Display & Animation:**
+- Real-time OHLC values in header (Open, High, Low, Close)
+- EMA 12 & EMA 26 update incrementally with each tick
+- Volume histogram updates with color coding (green up, red down)
+- Price line follows latest LTP with countdown timer
+- All synchronized to IST timezone
 
-**Live Chart Updates:**
-- Candlestick series updates in real-time every 700ms
-- Volume histogram updates with correct color coding
-- Price line marker added with countdown timer
-- All updates synchronized with IST timezone
-
-**Backend Polling:**
-- Changed polling interval from 1000ms to 700ms in `server/angel-one-live-stream.ts`
-- Faster data refresh for intraday trading
+**700ms SSE Streaming:**
+- Backend polls Angel One API every 700ms via `server/angel-one-live-stream.ts`
+- Sends live candle OHLC + volume + countdown to frontend
+- Frontend updates chart smoothly with 50ms animation for visual effect
+- No chart reload - only the current candle animates in real-time
 
 **User Experience:**
-- Chart appears immediately when journal tab loads
-- No loading screen when switching symbols/intervals
-- Countdown timer shows time until next candle closes
-- Market status indicator (open/closed)
-- Live streaming indicator with animated pulse
+- Chart loads once and stays alive with SSE updates
+- Smooth candlestick growth/shrinkage with price movement
+- EMA lines react instantly to price changes
+- Countdown timer updates showing seconds until candle close
+- Market status indicator (open/closed) with live pulse animation
 
 ## November 27, 2025 - Trading Journal TradingView Chart with Angel One API
 

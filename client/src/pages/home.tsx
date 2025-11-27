@@ -4550,44 +4550,73 @@ ${
 
         // Update chart with live candle data if chart exists and valid
         if (journalCandlestickSeriesRef.current && data.currentCandle && data.ltp > 0) {
-          const liveCandle = {
-            time: data.currentCandle.time as any,
-            open: data.currentCandle.open,
-            high: data.currentCandle.high,
-            low: data.currentCandle.low,
-            close: data.currentCandle.close
-          };
-          
-          // Update the last bar in the series
-          journalCandlestickSeriesRef.current.update(liveCandle);
-          
-          // Update volume if available
-          if (journalVolumeSeriesRef.current && data.currentCandle.volume) {
-            journalVolumeSeriesRef.current.update({
+          // Add slight delay for animation effect
+          setTimeout(() => {
+            const liveCandle = {
               time: data.currentCandle.time as any,
-              value: data.currentCandle.volume,
-              color: data.currentCandle.close >= data.currentCandle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)'
-            });
-          }
-          
-          // Update price line with countdown
-          if (journalCandlestickSeriesRef.current) {
-            try {
-              if (journalPriceLineRef.current) {
-                journalCandlestickSeriesRef.current.removePriceLine(journalPriceLineRef.current);
-              }
-              journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
-                price: data.ltp,
-                color: '#9333ea',
-                lineWidth: 2,
-                lineStyle: 2,
-                axisLabelVisible: true,
-                title: `${data.countdown.formatted}`
+              open: data.currentCandle.open,
+              high: data.currentCandle.high,
+              low: data.currentCandle.low,
+              close: data.currentCandle.close
+            };
+            
+            // Update the last bar in the series with smooth animation
+            journalCandlestickSeriesRef.current.update(liveCandle);
+            
+            // Update volume if available
+            if (journalVolumeSeriesRef.current && data.currentCandle.volume) {
+              journalVolumeSeriesRef.current.update({
+                time: data.currentCandle.time as any,
+                value: data.currentCandle.volume,
+                color: data.currentCandle.close >= data.currentCandle.open ? 'rgba(22, 163, 74, 0.6)' : 'rgba(220, 38, 38, 0.6)'
               });
-            } catch (err) {
-              console.debug('🔴 [CHART] Price line:', err);
             }
-          }
+            
+            // Update EMA 12 if we have the chart data
+            if (journalEma12SeriesRef.current && journalChartData && journalChartData.length > 0) {
+              const closePrices = journalChartData.map(c => c.close);
+              closePrices.push(data.currentCandle.close);
+              const ema12Values = calculateEMA(closePrices, 12);
+              if (ema12Values.length > 0) {
+                journalEma12SeriesRef.current.update({
+                  time: data.currentCandle.time as any,
+                  value: ema12Values[ema12Values.length - 1]
+                });
+              }
+            }
+            
+            // Update EMA 26 if we have the chart data
+            if (journalEma26SeriesRef.current && journalChartData && journalChartData.length > 0) {
+              const closePrices = journalChartData.map(c => c.close);
+              closePrices.push(data.currentCandle.close);
+              const ema26Values = calculateEMA(closePrices, 26);
+              if (ema26Values.length > 0) {
+                journalEma26SeriesRef.current.update({
+                  time: data.currentCandle.time as any,
+                  value: ema26Values[ema26Values.length - 1]
+                });
+              }
+            }
+            
+            // Update price line with countdown
+            if (journalCandlestickSeriesRef.current) {
+              try {
+                if (journalPriceLineRef.current) {
+                  journalCandlestickSeriesRef.current.removePriceLine(journalPriceLineRef.current);
+                }
+                journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
+                  price: data.ltp,
+                  color: '#9333ea',
+                  lineWidth: 2,
+                  lineStyle: 2,
+                  axisLabelVisible: true,
+                  title: `${data.countdown.formatted}`
+                });
+              } catch (err) {
+                console.debug('🔴 [CHART] Price line:', err);
+              }
+            }
+          }, 50); // 50ms delay for animation effect
         }
       } catch (err) {
         console.debug('🔴 [SSE] Parse error:', err);
