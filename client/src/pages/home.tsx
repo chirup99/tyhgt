@@ -40,7 +40,7 @@ import { PersonalHeatmap } from "@/components/PersonalHeatmap";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
-import { createChart, ColorType, IChartApi, ISeriesApi, LineSeries } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft, Save } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
@@ -4235,7 +4235,7 @@ ${
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
-  const [journalChartData, setJournalChartData] = useState([]);
+  const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   
   // TradingView-style chart refs for Journal
@@ -4244,6 +4244,10 @@ ${
   const journalCandlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const journalEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const journalEma26SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const journalVolumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  
+  // EMA values for display in header
+  const [journalEmaValues, setJournalEmaValues] = useState<{ ema12: number | null; ema26: number | null }>({ ema12: null, ema26: null });
 
   // Angel One Stock Token Mapping for Journal Chart
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
@@ -4495,6 +4499,7 @@ ${
       journalCandlestickSeriesRef.current = null;
       journalEma12SeriesRef.current = null;
       journalEma26SeriesRef.current = null;
+      journalVolumeSeriesRef.current = null;
     }
 
     try {
@@ -4506,28 +4511,31 @@ ${
           textColor: '#d1d4dc',
         },
         grid: {
-          vertLines: { color: '#363c4e' },
-          horzLines: { color: '#363c4e' },
+          vertLines: { color: '#1e222d', style: 1 },
+          horzLines: { color: '#1e222d', style: 1 },
         },
         crosshair: {
           mode: 1,
-          vertLine: { color: '#758696', width: 1, style: 3 },
-          horzLine: { color: '#758696', width: 1, style: 3 },
+          vertLine: { color: '#758696', width: 1, style: 2, labelBackgroundColor: '#2B2B43' },
+          horzLine: { color: '#758696', width: 1, style: 2, labelBackgroundColor: '#2B2B43' },
         },
         rightPriceScale: {
-          borderColor: '#485c7b',
-          scaleMargins: { top: 0.1, bottom: 0.1 },
+          borderColor: '#2B2B43',
+          scaleMargins: { top: 0.05, bottom: 0.2 },
+          autoScale: true,
         },
         timeScale: {
-          borderColor: '#485c7b',
+          borderColor: '#2B2B43',
           timeVisible: true,
           secondsVisible: false,
+          barSpacing: 8,
+          minBarSpacing: 4,
         },
         width: containerWidth,
-        height: 320,
+        height: 350,
       });
 
-      const candlestickSeries = chart.addCandlestickSeries({
+      const candlestickSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#26a69a',
         downColor: '#ef5350',
         borderUpColor: '#26a69a',
@@ -4536,24 +4544,38 @@ ${
         wickDownColor: '#ef5350',
       });
 
-      const ema12Series = chart.addLineSeries({
-        color: '#2196F3',
-        lineWidth: 1,
-        priceLineVisible: false,
-        lastValueVisible: false,
+      const volumeSeries = chart.addSeries(HistogramSeries, {
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+        color: 'rgba(38, 166, 154, 0.5)',
+      });
+      volumeSeries.priceScale().applyOptions({
+        scaleMargins: { top: 0.85, bottom: 0 },
       });
 
-      const ema26Series = chart.addLineSeries({
-        color: '#FF9800',
-        lineWidth: 1,
+      const ema12Series = chart.addSeries(LineSeries, {
+        color: '#2196F3',
+        lineWidth: 2,
         priceLineVisible: false,
-        lastValueVisible: false,
+        lastValueVisible: true,
+        crosshairMarkerVisible: true,
+        crosshairMarkerRadius: 4,
+      });
+
+      const ema26Series = chart.addSeries(LineSeries, {
+        color: '#FF9800',
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        crosshairMarkerVisible: true,
+        crosshairMarkerRadius: 4,
       });
 
       journalChartRef.current = chart;
       journalCandlestickSeriesRef.current = candlestickSeries;
       journalEma12SeriesRef.current = ema12Series;
       journalEma26SeriesRef.current = ema26Series;
+      journalVolumeSeriesRef.current = volumeSeries;
 
       // Set data immediately
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
@@ -4567,6 +4589,14 @@ ${
       }));
 
       candlestickSeries.setData(chartData);
+
+      // Volume data with color based on price movement
+      const volumeData = sortedData.map((candle: any) => ({
+        time: candle.time as any,
+        value: candle.volume || 0,
+        color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+      }));
+      volumeSeries.setData(volumeData);
 
       const closePrices = sortedData.map((c: any) => c.close);
       const ema12 = calculateEMA(closePrices, 12);
@@ -4584,9 +4614,11 @@ ${
 
       if (ema12Data.length > 0) {
         ema12Series.setData(ema12Data);
+        setJournalEmaValues(prev => ({ ...prev, ema12: ema12Data[ema12Data.length - 1]?.value || null }));
       }
       if (ema26Data.length > 0) {
         ema26Series.setData(ema26Data);
+        setJournalEmaValues(prev => ({ ...prev, ema26: ema26Data[ema26Data.length - 1]?.value || null }));
       }
 
       chart.timeScale().fitContent();
@@ -4650,7 +4682,7 @@ ${
 
         journalChartData.forEach((candle, candleIndex) => {
           // Convert candle timestamp to minutes from market start
-          const candleTime = new Date(candle[0] * 1000);
+          const candleTime = new Date(candle.time * 1000);
           const candleMinutes =
             candleTime.getHours() * 60 + candleTime.getMinutes();
           const candleMinutesFromStart = candleMinutes - marketStartMinutes;
@@ -4667,7 +4699,7 @@ ${
         if (closestCandleIndex !== -1 && minTimeDiff <= 15) {
           // Within 15 minutes tolerance
           const candle = journalChartData[closestCandleIndex];
-          const price = trade.order === "BUY" ? candle[3] : candle[2]; // Low for BUY, High for SELL
+          const price = trade.order === "BUY" ? candle.low : candle.high; // Low for BUY, High for SELL
 
           markers.push({
             candleIndex: closestCandleIndex,
@@ -9699,59 +9731,108 @@ ${
                             {/* TradingView-Style Candlestick Chart */}
                             <div className="flex-1 relative">
                               {journalChartLoading && (
-                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#131722]/80 rounded-lg">
-                                  <div className="flex items-center gap-2 text-white">
-                                    <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
-                                    <span className="text-sm">Loading from Angel One...</span>
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#131722]/90 rounded-lg backdrop-blur-sm">
+                                  <div className="flex flex-col items-center gap-3">
+                                    <div className="relative">
+                                      <div className="w-12 h-12 border-4 border-orange-500/30 rounded-full" />
+                                      <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />
+                                    </div>
+                                    <span className="text-sm text-[#d1d4dc]">Loading from Angel One...</span>
                                   </div>
                                 </div>
                               )}
                               
-                              {/* Chart Header with Symbol Info */}
-                              <div className="bg-[#131722] rounded-t-lg border-x border-t border-[#363c4e] px-3 py-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-[#d1d4dc] font-semibold text-sm">
-                                      {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
-                                    </span>
-                                    {journalChartData && journalChartData.length > 0 && (
-                                      <>
-                                        <span className="text-[#d1d4dc] text-xs">
-                                          O<span className="text-white ml-1">{(journalChartData[journalChartData.length - 1] as any)?.open?.toFixed(2)}</span>
-                                        </span>
-                                        <span className="text-[#26a69a] text-xs">
-                                          H<span className="ml-1">{(journalChartData[journalChartData.length - 1] as any)?.high?.toFixed(2)}</span>
-                                        </span>
-                                        <span className="text-[#ef5350] text-xs">
-                                          L<span className="ml-1">{(journalChartData[journalChartData.length - 1] as any)?.low?.toFixed(2)}</span>
-                                        </span>
-                                        <span className={`text-xs ${(journalChartData[journalChartData.length - 1] as any)?.close >= (journalChartData[journalChartData.length - 1] as any)?.open ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
-                                          C<span className="ml-1">{(journalChartData[journalChartData.length - 1] as any)?.close?.toFixed(2)}</span>
-                                        </span>
-                                      </>
-                                    )}
+                              {/* Professional Chart Header with Symbol Info - TradingView Style */}
+                              <div className="bg-[#131722] rounded-t-lg border-x border-t border-[#2B2B43] px-3 py-2">
+                                <div className="flex flex-col gap-1">
+                                  {/* Top Row: Symbol and OHLC */}
+                                  <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                                      <span className="text-white font-semibold text-sm md:text-base">
+                                        {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
+                                      </span>
+                                      <span className="text-[#787B86] text-xs">
+                                        {selectedJournalInterval === '1' ? '1m' : 
+                                         selectedJournalInterval === '5' ? '5m' :
+                                         selectedJournalInterval === '15' ? '15m' :
+                                         selectedJournalInterval === '30' ? '30m' :
+                                         selectedJournalInterval === '60' ? '1H' :
+                                         selectedJournalInterval === '1D' ? 'D' :
+                                         selectedJournalInterval === '1W' ? 'W' : selectedJournalInterval}
+                                      </span>
+                                      {journalChartData && journalChartData.length > 0 && (
+                                        <>
+                                          <span className="text-[#787B86] text-xs hidden md:inline">|</span>
+                                          <div className="flex items-center gap-2 md:gap-3 text-xs">
+                                            <span className="text-[#787B86]">
+                                              O<span className="text-white ml-1 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.open?.toFixed(2)}</span>
+                                            </span>
+                                            <span className="text-[#787B86]">
+                                              H<span className="text-[#26a69a] ml-1 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.high?.toFixed(2)}</span>
+                                            </span>
+                                            <span className="text-[#787B86]">
+                                              L<span className="text-[#ef5350] ml-1 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.low?.toFixed(2)}</span>
+                                            </span>
+                                            <span className="text-[#787B86]">
+                                              C<span className={`ml-1 font-medium ${(journalChartData[journalChartData.length - 1] as any)?.close >= (journalChartData[journalChartData.length - 1] as any)?.open ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>{(journalChartData[journalChartData.length - 1] as any)?.close?.toFixed(2)}</span>
+                                            </span>
+                                            {(() => {
+                                              const lastCandle = journalChartData[journalChartData.length - 1] as any;
+                                              const firstCandle = journalChartData[0] as any;
+                                              if (lastCandle && firstCandle) {
+                                                const change = lastCandle.close - firstCandle.open;
+                                                const changePercent = ((change / firstCandle.open) * 100);
+                                                const isPositive = change >= 0;
+                                                return (
+                                                  <span className={`font-medium ${isPositive ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
+                                                    {isPositive ? '+' : ''}{change.toFixed(2)} ({isPositive ? '+' : ''}{changePercent.toFixed(2)}%)
+                                                  </span>
+                                                );
+                                              }
+                                              return null;
+                                            })()}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-2 text-xs">
-                                    <span className="text-[#2196F3]">EMA 12</span>
-                                    <span className="text-[#FF9800]">EMA 26</span>
+                                  
+                                  {/* Bottom Row: EMA Indicators with Values */}
+                                  <div className="flex items-center gap-3 text-xs">
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-3 h-0.5 bg-[#2196F3] rounded-full" />
+                                      <span className="text-[#2196F3]">EMA Cross 12 16</span>
+                                      {journalEmaValues.ema12 && (
+                                        <span className="text-[#2196F3] font-medium ml-1">{journalEmaValues.ema12.toFixed(2)}</span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-3 h-0.5 bg-[#FF9800] rounded-full" />
+                                      <span className="text-[#FF9800]">EMA Cross 12 16</span>
+                                      {journalEmaValues.ema26 && (
+                                        <span className="text-[#FF9800] font-medium ml-1">{journalEmaValues.ema26.toFixed(2)}</span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                               
-                              {/* Chart Container */}
+                              {/* Chart Container - Increased Height */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="w-full h-[320px] rounded-b-lg border-x border-b border-[#363c4e]"
+                                className="w-full h-[350px] border-x border-b border-[#2B2B43] bg-[#131722]"
                                 data-testid="journal-tradingview-chart"
                               />
                               
-                              {/* No Data Message */}
+                              {/* No Data Message - Professional Style */}
                               {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-[#131722] rounded-lg border border-[#363c4e]">
-                                  <div className="text-[#758696] text-sm text-center">
-                                    <BarChart3 className="h-8 w-8 mx-auto mb-2" />
-                                    <div>No chart data loaded</div>
-                                    <div className="text-xs mt-1">Select symbol and click Fetch to load data</div>
+                                <div className="absolute inset-0 flex items-center justify-center bg-[#131722] rounded-lg border border-[#2B2B43]">
+                                  <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#1e222d] flex items-center justify-center">
+                                      <BarChart3 className="h-8 w-8 text-[#787B86]" />
+                                    </div>
+                                    <div className="text-[#d1d4dc] font-medium mb-1">No chart data loaded</div>
+                                    <div className="text-[#787B86] text-xs">Select a symbol and click the Fetch button to load data</div>
                                   </div>
                                 </div>
                               )}
