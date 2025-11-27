@@ -4361,6 +4361,20 @@ ${
   // Mobile trade history dropdown state
   const [showMobileTradeHistory, setShowMobileTradeHistory] = useState(false);
 
+  // Calculate EMA (Exponential Moving Average)
+  const calculateEMA = (prices: number[], period: number): number[] => {
+    if (prices.length === 0) return [];
+    const k = 2 / (period + 1);
+    const ema: number[] = [];
+    let sma = prices.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    ema.push(sma);
+    for (let i = period; i < prices.length; i++) {
+      sma = prices[i] * k + sma * (1 - k);
+      ema.push(sma);
+    }
+    return ema;
+  };
+
   // Function to fetch journal chart data from Angel One API
   const fetchJournalChartData = useCallback(async () => {
     try {
@@ -4546,20 +4560,25 @@ ${
     eventSource.onmessage = (event) => {
       try {
         const candle = JSON.parse(event.data);
-        console.log('💹 [PRICE] LTP:', candle.close, 'H:', candle.high, 'L:', candle.low);
+        console.log('💹 [PRICE] LTP:', candle.close, 'Time:', candle.time, 'Ref:', !!journalCandlestickSeriesRef.current);
         
-        // Update chart candlestick
-        if (journalCandlestickSeriesRef.current && candle.close > 0) {
-          journalCandlestickSeriesRef.current.update({
-            time: candle.time as any,
-            open: candle.open,
-            high: candle.high,
-            low: candle.low,
-            close: candle.close
-          });
+        // Update chart candlestick - only if chart is initialized
+        if (journalCandlestickSeriesRef.current && journalChartRef.current && candle.close > 0) {
+          // Animate chart update with 50ms delay for smooth animation
+          setTimeout(() => {
+            journalCandlestickSeriesRef.current?.update({
+              time: candle.time as any,
+              open: candle.open,
+              high: candle.high,
+              low: candle.low,
+              close: candle.close
+            });
+          }, 50);
+        } else {
+          console.log('⏳ Chart not ready yet:', { hasRef: !!journalCandlestickSeriesRef.current, hasChart: !!journalChartRef.current });
         }
       } catch (err) {
-        // Silent
+        console.error('❌ SSE parse error:', err instanceof Error ? err.message : String(err));
       }
     };
 
