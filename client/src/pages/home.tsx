@@ -11070,7 +11070,14 @@ ${
                                       {trade.order}
                                     </span>
                                   </td>
-                                  <td className="p-1">{trade.symbol}</td>
+                                  <td className="p-1">{(() => {
+                                    if (!selectedDate) return trade.symbol;
+                                    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                                    const selectedMonth = monthNames[selectedDate.getMonth()];
+                                    // Replace any month abbreviation with the selected date's month
+                                    const symbolWithoutMonth = trade.symbol.replace(/\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/, selectedMonth);
+                                    return symbolWithoutMonth;
+                                  })()}</td>
                                   <td className="p-1">{trade.type}</td>
                                   <td className="p-1">{trade.qty}</td>
                                   <td className="p-1">₹{trade.price}</td>
