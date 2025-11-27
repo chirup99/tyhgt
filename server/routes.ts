@@ -7769,6 +7769,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Market Status - Check if market is open
+  app.get("/api/market-status", (req, res) => {
+    try {
+      const isMarketOpen = liveWebSocketStreamer.isMarketOpen();
+      res.json({ 
+        success: true,
+        isMarketOpen,
+        message: isMarketOpen ? 'Market is open' : 'Market is closed'
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
   // Angel One - Get LTP (Last Traded Price)
   app.post("/api/angelone/ltp", async (req, res) => {
     try {

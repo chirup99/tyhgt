@@ -6176,6 +6176,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                             {stockData.isLastTraded && (
                               <span className="text-[10px] text-orange-400">Last Close</span>
                             )}
+                            {dataSource?.isMarketOpen === false && (
+                              <span className="text-[10px] text-gray-400">Market Closed</span>
+                            )}
                           </>
                         ) : (
                           <div className="flex flex-col items-end">
@@ -8502,6 +8505,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                           <TrendingDown className="w-2 h-2 text-red-400" />
                                         }
                                       </div>
+                                      {dataSource?.isMarketOpen === false && (
+                                        <span className="text-[10px] text-gray-400">Market Closed</span>
+                                      )}
                                     </>
                                   ) : (
                                     <div className="flex flex-col items-end">

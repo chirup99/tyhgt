@@ -16,6 +16,7 @@ export interface LivePriceData {
   lastUpdate: string;
   isLive: boolean;
   source: 'websocket' | 'quotes' | 'fallback' | 'angelone';
+  isMarketOpen?: boolean;
 }
 
 export interface OHLCBar {
@@ -517,6 +518,11 @@ export class LiveWebSocketStreamer {
     };
   }
 
+  // Public method to check if market is open
+  isMarketOpen(): boolean {
+    return this.isMarketHours();
+  }
+
   // Called when Angel One authentication succeeds - triggers immediate data fetch
   async onAngelOneAuthenticated() {
     console.log('🔔 Angel One authentication detected - triggering price fetch...');
@@ -559,9 +565,11 @@ export class LiveWebSocketStreamer {
         
         quotes.forEach(quote => {
           const nseSymbol = `NSE:${quote.tradingSymbol}`;
+          const marketOpen = this.isMarketHours();
+          const displayPrice = marketOpen ? quote.ltp : quote.close;
           const updatedData: LivePriceData = {
             symbol: nseSymbol,
-            price: quote.ltp,
+            price: displayPrice,
             change: parseFloat((quote.change || 0).toFixed(2)),
             changePercent: parseFloat((quote.changePercent || 0).toFixed(2)),
             volume: quote.volume || 0,
@@ -569,10 +577,11 @@ export class LiveWebSocketStreamer {
             open: quote.open || quote.ltp,
             high: quote.high || quote.ltp,
             low: quote.low || quote.ltp,
-            close: quote.ltp,
+            close: quote.close || quote.ltp,
             lastUpdate: new Date().toISOString(),
-            isLive: true,
-            source: 'angelone'
+            isLive: marketOpen,
+            source: 'angelone',
+            isMarketOpen: marketOpen
           };
           
           this.priceData.set(nseSymbol, updatedData);
