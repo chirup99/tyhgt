@@ -4276,8 +4276,54 @@ ${
       '30': 'THIRTY_MINUTE',
       '60': 'ONE_HOUR',
       '1D': 'ONE_DAY',
+      '5D': 'ONE_DAY',
+      '1W': 'ONE_DAY',
+      '1M': 'ONE_DAY',
     };
     return intervalMap[interval] || 'FIFTEEN_MINUTE';
+  };
+
+  // Calculate date range based on timeframe (TradingView style)
+  const getDateRangeForInterval = (interval: string): { fromDate: string; toDate: string } => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
+    let fromDate = today;
+    
+    if (['1', '3', '5', '10', '15', '30'].includes(interval)) {
+      // Intraday: today's data
+      fromDate = today;
+    } else if (interval === '60') {
+      // 1 hour: last 5 days
+      const fiveDaysAgo = new Date(now);
+      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+      fromDate = fiveDaysAgo.toISOString().split('T')[0];
+    } else if (interval === '1D') {
+      // 1 day: last 3 months
+      const threeMonthsAgo = new Date(now);
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      fromDate = threeMonthsAgo.toISOString().split('T')[0];
+    } else if (interval === '5D') {
+      // 5 day: last 1 year
+      const oneYearAgo = new Date(now);
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      fromDate = oneYearAgo.toISOString().split('T')[0];
+    } else if (interval === '1W') {
+      // 1 week: last 2 years
+      const twoYearsAgo = new Date(now);
+      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+      fromDate = twoYearsAgo.toISOString().split('T')[0];
+    } else if (interval === '1M') {
+      // 1 month: last 5 years
+      const fiveYearsAgo = new Date(now);
+      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+      fromDate = fiveYearsAgo.toISOString().split('T')[0];
+    }
+    
+    return {
+      fromDate: fromDate,
+      toDate: today,
+    };
   };
 
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
@@ -4306,9 +4352,21 @@ ${
         return;
       }
 
-      // Calculate date range (from 9:15 AM to 3:30 PM for intraday)
-      const fromDate = `${selectedJournalDate} 09:15`;
-      const toDate = `${selectedJournalDate} 15:30`;
+      // Calculate date range based on timeframe (TradingView style)
+      const dateRange = getDateRangeForInterval(selectedJournalInterval);
+      
+      // For intraday intervals, use market hours (9:15 AM to 3:30 PM)
+      let fromDate = dateRange.fromDate;
+      let toDate = dateRange.toDate;
+      
+      if (['1', '3', '5', '10', '15', '30'].includes(selectedJournalInterval)) {
+        fromDate = `${fromDate} 09:15`;
+        toDate = `${toDate} 15:30`;
+      } else {
+        // For daily and higher intervals, use full day
+        fromDate = `${fromDate} 00:00`;
+        toDate = `${toDate} 23:59`;
+      }
       
       const requestBody = {
         exchange: stockToken.exchange,
@@ -9409,7 +9467,7 @@ ${
                                   </PopoverContent>
                                 </Popover>
 
-                                {/* Time Interval Selector - Compact */}
+                                {/* Time Interval Selector - TradingView Style */}
                                 <select
                                   className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm"
                                   value={selectedJournalInterval}
@@ -9422,6 +9480,11 @@ ${
                                   <option value="5">5m</option>
                                   <option value="15">15m</option>
                                   <option value="30">30m</option>
+                                  <option value="60">1h</option>
+                                  <option value="1D">1D</option>
+                                  <option value="5D">5D</option>
+                                  <option value="1W">1W</option>
+                                  <option value="1M">1M</option>
                                 </select>
 
                                 {/* Fetch Button - Icon Only with Loading State */}
