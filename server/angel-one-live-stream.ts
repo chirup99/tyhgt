@@ -100,6 +100,11 @@ class AngelOneLiveStream {
     // Poll every 700ms
     const interval = setInterval(async () => {
       try {
+        // Check if Angel One is connected
+        if (!angelOneApi.isConnected()) {
+          return; // Not connected, skip this poll
+        }
+
         const ltp = await angelOneApi.getLTP(exchange, symbol, symbolToken);
         
         if (ltp && ltp.ltp > 0) {
@@ -123,8 +128,9 @@ class AngelOneLiveStream {
           // Broadcast to all clients for this symbol
           this.broadcastUpdate(key, candle);
         }
-      } catch (error) {
+      } catch (error: any) {
         // Silently fail - will retry next poll
+        console.debug(`📡 [POLL] Error: ${error.message}`);
       }
     }, 700);
 

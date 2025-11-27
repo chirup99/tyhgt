@@ -319,32 +319,48 @@ class AngelOneAPI {
   }
 
   async getLTP(exchange: string, tradingSymbol: string, symbolToken: string): Promise<AngelOneQuote | null> {
-    if (!this.isAuthenticated) {
+    if (!this.isAuthenticated || !this.session) {
       throw new Error('Angel One not authenticated');
     }
 
     const startTime = Date.now();
     try {
-      const response = await this.smartApi.getLTP({
-        exchange,
-        tradingsymbol: tradingSymbol,
-        symboltoken: symbolToken
+      // Use REST API directly since SmartAPI SDK doesn't have getLTP method
+      const axios = require('axios');
+      const response = await axios.post('https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote/', {
+        mode: 'ltp',
+        exchangetokens: {
+          [exchange]: [symbolToken]
+        }
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.session.jwtToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-UserType': 'USER',
+          'X-SourceID': 'WEB',
+          'X-ClientLocalIP': '127.0.0.1',
+          'X-ClientPublicIP': '127.0.0.1',
+          'X-MACAddress': '00:00:00:00:00:00',
+          'X-PrivateKey': this.credentials?.apiKey || ''
+        }
       });
 
-      if (response.status && response.data) {
-        const data = response.data;
+      if (response.data?.status && response.data?.data?.fetched?.length > 0) {
+        const data = response.data.data.fetched[0];
         this.trackRequest(true, Date.now() - startTime);
+        console.log(`📈 [LTP] ${tradingSymbol}: ${data.ltp}`);
         return {
           symbol: symbolToken,
           tradingSymbol: tradingSymbol,
-          ltp: data.ltp || 0,
-          open: data.open || 0,
-          high: data.high || 0,
-          low: data.low || 0,
-          close: data.close || 0,
-          change: data.ltp - data.close,
-          changePercent: data.close ? ((data.ltp - data.close) / data.close) * 100 : 0,
-          volume: data.volume || 0,
+          ltp: parseFloat(data.ltp) || 0,
+          open: parseFloat(data.open) || 0,
+          high: parseFloat(data.high) || 0,
+          low: parseFloat(data.low) || 0,
+          close: parseFloat(data.close) || 0,
+          change: (parseFloat(data.ltp) || 0) - (parseFloat(data.close) || 0),
+          changePercent: 0,
+          volume: parseInt(data.volume) || 0,
           exchange
         };
       }
