@@ -1,11 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Key, CheckCircle2, Shield, Eye, EyeOff, Clock, RefreshCw, CheckCircle, LogOut, Loader2 } from "lucide-react";
+import { Key, CheckCircle2, Shield, Clock, RefreshCw, CheckCircle, LogOut, Loader2, AlertCircle, Plug } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface AngelOneProfile {
   name: string;
@@ -47,17 +45,12 @@ interface AngelOneActivityLog {
   endpoint?: string;
 }
 
-// Simple Auth Button - Secure Form-based Login Only
+// Simple Auth Button - Auto-connect using backend environment variables
 export function AuthButtonAngelOne() {
   const { toast } = useToast();
-  const [clientCode, setClientCode] = useState("");
-  const [pin, setPin] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [totpSecret, setTotpSecret] = useState("");
-  const [showPin, setShowPin] = useState(false);
-  const [showSecret, setShowSecret] = useState(false);
+  const [hasAttemptedAutoConnect, setHasAttemptedAutoConnect] = useState(false);
 
-  const { data: angelStatus } = useQuery<AngelOneStatusData>({
+  const { data: angelStatus, isLoading: isStatusLoading } = useQuery<AngelOneStatusData>({
     queryKey: ["/api/angelone/status"],
     refetchInterval: 5000,
   });
@@ -68,9 +61,10 @@ export function AuthButtonAngelOne() {
     refetchInterval: 10000,
   });
 
+  // Connect using backend environment credentials
   const connectMutation = useMutation({
-    mutationFn: async (credentials: { clientCode: string; pin: string; apiKey: string; totpSecret: string }) => {
-      return await apiRequest("POST", "/api/angelone/connect", credentials);
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/angelone/connect-env");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/angelone/status"] });
@@ -80,17 +74,11 @@ export function AuthButtonAngelOne() {
         title: "Connected!",
         description: "Angel One API connected successfully.",
       });
-      
-      // Clear form after successful connection
-      setClientCode("");
-      setPin("");
-      setApiKey("");
-      setTotpSecret("");
     },
     onError: (error: any) => {
       toast({
         title: "Connection Failed",
-        description: error?.message || "Invalid credentials. Please check and try again.",
+        description: error?.message || "Failed to connect. Check environment credentials.",
         variant: "destructive",
       });
     },
@@ -118,22 +106,19 @@ export function AuthButtonAngelOne() {
     },
   });
 
-  const handleConnect = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (clientCode.trim() && pin.trim() && apiKey.trim() && totpSecret.trim()) {
-      connectMutation.mutate({
-        clientCode: clientCode.trim(),
-        pin: pin.trim(),
-        apiKey: apiKey.trim(),
-        totpSecret: totpSecret.trim(),
-      });
+  // Auto-connect on component mount if not already connected
+  useEffect(() => {
+    if (!isStatusLoading && !hasAttemptedAutoConnect && angelStatus && !angelStatus.connected && !connectMutation.isPending) {
+      setHasAttemptedAutoConnect(true);
+      console.log('🔶 [Angel One] Auto-connecting with environment credentials...');
+      connectMutation.mutate();
     }
-  };
+  }, [isStatusLoading, angelStatus, hasAttemptedAutoConnect, connectMutation.isPending]);
 
   const isConnected = angelStatus?.connected && angelStatus?.authenticated;
   const userName = profileData?.profile?.name || angelStatus?.clientCode || "User";
 
-  // Show connected state
+  // Connected state - show status and disconnect button
   if (isConnected) {
     return (
       <div className="bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
@@ -159,130 +144,73 @@ export function AuthButtonAngelOne() {
             className="border-orange-600 dark:border-orange-600 text-orange-600 dark:text-orange-400 flex-shrink-0"
             data-testid="button-angelone-disconnect"
           >
-            {disconnectMutation.isPending ? "..." : "Disconnect"}
+            {disconnectMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Disconnect"
+            )}
           </Button>
         </div>
       </div>
     );
   }
 
-  // Show login form
-  return (
-    <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6 font-normal">
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Shield className="h-4 w-4 text-orange-600" />
-          <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
-            Connect to Angel One (SmartAPI)
-          </h3>
-        </div>
-        <p className="text-xs text-orange-700 dark:text-orange-300">
-          Enter your Angel One credentials. TOTP is auto-generated from your secret key.
-        </p>
-      </div>
-
-      <form onSubmit={handleConnect} className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+  // Connecting state
+  if (connectMutation.isPending) {
+    return (
+      <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-center gap-3 py-2">
+          <Loader2 className="h-5 w-5 text-orange-600 animate-spin" />
           <div>
-            <Label htmlFor="angelClientCode" className="text-xs text-orange-900 dark:text-orange-200">
-              Client Code (User ID)
-            </Label>
-            <Input
-              id="angelClientCode"
-              placeholder="e.g., A12345"
-              value={clientCode}
-              onChange={(e) => setClientCode(e.target.value.toUpperCase())}
-              className="mt-1 text-sm bg-white dark:bg-gray-800"
-              data-testid="input-angel-client-code"
-            />
-          </div>
-          <div className="relative">
-            <Label htmlFor="angelPin" className="text-xs text-orange-900 dark:text-orange-200">
-              PIN (4 digits)
-            </Label>
-            <div className="relative mt-1">
-              <Input
-                id="angelPin"
-                type={showPin ? "text" : "password"}
-                placeholder="****"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                className="text-sm bg-white dark:bg-gray-800 pr-8"
-                data-testid="input-angel-pin"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPin(!showPin)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
+            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
+              Connecting to Angel One...
+            </h3>
+            <p className="text-xs text-orange-700 dark:text-orange-300">
+              Using environment credentials
+            </p>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        <div>
-          <Label htmlFor="angelApiKey" className="text-xs text-orange-900 dark:text-orange-200">
-            API Key
-          </Label>
-          <Input
-            id="angelApiKey"
-            placeholder="Your SmartAPI Key from Angel One"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="mt-1 text-sm bg-white dark:bg-gray-800"
-            data-testid="input-angel-api-key"
-          />
-        </div>
-
-        <div className="relative">
-          <Label htmlFor="angelTotpSecret" className="text-xs text-orange-900 dark:text-orange-200">
-            TOTP Secret Key
-          </Label>
-          <div className="relative mt-1">
-            <Input
-              id="angelTotpSecret"
-              type={showSecret ? "text" : "password"}
-              placeholder="Base32 secret from 2FA setup"
-              value={totpSecret}
-              onChange={(e) => setTotpSecret(e.target.value.toUpperCase().replace(/\s/g, ''))}
-              className="text-sm bg-white dark:bg-gray-800 pr-8"
-              data-testid="input-angel-totp-secret"
-            />
-            <button
-              type="button"
-              onClick={() => setShowSecret(!showSecret)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            >
-              {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+  // Error state or disconnected - show connect button
+  return (
+    <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center space-x-3 flex-1">
+          <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center flex-shrink-0">
+            {connectMutation.isError ? (
+              <AlertCircle className="text-red-600 dark:text-red-400 h-4 w-4" />
+            ) : (
+              <Plug className="text-orange-600 dark:text-orange-400 h-4 w-4" />
+            )}
           </div>
-          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-            This is the permanent secret key from SmartAPI 2FA setup (not the 6-digit code)
-          </p>
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
+              {connectMutation.isError ? 'Connection Failed' : 'Angel One Disconnected'}
+            </h3>
+            <p className="text-xs text-orange-700 dark:text-orange-300">
+              {connectMutation.isError 
+                ? 'Tap Connect to retry' 
+                : 'Tap Connect to authenticate'}
+            </p>
+          </div>
         </div>
-
         <Button
-          type="submit"
-          disabled={connectMutation.isPending || !clientCode.trim() || !pin.trim() || !apiKey.trim() || !totpSecret.trim()}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+          onClick={() => {
+            setHasAttemptedAutoConnect(true);
+            connectMutation.mutate();
+          }}
+          disabled={connectMutation.isPending}
           size="sm"
+          className="bg-orange-600 hover:bg-orange-700 text-white flex-shrink-0"
           data-testid="button-angelone-connect"
         >
           <Key className="mr-2 h-4 w-4" />
-          {connectMutation.isPending ? (
-            <span className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Connecting...
-            </span>
-          ) : 'Connect to Angel One'}
+          Connect
         </Button>
-
-        <p className="text-xs text-orange-600 dark:text-orange-400 text-center mt-2">
-          Get credentials from: <a href="https://smartapi.angelbroking.com/publisher-api" target="_blank" rel="noopener noreferrer" className="underline">Angel One SmartAPI Portal</a>
-        </p>
-      </form>
+      </div>
     </div>
   );
 }
@@ -638,9 +566,30 @@ export function AngelOneSystemStatus() {
   );
 }
 
-// Global Auto-Connect - Removed for security (no env variable exposure)
+// Global Auto-Connect Component - Now functional with environment credentials
 export function AngelOneGlobalAutoConnect() {
-  // This component no longer auto-connects with environment variables
-  // Credentials must be entered manually through the form for security
+  const { data: angelStatus, isLoading } = useQuery<AngelOneStatusData>({
+    queryKey: ["/api/angelone/status"],
+    refetchInterval: 5000,
+  });
+
+  const connectMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/angelone/connect-env");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/profile"] });
+    },
+  });
+
+  // Auto-connect on app load if not connected
+  useEffect(() => {
+    if (!isLoading && angelStatus && !angelStatus.connected && !connectMutation.isPending) {
+      console.log('🔶 [Angel One] Global auto-connect with environment credentials...');
+      connectMutation.mutate();
+    }
+  }, [isLoading, angelStatus?.connected]);
+
   return null;
 }

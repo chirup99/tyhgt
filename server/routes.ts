@@ -7661,6 +7661,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Angel One - Connect using environment variables (auto-connect)
+  app.post("/api/angelone/connect-env", async (req, res) => {
+    try {
+      // Read credentials from environment variables
+      const clientCode = process.env.ANGEL_ONE_CLIENT_CODE;
+      const pin = process.env.ANGEL_ONE_PIN;
+      const apiKey = process.env.ANGEL_ONE_API_KEY;
+      const totpSecret = process.env.ANGEL_ONE_TOTP_SECRET;
+      
+      if (!clientCode || !pin || !apiKey || !totpSecret) {
+        console.log('🔶 [ANGEL ONE] Missing environment credentials:');
+        console.log(`   CLIENT_CODE: ${clientCode ? 'SET' : 'MISSING'}`);
+        console.log(`   PIN: ${pin ? 'SET' : 'MISSING'}`);
+        console.log(`   API_KEY: ${apiKey ? 'SET' : 'MISSING'}`);
+        console.log(`   TOTP_SECRET: ${totpSecret ? 'SET' : 'MISSING'}`);
+        
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing Angel One credentials in environment. Please set: ANGEL_ONE_CLIENT_CODE, ANGEL_ONE_PIN, ANGEL_ONE_API_KEY, ANGEL_ONE_TOTP_SECRET" 
+        });
+      }
+
+      console.log('🔶 [ANGEL ONE] Connecting with environment credentials...');
+      console.log(`📝 [ANGEL ONE] Client Code: ${clientCode}`);
+
+      angelOneApi.setCredentials({
+        clientCode: clientCode.trim(),
+        pin: pin.trim(),
+        apiKey: apiKey.trim(),
+        totpSecret: totpSecret.trim()
+      });
+
+      const session = await angelOneApi.generateSession();
+      
+      if (session) {
+        console.log('✅ [ANGEL ONE] Connected successfully with environment credentials');
+        
+        // Notify live price streamer that Angel One is now authenticated
+        liveWebSocketStreamer.onAngelOneAuthenticated();
+        
+        const profile = await angelOneApi.getProfile();
+        
+        res.json({ 
+          success: true,
+          message: "Angel One Connected Successfully",
+          authenticated: true,
+          connected: true,
+          profile: profile ? {
+            name: profile.name,
+            email: profile.email,
+            clientCode: profile.clientcode,
+            broker: profile.broker
+          } : null
+        });
+      } else {
+        throw new Error('Failed to generate session');
+      }
+
+    } catch (error: any) {
+      console.error('❌ [ANGEL ONE] Connection error:', error.message);
+      res.status(500).json({ 
+        success: false,
+        message: error.message || "Failed to connect to Angel One",
+        error: error.message
+      });
+    }
+  });
+
   // Angel One - Disconnect
   app.post("/api/angelone/disconnect", async (req, res) => {
     try {
