@@ -2124,38 +2124,18 @@ export function AdvancedCandlestickChart({
                 })}
               </g>
 
-              {/* OHLC Tooltip */}
+              {/* OHLC Compact Display - Top Corner */}
               {chartState.showCrosshair && chartState.hoveredCandle && isValidOHLCData(chartState.hoveredCandle) && (
-                <g>
-                  {/* Tooltip background */}
-                  <rect
-                    x={chartState.mouseX + 15}
-                    y={chartState.mouseY - 85}
-                    width="140"
-                    height="80"
-                    fill="#333"
-                    stroke="#666"
-                    rx="5"
-                    opacity="0.95"
-                  />
-                  
-                  {/* Tooltip content */}
-                  <text x={chartState.mouseX + 25} y={chartState.mouseY - 65} fill="white" fontSize="12" fontWeight="bold">
-                    OHLC Data
-                  </text>
-                  <text x={chartState.mouseX + 25} y={chartState.mouseY - 50} fill="#10b981" fontSize="11">
-                    Open: {chartState.hoveredCandle.open.toFixed(2)}
-                  </text>
-                  <text x={chartState.mouseX + 25} y={chartState.mouseY - 38} fill="#3b82f6" fontSize="11">
-                    High: {chartState.hoveredCandle.high.toFixed(2)}
-                  </text>
-                  <text x={chartState.mouseX + 25} y={chartState.mouseY - 26} fill="#ef4444" fontSize="11">
-                    Low: {chartState.hoveredCandle.low.toFixed(2)}
-                  </text>
-                  <text x={chartState.mouseX + 25} y={chartState.mouseY - 14} fill="#f59e0b" fontSize="11">
-                    Close: {chartState.hoveredCandle.close.toFixed(2)}
-                  </text>
-                </g>
+                <text
+                  x={10}
+                  y={16}
+                  fill="#666"
+                  fontSize="11"
+                  fontFamily="monospace"
+                  fontWeight="600"
+                >
+                  O{chartState.hoveredCandle.open.toFixed(2)} H{chartState.hoveredCandle.high.toFixed(2)} L{chartState.hoveredCandle.low.toFixed(2)} C{chartState.hoveredCandle.close.toFixed(2)}
+                </text>
               )}
             </svg>
           ) : (
