@@ -3762,6 +3762,7 @@ ${
   const [paperTradeAction, setPaperTradeAction] = useState<'BUY' | 'SELL'>('BUY');
   const [paperTradeCurrentPrice, setPaperTradeCurrentPrice] = useState<number | null>(null);
   const [paperTradePriceLoading, setPaperTradePriceLoading] = useState(false);
+  const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
   
   // Available stock symbols for paper trading
   const paperTradingSymbols = [
@@ -3795,13 +3796,16 @@ ${
     s.name.toLowerCase().includes(paperTradeSymbolSearch.toLowerCase())
   );
   
-  // Fetch live price from Angel One API
+  // Fetch live price from Angel One API (connects to chart WebSocket)
   const fetchPaperTradePrice = async (symbol: string) => {
     const stockInfo = paperTradingSymbols.find(s => s.symbol === symbol);
     if (!stockInfo) return;
     
     setPaperTradePriceLoading(true);
     try {
+      // Subscribe this symbol to the live chart stream
+      paperTradingStreamSymbolsRef.current.add(symbol);
+      
       const response = await fetch('/api/angelone/ltp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3817,7 +3821,6 @@ ${
         if (data.success && data.data?.ltp) {
           setPaperTradeCurrentPrice(data.data.ltp);
         } else {
-          // Fallback: Use demo price
           setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
         }
       } else {
@@ -3975,50 +3978,9 @@ ${
     });
   };
   
-  // Update live prices for open positions
+  // Persist paper trading positions to localStorage when they change
   useEffect(() => {
-    const updatePositionPrices = async () => {
-      const openPositions = paperPositions.filter(p => p.isOpen);
-      if (openPositions.length === 0) return;
-      
-      for (const position of openPositions) {
-        const stockInfo = paperTradingSymbols.find(s => s.symbol === position.symbol);
-        if (!stockInfo) continue;
-        
-        try {
-          const response = await fetch('/api/angelone/ltp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              exchange: stockInfo.exchange,
-              tradingSymbol: stockInfo.symbol,
-              symbolToken: stockInfo.token
-            })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data?.ltp) {
-              const currentPrice = data.data.ltp;
-              const pnl = (currentPrice - position.entryPrice) * position.quantity;
-              const pnlPercent = ((currentPrice - position.entryPrice) / position.entryPrice) * 100;
-              
-              setPaperPositions(prev => prev.map(p => 
-                p.id === position.id 
-                  ? { ...p, currentPrice, pnl, pnlPercent }
-                  : p
-              ));
-            }
-          }
-        } catch (error) {
-          console.error("Error updating position price:", error);
-        }
-      }
-    };
-    
-    // Update prices every 30 seconds
-    const interval = setInterval(updatePositionPrices, 30000);
-    return () => clearInterval(interval);
+    localStorage.setItem("paperPositions", JSON.stringify(paperPositions));
   }, [paperPositions]);
   // ============================================
   // END PAPER TRADING STATE
@@ -4593,6 +4555,23 @@ ${
       try {
         const liveCandle = JSON.parse(event.data);
         console.log('💹 [PRICE] LTP:', liveCandle.close, 'Time:', liveCandle.time);
+        
+        // Update demo trading positions with live price (700ms real-time P&L)
+        if (liveCandle.close > 0 && paperPositions.length > 0) {
+          setPaperPositions(prev => prev.map(position => {
+            if (position.isOpen && position.symbol === selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '')) {
+              const pnl = (liveCandle.close - position.entryPrice) * position.quantity;
+              const pnlPercent = ((liveCandle.close - position.entryPrice) / position.entryPrice) * 100;
+              return { ...position, currentPrice: liveCandle.close, pnl, pnlPercent };
+            }
+            return position;
+          }));
+          
+          // Also update current price for trade entry form if symbol matches
+          if (selectedJournalSymbol.includes(paperTradeSymbol)) {
+            setPaperTradeCurrentPrice(liveCandle.close);
+          }
+        }
         
         // Update chart candlestick - only if chart is initialized
         if (journalCandlestickSeriesRef.current && journalChartRef.current && liveCandle.close > 0) {
