@@ -135,6 +135,7 @@ import {
   Users,
   Upload,
   Timer,
+  Clock,
   Edit,
   Check,
   X,
@@ -4248,6 +4249,16 @@ ${
   
   // EMA values for display in header
   const [journalEmaValues, setJournalEmaValues] = useState<{ ema12: number | null; ema26: number | null }>({ ema12: null, ema26: null });
+  
+  // Live streaming state for Journal Chart
+  const [journalLiveData, setJournalLiveData] = useState<{
+    ltp: number;
+    countdown: { remaining: number; total: number; formatted: string };
+    currentCandle: { time: number; open: number; high: number; low: number; close: number; volume: number };
+    isMarketOpen: boolean;
+  } | null>(null);
+  const [isJournalStreaming, setIsJournalStreaming] = useState(false);
+  const journalEventSourceRef = useRef<EventSource | null>(null);
 
   // Angel One Stock Token Mapping for Journal Chart
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
@@ -4482,6 +4493,92 @@ ${
   useEffect(() => {
     fetchJournalChartData();
   }, [fetchJournalChartData]);
+
+  // Live streaming SSE connection for Journal Chart
+  useEffect(() => {
+    if (activeTab !== 'journal') {
+      // Disconnect SSE when leaving journal tab
+      if (journalEventSourceRef.current) {
+        journalEventSourceRef.current.close();
+        journalEventSourceRef.current = null;
+        setIsJournalStreaming(false);
+        setJournalLiveData(null);
+        console.log('🔴 [SSE] Disconnected from live stream (tab change)');
+      }
+      return;
+    }
+
+    // Get stock token info for selected symbol
+    const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+    const stockToken = journalAngelOneTokens[cleanSymbol];
+    
+    if (!stockToken) {
+      console.warn('🔴 [SSE] No token found for symbol:', cleanSymbol);
+      return;
+    }
+
+    // Close existing connection if any
+    if (journalEventSourceRef.current) {
+      journalEventSourceRef.current.close();
+      journalEventSourceRef.current = null;
+    }
+
+    // Start new SSE connection
+    const interval = getJournalAngelOneInterval(selectedJournalInterval);
+    const sseUrl = getFullApiUrl(`/api/angelone/live-stream?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&interval=${interval}`);
+    
+    console.log('🔴 [SSE] Connecting to live stream:', sseUrl);
+    
+    const eventSource = new EventSource(sseUrl);
+    journalEventSourceRef.current = eventSource;
+
+    eventSource.onopen = () => {
+      console.log('🔴 [SSE] Connected to live stream');
+      setIsJournalStreaming(true);
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        setJournalLiveData({
+          ltp: data.ltp,
+          countdown: data.countdown,
+          currentCandle: data.currentCandle,
+          isMarketOpen: data.isMarketOpen
+        });
+
+        // Update chart with live candle data if chart exists
+        if (journalCandlestickSeriesRef.current && data.currentCandle && data.ltp > 0) {
+          const liveCandle = {
+            time: data.currentCandle.time as any,
+            open: data.currentCandle.open,
+            high: data.currentCandle.high,
+            low: data.currentCandle.low,
+            close: data.currentCandle.close
+          };
+          
+          // Update the last bar in the series
+          journalCandlestickSeriesRef.current.update(liveCandle);
+        }
+      } catch (err) {
+        console.debug('🔴 [SSE] Parse error:', err);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.warn('🔴 [SSE] Connection error, will retry...', error);
+      setIsJournalStreaming(false);
+    };
+
+    // Cleanup on unmount or symbol/interval change
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        console.log('🔴 [SSE] Disconnected from live stream (cleanup)');
+      }
+      setIsJournalStreaming(false);
+    };
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
 
   // Calculate EMA for chart indicators
   const calculateEMA = (data: number[], period: number): number[] => {
@@ -9780,6 +9877,37 @@ ${
                                 <span className="hidden md:flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded">
                                   Angel One
                                 </span>
+
+                                {/* Live Streaming Status & Countdown */}
+                                {isJournalStreaming && journalLiveData && (
+                                  <>
+                                    {/* Live Status Indicator */}
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-medium rounded animate-pulse">
+                                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                      LIVE
+                                    </div>
+                                    
+                                    {/* LTP Display */}
+                                    <div className="hidden md:flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded font-mono">
+                                      LTP: {journalLiveData.ltp.toFixed(2)}
+                                    </div>
+                                    
+                                    {/* Candle Countdown Timer */}
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded font-mono">
+                                      <Clock className="h-3 w-3" />
+                                      {journalLiveData.countdown.formatted}
+                                    </div>
+                                    
+                                    {/* Market Status */}
+                                    <div className={`hidden lg:flex items-center px-2 py-1 text-xs font-medium rounded ${
+                                      journalLiveData.isMarketOpen 
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                    }`}>
+                                      {journalLiveData.isMarketOpen ? 'Market Open' : 'Market Closed'}
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
 

@@ -53,6 +53,7 @@ import backupRoutes, { initializeBackupRoutes } from './backup-routes';
 import { createBackupDataService, BackupQueryParams } from './backup-data-service';
 import { detectPatterns } from './routes/pattern-detection';
 import { nseApi } from './nse-api';
+import { angelOneLiveStream } from './angel-one-live-stream';
 
 // 🔶 Angel One Stock Token Mappings for historical data
 const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
@@ -7866,6 +7867,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       res.status(500).json({ 
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Live Stream SSE for Journal Chart
+  app.get("/api/angelone/live-stream", async (req, res) => {
+    try {
+      const { symbol, symbolToken, exchange, interval } = req.query;
+      
+      if (!symbol || !symbolToken || !exchange || !interval) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required parameters: symbol, symbolToken, exchange, interval"
+        });
+      }
+
+      if (!angelOneApi.isConnected()) {
+        return res.status(401).json({
+          success: false,
+          message: "Angel One not connected"
+        });
+      }
+
+      // Generate unique client ID
+      const clientId = `journal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log(`🔴 [SSE] New live stream client: ${clientId} for ${symbol}`);
+      
+      // Add client to live stream
+      angelOneLiveStream.addClient(
+        clientId,
+        res,
+        symbol as string,
+        symbolToken as string,
+        exchange as string,
+        interval as string
+      );
+
+    } catch (error: any) {
+      console.error('🔴 [SSE] Error setting up live stream:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get Live Stream Status
+  app.get("/api/angelone/live-stream/status", async (req, res) => {
+    try {
+      const status = angelOneLiveStream.getStatus();
+      res.json({
+        success: true,
+        ...status
+      });
+    } catch (error: any) {
+      res.status(500).json({
         success: false,
         message: error.message
       });
