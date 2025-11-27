@@ -175,6 +175,7 @@ import {
   Radar,
   Loader2,
   RefreshCcw,
+  MoreVertical,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
