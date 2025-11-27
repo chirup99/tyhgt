@@ -9736,7 +9736,7 @@ ${
                               </div>
                             </div>
 
-                            {/* TradingView Light Theme Chart Container */}
+                            {/* TradingView Light Theme Chart Container - Clean */}
                             <div className="flex-1 relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                               {journalChartLoading && (
                                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg">
@@ -9745,91 +9745,17 @@ ${
                                       <div className="w-12 h-12 border-4 border-orange-500/30 rounded-full" />
                                       <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />
                                     </div>
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">Loading from Angel One...</span>
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Loading chart data...</span>
                                   </div>
                                 </div>
                               )}
                               
-                              {/* Chart Header with Symbol Info - Light Theme */}
-                              <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex-shrink-0">
-                                <div className="flex flex-col gap-2">
-                                  {/* Top Row: Symbol, Timeframe, OHLC */}
-                                  <div className="flex items-center justify-between flex-wrap gap-3">
-                                    <div className="flex items-center gap-3 flex-wrap">
-                                      <span className="text-gray-900 dark:text-white font-semibold text-base">
-                                        {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
-                                      </span>
-                                      <span className="text-gray-500 dark:text-gray-400 text-sm">
-                                        {selectedJournalInterval === '1' ? '1m' : 
-                                         selectedJournalInterval === '5' ? '5m' :
-                                         selectedJournalInterval === '15' ? '15m' :
-                                         selectedJournalInterval === '30' ? '30m' :
-                                         selectedJournalInterval === '60' ? '1H' :
-                                         selectedJournalInterval === '1D' ? 'D' :
-                                         selectedJournalInterval === '1W' ? 'W' : selectedJournalInterval}
-                                      </span>
-                                      {journalChartData && journalChartData.length > 0 && (
-                                        <>
-                                          <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
-                                          <div className="flex items-center gap-3 text-sm">
-                                            <span className="text-gray-600 dark:text-gray-400">
-                                              O<span className="text-gray-900 dark:text-white ml-1.5 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.open?.toFixed(2)}</span>
-                                            </span>
-                                            <span className="text-gray-600 dark:text-gray-400">
-                                              H<span className="text-green-600 dark:text-green-400 ml-1.5 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.high?.toFixed(2)}</span>
-                                            </span>
-                                            <span className="text-gray-600 dark:text-gray-400">
-                                              L<span className="text-red-600 dark:text-red-400 ml-1.5 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.low?.toFixed(2)}</span>
-                                            </span>
-                                            <span className="text-gray-600 dark:text-gray-400">
-                                              C<span className={`ml-1.5 font-medium ${(journalChartData[journalChartData.length - 1] as any)?.close >= (journalChartData[journalChartData.length - 1] as any)?.open ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{(journalChartData[journalChartData.length - 1] as any)?.close?.toFixed(2)}</span>
-                                            </span>
-                                            {(() => {
-                                              const lastCandle = journalChartData[journalChartData.length - 1] as any;
-                                              const firstCandle = journalChartData[0] as any;
-                                              if (lastCandle && firstCandle) {
-                                                const change = lastCandle.close - firstCandle.open;
-                                                const changePercent = ((change / firstCandle.open) * 100);
-                                                const isPositive = change >= 0;
-                                                return (
-                                                  <span className={`font-medium text-sm ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                                    {isPositive ? '+' : ''}{change.toFixed(2)} ({isPositive ? '+' : ''}{changePercent.toFixed(2)}%)
-                                                  </span>
-                                                );
-                                              }
-                                              return null;
-                                            })()}
-                                          </div>
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Bottom Row: EMA Indicators */}
-                                  <div className="flex items-center gap-4 text-sm">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-3 h-0.5 bg-blue-500 rounded-full" />
-                                      <span className="text-gray-700 dark:text-gray-300">EMA 12</span>
-                                      {journalEmaValues.ema12 && (
-                                        <span className="text-blue-600 dark:text-blue-400 font-semibold">{journalEmaValues.ema12.toFixed(2)}</span>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-3 h-0.5 bg-orange-500 rounded-full" />
-                                      <span className="text-gray-700 dark:text-gray-300">EMA 26</span>
-                                      {journalEmaValues.ema26 && (
-                                        <span className="text-orange-600 dark:text-orange-400 font-semibold">{journalEmaValues.ema26.toFixed(2)}</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Chart Container - Fills remaining space */}
+                              {/* Chart Container - Full Space */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="flex-1 w-full relative bg-white dark:bg-gray-800"
+                                className="flex-1 w-full relative bg-white dark:bg-gray-800 min-h-[300px]"
                                 data-testid="journal-tradingview-chart"
+                                style={{ height: '100%' }}
                               />
                               
                               {/* No Data Message */}
