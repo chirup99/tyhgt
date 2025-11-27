@@ -4439,8 +4439,11 @@ ${
           
           if (typeof candle.timestamp === 'string') {
             // If timestamp is a string (e.g., "2025-11-27 09:15"), parse it as IST
+            // IST is UTC+5:30, so add 5.5 hours to browser local time interpretation
             const date = new Date(candle.timestamp);
-            unixSeconds = Math.floor(date.getTime() / 1000);
+            const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+            const utcTime = date.getTime() - (date.getTimezoneOffset() * 60 * 1000) + istOffset;
+            unixSeconds = Math.floor(utcTime / 1000);
           } else if (candle.timestamp > 10000000000) {
             // Timestamp is in milliseconds (> 10 billion)
             unixSeconds = Math.floor(candle.timestamp / 1000);

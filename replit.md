@@ -24,11 +24,12 @@ Fixed and completed the Trading Journal TradingView-style candlestick chart:
 **Fixes Applied:**
 1. **Connection Check**: Added Angel One connection status verification before fetching chart data (prevents 401 errors)
 2. **Tab Name Fix**: Fixed activeTab condition from 'trading-journal' to 'journal' for proper chart rendering
-3. **Timezone Handling**: Implemented proper IST timestamp conversion for Angel One API data:
-   - Handles string timestamps (e.g., "2025-11-27 09:15")
-   - Handles milliseconds (>10 billion) 
-   - Handles seconds format
-   - Converts to Unix seconds for lightweight-charts library
+3. **IST Timezone Handling**: Implemented proper IST (UTC+5:30) timestamp conversion for Angel One API data:
+   - Handles string timestamps (e.g., "2025-11-27 09:15") by applying IST offset correction
+   - Handles milliseconds (>10 billion) by converting to seconds
+   - Handles seconds format directly
+   - Accounts for browser timezone offset and applies IST (+5:30) for correct display
+   - Converts to Unix seconds for lightweight-charts library compatibility
 
 **Data Transformation:**
 Uses exact same logic as Visual Chart window - converts Angel One OHLC data to lightweight-charts format with:
