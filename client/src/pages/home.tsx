@@ -4246,6 +4246,7 @@ ${
   const journalEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const journalEma26SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const journalVolumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const journalPriceLineRef = useRef<IPriceLine | null>(null);
   
   // EMA values for display in header
   const [journalEmaValues, setJournalEmaValues] = useState<{ ema12: number | null; ema26: number | null }>({ ema12: null, ema26: null });
@@ -4547,7 +4548,7 @@ ${
           isMarketOpen: data.isMarketOpen
         });
 
-        // Update chart with live candle data if chart exists
+        // Update chart with live candle data if chart exists and valid
         if (journalCandlestickSeriesRef.current && data.currentCandle && data.ltp > 0) {
           const liveCandle = {
             time: data.currentCandle.time as any,
@@ -4559,6 +4560,34 @@ ${
           
           // Update the last bar in the series
           journalCandlestickSeriesRef.current.update(liveCandle);
+          
+          // Update volume if available
+          if (journalVolumeSeriesRef.current && data.currentCandle.volume) {
+            journalVolumeSeriesRef.current.update({
+              time: data.currentCandle.time as any,
+              value: data.currentCandle.volume,
+              color: data.currentCandle.close >= data.currentCandle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)'
+            });
+          }
+          
+          // Update price line with countdown
+          if (journalCandlestickSeriesRef.current) {
+            try {
+              if (journalPriceLineRef.current) {
+                journalCandlestickSeriesRef.current.removePriceLine(journalPriceLineRef.current);
+              }
+              journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
+                price: data.ltp,
+                color: '#9333ea',
+                lineWidth: 2,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `${data.countdown.formatted}`
+              });
+            } catch (err) {
+              console.debug('🔴 [CHART] Price line:', err);
+            }
+          }
         }
       } catch (err) {
         console.debug('🔴 [SSE] Parse error:', err);
@@ -9878,13 +9907,21 @@ ${
                                   Angel One
                                 </span>
 
-                                {/* Live Streaming Status & Countdown */}
+                                {/* Live Streaming Status & OHLC Data */}
                                 {isJournalStreaming && journalLiveData && (
                                   <>
                                     {/* Live Status Indicator */}
                                     <div className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-medium rounded animate-pulse">
                                       <div className="w-2 h-2 bg-red-500 rounded-full" />
-                                      LIVE
+                                      LIVE (700ms)
+                                    </div>
+                                    
+                                    {/* OHLC Data Display */}
+                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 text-xs font-mono rounded border border-indigo-200 dark:border-indigo-800">
+                                      <span>O: {journalLiveData.currentCandle.open.toFixed(2)}</span>
+                                      <span>H: {journalLiveData.currentCandle.high.toFixed(2)}</span>
+                                      <span>L: {journalLiveData.currentCandle.low.toFixed(2)}</span>
+                                      <span className="font-bold text-indigo-900 dark:text-indigo-200">C: {journalLiveData.currentCandle.close.toFixed(2)}</span>
                                     </div>
                                     
                                     {/* LTP Display */}

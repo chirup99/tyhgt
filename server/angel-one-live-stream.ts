@@ -186,10 +186,10 @@ class AngelOneLiveStream {
 
     console.log(`🔴 [POLL] Starting polling for ${candleKey}`);
 
-    // Poll every 1 second for live updates
+    // Poll every 700ms for live OHLC updates
     const pollInterval = setInterval(async () => {
       await this.fetchAndBroadcast(symbol, symbolToken, exchange, interval);
-    }, 1000);
+    }, 700);
 
     this.pollingIntervals.set(candleKey, pollInterval);
 
