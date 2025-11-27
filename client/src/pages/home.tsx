@@ -10327,13 +10327,16 @@ ${
                             {/* TradingView Light Theme Chart Container - Clean */}
                             <div className="flex-1 relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                               {journalChartLoading && (
-                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg">
-                                  <div className="flex flex-col items-center gap-3">
+                                <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
+                                  <div className="flex flex-col items-center gap-4">
                                     <div className="relative">
-                                      <div className="w-12 h-12 border-4 border-orange-500/30 rounded-full" />
-                                      <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />
+                                      <div className="w-14 h-14 border-4 border-orange-500/20 rounded-full" />
+                                      <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-orange-500 border-r-orange-500 rounded-full animate-spin" />
                                     </div>
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">Loading chart data...</span>
+                                    <div className="text-center">
+                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Loading chart data...</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching candles from Angel One API</p>
+                                    </div>
                                   </div>
                                 </div>
                               )}
