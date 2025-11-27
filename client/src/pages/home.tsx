@@ -4199,6 +4199,50 @@ ${
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   
+  // Default popular instruments for each category (pre-populated)
+  const defaultInstruments = {
+    all: [
+      { symbol: 'RELIANCE-EQ', name: 'Reliance Industries', token: '2885', exchange: 'NSE', instrumentType: '', displayName: 'RELIANCE', tradingSymbol: 'RELIANCE-EQ' },
+      { symbol: 'TCS-EQ', name: 'Tata Consultancy Services', token: '11536', exchange: 'NSE', instrumentType: '', displayName: 'TCS', tradingSymbol: 'TCS-EQ' },
+      { symbol: 'INFY-EQ', name: 'Infosys Limited', token: '1594', exchange: 'NSE', instrumentType: '', displayName: 'INFY', tradingSymbol: 'INFY-EQ' },
+      { symbol: 'HDFCBANK-EQ', name: 'HDFC Bank', token: '1333', exchange: 'NSE', instrumentType: '', displayName: 'HDFCBANK', tradingSymbol: 'HDFCBANK-EQ' },
+      { symbol: 'GOLD', name: 'Gold', token: '66745', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'GOLD', tradingSymbol: 'GOLD' },
+      { symbol: 'Nifty 50', name: 'Nifty 50 Index', token: '99926000', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY 50', tradingSymbol: 'Nifty 50' },
+    ],
+    stock: [
+      { symbol: 'RELIANCE-EQ', name: 'Reliance Industries', token: '2885', exchange: 'NSE', instrumentType: '', displayName: 'RELIANCE', tradingSymbol: 'RELIANCE-EQ' },
+      { symbol: 'TCS-EQ', name: 'Tata Consultancy Services', token: '11536', exchange: 'NSE', instrumentType: '', displayName: 'TCS', tradingSymbol: 'TCS-EQ' },
+      { symbol: 'INFY-EQ', name: 'Infosys Limited', token: '1594', exchange: 'NSE', instrumentType: '', displayName: 'INFY', tradingSymbol: 'INFY-EQ' },
+      { symbol: 'HDFCBANK-EQ', name: 'HDFC Bank', token: '1333', exchange: 'NSE', instrumentType: '', displayName: 'HDFCBANK', tradingSymbol: 'HDFCBANK-EQ' },
+      { symbol: 'ICICIBANK-EQ', name: 'ICICI Bank', token: '4963', exchange: 'NSE', instrumentType: '', displayName: 'ICICIBANK', tradingSymbol: 'ICICIBANK-EQ' },
+      { symbol: 'SBIN-EQ', name: 'State Bank of India', token: '3045', exchange: 'NSE', instrumentType: '', displayName: 'SBIN', tradingSymbol: 'SBIN-EQ' },
+      { symbol: 'BHARTIARTL-EQ', name: 'Bharti Airtel', token: '10604', exchange: 'NSE', instrumentType: '', displayName: 'BHARTIARTL', tradingSymbol: 'BHARTIARTL-EQ' },
+      { symbol: 'KOTAKBANK-EQ', name: 'Kotak Mahindra Bank', token: '1922', exchange: 'NSE', instrumentType: '', displayName: 'KOTAKBANK', tradingSymbol: 'KOTAKBANK-EQ' },
+    ],
+    commodity: [
+      { symbol: 'GOLD', name: 'Gold', token: '66745', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'GOLD', tradingSymbol: 'GOLD' },
+      { symbol: 'SILVER', name: 'Silver', token: '66746', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'SILVER', tradingSymbol: 'SILVER' },
+      { symbol: 'CRUDEOIL', name: 'Crude Oil', token: '66747', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'CRUDEOIL', tradingSymbol: 'CRUDEOIL' },
+      { symbol: 'NATURALGAS', name: 'Natural Gas', token: '66748', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'NATURALGAS', tradingSymbol: 'NATURALGAS' },
+      { symbol: 'COPPER', name: 'Copper', token: '66749', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'COPPER', tradingSymbol: 'COPPER' },
+      { symbol: 'ALUMINIUM', name: 'Aluminium', token: '66750', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'ALUMINIUM', tradingSymbol: 'ALUMINIUM' },
+    ],
+    fo: [
+      { symbol: 'NIFTY25DECFUT', name: 'Nifty Dec Futures', token: '35001', exchange: 'NFO', instrumentType: 'FUTIDX', displayName: 'NIFTY FUT', tradingSymbol: 'NIFTY25DECFUT' },
+      { symbol: 'BANKNIFTY25DECFUT', name: 'Bank Nifty Dec Futures', token: '35002', exchange: 'NFO', instrumentType: 'FUTIDX', displayName: 'BANKNIFTY FUT', tradingSymbol: 'BANKNIFTY25DECFUT' },
+      { symbol: 'RELIANCE25DECFUT', name: 'Reliance Dec Futures', token: '35003', exchange: 'NFO', instrumentType: 'FUTSTK', displayName: 'RELIANCE FUT', tradingSymbol: 'RELIANCE25DECFUT' },
+      { symbol: 'TCS25DECFUT', name: 'TCS Dec Futures', token: '35004', exchange: 'NFO', instrumentType: 'FUTSTK', displayName: 'TCS FUT', tradingSymbol: 'TCS25DECFUT' },
+    ],
+    index: [
+      { symbol: 'Nifty 50', name: 'Nifty 50 Index', token: '99926000', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY 50', tradingSymbol: 'Nifty 50' },
+      { symbol: 'Nifty Bank', name: 'Nifty Bank Index', token: '99926009', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'BANK NIFTY', tradingSymbol: 'Nifty Bank' },
+      { symbol: 'Nifty IT', name: 'Nifty IT Index', token: '99926013', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY IT', tradingSymbol: 'Nifty IT' },
+      { symbol: 'NIFTY NEXT 50', name: 'Nifty Next 50 Index', token: '99926001', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY NEXT 50', tradingSymbol: 'NIFTY NEXT 50' },
+      { symbol: 'Nifty Midcap 50', name: 'Nifty Midcap 50 Index', token: '99926027', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY MIDCAP', tradingSymbol: 'Nifty Midcap 50' },
+      { symbol: 'INDIA VIX', name: 'India VIX', token: '99926004', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'INDIA VIX', tradingSymbol: 'INDIA VIX' },
+    ],
+  };
+  
   // Dynamic instrument search state
   const [searchedInstruments, setSearchedInstruments] = useState<Array<{
     symbol: string;
@@ -9952,11 +9996,62 @@ ${
                                           </div>
                                         )}
                                         
-                                        {/* Prompt to search */}
+                                        {/* Default Popular Instruments - Show when no search query */}
                                         {stockSearchQuery.length < 2 && (
-                                          <div className="px-3 py-4 text-center text-sm text-gray-500">
-                                            Type at least 2 characters to search
-                                          </div>
+                                          <>
+                                            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                              Popular {selectedInstrumentCategory !== 'all' ? selectedInstrumentCategory.charAt(0).toUpperCase() + selectedInstrumentCategory.slice(1) : ''} Instruments
+                                            </div>
+                                            {(defaultInstruments[selectedInstrumentCategory as keyof typeof defaultInstruments] || defaultInstruments.all).map((instrument) => (
+                                              <button
+                                                key={`default-${instrument.exchange}:${instrument.symbol}`}
+                                                onClick={() => {
+                                                  const formattedSymbol = `${instrument.exchange}:${instrument.symbol}`;
+                                                  setSelectedJournalSymbol(formattedSymbol);
+                                                  setSelectedInstrument({
+                                                    symbol: instrument.symbol,
+                                                    token: instrument.token,
+                                                    exchange: instrument.exchange,
+                                                    tradingSymbol: instrument.tradingSymbol
+                                                  });
+                                                  setShowStockSearch(false);
+                                                  setStockSearchQuery("");
+                                                }}
+                                                className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                                  selectedJournalSymbol === `${instrument.exchange}:${instrument.symbol}`
+                                                    ? "bg-blue-100 dark:bg-blue-900 font-medium"
+                                                    : ""
+                                                }`}
+                                                data-testid={`default-stock-${instrument.exchange}:${instrument.symbol}`}
+                                              >
+                                                <div className="flex items-center justify-between gap-2">
+                                                  <span className="flex-1 font-medium">{instrument.name}</span>
+                                                  <div className="flex items-center gap-1">
+                                                    <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${
+                                                      instrument.exchange === 'NSE' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
+                                                      instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
+                                                      instrument.exchange === 'MCX' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
+                                                      instrument.exchange === 'NFO' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                                                      'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                                    }`}>
+                                                      {instrument.exchange}
+                                                    </span>
+                                                    {instrument.instrumentType && (
+                                                      <span className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                                                        {instrument.instrumentType}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                  {instrument.symbol}
+                                                </div>
+                                              </button>
+                                            ))}
+                                            <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 mt-1">
+                                              Or type to search more instruments...
+                                            </div>
+                                          </>
                                         )}
                                         
                                         {/* Search Results */}
