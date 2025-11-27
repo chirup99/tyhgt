@@ -174,6 +174,7 @@ import {
   Settings,
   Filter,
   Radar,
+  Loader2,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -4234,6 +4235,50 @@ ${
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState([]);
+  const [journalChartLoading, setJournalChartLoading] = useState(false);
+
+  // Angel One Stock Token Mapping for Journal Chart
+  const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
+    'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
+    'SENSEX': { token: '99919000', exchange: 'BSE', tradingSymbol: 'SENSEX' },
+    'BANKNIFTY': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+    'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
+    'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
+    'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
+    'INFY': { token: '1594', exchange: 'NSE', tradingSymbol: 'INFY-EQ' },
+    'ICICIBANK': { token: '4963', exchange: 'NSE', tradingSymbol: 'ICICIBANK-EQ' },
+    'SBIN': { token: '3045', exchange: 'NSE', tradingSymbol: 'SBIN-EQ' },
+    'BHARTIARTL': { token: '10604', exchange: 'NSE', tradingSymbol: 'BHARTIARTL-EQ' },
+    'ITC': { token: '1660', exchange: 'NSE', tradingSymbol: 'ITC-EQ' },
+    'KOTAKBANK': { token: '1922', exchange: 'NSE', tradingSymbol: 'KOTAKBANK-EQ' },
+    'LT': { token: '11483', exchange: 'NSE', tradingSymbol: 'LT-EQ' },
+    'AXISBANK': { token: '5900', exchange: 'NSE', tradingSymbol: 'AXISBANK-EQ' },
+    'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
+  };
+
+  // Convert NSE symbol format to Angel One format
+  const getJournalAngelOneSymbol = (symbol: string): string => {
+    const cleanSymbol = symbol
+      .replace("NSE:", "")
+      .replace("-EQ", "")
+      .replace("-INDEX", "");
+    return cleanSymbol;
+  };
+
+  // Convert interval to Angel One format
+  const getJournalAngelOneInterval = (interval: string): string => {
+    const intervalMap: { [key: string]: string } = {
+      '1': 'ONE_MINUTE',
+      '3': 'THREE_MINUTE',
+      '5': 'FIVE_MINUTE',
+      '10': 'TEN_MINUTE',
+      '15': 'FIFTEEN_MINUTE',
+      '30': 'THIRTY_MINUTE',
+      '60': 'ONE_HOUR',
+      '1D': 'ONE_DAY',
+    };
+    return intervalMap[interval] || 'FIFTEEN_MINUTE';
+  };
 
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
   const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
@@ -4246,17 +4291,36 @@ ${
   // Mobile trade history dropdown state
   const [showMobileTradeHistory, setShowMobileTradeHistory] = useState(false);
 
-  // Function to fetch journal chart data
+  // Function to fetch journal chart data from Angel One API
   const fetchJournalChartData = useCallback(async () => {
     try {
+      setJournalChartLoading(true);
+      
+      // Convert symbol to Angel One format
+      const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+      const stockToken = journalAngelOneTokens[cleanSymbol];
+      
+      if (!stockToken) {
+        console.warn(`🔶 No Angel One token found for symbol: ${cleanSymbol}`);
+        setJournalChartData([]);
+        return;
+      }
+
+      // Calculate date range (from 9:15 AM to 3:30 PM for intraday)
+      const fromDate = `${selectedJournalDate} 09:15`;
+      const toDate = `${selectedJournalDate} 15:30`;
+      
       const requestBody = {
-        symbol: selectedJournalSymbol,
-        resolution: selectedJournalInterval,
-        range_from: selectedJournalDate,
-        range_to: selectedJournalDate,
+        exchange: stockToken.exchange,
+        symbolToken: stockToken.token,
+        interval: getJournalAngelOneInterval(selectedJournalInterval),
+        fromDate: fromDate,
+        toDate: toDate,
       };
 
-      const response = await fetch(getFullApiUrl("/api/historical-data"), {
+      console.log('🔶 Fetching Angel One historical data for journal chart:', requestBody);
+
+      const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -4269,9 +4333,29 @@ ${
       }
 
       const data = await response.json();
-      setJournalChartData(data.candles || []);
+      
+      // Transform Angel One candle data to chart format
+      // Angel One returns: [timestamp, open, high, low, close, volume]
+      if (data.success && data.data && Array.isArray(data.data)) {
+        const transformedCandles = data.data.map((candle: any[]) => ({
+          time: new Date(candle[0]).getTime() / 1000,
+          open: parseFloat(candle[1]),
+          high: parseFloat(candle[2]),
+          low: parseFloat(candle[3]),
+          close: parseFloat(candle[4]),
+          volume: parseInt(candle[5]) || 0,
+        }));
+        console.log(`🔶 Angel One: Loaded ${transformedCandles.length} candles for journal chart`);
+        setJournalChartData(transformedCandles);
+      } else {
+        console.warn('🔶 Angel One: No candle data returned', data);
+        setJournalChartData([]);
+      }
     } catch (error) {
-      console.error("Error fetching journal chart data:", error);
+      console.error("🔶 Error fetching Angel One journal chart data:", error);
+      setJournalChartData([]);
+    } finally {
+      setJournalChartLoading(false);
     }
   }, [selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
 
@@ -9340,20 +9424,38 @@ ${
                                   <option value="30">30m</option>
                                 </select>
 
-                                {/* Fetch Button - Icon Only */}
+                                {/* Fetch Button - Icon Only with Loading State */}
                                 <Button
                                   size="sm"
                                   onClick={fetchJournalChartData}
-                                  className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
+                                  disabled={journalChartLoading}
+                                  className="bg-orange-600 hover:bg-orange-700 text-white h-8 w-8 p-0"
                                   data-testid="button-fetch-chart"
                                 >
-                                  <Check className="h-4 w-4" />
+                                  {journalChartLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Check className="h-4 w-4" />
+                                  )}
                                 </Button>
+
+                                {/* Angel One API Badge */}
+                                <span className="hidden md:flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded">
+                                  Angel One
+                                </span>
                               </div>
                             </div>
 
                             {/* Visual Chart Window - Full Width No Padding */}
                             <div className="flex-1 relative -mx-0">
+                              {journalChartLoading && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 z-10 rounded-lg">
+                                  <div className="flex items-center gap-2 text-white">
+                                    <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                                    <span className="text-sm">Loading from Angel One...</span>
+                                  </div>
+                                </div>
+                              )}
                               <MinimalChart
                                 height={350}
                                 ohlcData={journalChartData}
@@ -9804,6 +9906,16 @@ ${
                               >
                                 <Upload className="h-4 w-4 mr-2" />
                                 Import
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowPaperTradingModal(true)}
+                                className="h-8 px-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400"
+                                data-testid="button-demo-trade-mobile"
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Demo
                               </Button>
                             </div>
                             <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
