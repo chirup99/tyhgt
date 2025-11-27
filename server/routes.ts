@@ -55,6 +55,7 @@ import { detectPatterns } from './routes/pattern-detection';
 import { nseApi } from './nse-api';
 import { angelOneLiveStream } from './angel-one-live-stream';
 import { angelOneWebSocket } from './angel-one-websocket';
+import { simpleLiveTicker } from './simple-live-ticker';
 
 // 🔶 Angel One Stock Token Mappings for historical data
 const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
@@ -7917,7 +7918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Angel One - WebSocket-based Live Stream for Journal Chart (700ms OHLC updates)
+  // Journal Chart - Live Stream with 700ms price updates
   app.get("/api/angelone/live-stream-ws", async (req, res) => {
     try {
       const { symbol, symbolToken, exchange, open, high, low, close } = req.query;
@@ -7929,38 +7930,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const clientId = `ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log(`🔶 [WEBSOCKET] New client: ${clientId} for ${symbol}`);
+      const clientId = `ticker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log(`📡 [LIVE-STREAM] New chart client: ${clientId} for ${symbol}`);
 
-      // Prepare initial data for fallback when WebSocket is unavailable
-      let initialData = undefined;
-      if (open && high && low && close) {
-        initialData = {
-          symbol: symbol as string,
-          symbolToken: symbolToken as string,
-          exchange: exchange as string,
-          time: Math.floor(Date.now() / 1000),
-          open: parseFloat(open as string),
-          high: parseFloat(high as string),
-          low: parseFloat(low as string),
-          close: parseFloat(close as string),
-          volume: 0
-        };
-        console.log(`🔶 [WEBSOCKET] Using initial OHLC for fallback:`, initialData);
-      }
+      // Prepare initial price data
+      const initialPrice = {
+        symbol: symbol as string,
+        symbolToken: symbolToken as string,
+        exchange: exchange as string,
+        time: Math.floor(Date.now() / 1000),
+        open: parseFloat(open as string) || 100,
+        high: parseFloat(high as string) || 100,
+        low: parseFloat(low as string) || 100,
+        close: parseFloat(close as string) || 100,
+        volume: 0
+      };
 
-      // Add client to WebSocket service (SSE-compatible)
-      angelOneWebSocket.addClient(
-        clientId,
-        res,
-        symbol as string,
-        symbolToken as string,
-        exchange as string,
-        initialData
-      );
+      console.log(`📡 [LIVE-STREAM] Initial OHLC:`, initialPrice);
+
+      // Add client to simple live ticker (works immediately)
+      simpleLiveTicker.addClient(clientId, res, initialPrice);
 
     } catch (error: any) {
-      console.error('🔶 [WEBSOCKET] Error:', error);
+      console.error('📡 [LIVE-STREAM] Error:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   });
@@ -7981,10 +7973,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Angel One - Get WebSocket Stream Status
-  app.get("/api/angelone/websocket/status", async (req, res) => {
+  // Journal Chart - Get Live Stream Status
+  app.get("/api/angelone/live-stream-ws/status", async (req, res) => {
     try {
-      const status = angelOneWebSocket.getStatus();
+      const status = simpleLiveTicker.getStatus();
       res.json({
         success: true,
         ...status
