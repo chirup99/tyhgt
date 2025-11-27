@@ -10,6 +10,44 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## November 27, 2025 - Dynamic Instrument Search Across All Exchanges
+
+Implemented comprehensive dynamic instrument search replacing hardcoded 18-stock dropdown with access to 10,000+ instruments from Angel One's master file:
+
+**Backend API** (`server/routes.ts`):
+- New endpoint: `/api/angelone/search-instruments` (line 7858)
+- Fetches and caches Angel One's master JSON file (10,000+ instruments across NSE, BSE, MCX)
+- Smart caching: 24-hour duration to minimize API calls
+- Query parameters: `query` (search text), `exchange` (NSE/BSE/MCX filter), `limit` (max results)
+- Returns complete instrument metadata: token, symbol, type, lot size, tick size, etc.
+
+**Frontend Search UI** (`client/src/pages/home.tsx`):
+- Replaced hardcoded dropdown with live search functionality
+- Debounced search (300ms) to reduce API load while typing
+- Color-coded exchange badges (NSE=blue, BSE=purple, MCX=orange)
+- Instrument type labels (EQ, INDEX, FUTCOM, OPTIDX, OPTSTK, OPTFUT)
+- Shows trading symbol below name if different
+- Loading spinner during search
+
+**Chart Integration**:
+- Added `selectedInstrument` state to track user selections
+- Chart loading uses selected instrument's token/exchange/symbol
+- Live streaming updated to use selected instrument data
+- Backward compatibility: Falls back to hardcoded `journalAngelOneTokens` when no selection
+- Auto-refetch when new instrument selected
+
+**Supported Instruments**:
+- NSE/BSE stocks (equity, preference shares)
+- Indices (NIFTY, BANKNIFTY, SENSEX, etc.)
+- Futures (FUTIDX, FUTCOM, FUTSTK)
+- Options (OPTIDX, OPTSTK, OPTFUT)
+- MCX commodities (GOLD, SILVER, CRUDEOIL, etc.)
+
+**Known Limitations**:
+- `selectedInstrument` state not persisted across page reloads (reverts to NIFTY50)
+- MCX commodity tokens need monthly updates as futures contracts expire
+- Angel One authentication required for live data (403 errors expected until connected)
+
 ## November 27, 2025 - Tick-by-Tick Live Candle Animation at 700ms
 
 Completed fully animated Trading Journal chart with live price movement:
