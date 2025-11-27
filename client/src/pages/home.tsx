@@ -11190,7 +11190,7 @@ ${
 
                         {/* ✅ NEW CLEAN HEATMAP IMPLEMENTATION - Separate components for Demo & Personal */}
                         <div className="relative">
-                         <div ref={heatmapContainerRef} className="pt-2">
+                         <div ref={heatmapContainerRef} className="pt-0.5">
                           {isDemoMode ? (
                             <DemoHeatmap 
                               onDateSelect={handleDateSelect}
