@@ -4570,16 +4570,10 @@ ${
     // Get the last candle from chart data for initial OHLC values
     const lastCandle = journalChartData[journalChartData.length - 1];
     
-    // Start new WebSocket SSE connection with initial chart data for fallback
-    let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}`);
+    // Start new WebSocket SSE connection with REAL Angel One market data
+    let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}`);
     
-    // Add initial OHLC data for fallback when API is unavailable
-    if (lastCandle && lastCandle.close > 0) {
-      sseUrl += `&open=${lastCandle.open}&high=${lastCandle.high}&low=${lastCandle.low}&close=${lastCandle.close}`;
-      console.log('📡 [SSE] Connecting with initial OHLC:', { open: lastCandle.open, high: lastCandle.high, low: lastCandle.low, close: lastCandle.close });
-    }
-    
-    console.log('📡 [SSE] Connecting for live prices at 700ms intervals');
+    console.log('📡 [SSE] Connecting for REAL Angel One market data at 700ms intervals');
     
     const eventSource = new EventSource(sseUrl);
     journalEventSourceRef.current = eventSource;

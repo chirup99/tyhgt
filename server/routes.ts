@@ -56,6 +56,7 @@ import { nseApi } from './nse-api';
 import { angelOneLiveStream } from './angel-one-live-stream';
 import { angelOneWebSocket } from './angel-one-websocket';
 import { simpleLiveTicker } from './simple-live-ticker';
+import { angelOneRealTicker } from './angel-one-real-ticker';
 
 // 🔶 Angel One Stock Token Mappings for historical data
 const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
@@ -7918,10 +7919,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Journal Chart - Live Stream with 700ms price updates
+  // Journal Chart - Live Stream with 700ms real Angel One price updates
   app.get("/api/angelone/live-stream-ws", async (req, res) => {
     try {
-      const { symbol, symbolToken, exchange, open, high, low, close } = req.query;
+      const { symbol, symbolToken, exchange, tradingSymbol } = req.query;
       
       if (!symbol || !symbolToken || !exchange) {
         return res.status(400).json({
@@ -7931,25 +7932,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const clientId = `ticker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log(`📡 [LIVE-STREAM] New chart client: ${clientId} for ${symbol}`);
+      console.log(`📡 [LIVE-STREAM] New chart client: ${clientId} for ${symbol} (Real Angel One data)`);
 
-      // Prepare initial price data
-      const initialPrice = {
-        symbol: symbol as string,
-        symbolToken: symbolToken as string,
-        exchange: exchange as string,
-        time: Math.floor(Date.now() / 1000),
-        open: parseFloat(open as string) || 100,
-        high: parseFloat(high as string) || 100,
-        low: parseFloat(low as string) || 100,
-        close: parseFloat(close as string) || 100,
-        volume: 0
-      };
-
-      console.log(`📡 [LIVE-STREAM] Initial OHLC:`, initialPrice);
-
-      // Add client to simple live ticker (works immediately)
-      simpleLiveTicker.addClient(clientId, res, initialPrice);
+      // Add client to real Angel One ticker (fetches real market data every 700ms)
+      angelOneRealTicker.addClient(
+        clientId,
+        res,
+        symbol as string,
+        symbolToken as string,
+        exchange as string,
+        tradingSymbol as string || symbol as string
+      );
 
     } catch (error: any) {
       console.error('📡 [LIVE-STREAM] Error:', error);
@@ -7973,10 +7966,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Journal Chart - Get Live Stream Status
+  // Journal Chart - Get Live Stream Status (Real Angel One)
   app.get("/api/angelone/live-stream-ws/status", async (req, res) => {
     try {
-      const status = simpleLiveTicker.getStatus();
+      const status = angelOneRealTicker.getStatus();
       res.json({
         success: true,
         ...status
