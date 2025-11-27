@@ -4515,25 +4515,25 @@ ${
       
       const chart = createChart(journalChartContainerRef.current, {
         layout: {
-          background: { type: ColorType.Solid, color: '#131722' },
-          textColor: '#d1d4dc',
+          background: { type: ColorType.Solid, color: '#ffffff' },
+          textColor: '#1f2937',
         },
         grid: {
-          vertLines: { color: '#1e222d', style: 1 },
-          horzLines: { color: '#1e222d', style: 1 },
+          vertLines: { color: '#f3f4f6', style: 1 },
+          horzLines: { color: '#f3f4f6', style: 1 },
         },
         crosshair: {
           mode: 1,
-          vertLine: { color: '#758696', width: 1, style: 2, labelBackgroundColor: '#2B2B43' },
-          horzLine: { color: '#758696', width: 1, style: 2, labelBackgroundColor: '#2B2B43' },
+          vertLine: { color: '#9ca3af', width: 1, style: 2, labelBackgroundColor: '#f3f4f6' },
+          horzLine: { color: '#9ca3af', width: 1, style: 2, labelBackgroundColor: '#f3f4f6' },
         },
         rightPriceScale: {
-          borderColor: '#2B2B43',
+          borderColor: '#e5e7eb',
           scaleMargins: { top: 0.05, bottom: 0.2 },
           autoScale: true,
         },
         timeScale: {
-          borderColor: '#2B2B43',
+          borderColor: '#e5e7eb',
           timeVisible: true,
           secondsVisible: false,
           barSpacing: 8,
@@ -9736,30 +9736,30 @@ ${
                               </div>
                             </div>
 
-                            {/* TradingView-Style Candlestick Chart */}
-                            <div className="flex-1 relative flex flex-col h-full">
+                            {/* TradingView Light Theme Chart Container */}
+                            <div className="flex-1 relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                               {journalChartLoading && (
-                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#131722]/90 rounded-lg backdrop-blur-sm">
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg">
                                   <div className="flex flex-col items-center gap-3">
                                     <div className="relative">
                                       <div className="w-12 h-12 border-4 border-orange-500/30 rounded-full" />
                                       <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />
                                     </div>
-                                    <span className="text-sm text-[#d1d4dc]">Loading from Angel One...</span>
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Loading from Angel One...</span>
                                   </div>
                                 </div>
                               )}
                               
-                              {/* Professional Chart Header with Symbol Info - TradingView Style */}
-                              <div className="bg-[#131722] rounded-t-lg border-x border-t border-[#2B2B43] px-3 py-2 flex-shrink-0">
-                                <div className="flex flex-col gap-1">
-                                  {/* Top Row: Symbol and OHLC */}
-                                  <div className="flex items-center justify-between flex-wrap gap-2">
-                                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                                      <span className="text-white font-semibold text-sm md:text-base">
+                              {/* Chart Header with Symbol Info - Light Theme */}
+                              <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex-shrink-0">
+                                <div className="flex flex-col gap-2">
+                                  {/* Top Row: Symbol, Timeframe, OHLC */}
+                                  <div className="flex items-center justify-between flex-wrap gap-3">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                      <span className="text-gray-900 dark:text-white font-semibold text-base">
                                         {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
                                       </span>
-                                      <span className="text-[#787B86] text-xs">
+                                      <span className="text-gray-500 dark:text-gray-400 text-sm">
                                         {selectedJournalInterval === '1' ? '1m' : 
                                          selectedJournalInterval === '5' ? '5m' :
                                          selectedJournalInterval === '15' ? '15m' :
@@ -9770,19 +9770,19 @@ ${
                                       </span>
                                       {journalChartData && journalChartData.length > 0 && (
                                         <>
-                                          <span className="text-[#787B86] text-xs hidden md:inline">|</span>
-                                          <div className="flex items-center gap-2 md:gap-3 text-xs">
-                                            <span className="text-[#787B86]">
-                                              O<span className="text-white ml-1 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.open?.toFixed(2)}</span>
+                                          <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
+                                          <div className="flex items-center gap-3 text-sm">
+                                            <span className="text-gray-600 dark:text-gray-400">
+                                              O<span className="text-gray-900 dark:text-white ml-1.5 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.open?.toFixed(2)}</span>
                                             </span>
-                                            <span className="text-[#787B86]">
-                                              H<span className="text-[#26a69a] ml-1 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.high?.toFixed(2)}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">
+                                              H<span className="text-green-600 dark:text-green-400 ml-1.5 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.high?.toFixed(2)}</span>
                                             </span>
-                                            <span className="text-[#787B86]">
-                                              L<span className="text-[#ef5350] ml-1 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.low?.toFixed(2)}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">
+                                              L<span className="text-red-600 dark:text-red-400 ml-1.5 font-medium">{(journalChartData[journalChartData.length - 1] as any)?.low?.toFixed(2)}</span>
                                             </span>
-                                            <span className="text-[#787B86]">
-                                              C<span className={`ml-1 font-medium ${(journalChartData[journalChartData.length - 1] as any)?.close >= (journalChartData[journalChartData.length - 1] as any)?.open ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>{(journalChartData[journalChartData.length - 1] as any)?.close?.toFixed(2)}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">
+                                              C<span className={`ml-1.5 font-medium ${(journalChartData[journalChartData.length - 1] as any)?.close >= (journalChartData[journalChartData.length - 1] as any)?.open ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{(journalChartData[journalChartData.length - 1] as any)?.close?.toFixed(2)}</span>
                                             </span>
                                             {(() => {
                                               const lastCandle = journalChartData[journalChartData.length - 1] as any;
@@ -9792,7 +9792,7 @@ ${
                                                 const changePercent = ((change / firstCandle.open) * 100);
                                                 const isPositive = change >= 0;
                                                 return (
-                                                  <span className={`font-medium ${isPositive ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
+                                                  <span className={`font-medium text-sm ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                                     {isPositive ? '+' : ''}{change.toFixed(2)} ({isPositive ? '+' : ''}{changePercent.toFixed(2)}%)
                                                   </span>
                                                 );
@@ -9805,20 +9805,20 @@ ${
                                     </div>
                                   </div>
                                   
-                                  {/* Bottom Row: EMA Indicators with Values */}
-                                  <div className="flex items-center gap-3 text-xs">
-                                    <div className="flex items-center gap-1">
-                                      <div className="w-3 h-0.5 bg-[#2196F3] rounded-full" />
-                                      <span className="text-[#2196F3]">EMA Cross 12 16</span>
+                                  {/* Bottom Row: EMA Indicators */}
+                                  <div className="flex items-center gap-4 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-3 h-0.5 bg-blue-500 rounded-full" />
+                                      <span className="text-gray-700 dark:text-gray-300">EMA 12</span>
                                       {journalEmaValues.ema12 && (
-                                        <span className="text-[#2196F3] font-medium ml-1">{journalEmaValues.ema12.toFixed(2)}</span>
+                                        <span className="text-blue-600 dark:text-blue-400 font-semibold">{journalEmaValues.ema12.toFixed(2)}</span>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                      <div className="w-3 h-0.5 bg-[#FF9800] rounded-full" />
-                                      <span className="text-[#FF9800]">EMA Cross 12 16</span>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-3 h-0.5 bg-orange-500 rounded-full" />
+                                      <span className="text-gray-700 dark:text-gray-300">EMA 26</span>
                                       {journalEmaValues.ema26 && (
-                                        <span className="text-[#FF9800] font-medium ml-1">{journalEmaValues.ema26.toFixed(2)}</span>
+                                        <span className="text-orange-600 dark:text-orange-400 font-semibold">{journalEmaValues.ema26.toFixed(2)}</span>
                                       )}
                                     </div>
                                   </div>
@@ -9828,19 +9828,19 @@ ${
                               {/* Chart Container - Fills remaining space */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="flex-1 w-full border-x border-b border-[#2B2B43] bg-[#131722] relative"
+                                className="flex-1 w-full relative bg-white dark:bg-gray-800"
                                 data-testid="journal-tradingview-chart"
                               />
                               
-                              {/* No Data Message - Professional Style */}
+                              {/* No Data Message */}
                               {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-[#131722] rounded-lg border border-[#2B2B43] pointer-events-none">
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                   <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#1e222d] flex items-center justify-center">
-                                      <BarChart3 className="h-8 w-8 text-[#787B86]" />
+                                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                      <BarChart3 className="h-8 w-8 text-gray-400 dark:text-gray-500" />
                                     </div>
-                                    <div className="text-[#d1d4dc] font-medium mb-1">No chart data loaded</div>
-                                    <div className="text-[#787B86] text-xs">Select a symbol and click the Fetch button to load data</div>
+                                    <div className="text-gray-900 dark:text-gray-100 font-medium mb-1">No chart data loaded</div>
+                                    <div className="text-gray-500 dark:text-gray-400 text-sm">Select a symbol and click the Fetch button to load data</div>
                                   </div>
                                 </div>
                               )}
