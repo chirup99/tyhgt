@@ -5378,6 +5378,18 @@ ${
     tag: string;
     dates: string[];
   } | null>(null);
+
+  // Stats customization state for purple panel
+  const [visibleStats, setVisibleStats] = useState({
+    pnl: true,
+    trend: true,
+    fomo: true,
+    winRate: true,
+    streak: true,
+    overtrading: false,
+    topTags: false,
+    aiAnalysis: false,
+  });
   
   // Refs for curved line connections from tag block to heatmap dates
   const fomoButtonRef = useRef<HTMLButtonElement>(null);
@@ -11349,7 +11361,9 @@ ${
                             let consecutiveWins = 0;
                             let maxWinStreak = 0;
                             const trendData: number[] = [];
-                            const fomoDates: string[] = []; // Track dates with FOMO tag
+                            const fomoDates: string[] = [];
+                            const tagStats: Record<string, any> = {};
+                            let overTradingCount = 0;
                             
                             dates.sort().forEach(dateKey => {
                               const dayData = filteredData[dateKey];
@@ -11363,18 +11377,23 @@ ${
                                 winningTrades += metrics.winningTrades || 0;
                                 trendData.push(netPnL);
                                 
-                                // ✅ Count FOMO trades with normalized tag matching
+                                // Count trades > 10 as overtrading
+                                if ((metrics.totalTrades || 0) > 10) {
+                                  overTradingCount++;
+                                }
+                                
                                 if (Array.isArray(tags) && tags.length > 0) {
-                                  // Normalize tags and check for FOMO (case-insensitive)
                                   const normalizedTags = tags.map((t: string) => t.trim().toLowerCase());
                                   if (normalizedTags.includes('fomo')) {
                                     fomoTrades++;
-                                    fomoDates.push(dateKey); // Track this date
+                                    fomoDates.push(dateKey);
                                   }
-                                  console.log(`📊 ${dateKey}: Tags: [${tags.join(', ')}] | Normalized: [${normalizedTags.join(', ')}] | FOMO count: ${fomoTrades}`);
+                                  // Track all tags
+                                  normalizedTags.forEach(tag => {
+                                    tagStats[tag] = (tagStats[tag] || 0) + 1;
+                                  });
                                 }
                                 
-                                // Calculate win streak
                                 if (netPnL > 0) {
                                   consecutiveWins++;
                                   maxWinStreak = Math.max(maxWinStreak, consecutiveWins);
@@ -11386,8 +11405,11 @@ ${
                             
                             const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
                             const isProfitable = totalPnL >= 0;
+                            const topTags = Object.entries(tagStats)
+                              .sort(([,a], [,b]) => b - a)
+                              .slice(0, 3)
+                              .map(([tag, count]) => ({ tag, count }));
                             
-                            // Create simple sparkline path
                             const createSparkline = (data: number[]) => {
                               if (data.length === 0) return '';
                               const max = Math.max(...data);
@@ -11395,87 +11417,134 @@ ${
                               const range = max - min || 1;
                               const width = 40;
                               const height = 16;
-                              
                               const points = data.map((val, i) => {
                                 const x = (i / (data.length - 1 || 1)) * width;
                                 const y = height - ((val - min) / range) * height;
                                 return `${x},${y}`;
                               }).join(' ');
-                              
                               return `M ${points.split(' ').join(' L ')}`;
                             };
                             
                             return (
-                              <div className="grid grid-cols-6 gap-2 text-white">
-                                {/* Total P&L */}
-                                <div className="flex flex-col items-center justify-center" data-testid="stat-total-pnl">
-                                  <div className="text-[10px] opacity-80">P&L</div>
-                                  <div className={`text-xs font-bold ${isProfitable ? 'text-green-200' : 'text-red-200'}`}>
-                                    {totalPnL >= 0 ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                              <div className="space-y-2">
+                                {/* Header row with stats and menu */}
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="grid grid-cols-5 gap-2 text-white flex-1">
+                                    {visibleStats.pnl && (
+                                      <div className="flex flex-col items-center justify-center" data-testid="stat-total-pnl">
+                                        <div className="text-[10px] opacity-80">P&L</div>
+                                        <div className={`text-xs font-bold ${isProfitable ? 'text-green-200' : 'text-red-200'}`}>
+                                          {totalPnL >= 0 ? '+' : ''}₹{(totalPnL / 1000).toFixed(1)}K
+                                        </div>
+                                      </div>
+                                    )}
+                                    {visibleStats.trend && (
+                                      <div className="flex flex-col items-center justify-center" data-testid="stat-trend">
+                                        <div className="text-[10px] opacity-80">Trend</div>
+                                        <svg width="40" height="16" className="mt-0.5">
+                                          <path d={createSparkline(trendData)} fill="none" stroke="white" strokeWidth="1.5" opacity="0.9" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                    {visibleStats.fomo && (
+                                      <button className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                                        activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                                      }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === 'fomo' ? null : { tag: 'fomo', dates: fomoDates })} data-testid="stat-fomo">
+                                        <div className="text-[10px] opacity-80">FOMO</div>
+                                        <div className="text-xs font-bold">{fomoTrades}</div>
+                                      </button>
+                                    )}
+                                    {visibleStats.winRate && (
+                                      <div className="flex flex-col items-center justify-center" data-testid="stat-success-rate">
+                                        <div className="text-[10px] opacity-80">Win%</div>
+                                        <div className="text-xs font-bold">{winRate.toFixed(0)}%</div>
+                                      </div>
+                                    )}
+                                    {visibleStats.streak && (
+                                      <div className="flex flex-col items-center justify-center" data-testid="stat-win-streak">
+                                        <div className="text-[10px] opacity-80">Streak</div>
+                                        <div className="text-xs font-bold">{maxWinStreak}</div>
+                                      </div>
+                                    )}
                                   </div>
+                                  
+                                  {/* 3-Dot Menu Button */}
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <button className="flex items-center justify-center w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors text-white" data-testid="button-stats-menu">
+                                        <MoreVertical className="w-4 h-4" />
+                                      </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-56 p-3 bg-slate-900 border-slate-700 text-slate-100">
+                                      <div className="space-y-2">
+                                        <div className="text-xs font-semibold text-slate-400 mb-2">Customize Stats</div>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.pnl} onChange={(e) => setVisibleStats({...visibleStats, pnl: e.target.checked})} className="rounded" />
+                                          P&L
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.trend} onChange={(e) => setVisibleStats({...visibleStats, trend: e.target.checked})} className="rounded" />
+                                          Trend
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.fomo} onChange={(e) => setVisibleStats({...visibleStats, fomo: e.target.checked})} className="rounded" />
+                                          FOMO
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.winRate} onChange={(e) => setVisibleStats({...visibleStats, winRate: e.target.checked})} className="rounded" />
+                                          Win Rate
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.streak} onChange={(e) => setVisibleStats({...visibleStats, streak: e.target.checked})} className="rounded" />
+                                          Streak
+                                        </label>
+                                        <div className="border-t border-slate-700 my-2"></div>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.overtrading} onChange={(e) => setVisibleStats({...visibleStats, overtrading: e.target.checked})} className="rounded" />
+                                          Overtrading
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.topTags} onChange={(e) => setVisibleStats({...visibleStats, topTags: e.target.checked})} className="rounded" />
+                                          Top Tags
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-slate-800/50 p-1.5 rounded">
+                                          <input type="checkbox" checked={visibleStats.aiAnalysis} onChange={(e) => setVisibleStats({...visibleStats, aiAnalysis: e.target.checked})} className="rounded" />
+                                          AI Analysis
+                                        </label>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
                                 </div>
                                 
-                                {/* Performance Trend */}
-                                <div className="flex flex-col items-center justify-center" data-testid="stat-trend">
-                                  <div className="text-[10px] opacity-80">Trend</div>
-                                  <svg width="40" height="16" className="mt-0.5">
-                                    <path
-                                      d={createSparkline(trendData)}
-                                      fill="none"
-                                      stroke="white"
-                                      strokeWidth="1.5"
-                                      opacity="0.9"
-                                    />
-                                  </svg>
-                                </div>
+                                {/* Additional Stats Blocks */}
+                                {visibleStats.overtrading && (
+                                  <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
+                                    <span className="opacity-80">Overtrading Days: </span>
+                                    <span className="font-semibold text-orange-200">{overTradingCount}</span>
+                                  </div>
+                                )}
                                 
-                                {/* FOMO Trades - Clickable to highlight dates */}
-                                <button 
-                                  ref={fomoButtonRef}
-                                  className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
-                                    activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
-                                  }`}
-                                  onClick={() => {
-                                    if (activeTagHighlight?.tag === 'fomo') {
-                                      // Toggle off if already active
-                                      setActiveTagHighlight(null);
-                                      console.log('📍 Deactivated FOMO tag highlighting');
-                                    } else {
-                                      // Activate FOMO highlighting
-                                      setActiveTagHighlight({ tag: 'fomo', dates: fomoDates });
-                                      console.log(`📍 Activated FOMO tag highlighting for ${fomoDates.length} dates:`, fomoDates);
-                                    }
-                                  }}
-                                  data-testid="stat-fomo"
-                                  title={`Click to ${activeTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
-                                >
-                                  <div className="text-[10px] opacity-80">FOMO</div>
-                                  <div className="text-xs font-bold">{fomoTrades}</div>
-                                </button>
+                                {visibleStats.topTags && topTags.length > 0 && (
+                                  <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
+                                    <div className="opacity-80 mb-1">Top Tags:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {topTags.map(({tag, count}) => (
+                                        <span key={tag} className="bg-white/20 px-2 py-0.5 rounded text-xs">
+                                          {tag} <span className="text-white/60">({count})</span>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                                 
-                                {/* Success Rate */}
-                                <div className="flex flex-col items-center justify-center" data-testid="stat-success-rate">
-                                  <div className="text-[10px] opacity-80">Win%</div>
-                                  <div className="text-xs font-bold">{winRate.toFixed(0)}%</div>
-                                </div>
-                                
-                                {/* Win Streak */}
-                                <div className="flex flex-col items-center justify-center" data-testid="stat-win-streak">
-                                  <div className="text-[10px] opacity-80">Streak</div>
-                                  <div className="text-xs font-bold">{maxWinStreak}</div>
-                                </div>
-                                
-                                {/* Share Icon */}
-                                <div className="flex flex-col items-center justify-center">
-                                  <button
-                                    className="flex items-center justify-center w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors"
-                                    onClick={() => setShowShareDialog(true)}
-                                    data-testid="button-share-tradebook"
-                                    title="Share tradebook"
-                                  >
-                                    <Share2 className="w-3.5 h-3.5 text-white" />
-                                  </button>
-                                </div>
+                                {visibleStats.aiAnalysis && (
+                                  <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
+                                    <span className="opacity-80">AI Insight: </span>
+                                    <span className="italic text-blue-200">
+                                      {totalTrades > 0 ? (winRate > 60 ? "Strong performance detected" : winRate > 50 ? "Balanced trading pattern" : "Risk management recommended") : "No data yet"}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
