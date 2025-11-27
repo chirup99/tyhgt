@@ -130,6 +130,19 @@ class AngelOneAPI {
     this.lastUpdateTime = new Date();
   }
 
+  private handleAuthenticationError(error: any): void {
+    const statusCode = error.response?.status || error.status;
+    const isAuthError = statusCode === 401 || statusCode === 403;
+    
+    if (isAuthError) {
+      console.error('🔴 [Angel One] Authentication failed - Token expired or invalid (Status:', statusCode, ')');
+      this.isAuthenticated = false;
+      this.session = null;
+      this.profileData = null;
+      this.addActivityLog('error', `Authentication failed: Token expired/invalid (${statusCode})`);
+    }
+  }
+
   getActivityLogs(): AngelOneActivityLog[] {
     return this.activityLogs.slice(0, 20);
   }
@@ -313,6 +326,7 @@ class AngelOneAPI {
       }
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
+      this.handleAuthenticationError(error);
       this.addActivityLog('error', `Profile error: ${error.message}`);
       console.error('🔶 [Angel One] Error fetching profile:', error.message);
       throw error;
@@ -368,6 +382,7 @@ class AngelOneAPI {
       return null;
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
+      this.handleAuthenticationError(error);
       console.error('🔶 [Angel One] Error fetching LTP:', error.message);
       throw error;
     }
@@ -431,6 +446,7 @@ class AngelOneAPI {
       return [];
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
+      this.handleAuthenticationError(error);
       this.addActivityLog('error', `Candle data error: ${error.message}`);
       console.error('🔶 [Angel One] Error fetching candle data:', error.message);
       throw error;
@@ -454,6 +470,7 @@ class AngelOneAPI {
       return [];
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
+      this.handleAuthenticationError(error);
       this.addActivityLog('error', `Holdings error: ${error.message}`);
       console.error('🔶 [Angel One] Error fetching holdings:', error.message);
       throw error;
@@ -477,6 +494,7 @@ class AngelOneAPI {
       return [];
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
+      this.handleAuthenticationError(error);
       this.addActivityLog('error', `Positions error: ${error.message}`);
       console.error('🔶 [Angel One] Error fetching positions:', error.message);
       throw error;
@@ -500,6 +518,7 @@ class AngelOneAPI {
       return [];
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
+      this.handleAuthenticationError(error);
       this.addActivityLog('error', `Order book error: ${error.message}`);
       console.error('🔶 [Angel One] Error fetching order book:', error.message);
       throw error;
