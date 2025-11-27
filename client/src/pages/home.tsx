@@ -4260,6 +4260,9 @@ ${
   } | null>(null);
   const [isJournalStreaming, setIsJournalStreaming] = useState(false);
   const journalEventSourceRef = useRef<EventSource | null>(null);
+  
+  // Live OHLC ticker for display
+  const [liveOhlc, setLiveOhlc] = useState<{ open: number; high: number; low: number; close: number; change: number } | null>(null);
 
   // Angel One Stock Token Mapping for Journal Chart
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
@@ -4564,6 +4567,18 @@ ${
         
         // Update chart candlestick - only if chart is initialized
         if (journalCandlestickSeriesRef.current && journalChartRef.current && candle.close > 0) {
+          // Calculate % change based on open price
+          const changePercent = candle.open > 0 ? ((candle.close - candle.open) / candle.open) * 100 : 0;
+          
+          // Update OHLC ticker
+          setLiveOhlc({
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+            change: changePercent
+          });
+          
           // Animate chart update with 50ms delay for smooth animation
           setTimeout(() => {
             journalCandlestickSeriesRef.current?.update({
@@ -9925,7 +9940,16 @@ ${
                                 className="flex-1 w-full relative bg-white dark:bg-gray-800 min-h-[300px]"
                                 data-testid="journal-tradingview-chart"
                                 style={{ height: '100%' }}
-                              />
+                              >
+                                {/* Live OHLC Ticker - Top Left Corner */}
+                                {liveOhlc && (
+                                  <div className="absolute top-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded font-mono text-xs border border-green-500/50"
+                                    data-testid="live-ohlc-ticker"
+                                  >
+                                    O{liveOhlc.open.toFixed(2)} H{liveOhlc.high.toFixed(2)} L{liveOhlc.low.toFixed(2)} C{liveOhlc.close.toFixed(2)} <span className={liveOhlc.change >= 0 ? 'text-green-400' : 'text-red-400'}>(+{liveOhlc.change.toFixed(2)}%)</span>
+                                  </div>
+                                )}
+                              </div>
                               
                               {/* No Data Message */}
                               {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
