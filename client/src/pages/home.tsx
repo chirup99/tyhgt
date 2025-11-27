@@ -40,6 +40,7 @@ import { PersonalHeatmap } from "@/components/PersonalHeatmap";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
+import { createChart, ColorType, IChartApi, ISeriesApi, LineSeries } from 'lightweight-charts';
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft, Save } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
@@ -4236,6 +4237,13 @@ ${
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
+  
+  // TradingView-style chart refs for Journal
+  const journalChartContainerRef = useRef<HTMLDivElement>(null);
+  const journalChartRef = useRef<IChartApi | null>(null);
+  const journalCandlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const journalEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const journalEma26SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
 
   // Angel One Stock Token Mapping for Journal Chart
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
@@ -4439,6 +4447,157 @@ ${
   useEffect(() => {
     fetchJournalChartData();
   }, [fetchJournalChartData]);
+
+  // Calculate EMA for chart indicators
+  const calculateEMA = (data: number[], period: number): number[] => {
+    const ema: number[] = [];
+    const multiplier = 2 / (period + 1);
+    
+    if (data.length < period) return ema;
+    
+    let sum = 0;
+    for (let i = 0; i < period; i++) {
+      sum += data[i];
+    }
+    ema.push(sum / period);
+    
+    for (let i = period; i < data.length; i++) {
+      ema.push((data[i] - ema[ema.length - 1]) * multiplier + ema[ema.length - 1]);
+    }
+    
+    return ema;
+  };
+
+  // Initialize TradingView-style chart for Journal
+  useEffect(() => {
+    if (!journalChartContainerRef.current) return;
+
+    try {
+      const chart = createChart(journalChartContainerRef.current, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#131722' },
+          textColor: '#d1d4dc',
+        },
+        grid: {
+          vertLines: { color: '#363c4e' },
+          horzLines: { color: '#363c4e' },
+        },
+        crosshair: {
+          mode: 1,
+          vertLine: { color: '#758696', width: 1, style: 3 },
+          horzLine: { color: '#758696', width: 1, style: 3 },
+        },
+        rightPriceScale: {
+          borderColor: '#485c7b',
+          scaleMargins: { top: 0.1, bottom: 0.1 },
+        },
+        timeScale: {
+          borderColor: '#485c7b',
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        width: journalChartContainerRef.current.clientWidth,
+        height: 320,
+      });
+
+      const candlestickSeries = chart.addCandlestickSeries({
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderUpColor: '#26a69a',
+        borderDownColor: '#ef5350',
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+      });
+
+      const ema12Series = chart.addLineSeries({
+        color: '#2196F3',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+
+      const ema26Series = chart.addLineSeries({
+        color: '#FF9800',
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+
+      journalChartRef.current = chart;
+      journalCandlestickSeriesRef.current = candlestickSeries;
+      journalEma12SeriesRef.current = ema12Series;
+      journalEma26SeriesRef.current = ema26Series;
+
+      const handleResize = () => {
+        if (journalChartContainerRef.current && journalChartRef.current) {
+          journalChartRef.current.applyOptions({ 
+            width: journalChartContainerRef.current.clientWidth 
+          });
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (chart) {
+          chart.remove();
+        }
+        journalChartRef.current = null;
+        journalCandlestickSeriesRef.current = null;
+        journalEma12SeriesRef.current = null;
+        journalEma26SeriesRef.current = null;
+      };
+    } catch (error) {
+      console.error('Error initializing journal chart:', error);
+    }
+  }, []);
+
+  // Update chart data when journalChartData changes
+  useEffect(() => {
+    if (!journalChartData || journalChartData.length === 0) return;
+    if (!journalCandlestickSeriesRef.current || !journalChartRef.current) return;
+    if (!journalEma12SeriesRef.current || !journalEma26SeriesRef.current) return;
+
+    try {
+      const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
+      
+      const chartData = sortedData.map((candle: any) => ({
+        time: candle.time as any,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+      }));
+
+      journalCandlestickSeriesRef.current.setData(chartData);
+
+      const closePrices = sortedData.map((c: any) => c.close);
+      const ema12 = calculateEMA(closePrices, 12);
+      const ema26 = calculateEMA(closePrices, 26);
+
+      const ema12Data = ema12.map((value, index) => ({
+        time: sortedData[index + 11]?.time as any,
+        value: value,
+      })).filter(d => d.time);
+
+      const ema26Data = ema26.map((value, index) => ({
+        time: sortedData[index + 25]?.time as any,
+        value: value,
+      })).filter(d => d.time);
+
+      if (ema12Data.length > 0) {
+        journalEma12SeriesRef.current.setData(ema12Data);
+      }
+      if (ema26Data.length > 0) {
+        journalEma26SeriesRef.current.setData(ema26Data);
+      }
+
+      journalChartRef.current.timeScale().fitContent();
+    } catch (error) {
+      console.error('Error updating journal chart data:', error);
+    }
+  }, [journalChartData]);
 
   // Convert trade history to chart markers
   const getTradeMarkersForChart = useCallback(() => {
@@ -9527,129 +9686,61 @@ ${
                               </div>
                             </div>
 
-                            {/* Simple OHLC Data Window - Like Trading Master */}
+                            {/* TradingView-Style Candlestick Chart */}
                             <div className="flex-1 relative">
-                              {journalChartLoading ? (
-                                <div className="h-[350px] flex items-center justify-center bg-gray-900/50 rounded-lg">
+                              {journalChartLoading && (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#131722]/80 rounded-lg">
                                   <div className="flex items-center gap-2 text-white">
                                     <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
                                     <span className="text-sm">Loading from Angel One...</span>
                                   </div>
                                 </div>
-                              ) : journalChartData && journalChartData.length > 0 ? (
-                                <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg border border-slate-600 shadow-lg">
-                                  <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
-                                    <BarChart3 className="h-4 w-4 text-orange-400" />
-                                    OHLC Data Window - {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
-                                  </h3>
-                                  
-                                  {/* Latest Candle OHLC Stats */}
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Open</div>
-                                      <div className="text-white text-lg font-semibold">
-                                        ₹{journalChartData[journalChartData.length - 1]?.open?.toFixed(2) || '-'}
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">High</div>
-                                      <div className="text-green-400 text-lg font-semibold">
-                                        ₹{journalChartData[journalChartData.length - 1]?.high?.toFixed(2) || '-'}
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Low</div>
-                                      <div className="text-red-400 text-lg font-semibold">
-                                        ₹{journalChartData[journalChartData.length - 1]?.low?.toFixed(2) || '-'}
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600/30">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Close</div>
-                                      <div className="text-white text-lg font-semibold">
-                                        ₹{journalChartData[journalChartData.length - 1]?.close?.toFixed(2) || '-'}
-                                      </div>
-                                    </div>
+                              )}
+                              
+                              {/* Chart Header with Symbol Info */}
+                              <div className="bg-[#131722] rounded-t-lg border-x border-t border-[#363c4e] px-3 py-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[#d1d4dc] font-semibold text-sm">
+                                      {selectedJournalSymbol.replace("NSE:", "").replace("-EQ", "").replace("-INDEX", "")}
+                                    </span>
+                                    {journalChartData && journalChartData.length > 0 && (
+                                      <>
+                                        <span className="text-[#d1d4dc] text-xs">
+                                          O<span className="text-white ml-1">{(journalChartData[journalChartData.length - 1] as any)?.open?.toFixed(2)}</span>
+                                        </span>
+                                        <span className="text-[#26a69a] text-xs">
+                                          H<span className="ml-1">{(journalChartData[journalChartData.length - 1] as any)?.high?.toFixed(2)}</span>
+                                        </span>
+                                        <span className="text-[#ef5350] text-xs">
+                                          L<span className="ml-1">{(journalChartData[journalChartData.length - 1] as any)?.low?.toFixed(2)}</span>
+                                        </span>
+                                        <span className={`text-xs ${(journalChartData[journalChartData.length - 1] as any)?.close >= (journalChartData[journalChartData.length - 1] as any)?.open ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
+                                          C<span className="ml-1">{(journalChartData[journalChartData.length - 1] as any)?.close?.toFixed(2)}</span>
+                                        </span>
+                                      </>
+                                    )}
                                   </div>
-                                  
-                                  {/* Additional Stats */}
-                                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Volume</div>
-                                      <div className="text-slate-300 text-sm font-semibold">
-                                        {journalChartData[journalChartData.length - 1]?.volume 
-                                          ? (journalChartData[journalChartData.length - 1].volume / 1000000).toFixed(2) + 'M'
-                                          : '-'}
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Total Candles</div>
-                                      <div className="text-slate-300 text-sm font-semibold">
-                                        {journalChartData.length}
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Timeframe</div>
-                                      <div className="text-slate-300 text-sm font-semibold">
-                                        {selectedJournalInterval}min
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600/20">
-                                      <div className="text-slate-400 text-xs font-medium mb-1">Day Range</div>
-                                      <div className="text-slate-300 text-sm font-semibold">
-                                        ₹{Math.min(...journalChartData.map((c: any) => c.low || Infinity)).toFixed(2)} - ₹{Math.max(...journalChartData.map((c: any) => c.high || 0)).toFixed(2)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* OHLC Table - Last 10 Candles */}
-                                  <div className="mt-3 max-h-[180px] overflow-y-auto rounded-lg border border-slate-600/30">
-                                    <table className="w-full text-xs">
-                                      <thead className="bg-slate-700/50 sticky top-0">
-                                        <tr>
-                                          <th className="text-left p-2 text-slate-400 font-medium">Time</th>
-                                          <th className="text-right p-2 text-slate-400 font-medium">Open</th>
-                                          <th className="text-right p-2 text-green-400 font-medium">High</th>
-                                          <th className="text-right p-2 text-red-400 font-medium">Low</th>
-                                          <th className="text-right p-2 text-slate-400 font-medium">Close</th>
-                                          <th className="text-right p-2 text-slate-400 font-medium">Vol</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {journalChartData.slice(-15).reverse().map((candle: any, index: number) => {
-                                          const candleTime = new Date(candle.time * 1000);
-                                          const isGreen = candle.close >= candle.open;
-                                          return (
-                                            <tr key={index} className="border-t border-slate-700/30 hover:bg-slate-700/20">
-                                              <td className="p-2 text-slate-300">
-                                                {candleTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                                              </td>
-                                              <td className="p-2 text-right text-slate-300">₹{candle.open?.toFixed(2)}</td>
-                                              <td className="p-2 text-right text-green-400">₹{candle.high?.toFixed(2)}</td>
-                                              <td className="p-2 text-right text-red-400">₹{candle.low?.toFixed(2)}</td>
-                                              <td className={`p-2 text-right font-medium ${isGreen ? 'text-green-400' : 'text-red-400'}`}>
-                                                ₹{candle.close?.toFixed(2)}
-                                              </td>
-                                              <td className="p-2 text-right text-slate-400">
-                                                {candle.volume ? (candle.volume / 1000).toFixed(0) + 'K' : '-'}
-                                              </td>
-                                            </tr>
-                                          );
-                                        })}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                  
-                                  {/* Data Status */}
-                                  <div className="mt-3 text-xs text-slate-400 flex items-center justify-between p-2 bg-slate-800/50 rounded">
-                                    <span>Angel One Historical Data</span>
-                                    <span className="text-green-400">Ready for analysis</span>
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-[#2196F3]">EMA 12</span>
+                                    <span className="text-[#FF9800]">EMA 26</span>
                                   </div>
                                 </div>
-                              ) : (
-                                <div className="h-[350px] border border-slate-700 rounded-lg bg-slate-800/30 flex items-center justify-center">
-                                  <div className="text-slate-400 text-sm text-center">
-                                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-slate-500" />
-                                    <div>No OHLC data loaded</div>
+                              </div>
+                              
+                              {/* Chart Container */}
+                              <div 
+                                ref={journalChartContainerRef}
+                                className="w-full h-[320px] rounded-b-lg border-x border-b border-[#363c4e]"
+                                data-testid="journal-tradingview-chart"
+                              />
+                              
+                              {/* No Data Message */}
+                              {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-[#131722] rounded-lg border border-[#363c4e]">
+                                  <div className="text-[#758696] text-sm text-center">
+                                    <BarChart3 className="h-8 w-8 mx-auto mb-2" />
+                                    <div>No chart data loaded</div>
                                     <div className="text-xs mt-1">Select symbol and click Fetch to load data</div>
                                   </div>
                                 </div>

@@ -225,7 +225,49 @@
 [x] 2981. Note: Click Fetch button after Angel One auto-connect completes (green indicator)
 [x] 2982. ✅✅✅ TRADING JOURNAL OHLC FETCH BUG FIXED! ✅✅✅
 
-[x] 2983. NOVEMBER 27, 2025 - FINAL REPLIT IMPORT COMPLETION
+[x] 2983. NOVEMBER 27, 2025 - TRADINGVIEW-STYLE CHART IMPLEMENTATION
+[x] 2984. Task: Replace OHLC Data Window with TradingView-style candlestick chart
+[x] 2985. ✅ Added lightweight-charts library imports:
+[x] 2986.   - createChart, ColorType, IChartApi, ISeriesApi, LineSeries
+[x] 2987.   - Imported at top of home.tsx
+[x] 2988. ✅ Created chart refs for Journal:
+[x] 2989.   - journalChartContainerRef for chart container div
+[x] 2990.   - journalChartRef for IChartApi instance
+[x] 2991.   - journalCandlestickSeriesRef for candlestick series
+[x] 2992.   - journalEma12SeriesRef for EMA 12 line (blue)
+[x] 2993.   - journalEma26SeriesRef for EMA 26 line (orange)
+[x] 2994. ✅ Implemented TradingView dark theme styling:
+[x] 2995.   - Background: #131722 (TradingView dark)
+[x] 2996.   - Text color: #d1d4dc (light gray)
+[x] 2997.   - Grid lines: #363c4e (subtle gray)
+[x] 2998.   - Up candles: #26a69a (green)
+[x] 2999.   - Down candles: #ef5350 (red)
+[x] 3000.   - Crosshair: #758696 (gray)
+[x] 3001. ✅ Added EMA indicators:
+[x] 3002.   - EMA 12 (blue #2196F3) - short-term trend
+[x] 3003.   - EMA 26 (orange #FF9800) - medium-term trend
+[x] 3004.   - calculateEMA() function for indicator calculation
+[x] 3005. ✅ Created chart header with OHLC values:
+[x] 3006.   - Symbol name display
+[x] 3007.   - O/H/L/C values with color coding
+[x] 3008.   - EMA indicator labels
+[x] 3009. ✅ Replaced entire OHLC Data Window section:
+[x] 3010.   - Removed OHLC stats grid
+[x] 3011.   - Removed OHLC table
+[x] 3012.   - Added chart container div with ref
+[x] 3013.   - Loading overlay for fetch state
+[x] 3014.   - No data placeholder message
+[x] 3015. ✅ Chart features:
+[x] 3016.   - Responsive width on window resize
+[x] 3017.   - Auto-fit content to show all candles
+[x] 3018.   - Time axis with time visible
+[x] 3019.   - Price scale with margins
+[x] 3020.   - Cleanup on component unmount
+[x] 3021. ✅ Workflow restarted successfully
+[x] 3022. ✅ Browser logs show: "Angel One: Loaded 8 candles for journal chart"
+[x] 3023. ✅✅✅ TRADINGVIEW-STYLE CHART IMPLEMENTATION 100% COMPLETE! ✅✅✅
+
+[x] 3024. NOVEMBER 27, 2025 - FINAL REPLIT IMPORT COMPLETION
 [x] 2984. Task: Complete final migration from Replit Agent to Replit environment
 [x] 2985. ✅ Identified workflow failure on startup:
 [x] 2986.   - Error: Cannot find package 'smartapi-javascript'
