@@ -9940,16 +9940,16 @@ ${
                                 className="flex-1 w-full relative bg-white dark:bg-gray-800 min-h-[300px]"
                                 data-testid="journal-tradingview-chart"
                                 style={{ height: '100%' }}
-                              >
-                                {/* Live OHLC Ticker - Top Left Corner */}
-                                {liveOhlc && (
-                                  <div className="absolute top-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded font-mono text-xs border border-green-500/50"
-                                    data-testid="live-ohlc-ticker"
-                                  >
-                                    O{liveOhlc.open.toFixed(2)} H{liveOhlc.high.toFixed(2)} L{liveOhlc.low.toFixed(2)} C{liveOhlc.close.toFixed(2)} <span className={liveOhlc.change >= 0 ? 'text-green-400' : 'text-red-400'}>(+{liveOhlc.change.toFixed(2)}%)</span>
-                                  </div>
-                                )}
-                              </div>
+                              />
+                              
+                              {/* Live OHLC Ticker - Top Left Corner Overlay */}
+                              {liveOhlc && (
+                                <div className="absolute top-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded font-mono text-xs border border-green-500/50 pointer-events-none"
+                                  data-testid="live-ohlc-ticker"
+                                >
+                                  O{liveOhlc.open.toFixed(2)} H{liveOhlc.high.toFixed(2)} L{liveOhlc.low.toFixed(2)} C{liveOhlc.close.toFixed(2)} <span className={liveOhlc.change >= 0 ? 'text-green-400' : 'text-red-400'}>(+{liveOhlc.change.toFixed(2)}%)</span>
+                                </div>
+                              )}
                               
                               {/* No Data Message */}
                               {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
