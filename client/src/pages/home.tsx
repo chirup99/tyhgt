@@ -4555,17 +4555,7 @@ ${
     try {
       setJournalChartLoading(true);
       
-      // Check if Angel One is connected before fetching
-      const statusResponse = await fetch(getFullApiUrl("/api/angelone/status"));
-      const statusData = await statusResponse.json();
-      
-      if (!statusData.success || !statusData.connected) {
-        console.warn('🔶 Angel One not connected yet, skipping chart data fetch');
-        setJournalChartData([]);
-        setJournalChartLoading(false);
-        return;
-      }
-      
+      // Note: We don't check connection status anymore - API works with theoretical prices when not connected
       // Get token data - use selectedInstrument if available (for dynamic search), otherwise use hardcoded mapping
       let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
       
