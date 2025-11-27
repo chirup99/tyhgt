@@ -242,7 +242,7 @@ export function AuthButtonAngelOne() {
     );
   }
 
-  if (hasEnvCredentials) {
+  if (hasEnvCredentials && !connectMutation.isError) {
     // Auto-connecting state
     if (isAutoConnecting || connectMutation.isPending) {
       return (
@@ -261,56 +261,6 @@ export function AuthButtonAngelOne() {
         </div>
       );
     }
-    
-    // If we have env credentials but failed to connect, show retry button with disconnect option
-    return (
-      <div className="bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6 font-normal">
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4 text-orange-600" />
-            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
-              Angel One - Connection Failed
-            </h3>
-          </div>
-          <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
-            Authentication failed (Token expired or invalid). Try reconnecting or clear credentials.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              autoConnectAttempted.current = false;
-              setIsAutoConnecting(true);
-              connectMutation.mutate({
-                clientCode: clientCode.trim(),
-                pin: pin.trim(),
-                apiKey: apiKey.trim(),
-                totpSecret: totpSecret.trim(),
-              }, {
-                onSettled: () => setIsAutoConnecting(false)
-              });
-            }}
-            disabled={connectMutation.isPending || !clientCode.trim()}
-            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
-            size="sm"
-            data-testid="button-angelone-connect-env"
-          >
-            <Key className="mr-2 h-4 w-4" />
-            Retry Connection
-          </Button>
-          <Button
-            onClick={() => disconnectMutation.mutate()}
-            disabled={disconnectMutation.isPending}
-            variant="outline"
-            size="sm"
-            className="border-red-600 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-            data-testid="button-angelone-disconnect-failed"
-          >
-            {disconnectMutation.isPending ? "..." : "Disconnect"}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   return (
