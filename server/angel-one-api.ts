@@ -1,8 +1,8 @@
+// Simplified Angel One API - Clean implementation matching Python SmartAPI flow
 // @ts-ignore - smartapi-javascript doesn't have type declarations
 import { SmartAPI } from 'smartapi-javascript';
 // @ts-ignore - totp-generator import compatibility
 import { TOTP } from 'totp-generator';
-import axios from 'axios';
 
 export interface AngelOneCredentials {
   clientCode: string;
@@ -51,13 +51,6 @@ export interface AngelOneCandleData {
   volume: number;
 }
 
-export interface AngelOneApiResponse<T> {
-  status: boolean;
-  message: string;
-  errorcode: string;
-  data?: T;
-}
-
 export interface AngelOneActivityLog {
   id: number;
   timestamp: Date;
@@ -85,7 +78,7 @@ export interface AngelOneApiStats {
 }
 
 class AngelOneAPI {
-  private smartApi: any;
+  private smartApi: any = null;
   private credentials: AngelOneCredentials | null = null;
   private session: AngelOneSession | null = null;
   private isAuthenticated: boolean = false;
@@ -120,9 +113,7 @@ class AngelOneAPI {
 
   private trackRequest(success: boolean, responseTime: number): void {
     this.requestCount++;
-    if (success) {
-      this.successCount++;
-    }
+    if (success) this.successCount++;
     this.responseTimes.push(responseTime);
     if (this.responseTimes.length > 100) {
       this.responseTimes = this.responseTimes.slice(-100);
@@ -130,21 +121,18 @@ class AngelOneAPI {
     this.lastUpdateTime = new Date();
   }
 
-  private handleAuthenticationError(error: any): void {
-    const statusCode = error.response?.status || error.status;
-    const isAuthError = statusCode === 401 || statusCode === 403;
-    
-    if (isAuthError) {
-      console.error('🔴 [Angel One] Authentication failed - Token expired or invalid (Status:', statusCode, ')');
-      this.isAuthenticated = false;
-      this.session = null;
-      this.profileData = null;
-      this.addActivityLog('error', `Authentication failed: Token expired/invalid (${statusCode})`);
-    }
-  }
-
   getActivityLogs(): AngelOneActivityLog[] {
     return this.activityLogs.slice(0, 20);
+  }
+
+  getFormattedActivityLogs(): Array<{ id: number; timestamp: string; type: string; message: string; endpoint?: string }> {
+    return this.activityLogs.slice(0, 20).map(log => ({
+      id: log.id,
+      timestamp: log.timestamp.toISOString(),
+      type: log.type,
+      message: log.message,
+      endpoint: log.endpoint
+    }));
   }
 
   getApiStats(): AngelOneApiStats {
@@ -183,7 +171,6 @@ class AngelOneAPI {
 
   async refreshStatus(): Promise<{ success: boolean; stats: AngelOneApiStats }> {
     if (!this.isAuthenticated || !this.session) {
-      this.addActivityLog('warning', 'Not connected - refresh skipped');
       return { success: false, stats: this.getApiStats() };
     }
 
@@ -195,28 +182,17 @@ class AngelOneAPI {
         this.trackRequest(true, Date.now() - startTime);
         this.addActivityLog('success', 'Status refreshed successfully');
         return { success: true, stats: this.getApiStats() };
-      } else {
-        this.trackRequest(false, Date.now() - startTime);
-        this.addActivityLog('warning', 'Status refresh returned no data');
-        return { success: false, stats: this.getApiStats() };
       }
+      this.trackRequest(false, Date.now() - startTime);
+      return { success: false, stats: this.getApiStats() };
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
       this.addActivityLog('error', `Status refresh failed: ${error.message}`);
       return { success: false, stats: this.getApiStats() };
     }
   }
-  
-  getFormattedActivityLogs(): Array<{ id: number; timestamp: string; type: string; message: string; endpoint?: string }> {
-    return this.activityLogs.slice(0, 20).map(log => ({
-      id: log.id,
-      timestamp: log.timestamp.toISOString(),
-      type: log.type,
-      message: log.message,
-      endpoint: log.endpoint
-    }));
-  }
 
+  // Set credentials and initialize SmartAPI
   setCredentials(credentials: AngelOneCredentials): void {
     this.credentials = credentials;
     this.smartApi = new SmartAPI({
@@ -226,87 +202,145 @@ class AngelOneAPI {
     console.log('🔶 [Angel One] Credentials set for client:', credentials.clientCode);
   }
 
+  // Generate TOTP token (like pyotp.TOTP().now())
+  private async generateTOTP(): Promise<string> {
+    if (!this.credentials?.totpSecret) {
+      throw new Error('TOTP secret not configured');
+    }
+
+    try {
+      // Clean the TOTP secret (remove spaces, uppercase)
+      const cleanSecret = this.credentials.totpSecret.replace(/\s/g, '').toUpperCase();
+      const totpResult = await TOTP.generate(cleanSecret);
+      const otp = typeof totpResult === 'string' ? totpResult : totpResult.otp;
+      console.log('🔐 [Angel One] Generated TOTP:', otp);
+      return otp;
+    } catch (error: any) {
+      console.error('🔴 [Angel One] TOTP generation failed:', error.message);
+      throw new Error(`TOTP generation failed: ${error.message}`);
+    }
+  }
+
+  // Main authentication flow - matches Python SmartAPI exactly
   async generateSession(): Promise<AngelOneSession | null> {
     if (!this.credentials || !this.smartApi) {
-      console.error('🔶 [Angel One] Credentials not set');
-      this.addActivityLog('error', 'Credentials not configured');
-      throw new Error('Angel One credentials not configured');
+      throw new Error('Credentials not configured. Call setCredentials first.');
     }
 
     const startTime = Date.now();
-    try {
-      this.addActivityLog('info', 'Generating TOTP token...');
-      const totpTokenObj = await TOTP.generate(this.credentials.totpSecret);
-      const totpToken = typeof totpTokenObj === 'string' ? totpTokenObj : totpTokenObj.otp;
-      console.log('🔶 [Angel One] Generated TOTP token:', totpToken);
 
-      this.addActivityLog('info', 'Authenticating with Angel One API...');
-      const response = await this.smartApi.generateSession(
+    try {
+      // Step 1: Generate TOTP (like pyotp.TOTP(totp_code).now())
+      this.addActivityLog('info', 'Generating TOTP token...');
+      const totpToken = await this.generateTOTP();
+
+      // Step 2: Generate Session (like angleone.generateSession(user_id, pin, totp))
+      this.addActivityLog('info', 'Calling generateSession API...');
+      console.log('🔶 [Angel One] Calling generateSession...');
+      
+      const sessionResponse = await this.smartApi.generateSession(
         this.credentials.clientCode,
         this.credentials.pin,
         totpToken
       );
 
-      console.log('🔶 [Angel One] API Response:', JSON.stringify(response));
+      console.log('🔶 [Angel One] Session Response:', JSON.stringify(sessionResponse, null, 2));
 
-      if (response && response.status && response.data) {
-        this.session = {
-          jwtToken: response.data.jwtToken,
-          refreshToken: response.data.refreshToken,
-          feedToken: response.data.feedToken
-        };
-        this.isAuthenticated = true;
-        this.connectionStartTime = new Date();
-        this.trackRequest(true, Date.now() - startTime);
-        this.addActivityLog('success', 'Session generated successfully');
-        console.log('🔶 [Angel One] Session generated successfully');
-        return this.session;
-      } else {
-        console.error('🔶 [Angel One] Session generation failed - Full response:', JSON.stringify(response));
-        this.trackRequest(false, Date.now() - startTime);
-        this.addActivityLog('error', `Session generation failed: ${response?.message || 'Unknown error'}`);
-        throw new Error((response?.message) || 'Failed to generate session');
+      if (!sessionResponse.status || !sessionResponse.data) {
+        const errorMsg = sessionResponse.message || 'Session generation failed';
+        console.error('🔴 [Angel One] Session failed:', errorMsg);
+        this.addActivityLog('error', `Session failed: ${errorMsg}`);
+        throw new Error(errorMsg);
       }
+
+      // Step 3: Get tokens from session data
+      const sessionData = sessionResponse.data;
+      
+      // Step 4: Generate tokens (like angleone.generateToken(refreshToken))
+      this.addActivityLog('info', 'Generating access tokens...');
+      const tokenResponse = await this.smartApi.generateToken(sessionData.refreshToken);
+      
+      console.log('🔶 [Angel One] Token Response:', JSON.stringify(tokenResponse, null, 2));
+
+      if (tokenResponse.status && tokenResponse.data) {
+        this.session = {
+          jwtToken: tokenResponse.data.jwtToken,
+          refreshToken: tokenResponse.data.refreshToken,
+          feedToken: sessionData.feedToken || ''
+        };
+      } else {
+        // Use session data if token refresh didn't work
+        this.session = {
+          jwtToken: sessionData.jwtToken,
+          refreshToken: sessionData.refreshToken,
+          feedToken: sessionData.feedToken || ''
+        };
+      }
+
+      // Step 5: Get feed token (like angleone.getfeedToken())
+      try {
+        const feedToken = await this.smartApi.getfeedToken?.();
+        if (feedToken) {
+          this.session.feedToken = feedToken;
+        }
+      } catch (e) {
+        console.log('🔶 [Angel One] Feed token fetch skipped');
+      }
+
+      this.isAuthenticated = true;
+      this.connectionStartTime = new Date();
+      this.trackRequest(true, Date.now() - startTime);
+      this.addActivityLog('success', 'Session generated successfully!');
+
+      console.log('✅ [Angel One] Authentication successful!');
+      console.log(`   Client Code: ${this.credentials.clientCode}`);
+      console.log(`   JWT Token: ${this.session.jwtToken.substring(0, 20)}...`);
+      console.log(`   Refresh Token: ${this.session.refreshToken.substring(0, 20)}...`);
+      console.log(`   Feed Token: ${this.session.feedToken}`);
+
+      return this.session;
+
     } catch (error: any) {
-      console.error('🔶 [Angel One] Error generating session:', error.message);
-      console.error('🔶 [Angel One] Full error:', JSON.stringify(error));
+      console.error('🔴 [Angel One] Authentication error:', error.message);
       this.isAuthenticated = false;
+      this.session = null;
       this.trackRequest(false, Date.now() - startTime);
-      this.addActivityLog('error', `Session error: ${error.message}`);
+      this.addActivityLog('error', `Authentication error: ${error.message}`);
       throw error;
     }
   }
 
+  // Refresh session using refresh token
   async refreshSession(): Promise<AngelOneSession | null> {
     if (!this.session?.refreshToken) {
-      console.log('🔶 [Angel One] No refresh token available, generating new session');
+      console.log('🔶 [Angel One] No refresh token, generating new session');
       return this.generateSession();
     }
 
     try {
-      const response = await this.smartApi.generateToken({
-        refreshToken: this.session.refreshToken
-      });
-
+      const response = await this.smartApi.generateToken(this.session.refreshToken);
+      
       if (response.status && response.data) {
         this.session = {
           ...this.session,
           jwtToken: response.data.jwtToken,
           refreshToken: response.data.refreshToken
         };
+        this.addActivityLog('success', 'Session refreshed');
         console.log('🔶 [Angel One] Session refreshed successfully');
         return this.session;
       }
     } catch (error: any) {
-      console.error('🔶 [Angel One] Error refreshing session:', error.message);
+      console.error('🔶 [Angel One] Token refresh failed:', error.message);
     }
+    
     return this.generateSession();
   }
 
+  // Get user profile
   async getProfile(): Promise<AngelOneProfile | null> {
-    if (!this.isAuthenticated || !this.session) {
-      this.addActivityLog('error', 'Profile request failed: Not authenticated');
-      throw new Error('Angel One not authenticated');
+    if (!this.isAuthenticated || !this.smartApi) {
+      throw new Error('Not authenticated');
     }
 
     const startTime = Date.now();
@@ -317,97 +351,52 @@ class AngelOneAPI {
         this.profileData = response.data;
         this.trackRequest(true, Date.now() - startTime);
         this.addActivityLog('success', `Profile fetched: ${response.data.name}`);
-        console.log('🔶 [Angel One] Profile fetched:', response.data.name);
         return response.data;
-      } else {
-        this.trackRequest(false, Date.now() - startTime);
-        this.addActivityLog('error', `Profile fetch failed: ${response.message}`);
-        throw new Error(response.message || 'Failed to fetch profile');
       }
+      
+      this.trackRequest(false, Date.now() - startTime);
+      throw new Error(response.message || 'Failed to fetch profile');
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
-      this.handleAuthenticationError(error);
-      this.addActivityLog('error', `Profile error: ${error.message}`);
-      console.error('🔶 [Angel One] Error fetching profile:', error.message);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        this.isAuthenticated = false;
+        this.session = null;
+        this.addActivityLog('error', 'Session expired - please reconnect');
+      }
       throw error;
     }
   }
 
+  // Get LTP (Last Traded Price)
   async getLTP(exchange: string, tradingSymbol: string, symbolToken: string): Promise<AngelOneQuote | null> {
-    if (!this.isAuthenticated || !this.session) {
-      throw new Error('Angel One not authenticated');
-    }
+    if (!this.isAuthenticated) return null;
 
-    const startTime = Date.now();
     try {
-      // Try to fetch from Angel One REST API
-      const response = await axios.post('https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote/', {
-        mode: 'ltp',
-        exchangetokens: {
-          [exchange]: [symbolToken]
-        }
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.session.jwtToken}`,
-          'Content-Type': 'application/json',
-          'X-UserType': 'USER',
-          'X-SourceID': 'WEB',
-          'X-ClientLocalIP': '127.0.0.1',
-          'X-ClientPublicIP': '127.0.0.1',
-          'X-MACAddress': '00:00:00:00:00:00',
-          'X-PrivateKey': this.credentials?.apiKey || ''
-        }
-      });
-
-      if (response.data?.status && response.data?.data?.fetched?.length > 0) {
-        const data = response.data.data.fetched[0];
-        this.trackRequest(true, Date.now() - startTime);
-        console.log(`📈 [LTP] ${tradingSymbol}: ${data.ltp}`);
+      const response = await this.smartApi.ltpData(exchange, tradingSymbol, symbolToken);
+      
+      if (response.status && response.data) {
+        const data = response.data;
         return {
           symbol: symbolToken,
-          tradingSymbol: tradingSymbol,
+          tradingSymbol,
           ltp: parseFloat(data.ltp) || 0,
           open: parseFloat(data.open) || 0,
           high: parseFloat(data.high) || 0,
           low: parseFloat(data.low) || 0,
           close: parseFloat(data.close) || 0,
-          change: (parseFloat(data.ltp) || 0) - (parseFloat(data.close) || 0),
+          change: 0,
           changePercent: 0,
           volume: parseInt(data.volume) || 0,
           exchange
         };
       }
-      this.trackRequest(false, Date.now() - startTime);
       return null;
-    } catch (error: any) {
-      this.trackRequest(false, Date.now() - startTime);
-      this.handleAuthenticationError(error);
-      // Silently fail and let the system use fallback prices
+    } catch (error) {
       return null;
     }
   }
 
-  async getQuotes(symbolsData: Array<{ exchange: string; tradingSymbol: string; symbolToken: string }>): Promise<AngelOneQuote[]> {
-    if (!this.isAuthenticated) {
-      throw new Error('Angel One not authenticated');
-    }
-
-    const quotes: AngelOneQuote[] = [];
-
-    for (const symbolData of symbolsData) {
-      try {
-        const quote = await this.getLTP(symbolData.exchange, symbolData.tradingSymbol, symbolData.symbolToken);
-        if (quote) {
-          quotes.push(quote);
-        }
-      } catch (error) {
-        console.error(`🔶 [Angel One] Failed to get quote for ${symbolData.tradingSymbol}`);
-      }
-    }
-
-    return quotes;
-  }
-
+  // Get candle/historical data
   async getCandleData(
     exchange: string,
     symbolToken: string,
@@ -416,7 +405,7 @@ class AngelOneAPI {
     toDate: string
   ): Promise<AngelOneCandleData[]> {
     if (!this.isAuthenticated) {
-      throw new Error('Angel One not authenticated');
+      throw new Error('Not authenticated');
     }
 
     const startTime = Date.now();
@@ -431,7 +420,6 @@ class AngelOneAPI {
 
       if (response.status && response.data) {
         this.trackRequest(true, Date.now() - startTime);
-        this.addActivityLog('success', `Candle data fetched: ${symbolToken}`);
         return response.data.map((candle: any[]) => ({
           timestamp: new Date(candle[0]).getTime(),
           open: candle[1],
@@ -441,89 +429,83 @@ class AngelOneAPI {
           volume: candle[5]
         }));
       }
+      
       this.trackRequest(false, Date.now() - startTime);
       return [];
     } catch (error: any) {
       this.trackRequest(false, Date.now() - startTime);
-      this.handleAuthenticationError(error);
-      this.addActivityLog('error', `Candle data error: ${error.message}`);
-      console.error('🔶 [Angel One] Error fetching candle data:', error.message);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        this.isAuthenticated = false;
+        this.session = null;
+      }
       throw error;
     }
   }
 
+  // Get holdings
   async getHoldings(): Promise<any[]> {
-    if (!this.isAuthenticated) {
-      throw new Error('Angel One not authenticated');
-    }
+    if (!this.isAuthenticated) throw new Error('Not authenticated');
 
-    const startTime = Date.now();
     try {
       const response = await this.smartApi.getHolding();
-      if (response.status && response.data) {
-        this.trackRequest(true, Date.now() - startTime);
-        this.addActivityLog('success', `Holdings fetched: ${response.data.length} items`);
-        return response.data;
-      }
-      this.trackRequest(false, Date.now() - startTime);
+      if (response.status && response.data) return response.data;
       return [];
     } catch (error: any) {
-      this.trackRequest(false, Date.now() - startTime);
-      this.handleAuthenticationError(error);
-      this.addActivityLog('error', `Holdings error: ${error.message}`);
-      console.error('🔶 [Angel One] Error fetching holdings:', error.message);
+      if (error.response?.status === 403) {
+        this.isAuthenticated = false;
+        this.session = null;
+      }
       throw error;
     }
   }
 
+  // Get positions
   async getPositions(): Promise<any[]> {
-    if (!this.isAuthenticated) {
-      throw new Error('Angel One not authenticated');
-    }
+    if (!this.isAuthenticated) throw new Error('Not authenticated');
 
-    const startTime = Date.now();
     try {
       const response = await this.smartApi.getPosition();
-      if (response.status && response.data) {
-        this.trackRequest(true, Date.now() - startTime);
-        this.addActivityLog('success', `Positions fetched: ${response.data.length} items`);
-        return response.data;
-      }
-      this.trackRequest(false, Date.now() - startTime);
+      if (response.status && response.data) return response.data;
       return [];
     } catch (error: any) {
-      this.trackRequest(false, Date.now() - startTime);
-      this.handleAuthenticationError(error);
-      this.addActivityLog('error', `Positions error: ${error.message}`);
-      console.error('🔶 [Angel One] Error fetching positions:', error.message);
+      if (error.response?.status === 403) {
+        this.isAuthenticated = false;
+        this.session = null;
+      }
       throw error;
     }
   }
 
+  // Get order book
   async getOrderBook(): Promise<any[]> {
-    if (!this.isAuthenticated) {
-      throw new Error('Angel One not authenticated');
-    }
+    if (!this.isAuthenticated) throw new Error('Not authenticated');
 
-    const startTime = Date.now();
     try {
       const response = await this.smartApi.getOrderBook();
-      if (response.status && response.data) {
-        this.trackRequest(true, Date.now() - startTime);
-        this.addActivityLog('success', `Order book fetched: ${response.data.length} orders`);
-        return response.data;
-      }
-      this.trackRequest(false, Date.now() - startTime);
+      if (response.status && response.data) return response.data;
       return [];
     } catch (error: any) {
-      this.trackRequest(false, Date.now() - startTime);
-      this.handleAuthenticationError(error);
-      this.addActivityLog('error', `Order book error: ${error.message}`);
-      console.error('🔶 [Angel One] Error fetching order book:', error.message);
+      if (error.response?.status === 403) {
+        this.isAuthenticated = false;
+        this.session = null;
+      }
       throw error;
     }
   }
 
+  // Get quotes for multiple symbols
+  async getQuotes(symbolsData: Array<{ exchange: string; tradingSymbol: string; symbolToken: string }>): Promise<AngelOneQuote[]> {
+    if (!this.isAuthenticated) throw new Error('Not authenticated');
+
+    const quotes: AngelOneQuote[] = [];
+    for (const symbolData of symbolsData) {
+      const quote = await this.getLTP(symbolData.exchange, symbolData.tradingSymbol, symbolData.symbolToken);
+      if (quote) quotes.push(quote);
+    }
+    return quotes;
+  }
+
+  // Connection status
   getConnectionStatus(): { connected: boolean; profile: AngelOneProfile | null; session: boolean } {
     return {
       connected: this.isAuthenticated,
@@ -532,6 +514,7 @@ class AngelOneAPI {
     };
   }
 
+  // Logout
   logout(): void {
     this.session = null;
     this.isAuthenticated = false;
@@ -541,6 +524,7 @@ class AngelOneAPI {
     console.log('🔶 [Angel One] Logged out');
   }
 
+  // Helper methods
   isConnected(): boolean {
     return this.isAuthenticated;
   }
@@ -554,35 +538,7 @@ class AngelOneAPI {
   }
 
   getStats(): AngelOneApiStats {
-    const uptime = this.connectionStartTime
-      ? Math.floor((Date.now() - this.connectionStartTime.getTime()) / 1000)
-      : 0;
-
-    const avgResponseTime = this.responseTimes.length > 0
-      ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
-      : 0;
-
-    const successRate = this.requestCount > 0
-      ? (this.successCount / this.requestCount) * 100
-      : 0;
-
-    return {
-      connected: this.isAuthenticated,
-      authenticated: this.isAuthenticated,
-      version: '1.0.0',
-      dailyLimit: 10000,
-      requestsUsed: this.requestCount,
-      lastUpdate: this.lastUpdateTime ? this.lastUpdateTime.toISOString() : null,
-      websocketActive: false,
-      responseTime: Math.round(avgResponseTime),
-      successRate: Math.round(successRate * 10) / 10,
-      throughput: `${this.requestCount}/day`,
-      activeSymbols: 0,
-      updatesPerSec: 0,
-      uptime,
-      latency: Math.round(avgResponseTime),
-      clientCode: this.credentials?.clientCode || null
-    };
+    return this.getApiStats();
   }
 }
 
