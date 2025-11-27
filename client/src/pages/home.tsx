@@ -3670,7 +3670,7 @@ ${
     {
       time: "12:41:57 PM",
       order: "BUY",
-      symbol: "SENSEX AUG 81300 CE BFO",
+      symbol: "SENSEX NOV 81300 CE BFO",
       type: "MIS",
       qty: 40,
       price: 488.2,
@@ -3680,7 +3680,7 @@ ${
     {
       time: "12:48:24 PM",
       order: "SELL",
-      symbol: "SENSEX AUG 81300 CE BFO",
+      symbol: "SENSEX NOV 81300 CE BFO",
       type: "MIS",
       qty: 40,
       price: 511.85,
