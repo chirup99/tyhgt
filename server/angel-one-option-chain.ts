@@ -15,16 +15,33 @@ interface OptionQuoteData {
   changePercent?: number;
 }
 
+export interface OptionChainError {
+  code: 'INSTRUMENTS_NOT_LOADED' | 'NO_EXPIRY_DATES' | 'NO_STRIKES' | 'NOT_AUTHENTICATED' | 'UNKNOWN';
+  message: string;
+}
+
+export interface OptionChainResult {
+  success: boolean;
+  data?: OptionChainData;
+  error?: OptionChainError;
+}
+
 class AngelOneOptionChain {
   private priceCache = new Map<string, OptionQuoteData>();
   private lastPriceFetch: Date | null = null;
   private priceCacheTTL = 5000; // 5 seconds cache for prices
+  private defaultStrikeRange = 50; // Default to 50 strikes around ATM, set to 0 for all
 
   constructor() {
     console.log('📊 [OPTION-CHAIN] Angel One Option Chain service initialized');
   }
 
-  async getOptionChain(underlying: string, expiry?: string): Promise<OptionChainData | null> {
+  async getOptionChain(underlying: string, expiry?: string, strikeRange?: number): Promise<OptionChainData | null> {
+    const result = await this.getOptionChainWithError(underlying, expiry, strikeRange);
+    return result.success ? result.data! : null;
+  }
+
+  async getOptionChainWithError(underlying: string, expiry?: string, strikeRange?: number): Promise<OptionChainResult> {
     try {
       console.log(`📊 [OPTION-CHAIN] Fetching option chain for ${underlying}${expiry ? ` (${expiry})` : ''}...`);
       
@@ -32,13 +49,19 @@ class AngelOneOptionChain {
       await angelOneInstruments.ensureInstruments();
       
       if (!angelOneInstruments.isLoaded()) {
-        throw new Error('Instrument data not available');
+        return {
+          success: false,
+          error: { code: 'INSTRUMENTS_NOT_LOADED', message: 'Instrument data not available. Please try again.' }
+        };
       }
 
       // Get expiry dates
       const expiryDates = angelOneInstruments.getExpiryDates(underlying);
       if (expiryDates.length === 0) {
-        throw new Error(`No expiry dates found for ${underlying}`);
+        return {
+          success: false,
+          error: { code: 'NO_EXPIRY_DATES', message: `No expiry dates found for ${underlying}` }
+        };
       }
 
       // Use provided expiry or nearest one
@@ -48,7 +71,10 @@ class AngelOneOptionChain {
       const strikes = angelOneInstruments.buildOptionChainStructure(underlying, selectedExpiry);
       
       if (strikes.length === 0) {
-        throw new Error(`No option strikes found for ${underlying} expiry ${selectedExpiry}`);
+        return {
+          success: false,
+          error: { code: 'NO_STRIKES', message: `No option strikes found for ${underlying} expiry ${selectedExpiry}` }
+        };
       }
 
       // Get spot price
@@ -57,8 +83,11 @@ class AngelOneOptionChain {
       // Calculate ATM strike
       const atmStrike = this.findATMStrike(strikes.map(s => s.strikePrice), spotPrice);
 
-      // Fetch live prices for options (limit to strikes around ATM for performance)
-      const enrichedStrikes = await this.enrichStrikesWithPrices(strikes, spotPrice, atmStrike);
+      // Use provided strike range or default (0 means all strikes)
+      const effectiveStrikeRange = strikeRange !== undefined ? strikeRange : this.defaultStrikeRange;
+      
+      // Fetch live prices for options
+      const enrichedStrikes = await this.enrichStrikesWithPrices(strikes, spotPrice, atmStrike, effectiveStrikeRange);
 
       const optionChainData: OptionChainData = {
         underlying: underlying.toUpperCase(),
@@ -71,11 +100,14 @@ class AngelOneOptionChain {
       };
 
       console.log(`✅ [OPTION-CHAIN] Built option chain for ${underlying} with ${enrichedStrikes.length} strikes`);
-      return optionChainData;
+      return { success: true, data: optionChainData };
 
     } catch (error: any) {
       console.error(`❌ [OPTION-CHAIN] Error fetching option chain for ${underlying}:`, error.message);
-      return null;
+      return {
+        success: false,
+        error: { code: 'UNKNOWN', message: error.message || 'Unknown error fetching option chain' }
+      };
     }
   }
 
@@ -127,15 +159,24 @@ class AngelOneOptionChain {
   private async enrichStrikesWithPrices(
     strikes: OptionChainStrike[], 
     spotPrice: number,
-    atmStrike: number
+    atmStrike: number,
+    strikeRange: number = 0 // 0 means all strikes
   ): Promise<OptionChainStrike[]> {
-    // Limit strikes to +/- 15 around ATM for performance
-    const strikeRange = 15;
-    const filteredStrikes = strikes.filter(strike => {
+    // Filter strikes based on range (0 = all strikes)
+    let filteredStrikes: OptionChainStrike[];
+    
+    if (strikeRange <= 0) {
+      // Return all strikes when strikeRange is 0 or negative
+      filteredStrikes = strikes;
+      console.log(`📊 [OPTION-CHAIN] Using all ${strikes.length} strikes (no range filter)`);
+    } else {
+      // Filter to +/- strikeRange around ATM
       const atmIndex = strikes.findIndex(s => s.strikePrice === atmStrike);
-      const currentIndex = strikes.findIndex(s => s.strikePrice === strike.strikePrice);
-      return Math.abs(currentIndex - atmIndex) <= strikeRange;
-    });
+      filteredStrikes = strikes.filter((strike, index) => {
+        return Math.abs(index - atmIndex) <= strikeRange;
+      });
+      console.log(`📊 [OPTION-CHAIN] Filtered to ${filteredStrikes.length} strikes (±${strikeRange} around ATM)`);
+    }
 
     // Collect all option tokens to fetch prices
     const optionTokens: { token: string; strike: number; type: 'CE' | 'PE' }[] = [];

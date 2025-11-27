@@ -51,8 +51,9 @@ import { sentimentAnalyzer, type SentimentAnalysisRequest } from './sentiment-an
 import backupRoutes, { initializeBackupRoutes } from './backup-routes';
 import { createBackupDataService, BackupQueryParams } from './backup-data-service';
 import { detectPatterns } from './routes/pattern-detection';
-import { nseApi } from './nse-api';
 import { angelOneLiveStream } from './angel-one-live-stream';
+import { angelOneOptionChain } from './angel-one-option-chain';
+import { angelOneInstruments } from './angel-one-instruments';
 import { angelOneWebSocket } from './angel-one-websocket';
 import { simpleLiveTicker } from './simple-live-ticker';
 import { angelOneRealTicker } from './angel-one-real-ticker';
@@ -15417,11 +15418,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Option chain route - handles both path and query parameters
   // GET /api/options/chain/:underlying OR /api/options/chain?symbol=NIFTY
+  // Uses Angel One API for real-time option chain data
   app.get("/api/options/chain/:underlying?", async (req, res) => {
     try {
       // Handle both path param and query param
       const underlying = req.params.underlying || (req.query.symbol as string);
-      const { expiry } = req.query;
+      const { expiry, strikeRange } = req.query;
       
       if (!underlying) {
         return res.status(400).json({
@@ -15431,113 +15433,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const normalizedSymbol = underlying.toUpperCase().trim();
-      const isIndex = ['NIFTY', 'NIFTY50', 'BANKNIFTY', 'SENSEX', 'FINNIFTY', 'MIDCPNIFTY'].includes(normalizedSymbol);
       
-      console.log(`📊 [OPTIONS-CHAIN] Fetching option chain for ${normalizedSymbol} (isIndex: ${isIndex})...`);
+      // Parse strikeRange: 0 = all strikes, positive number = +/- N around ATM
+      // Default to 0 (all strikes) for full analytics support
+      const rangeValue = strikeRange ? parseInt(strikeRange as string, 10) : 0;
       
-      // Try NSE API first for real option chain data
-      try {
-        const nseResult = await nseApi.getOptionChain(normalizedSymbol, isIndex);
+      console.log(`📊 [OPTIONS-CHAIN] Fetching option chain for ${normalizedSymbol} using Angel One API (strikeRange: ${rangeValue === 0 ? 'all' : rangeValue})...`);
+      
+      // Use Angel One option chain service with error handling
+      const result = await angelOneOptionChain.getOptionChainWithError(
+        normalizedSymbol, 
+        expiry as string | undefined,
+        rangeValue
+      );
+      
+      if (result.success && result.data) {
+        const optionChainData = result.data;
+        // Transform to the expected format
+        const calls: any[] = [];
+        const puts: any[] = [];
+        const strikeList: number[] = [];
         
-        if (nseResult.success && nseResult.data) {
-          const nseData = nseResult.data;
+        for (const strike of optionChainData.strikes) {
+          strikeList.push(strike.strikePrice);
           
-          // Transform NSE data to our format
-          const strikes = nseData.strikePrices || [];
-          const expiries = nseData.expiryDates || [];
-          const spotPrice = nseData.underlyingValue || await getSpotPrice(normalizedSymbol);
-          
-          const calls: any[] = [];
-          const puts: any[] = [];
-          
-          if (nseData.data && Array.isArray(nseData.data)) {
-            for (const item of nseData.data) {
-              if (item.CE) {
-                calls.push({
-                  strikePrice: item.strikePrice,
-                  expiryDate: item.expiryDate,
-                  optionType: 'CE',
-                  ltp: item.CE.lastPrice || 0,
-                  change: item.CE.change || 0,
-                  changePercent: item.CE.pChange || 0,
-                  volume: item.CE.totalTradedVolume || 0,
-                  oi: item.CE.openInterest || 0,
-                  oiChange: item.CE.changeinOpenInterest || 0,
-                  bidPrice: item.CE.bidprice || 0,
-                  askPrice: item.CE.askPrice || 0,
-                  bidQty: item.CE.bidQty || 0,
-                  askQty: item.CE.askQty || 0,
-                  iv: item.CE.impliedVolatility || 0,
-                  inTheMoney: item.strikePrice < spotPrice
-                });
-              }
-              if (item.PE) {
-                puts.push({
-                  strikePrice: item.strikePrice,
-                  expiryDate: item.expiryDate,
-                  optionType: 'PE',
-                  ltp: item.PE.lastPrice || 0,
-                  change: item.PE.change || 0,
-                  changePercent: item.PE.pChange || 0,
-                  volume: item.PE.totalTradedVolume || 0,
-                  oi: item.PE.openInterest || 0,
-                  oiChange: item.PE.changeinOpenInterest || 0,
-                  bidPrice: item.PE.bidprice || 0,
-                  askPrice: item.PE.askPrice || 0,
-                  bidQty: item.PE.bidQty || 0,
-                  askQty: item.PE.askQty || 0,
-                  iv: item.PE.impliedVolatility || 0,
-                  inTheMoney: item.strikePrice > spotPrice
-                });
-              }
-            }
+          if (strike.CE) {
+            calls.push({
+              strikePrice: strike.strikePrice,
+              expiryDate: optionChainData.expiry,
+              optionType: 'CE',
+              token: strike.CE.token,
+              symbol: strike.CE.symbol,
+              ltp: strike.CE.ltp || 0,
+              change: strike.CE.change || 0,
+              changePercent: strike.CE.ltp && strike.CE.ltp > 0 ? 
+                ((strike.CE.change || 0) / strike.CE.ltp * 100).toFixed(2) : 0,
+              volume: strike.CE.volume || 0,
+              oi: strike.CE.oi || 0,
+              lotSize: strike.CE.lotSize,
+              inTheMoney: strike.strikePrice < optionChainData.spotPrice
+            });
           }
           
-          console.log(`✅ [OPTIONS-CHAIN] NSE data fetched: ${strikes.length} strikes, ${calls.length} calls, ${puts.length} puts`);
-          
-          return res.json({
-            success: true,
-            data: {
-              underlying: normalizedSymbol,
-              spotPrice,
-              strikes,
-              calls,
-              puts,
-              expiries,
-              timestamp: new Date().toISOString()
-            },
-            metadata: {
-              timestamp: new Date().toISOString(),
-              underlying: normalizedSymbol,
-              expiry: expiry || 'All expiries',
-              totalStrikes: strikes.length,
-              totalCalls: calls.length,
-              totalPuts: puts.length,
-              dataSource: 'NSE'
-            }
-          });
+          if (strike.PE) {
+            puts.push({
+              strikePrice: strike.strikePrice,
+              expiryDate: optionChainData.expiry,
+              optionType: 'PE',
+              token: strike.PE.token,
+              symbol: strike.PE.symbol,
+              ltp: strike.PE.ltp || 0,
+              change: strike.PE.change || 0,
+              changePercent: strike.PE.ltp && strike.PE.ltp > 0 ? 
+                ((strike.PE.change || 0) / strike.PE.ltp * 100).toFixed(2) : 0,
+              volume: strike.PE.volume || 0,
+              oi: strike.PE.oi || 0,
+              lotSize: strike.PE.lotSize,
+              inTheMoney: strike.strikePrice > optionChainData.spotPrice
+            });
+          }
         }
-      } catch (nseError) {
-        console.warn('⚠️ [OPTIONS-CHAIN] NSE API failed, generating mock data:', nseError);
+        
+        console.log(`✅ [OPTIONS-CHAIN] Angel One data fetched: ${strikeList.length} strikes, ${calls.length} calls, ${puts.length} puts`);
+        
+        return res.json({
+          success: true,
+          data: {
+            underlying: optionChainData.underlying,
+            spotPrice: optionChainData.spotPrice,
+            atmStrike: optionChainData.atmStrike,
+            strikes: strikeList,
+            calls,
+            puts,
+            expiries: optionChainData.expiryDates,
+            selectedExpiry: optionChainData.expiry,
+            timestamp: optionChainData.timestamp
+          },
+          metadata: {
+            timestamp: optionChainData.timestamp,
+            underlying: optionChainData.underlying,
+            expiry: optionChainData.expiry,
+            totalStrikes: strikeList.length,
+            totalCalls: calls.length,
+            totalPuts: puts.length,
+            dataSource: 'AngelOne',
+            angelOneConnected: angelOneApi.isConnected()
+          }
+        });
       }
-
-      // Fallback: Generate mock option chain data
-      console.log('📊 [OPTIONS-CHAIN] Generating mock option chain data...');
-      const spotPrice = await getSpotPrice(normalizedSymbol);
-      const mockOptionChain = generateMockOptionChain(normalizedSymbol, spotPrice);
       
-      res.json({
-        success: true,
-        data: mockOptionChain,
-        metadata: {
-          timestamp: new Date().toISOString(),
-          underlying: normalizedSymbol,
-          expiry: expiry || 'All expiries',
-          totalStrikes: mockOptionChain.strikes.length,
-          totalCalls: mockOptionChain.calls.length,
-          totalPuts: mockOptionChain.puts.length,
-          dataSource: 'mock'
-        }
+      // Angel One data not available - return error with details
+      const errorDetails = result.error || { code: 'UNKNOWN', message: 'Failed to fetch option chain data' };
+      console.log(`📊 [OPTIONS-CHAIN] Angel One data not available: ${errorDetails.code} - ${errorDetails.message}`);
+      
+      // Return 503 Service Unavailable with error details, or mock data if requested
+      const useMock = req.query.useMock === 'true';
+      
+      if (useMock) {
+        // Generate mock data only when explicitly requested
+        console.log('📊 [OPTIONS-CHAIN] Generating mock data (explicitly requested)...');
+        const spotPrice = await getSpotPrice(normalizedSymbol);
+        const mockOptionChain = generateMockOptionChain(normalizedSymbol, spotPrice);
+        
+        return res.json({
+          success: true,
+          data: mockOptionChain,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            underlying: normalizedSymbol,
+            expiry: expiry || 'All expiries',
+            totalStrikes: mockOptionChain.strikes.length,
+            totalCalls: mockOptionChain.calls.length,
+            totalPuts: mockOptionChain.puts.length,
+            dataSource: 'mock',
+            angelOneConnected: angelOneApi.isConnected(),
+            note: 'Using mock data as requested. Connect to Angel One for real-time data.'
+          }
+        });
+      }
+      
+      // Return explicit error when real data is not available
+      return res.status(503).json({
+        success: false,
+        error: errorDetails.message,
+        errorCode: errorDetails.code,
+        angelOneConnected: angelOneApi.isConnected(),
+        hint: 'Add ?useMock=true to use mock data, or connect to Angel One for real-time data'
       });
 
     } catch (error) {
@@ -16031,59 +16052,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📊 [OPTIONS-FLOW] Analyzing option flow for ${underlying} on ${date}...`);
       
-      // Get option chain data
-      const optionChain = await nseApi.getOptionChain(underlying);
+      // Get option chain data from Angel One
+      const optionChain = await angelOneOptionChain.getOptionChain(underlying);
       
       if (!optionChain) {
         return res.status(404).json({
           success: false,
-          error: "Option chain data not available"
+          error: "Option chain data not available. Please connect to Angel One for live data."
         });
       }
 
-      // Calculate flow metrics
-      const callVolume = optionChain.calls.reduce((sum, call) => sum + call.volume, 0);
-      const putVolume = optionChain.puts.reduce((sum, put) => sum + put.volume, 0);
+      // Calculate flow metrics from Angel One data
+      let callVolume = 0;
+      let putVolume = 0;
+      let callOI = 0;
+      let putOI = 0;
       
-      const callOI = optionChain.calls.reduce((sum, call) => sum + call.open_interest, 0);
-      const putOI = optionChain.puts.reduce((sum, put) => sum + put.open_interest, 0);
+      const strikeData: Array<{
+        strike: number;
+        totalVolume: number;
+        totalOI: number;
+        callVolume: number;
+        putVolume: number;
+        callOI: number;
+        putOI: number;
+      }> = [];
 
-      const hotStrikes = optionChain.strikes
-        .map(strike => {
-          const call = optionChain.calls.find(c => c.strike === strike);
-          const put = optionChain.puts.find(p => p.strike === strike);
-          
-          return {
-            strike,
-            totalVolume: (call?.volume || 0) + (put?.volume || 0),
-            totalOI: (call?.open_interest || 0) + (put?.open_interest || 0),
-            callVolume: call?.volume || 0,
-            putVolume: put?.volume || 0,
-            callOI: call?.open_interest || 0,
-            putOI: put?.open_interest || 0
-          };
-        })
+      for (const strike of optionChain.strikes) {
+        const ceVol = strike.CE?.volume || 0;
+        const peVol = strike.PE?.volume || 0;
+        const ceOI = strike.CE?.oi || 0;
+        const peOI = strike.PE?.oi || 0;
+        
+        callVolume += ceVol;
+        putVolume += peVol;
+        callOI += ceOI;
+        putOI += peOI;
+        
+        strikeData.push({
+          strike: strike.strikePrice,
+          totalVolume: ceVol + peVol,
+          totalOI: ceOI + peOI,
+          callVolume: ceVol,
+          putVolume: peVol,
+          callOI: ceOI,
+          putOI: peOI
+        });
+      }
+
+      const hotStrikes = strikeData
         .sort((a, b) => b.totalVolume - a.totalVolume)
         .slice(0, 10);
 
+      // Calculate max pain (strike where total OI is highest)
+      const maxPainStrike = strikeData.reduce((prev, curr) => 
+        curr.totalOI > prev.totalOI ? curr : prev, strikeData[0])?.strike || optionChain.atmStrike;
+
       const flowAnalysis = {
-        underlying,
-        spotPrice: optionChain.spot_price,
+        underlying: optionChain.underlying,
+        spotPrice: optionChain.spotPrice,
+        atmStrike: optionChain.atmStrike,
         date,
         volumeMetrics: {
           totalCallVolume: callVolume,
           totalPutVolume: putVolume,
-          putCallVolumeRatio: callVolume > 0 ? putVolume / callVolume : 0,
+          putCallVolumeRatio: callVolume > 0 ? +(putVolume / callVolume).toFixed(2) : 0,
           totalVolume: callVolume + putVolume
         },
         openInterestMetrics: {
           totalCallOI: callOI,
           totalPutOI: putOI,
-          putCallOIRatio: callOI > 0 ? putOI / callOI : 0,
+          putCallOIRatio: callOI > 0 ? +(putOI / callOI).toFixed(2) : 0,
           totalOI: callOI + putOI
         },
-        maxPain: optionChain.max_pain,
-        pcr: optionChain.pcr,
+        maxPain: maxPainStrike,
+        pcr: callOI > 0 ? +(putOI / callOI).toFixed(2) : 0,
         hotStrikes,
         marketSentiment: callVolume > putVolume ? 'Bullish' : 'Bearish'
       };
@@ -16094,7 +16137,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: {
           timestamp: new Date().toISOString(),
           analysisDate: date,
-          totalStrikes: optionChain.strikes.length
+          totalStrikes: optionChain.strikes.length,
+          dataSource: 'AngelOne',
+          angelOneConnected: angelOneApi.isConnected()
         }
       });
 
@@ -17315,121 +17360,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // ============================================
-  // NSE API Routes - Testing for Production Alternative to Fyers
+  // Angel One Option Chain API Routes
   // ============================================
   
-  // Helper to get HTTP status from NSE error code
-  const getNseHttpStatus = (errorCode?: string): number => {
-    switch (errorCode) {
-      case 'INVALID_SYMBOL':
-      case 'INVALID_CATEGORY':
-        return 400;
-      case 'RATE_LIMITED':
-        return 429;
-      case 'SESSION_FAILED':
-      case 'NETWORK_ERROR':
-        return 503;
-      default:
-        return 500;
-    }
-  };
-  
-  // Test NSE connection
-  app.get('/api/nse/test', async (req, res) => {
+  // Get option chain status and instrument info
+  app.get('/api/angel-one/option-chain/status', async (req, res) => {
     try {
-      console.log('[NSE-ROUTES] Testing NSE connection...');
-      const result = await nseApi.testConnection();
-      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
-      res.status(status).json(result);
+      const status = await angelOneOptionChain.getStatus();
+      res.json({
+        success: true,
+        data: status,
+        timestamp: new Date().toISOString()
+      });
     } catch (error: any) {
-      console.error('[NSE-ROUTES] Connection test error:', error);
+      console.error('[ANGEL-ONE] Option chain status error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error during connection test',
-        errorCode: 'UNKNOWN',
-        timestamp: new Date().toISOString(),
-        latencyMs: 0
+        error: 'Failed to get option chain status'
       });
     }
   });
-  
-  // Get equity quote for a single symbol
-  app.get('/api/nse/equity/:symbol', async (req, res) => {
+
+  // Get available expiry dates for an underlying
+  app.get('/api/angel-one/expiries/:underlying', async (req, res) => {
     try {
-      const { symbol } = req.params;
-      console.log(`[NSE-ROUTES] Fetching equity quote for: ${symbol}`);
-      const result = await nseApi.getEquityQuote(symbol);
-      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
-      res.status(status).json(result);
+      const { underlying } = req.params;
+      await angelOneInstruments.ensureInstruments();
+      const expiries = angelOneInstruments.getExpiryDates(underlying.toUpperCase());
+      
+      res.json({
+        success: true,
+        data: {
+          underlying: underlying.toUpperCase(),
+          expiries,
+          nearestExpiry: angelOneInstruments.getNearestExpiry(underlying.toUpperCase())
+        },
+        timestamp: new Date().toISOString()
+      });
     } catch (error: any) {
-      console.error('[NSE-ROUTES] Equity quote error:', error);
+      console.error('[ANGEL-ONE] Expiries fetch error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error fetching equity quote',
-        errorCode: 'UNKNOWN',
-        timestamp: new Date().toISOString(),
-        latencyMs: 0
+        error: 'Failed to fetch expiry dates'
       });
     }
   });
-  
-  // Get equity market data for a category (NIFTY 50, NIFTY BANK, etc.)
-  app.get('/api/nse/market/:category', async (req, res) => {
+
+  // Refresh instrument master
+  app.post('/api/angel-one/instruments/refresh', async (req, res) => {
     try {
-      const { category } = req.params;
-      console.log(`[NSE-ROUTES] Fetching market data for category: ${category}`);
-      const result = await nseApi.getEquityMarketData(decodeURIComponent(category));
-      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
-      res.status(status).json(result);
-    } catch (error: any) {
-      console.error('[NSE-ROUTES] Market data error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error fetching market data',
-        errorCode: 'UNKNOWN',
-        timestamp: new Date().toISOString(),
-        latencyMs: 0
+      await angelOneInstruments.fetchInstruments();
+      res.json({
+        success: true,
+        message: 'Instrument master refreshed successfully',
+        instrumentCount: angelOneInstruments.getInstrumentCount(),
+        timestamp: new Date().toISOString()
       });
-    }
-  });
-  
-  // Get pre-market data
-  app.get('/api/nse/premarket/:category', async (req, res) => {
-    try {
-      const { category } = req.params;
-      console.log(`[NSE-ROUTES] Fetching pre-market data for: ${category}`);
-      const result = await nseApi.getPreMarketData(decodeURIComponent(category));
-      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
-      res.status(status).json(result);
     } catch (error: any) {
-      console.error('[NSE-ROUTES] Pre-market data error:', error);
+      console.error('[ANGEL-ONE] Instrument refresh error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error fetching pre-market data',
-        errorCode: 'UNKNOWN',
-        timestamp: new Date().toISOString(),
-        latencyMs: 0
-      });
-    }
-  });
-  
-  // Get option chain data
-  app.get('/api/nse/options/:symbol', async (req, res) => {
-    try {
-      const { symbol } = req.params;
-      const isIndex = req.query.index === 'true';
-      console.log(`[NSE-ROUTES] Fetching option chain for: ${symbol} (isIndex: ${isIndex})`);
-      const result = await nseApi.getOptionChain(symbol, isIndex);
-      const status = result.success ? 200 : getNseHttpStatus(result.errorCode);
-      res.status(status).json(result);
-    } catch (error: any) {
-      console.error('[NSE-ROUTES] Option chain error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error fetching option chain',
-        errorCode: 'UNKNOWN',
-        timestamp: new Date().toISOString(),
-        latencyMs: 0
+        error: 'Failed to refresh instrument master'
       });
     }
   });
