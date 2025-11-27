@@ -103,7 +103,16 @@ class AngelOneInstruments {
       .filter(inst => {
         const isOption = inst.instrumenttype === 'OPTIDX' || inst.instrumenttype === 'OPTSTK';
         const isNFO = inst.exch_seg === 'NFO';
-        const matchesUnderlying = inst.name === normalizedUnderlying;
+        
+        // Check if instrument matches the underlying - try multiple fields
+        // For NIFTY, BANKNIFTY: name field contains the underlying
+        // For stocks: symbol field starts with the underlying (e.g., RELIANCE25NOV1450CE)
+        const matchesUnderlying = 
+          inst.name === normalizedUnderlying ||
+          inst.name?.includes(normalizedUnderlying) ||
+          inst.symbol?.startsWith(normalizedUnderlying) ||
+          inst.name?.toUpperCase() === normalizedUnderlying;
+        
         const matchesExpiry = !expiry || inst.expiry === expiry;
         
         return isOption && isNFO && matchesUnderlying && matchesExpiry;
@@ -122,7 +131,12 @@ class AngelOneInstruments {
       })
       .sort((a, b) => a.strike - b.strike);
 
-    console.log(`📋 [INSTRUMENTS] Found ${options.length} options for ${normalizedUnderlying}${expiry ? ` expiry ${expiry}` : ''}`);
+    if (options.length === 0) {
+      console.log(`⚠️ [INSTRUMENTS] No options found for ${normalizedUnderlying}${expiry ? ` expiry ${expiry}` : ''}. Sample instruments:`, 
+        this.instruments.filter(i => i.instrumenttype === 'OPTIDX' || i.instrumenttype === 'OPTSTK').slice(0, 3));
+    } else {
+      console.log(`📋 [INSTRUMENTS] Found ${options.length} options for ${normalizedUnderlying}${expiry ? ` expiry ${expiry}` : ''}`);
+    }
     return options;
   }
 
