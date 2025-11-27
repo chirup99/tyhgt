@@ -4210,6 +4210,14 @@ ${
   }>>([]);
   const [isSearchingInstruments, setIsSearchingInstruments] = useState(false);
   
+  // Currently selected instrument details (for chart loading)
+  const [selectedInstrument, setSelectedInstrument] = useState<{
+    symbol: string;
+    token: string;
+    exchange: string;
+    tradingSymbol: string;
+  } | null>(null);
+  
   // TradingView-style chart refs for Journal
   const journalChartContainerRef = useRef<HTMLDivElement>(null);
   const journalChartRef = useRef<IChartApi | null>(null);
@@ -4431,12 +4439,26 @@ ${
         return;
       }
       
-      // Convert symbol to Angel One format
-      const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
-      const stockToken = journalAngelOneTokens[cleanSymbol];
+      // Get token data - use selectedInstrument if available (for dynamic search), otherwise use hardcoded mapping
+      let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
+      
+      if (selectedInstrument) {
+        // Use dynamically selected instrument from search
+        stockToken = {
+          token: selectedInstrument.token,
+          exchange: selectedInstrument.exchange,
+          tradingSymbol: selectedInstrument.tradingSymbol
+        };
+        console.log('🔶 Using dynamically selected instrument:', selectedInstrument);
+      } else {
+        // Fall back to hardcoded mapping for legacy symbols
+        const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+        stockToken = journalAngelOneTokens[cleanSymbol];
+        console.log('🔶 Using hardcoded token mapping for:', cleanSymbol);
+      }
       
       if (!stockToken) {
-        console.warn(`🔶 No Angel One token found for symbol: ${cleanSymbol}`);
+        console.warn(`🔶 No Angel One token found for symbol: ${selectedJournalSymbol}`);
         setJournalChartData([]);
         return;
       }
@@ -4569,12 +4591,24 @@ ${
       return;
     }
 
-    // Get stock token info for selected symbol
-    const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
-    const stockToken = journalAngelOneTokens[cleanSymbol];
+    // Get stock token info - use selectedInstrument if available (for dynamic search), otherwise use hardcoded mapping
+    let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
+    
+    if (selectedInstrument) {
+      stockToken = {
+        token: selectedInstrument.token,
+        exchange: selectedInstrument.exchange,
+        tradingSymbol: selectedInstrument.tradingSymbol
+      };
+      console.log('🔴 [SSE] Using dynamically selected instrument:', selectedInstrument);
+    } else {
+      const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+      stockToken = journalAngelOneTokens[cleanSymbol];
+      console.log('🔴 [SSE] Using hardcoded token mapping for:', cleanSymbol);
+    }
     
     if (!stockToken) {
-      console.warn('🔴 [SSE] No token found for symbol:', cleanSymbol);
+      console.warn('🔴 [SSE] No token found for symbol:', selectedJournalSymbol);
       return;
     }
 
@@ -9883,12 +9917,13 @@ ${
                                               const formattedSymbol = `${instrument.exchange}:${instrument.symbol}`;
                                               setSelectedJournalSymbol(formattedSymbol);
                                               
-                                              // Update token mapping for this instrument
-                                              journalAngelOneTokens[instrument.name] = {
+                                              // Store instrument details for chart loading
+                                              setSelectedInstrument({
+                                                symbol: instrument.symbol,
                                                 token: instrument.token,
                                                 exchange: instrument.exchange,
                                                 tradingSymbol: instrument.tradingSymbol
-                                              };
+                                              });
                                               
                                               setShowStockSearch(false);
                                               setStockSearchQuery("");
