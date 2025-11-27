@@ -212,3 +212,15 @@
 [x] 2944.   - Fetch button with loading state preserved
 [x] 2945. ✅ Workflow restarted successfully
 [x] 2946. ✅✅✅ TRADING JOURNAL CHART SIMPLIFICATION 100% COMPLETE! ✅✅✅
+
+[x] 2947. BUG FIX: Trading Journal OHLC Data Not Fetching
+[x] 2948. Root cause: API response format mismatch
+[x] 2949.   - Code expected: data.data as arrays [[timestamp, open, high, low, close, volume], ...]
+[x] 2950.   - API returns: data.candles as objects [{timestamp, open, high, low, close, volume}, ...]
+[x] 2951. ✅ Fixed fetchJournalChartData() to handle both formats:
+[x] 2952.   - Format 1: data.data as array of arrays (legacy)
+[x] 2953.   - Format 2: data.candles as array of objects (current API format)
+[x] 2954. ✅ Proper timestamp conversion (ms to seconds)
+[x] 2955. ✅ Browser logs confirmed: API returning data successfully
+[x] 2956. Note: Click Fetch button after Angel One auto-connect completes (green indicator)
+[x] 2957. ✅✅✅ TRADING JOURNAL OHLC FETCH BUG FIXED! ✅✅✅

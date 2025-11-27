@@ -4393,9 +4393,14 @@ ${
       const data = await response.json();
       
       // Transform Angel One candle data to chart format
-      // Angel One returns: [timestamp, open, high, low, close, volume]
+      // Angel One returns either:
+      // 1. data.data as array: [[timestamp, open, high, low, close, volume], ...]
+      // 2. data.candles as objects: [{timestamp, open, high, low, close, volume}, ...]
+      let candleData: any[] = [];
+      
       if (data.success && data.data && Array.isArray(data.data)) {
-        const transformedCandles = data.data.map((candle: any[]) => ({
+        // Format 1: Array of arrays
+        candleData = data.data.map((candle: any[]) => ({
           time: new Date(candle[0]).getTime() / 1000,
           open: parseFloat(candle[1]),
           high: parseFloat(candle[2]),
@@ -4403,8 +4408,21 @@ ${
           close: parseFloat(candle[4]),
           volume: parseInt(candle[5]) || 0,
         }));
-        console.log(`🔶 Angel One: Loaded ${transformedCandles.length} candles for journal chart`);
-        setJournalChartData(transformedCandles);
+      } else if (data.success && data.candles && Array.isArray(data.candles) && data.candles.length > 0) {
+        // Format 2: Array of objects (current API response format)
+        candleData = data.candles.map((candle: any) => ({
+          time: candle.timestamp / 1000, // Convert ms to seconds
+          open: parseFloat(candle.open),
+          high: parseFloat(candle.high),
+          low: parseFloat(candle.low),
+          close: parseFloat(candle.close),
+          volume: parseInt(candle.volume) || 0,
+        }));
+      }
+      
+      if (candleData.length > 0) {
+        console.log(`🔶 Angel One: Loaded ${candleData.length} candles for journal chart`);
+        setJournalChartData(candleData);
       } else {
         console.warn('🔶 Angel One: No candle data returned', data);
         setJournalChartData([]);
