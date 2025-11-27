@@ -4354,6 +4354,17 @@ ${
     try {
       setJournalChartLoading(true);
       
+      // Check if Angel One is connected before fetching
+      const statusResponse = await fetch(getFullApiUrl("/api/angelone/status"));
+      const statusData = await statusResponse.json();
+      
+      if (!statusData.success || !statusData.connected) {
+        console.warn('🔶 Angel One not connected yet, skipping chart data fetch');
+        setJournalChartData([]);
+        setJournalChartLoading(false);
+        return;
+      }
+      
       // Convert symbol to Angel One format
       const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
       const stockToken = journalAngelOneTokens[cleanSymbol];
@@ -4503,13 +4514,8 @@ ${
     }
 
     try {
-      const containerWidth = journalChartContainerRef.current.clientWidth || 400;
-      let containerHeight = journalChartContainerRef.current.clientHeight;
-      
-      // If container height is 0 (not yet sized by layout), wait a tick
-      if (containerHeight === 0) {
-        containerHeight = 350; // fallback to 350px
-      }
+      const containerWidth = journalChartContainerRef.current.clientWidth || 800;
+      let containerHeight = journalChartContainerRef.current.clientHeight || 450;
       
       console.log('📊 Chart container dimensions:', { containerWidth, containerHeight });
       
@@ -9565,7 +9571,7 @@ ${
                     <div className="md:grid md:grid-cols-3 gap-6">
                       {/* Left Block - Performance Chart */}
                       <div
-                        className={`h-[500px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
+                        className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
                       >
                         {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
                         <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
