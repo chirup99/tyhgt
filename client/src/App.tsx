@@ -40,6 +40,7 @@ import SharedReport from "@/pages/shared-report";
 import TradingJournalDemo from "@/pages/trading-journal-demo";
 import UserProfile from "@/pages/user-profile";
 import NeoFeedSocialFeed from "@/components/neofeed-social-feed";
+import { AngelOneGlobalAutoConnect } from "@/components/auth-button-angelone";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -490,6 +491,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
+          <AngelOneGlobalAutoConnect />
           <Toaster />
           <Router />
         </TooltipProvider>

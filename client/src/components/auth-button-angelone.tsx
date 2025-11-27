@@ -7,6 +7,76 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
 
+// Global auto-connect component that runs on app startup (renders nothing)
+export function AngelOneGlobalAutoConnect() {
+  const { toast } = useToast();
+  const autoConnectAttempted = useRef(false);
+  const [isAutoConnecting, setIsAutoConnecting] = useState(false);
+  
+  const hasEnvCredentials = !!(import.meta.env.VITE_ANGEL_ONE_CLIENT_CODE && import.meta.env.VITE_ANGEL_ONE_API_KEY);
+  const clientCode = import.meta.env.VITE_ANGEL_ONE_CLIENT_CODE || "";
+  const pin = import.meta.env.VITE_ANGEL_ONE_PIN || "";
+  const apiKey = import.meta.env.VITE_ANGEL_ONE_API_KEY || "";
+  const totpSecret = import.meta.env.VITE_ANGEL_ONE_TOTP_SECRET || "";
+
+  const { data: angelStatus } = useQuery<AngelOneStatusData>({
+    queryKey: ["/api/angelone/status"],
+    refetchInterval: 5000,
+  });
+
+  const connectMutation = useMutation({
+    mutationFn: async (credentials: { clientCode: string; pin: string; apiKey: string; totpSecret: string }) => {
+      return await apiRequest("POST", "/api/angelone/connect", credentials);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/angelone/profile"] });
+      
+      toast({
+        title: "Connected!",
+        description: "Angel One API connected successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.log('🔶 Angel One auto-connect failed:', error?.message);
+    },
+  });
+
+  // Global auto-connect on app startup
+  useEffect(() => {
+    const shouldAutoConnect = 
+      hasEnvCredentials && 
+      !autoConnectAttempted.current && 
+      angelStatus !== undefined &&
+      !angelStatus?.connected &&
+      !angelStatus?.authenticated &&
+      clientCode.trim() && 
+      pin.trim() && 
+      apiKey.trim() && 
+      totpSecret.trim();
+
+    if (shouldAutoConnect) {
+      autoConnectAttempted.current = true;
+      setIsAutoConnecting(true);
+      console.log('🔶 [GLOBAL] Auto-connecting to Angel One with environment credentials...');
+      
+      connectMutation.mutate({
+        clientCode: clientCode.trim(),
+        pin: pin.trim(),
+        apiKey: apiKey.trim(),
+        totpSecret: totpSecret.trim(),
+      }, {
+        onSettled: () => {
+          setIsAutoConnecting(false);
+        }
+      });
+    }
+  }, [hasEnvCredentials, angelStatus, clientCode, pin, apiKey, totpSecret]);
+
+  // This component renders nothing - it just handles the auto-connect logic
+  return null;
+}
+
 interface AngelOneProfile {
   name: string;
   email: string;

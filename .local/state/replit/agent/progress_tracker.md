@@ -133,6 +133,32 @@
 [x] 2893. ✅ All null array operations in JSX templates safeguarded
 [x] 2894. ✅✅✅ TRADING MASTER CRASH FIX 100% COMPLETE! ✅✅✅
 
+[x] 2895. NOVEMBER 27, 2025 - ANGEL ONE AUTO-CONNECT GLOBAL FIX
+[x] 2896. Task: Fix Angel One auto-connect to work on app startup (not just Dashboard tab)
+[x] 2897. ✅ Root cause identified:
+[x] 2898.   - Auto-connect logic was inside AuthButtonAngelOne component
+[x] 2899.   - This component only renders when Dashboard tab is active
+[x] 2900.   - User had to navigate to Dashboard for auto-connect to trigger
+[x] 2901. ✅ Created AngelOneGlobalAutoConnect component:
+[x] 2902.   - New component in auth-button-angelone.tsx
+[x] 2903.   - Handles auto-connect logic independently
+[x] 2904.   - Renders nothing (returns null) - invisible background component
+[x] 2905.   - Uses environment credentials from VITE_ANGEL_ONE_* variables
+[x] 2906.   - Queries /api/angelone/status to check connection state
+[x] 2907.   - Auto-connects if env credentials present and not already connected
+[x] 2908. ✅ Added component to App.tsx root level:
+[x] 2909.   - Imported AngelOneGlobalAutoConnect from auth-button-angelone
+[x] 2910.   - Added inside QueryClientProvider > ThemeProvider > TooltipProvider
+[x] 2911.   - Runs on app startup regardless of active tab/route
+[x] 2912. ✅ Verified fix working:
+[x] 2913.   - Browser logs show "[GLOBAL] Auto-connecting to Angel One..."
+[x] 2914.   - Auto-connect triggers immediately on app load
+[x] 2915.   - Works on any screen (Home, Trading Master, Journal, etc.)
+[x] 2916.   - Dashboard tab no longer required for auto-connect
+[x] 2917. ✅ Workflow restarted successfully
+[x] 2918. ✅ Application running on port 5000
+[x] 2919. ✅✅✅ ANGEL ONE AUTO-CONNECT GLOBAL FIX 100% COMPLETE! ✅✅✅
+
 [x] 2895. NOVEMBER 27, 2025 - FINAL REPLIT ENVIRONMENT MIGRATION
 [x] 2896. Task: Complete migration from Replit Agent to Replit environment
 [x] 2897. ✅ Identified missing npm packages:
