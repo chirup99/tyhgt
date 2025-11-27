@@ -9939,7 +9939,7 @@ ${
             )}
 
             {activeTab === "journal" && (
-              <div className="space-y-6 p-6 relative">
+              <div className="space-y-6 px-0 md:px-6 py-6 relative">
                 {/* Back Button - Mobile Only */}
                 <Button
                   onClick={() => setTabWithAuthCheck("trading-home")}
