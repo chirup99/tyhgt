@@ -9849,6 +9849,18 @@ ${
                                             value: "NSE:WIPRO-EQ",
                                             label: "WIPRO",
                                           },
+                                          {
+                                            value: "MCX:GOLD-COM",
+                                            label: "GOLD",
+                                          },
+                                          {
+                                            value: "MCX:CRUDEOIL-COM",
+                                            label: "CRUDE OIL",
+                                          },
+                                          {
+                                            value: "MCX:SILVER-COM",
+                                            label: "SILVER",
+                                          },
                                         ]
                                           .filter((stock) =>
                                             stock.label

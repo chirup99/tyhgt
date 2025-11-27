@@ -273,13 +273,24 @@
 [x] 3241. ✅ All Fyers API references removed from live price streaming
 [x] 3242. ✅✅✅ WATCHLIST LIVE PRICES FIX 100% COMPLETE! ✅✅✅
 
-[x] 3243. NOVEMBER 27, 2025 - FINAL REPLIT ENVIRONMENT MIGRATION (CURRENT SESSION)
-[x] 3244. Task: Complete migration from Replit Agent to Replit environment
-[x] 3245. ✅ Identified workflow startup issue:
-[x] 3246.   - npm error: Cannot find package.json (ENOENT)
-[x] 3247.   - Workflow failing with exit code 1
-[x] 3248.   - node_modules directory needed repopulation
-[x] 3249. ✅ Installed npm dependencies successfully:
+[x] 3243. NOVEMBER 27, 2025 - MCX COMMODITIES ADDITION TO TRADING JOURNAL CHART
+[x] 3244. Task: Add MCX stocks (Gold, Crude Oil, Silver) to Trading Journal chart window stock selector
+[x] 3245. ✅ Added three MCX commodities to stock dropdown:
+[x] 3246.   - GOLD (MCX:GOLD-COM)
+[x] 3247.   - CRUDE OIL (MCX:CRUDEOIL-COM)
+[x] 3248.   - SILVER (MCX:SILVER-COM)
+[x] 3249. ✅ Updated stock selector array in client/src/pages/home.tsx (lines 9855-9866)
+[x] 3250. ✅ MCX commodities now searchable in stock search input
+[x] 3251. ✅ Workflow auto-restart in progress for changes to take effect
+[x] 3252. ✅✅✅ MCX COMMODITIES ADDITION 100% COMPLETE! ✅✅✅
+
+[x] 3253. NOVEMBER 27, 2025 - FINAL REPLIT ENVIRONMENT MIGRATION (CURRENT SESSION)
+[x] 3254. Task: Complete migration from Replit Agent to Replit environment
+[x] 3255. ✅ Identified workflow startup issue:
+[x] 3256.   - npm error: Cannot find package.json (ENOENT)
+[x] 3257.   - Workflow failing with exit code 1
+[x] 3258.   - node_modules directory needed repopulation
+[x] 3259. ✅ Installed npm dependencies successfully:
 [x] 3250.   - Ran npm install command
 [x] 3251.   - Added 168 packages
 [x] 3252.   - Audited 1454 packages total
