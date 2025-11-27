@@ -5980,7 +5980,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                 </div>
                 
                 <div className="space-y-3 max-h-60 overflow-y-auto custom-thin-scrollbar">
-                  {feedStocks.length > 0 ? (
+                  {Array.isArray(feedStocks) && feedStocks.length > 0 ? (
                     feedStocks.map((stock, index) => {
                       // Get live price data from streaming state
                       const liveData = feedStockPrices[stock];
@@ -6120,7 +6120,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-4 text-white">Watchlist Stocks</h3>
               <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                {watchlistStocks.map((stock, index) => {
+                {Array.isArray(watchlistStocks) && watchlistStocks.map((stock, index) => {
                   // Get live price data from streaming state
                   const liveData = watchlistPrices[stock];
                   // Get last traded price data as fallback
@@ -7654,7 +7654,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                           <div className="mb-3">
                             <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">📈 Social Feed Stocks</h4>
                             <div className="flex flex-wrap gap-1 justify-center mb-3">
-                              {feedStocks.map(stock => (
+                              {Array.isArray(feedStocks) && feedStocks.map(stock => (
                                 <Badge key={stock} variant="outline" className="text-[10px] px-2 py-1 bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
                                   {stock}
                                 </Badge>
@@ -7736,11 +7736,11 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                         size="sm"
                                         variant="outline"
                                         onClick={() => addStockToFeed(stock.symbol)}
-                                        disabled={feedStocks.includes(stock.symbol)}
+                                        disabled={Array.isArray(feedStocks) && feedStocks.includes(stock.symbol)}
                                         className="text-[10px] h-6 px-2 ml-2 text-orange-600 border-orange-600 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-400 dark:hover:bg-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                         data-testid={`button-add-${stock.symbol}`}
                                       >
-                                        {feedStocks.includes(stock.symbol) ? '✓' : '+'}
+                                        {Array.isArray(feedStocks) && feedStocks.includes(stock.symbol) ? '✓' : '+'}
                                       </Button>
                                     </div>
                                   ))}
@@ -7918,7 +7918,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                           className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded text-sm flex items-center justify-center gap-1"
                                         >
                                           <span className="text-sm font-bold">+</span>
-                                          Add All ({(message as any).newsData.stocks.filter((stock: any) => !feedStocks.includes(stock.symbol)).length})
+                                          Add All ({(message as any).newsData.stocks.filter((stock: any) => !(Array.isArray(feedStocks) && feedStocks.includes(stock.symbol))).length})
                                         </Button>
                                       </div>
                                     </div>
@@ -8456,7 +8456,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                       <CardContent className="p-4 h-full flex flex-col">
                         <h3 className="text-base font-semibold mb-3 text-white">Watchlist</h3>
                         <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                          {watchlistStocks.map((stock, index) => {
+                          {Array.isArray(watchlistStocks) && watchlistStocks.map((stock, index) => {
                             const liveData = watchlistPrices[stock];
                             const lastTradedData = lastTradedPrices[stock];
                             const dataSource = liveData || lastTradedData;
@@ -9082,7 +9082,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                     <div className="mb-3">
                                       <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">📈 Social Feed Stocks</h4>
                                       <div className="flex flex-wrap gap-1 justify-center mb-3">
-                                        {feedStocks.map(stock => (
+                                        {Array.isArray(feedStocks) && feedStocks.map(stock => (
                                           <Badge key={stock} variant="outline" className="text-[10px] px-2 py-1 bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
                                             {stock}
                                           </Badge>
@@ -9164,11 +9164,11 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                                   size="sm"
                                                   variant="outline"
                                                   onClick={() => addStockToFeed(stock.symbol)}
-                                                  disabled={feedStocks.includes(stock.symbol)}
+                                                  disabled={Array.isArray(feedStocks) && feedStocks.includes(stock.symbol)}
                                                   className="text-[10px] h-6 px-2 ml-2 text-orange-600 border-orange-600 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-400 dark:hover:bg-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                                   data-testid={`button-add-${stock.symbol}`}
                                                 >
-                                                  {feedStocks.includes(stock.symbol) ? '✓' : '+'}
+                                                  {Array.isArray(feedStocks) && feedStocks.includes(stock.symbol) ? '✓' : '+'}
                                                 </Button>
                                               </div>
                                             ))}
@@ -9346,7 +9346,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                                     className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded text-sm flex items-center justify-center gap-1"
                                                   >
                                                     <span className="text-sm font-bold">+</span>
-                                                    Add All ({(message as any).newsData.stocks.filter((stock: any) => !feedStocks.includes(stock.symbol)).length})
+                                                    Add All ({(message as any).newsData.stocks.filter((stock: any) => !(Array.isArray(feedStocks) && feedStocks.includes(stock.symbol))).length})
                                                   </Button>
                                                 </div>
                                               </div>
@@ -10939,7 +10939,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                                               className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-2 rounded text-xs flex items-center justify-center gap-1"
                                             >
                                               <span className="text-xs font-bold">+</span>
-                                              Add All ({(message as any).newsData.stocks.filter((stock: any) => !feedStocks.includes(stock.symbol)).length})
+                                              Add All ({(message as any).newsData.stocks.filter((stock: any) => !(Array.isArray(feedStocks) && feedStocks.includes(stock.symbol))).length})
                                             </Button>
                                           </div>
                                         </div>
