@@ -530,6 +530,42 @@ class AngelOneAPI {
   getSession(): AngelOneSession | null {
     return this.session;
   }
+
+  getCredentials(): AngelOneCredentials | null {
+    return this.credentials;
+  }
+
+  getStats(): AngelOneApiStats {
+    const uptime = this.connectionStartTime
+      ? Math.floor((Date.now() - this.connectionStartTime.getTime()) / 1000)
+      : 0;
+
+    const avgResponseTime = this.responseTimes.length > 0
+      ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+      : 0;
+
+    const successRate = this.requestCount > 0
+      ? (this.successCount / this.requestCount) * 100
+      : 0;
+
+    return {
+      connected: this.isAuthenticated,
+      authenticated: this.isAuthenticated,
+      version: '1.0.0',
+      dailyLimit: 10000,
+      requestsUsed: this.requestCount,
+      lastUpdate: this.lastUpdateTime ? this.lastUpdateTime.toISOString() : null,
+      websocketActive: false,
+      responseTime: Math.round(avgResponseTime),
+      successRate: Math.round(successRate * 10) / 10,
+      throughput: `${this.requestCount}/day`,
+      activeSymbols: 0,
+      updatesPerSec: 0,
+      uptime,
+      latency: Math.round(avgResponseTime),
+      clientCode: this.credentials?.clientCode || null
+    };
+  }
 }
 
 export const angelOneApi = new AngelOneAPI();

@@ -1,0 +1,439 @@
+// @ts-ignore - smartapi-javascript doesn't have type declarations
+import { WebSocketV2 } from 'smartapi-javascript';
+import { Response } from 'express';
+import { angelOneApi } from './angel-one-api';
+
+// Exchange constants from Angel One SDK
+const EXCHANGES = {
+  nse_cm: 1,
+  nse_fo: 2,
+  bse_cm: 3,
+  bse_fo: 4,
+  mcx_fo: 5,
+  ncx_fo: 7,
+  cde_fo: 13
+};
+
+// Mode constants
+const MODE = {
+  LTP: 1,      // Last Traded Price
+  QUOTE: 2,    // LTP + OHLC + Volume
+  SNAP_QUOTE: 3,  // Full market depth snapshot
+  DEPTH: 4     // Full market depth with 20 levels
+};
+
+// Action constants
+const ACTION = {
+  SUBSCRIBE: 1,
+  UNSUBSCRIBE: 0
+};
+
+export interface WebSocketOHLC {
+  symbol: string;
+  symbolToken: string;
+  exchange: string;
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+interface WebSocketClient {
+  id: string;
+  res: Response;
+  symbol: string;
+  symbolToken: string;
+  exchange: string;
+}
+
+interface SubscriptionInfo {
+  symbolToken: string;
+  exchange: number;
+}
+
+class AngelOneWebSocket {
+  private ws: any = null;
+  private clients = new Map<string, WebSocketClient>();
+  private latestPrices = new Map<string, WebSocketOHLC>();
+  private subscriptions = new Map<string, SubscriptionInfo>();
+  private broadcastInterval: NodeJS.Timeout | null = null;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectDelay = 30000; // 30 seconds max delay
+  private isConnected = false;
+  private isConnecting = false;
+
+  constructor() {
+    console.log('🔶 [WEBSOCKET] Angel One WebSocket V2 service initialized');
+  }
+
+  async connect(jwtToken: string, apiKey: string, clientCode: string, feedToken: string): Promise<void> {
+    if (this.isConnected || this.isConnecting) {
+      console.log('🔶 [WEBSOCKET] Already connected or connecting');
+      return;
+    }
+
+    // Clear any pending reconnect timer
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    try {
+      this.isConnecting = true;
+      console.log('🔶 [WEBSOCKET] Connecting to Angel One WebSocket V2...');
+
+      // Initialize WebSocket V2 connection using Angel One SDK
+      this.ws = new WebSocketV2({
+        jwttoken: jwtToken,
+        apikey: apiKey,
+        clientcode: clientCode,
+        feedtype: feedToken
+      });
+
+      // Connect to WebSocket
+      await this.ws.connect();
+
+      // Connection established
+      console.log('✅ [WEBSOCKET] Connected to Angel One WebSocket V2');
+      this.isConnected = true;
+      this.isConnecting = false;
+      this.reconnectAttempts = 0;
+
+      // Subscribe to all active symbols using correct Angel One format
+      if (this.subscriptions.size > 0) {
+        this.subscribeToSymbols();
+      }
+
+      // Start 700ms broadcast interval
+      if (!this.broadcastInterval) {
+        this.startBroadcasting();
+      }
+
+      // Set up tick handler for binary data
+      this.ws.on('tick', (data: any) => {
+        this.handleTick(data);
+      });
+
+    } catch (error: any) {
+      console.error('❌ [WEBSOCKET] Failed to connect:', error?.message || String(error));
+      this.isConnected = false;
+      this.isConnecting = false;
+      this.scheduleReconnect();
+    }
+  }
+
+  private handleTick(data: any): void {
+    try {
+      if (!data) return;
+
+      // Data from Angel One WebSocket V2 is already parsed by the SDK
+      // QUOTE mode provides: subscription_mode, exchange_type, token, last_traded_price, 
+      // open_price_day, high_price_day, low_price_day, close_price, vol_traded
+      
+      const {
+        token,
+        exchange_type: exchangeType,
+        last_traded_price: ltp,
+        open_price_day: open,
+        high_price_day: high,
+        low_price_day: low,
+        close_price: close,
+        vol_traded: volume
+      } = data;
+
+      if (!token || !ltp) return;
+
+      // Find subscription by token
+      let symbolKey: string | null = null;
+      let symbolData: SubscriptionInfo | undefined;
+
+      const entries = Array.from(this.subscriptions.entries());
+      for (const [key, sub] of entries) {
+        if (sub.symbolToken === String(token)) {
+          symbolKey = key;
+          symbolData = sub;
+          break;
+        }
+      }
+
+      if (!symbolKey || !symbolData) return;
+
+      // Parse prices (Angel One sends prices in paise, divide by 100)
+      const priceDiv = 100;
+
+      // Update latest price data
+      const ohlcData: WebSocketOHLC = {
+        symbol: symbolKey.split('_')[0],
+        symbolToken: String(token).replace(/"/g, '').trim(),
+        exchange: this.getExchangeName(symbolData.exchange),
+        time: Math.floor(Date.now() / 1000),
+        open: open ? parseFloat(open) / priceDiv : parseFloat(ltp) / priceDiv,
+        high: high ? parseFloat(high) / priceDiv : parseFloat(ltp) / priceDiv,
+        low: low ? parseFloat(low) / priceDiv : parseFloat(ltp) / priceDiv,
+        close: parseFloat(ltp) / priceDiv,
+        volume: volume ? parseFloat(volume) : 0
+      };
+
+      this.latestPrices.set(symbolKey, ohlcData);
+      console.log(`💹 [WS] ${ohlcData.symbol}: O=${ohlcData.open} H=${ohlcData.high} L=${ohlcData.low} C=${ohlcData.close}`);
+
+    } catch (error: any) {
+      console.debug('[WEBSOCKET] Tick parse error:', error?.message);
+    }
+  }
+
+  private getExchangeName(exchangeType: number): string {
+    const exchanges: { [key: number]: string } = {
+      1: 'NSE',
+      2: 'NFO',
+      3: 'BSE',
+      4: 'BFO',
+      5: 'MCX',
+      7: 'NCX',
+      13: 'CDS'
+    };
+    return exchanges[exchangeType] || 'NSE';
+  }
+
+  private getExchangeType(exchange: string): number {
+    const exchanges: { [key: string]: number } = {
+      'NSE': EXCHANGES.nse_cm,
+      'NFO': EXCHANGES.nse_fo,
+      'BSE': EXCHANGES.bse_cm,
+      'BFO': EXCHANGES.bse_fo,
+      'MCX': EXCHANGES.mcx_fo,
+      'NCX': EXCHANGES.ncx_fo,
+      'CDS': EXCHANGES.cde_fo
+    };
+    return exchanges[exchange.toUpperCase()] || EXCHANGES.nse_cm;
+  }
+
+  private subscribeToSymbols(): void {
+    if (!this.ws || !this.isConnected) return;
+
+    try {
+      // Group subscriptions by exchange type
+      const tokensByExchange = new Map<number, string[]>();
+
+      const subscriptionEntries = Array.from(this.subscriptions.entries());
+      for (const [key, sub] of subscriptionEntries) {
+        const tokens = tokensByExchange.get(sub.exchange) || [];
+        tokens.push(sub.symbolToken);
+        tokensByExchange.set(sub.exchange, tokens);
+      }
+
+      // Subscribe to each exchange group using correct Angel One format
+      const exchangeEntries = Array.from(tokensByExchange.entries());
+      for (const [exchangeType, tokens] of exchangeEntries) {
+        const subscriptionRequest = {
+          correlationID: `journal_${Date.now()}`,
+          action: ACTION.SUBSCRIBE,
+          mode: MODE.QUOTE, // QUOTE mode for OHLC data
+          exchangeType,
+          tokens
+        };
+
+        console.log(`🔶 [WEBSOCKET] Subscribing to ${tokens.length} tokens on exchange ${exchangeType} with QUOTE mode`);
+        this.ws.fetchData(subscriptionRequest);
+      }
+
+    } catch (error: any) {
+      console.error('❌ [WEBSOCKET] Subscription error:', error?.message || String(error));
+    }
+  }
+
+  private startBroadcasting(): void {
+    console.log('📡 [WEBSOCKET] Starting 700ms broadcast interval');
+    
+    this.broadcastInterval = setInterval(() => {
+      if (this.latestPrices.size === 0) return;
+
+      this.clients.forEach((client) => {
+        const key = `${client.symbol}_${client.symbolToken}`;
+        const price = this.latestPrices.get(key);
+
+        if (price && client.res.writable) {
+          try {
+            client.res.write(`data: ${JSON.stringify(price)}\n\n`);
+          } catch (error) {
+            console.debug('[WEBSOCKET] Failed to send to client');
+          }
+        }
+      });
+    }, 700); // 700ms interval as requested
+  }
+
+  addClient(
+    clientId: string,
+    res: Response,
+    symbol: string,
+    symbolToken: string,
+    exchange: string,
+    initialData?: WebSocketOHLC
+  ): void {
+    // Set up SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
+
+    // Store client
+    const client: WebSocketClient = {
+      id: clientId,
+      res,
+      symbol,
+      symbolToken,
+      exchange
+    };
+
+    this.clients.set(clientId, client);
+    console.log(`🔶 [WEBSOCKET] Client ${clientId} connected for ${symbol} (Total: ${this.clients.size})`);
+
+    // Store initial data if provided (for fallback scenario)
+    const key = `${symbol}_${symbolToken}`;
+    if (initialData) {
+      this.latestPrices.set(key, initialData);
+      
+      // Send initial SSE event immediately
+      try {
+        res.write(`data: ${JSON.stringify(initialData)}\n\n`);
+        console.log(`✅ [WEBSOCKET] Sent initial data to client ${clientId}`);
+      } catch (error) {
+        console.debug('[WEBSOCKET] Failed to send initial data');
+      }
+    }
+
+    // Add to subscriptions
+    const exchangeType = this.getExchangeType(exchange);
+    this.subscriptions.set(key, { symbolToken, exchange: exchangeType });
+
+    // Subscribe if WebSocket is connected
+    if (this.isConnected && this.ws) {
+      this.subscribeToSymbols();
+    } else {
+      // Try to connect if not connected
+      this.ensureConnection();
+    }
+
+    // Handle client disconnect
+    res.on('close', () => {
+      this.removeClient(clientId);
+    });
+  }
+
+  private removeClient(clientId: string): void {
+    const client = this.clients.get(clientId);
+    if (!client) return;
+
+    this.clients.delete(clientId);
+    console.log(`🔶 [WEBSOCKET] Client ${clientId} disconnected (Remaining: ${this.clients.size})`);
+
+    // Check if any other clients need this subscription
+    const key = `${client.symbol}_${client.symbolToken}`;
+    const hasOtherClients = Array.from(this.clients.values()).some(
+      c => `${c.symbol}_${c.symbolToken}` === key
+    );
+
+    if (!hasOtherClients) {
+      this.subscriptions.delete(key);
+      this.latestPrices.delete(key);
+      console.log(`🔶 [WEBSOCKET] Removed subscription for ${key}`);
+    }
+
+    // Stop broadcasting if no clients
+    if (this.clients.size === 0 && this.broadcastInterval) {
+      clearInterval(this.broadcastInterval);
+      this.broadcastInterval = null;
+      console.log('📡 [WEBSOCKET] Stopped broadcasting (no clients)');
+    }
+  }
+
+  private async ensureConnection(): Promise<void> {
+    if (this.isConnected || this.isConnecting) return;
+
+    // Try to get session data from angelOneApi
+    const session = angelOneApi.getSession();
+    if (!session) {
+      console.log('⚠️ [WEBSOCKET] No Angel One session available');
+      return;
+    }
+
+    const credentials = angelOneApi.getCredentials();
+    if (!credentials) {
+      console.log('⚠️ [WEBSOCKET] No Angel One credentials available');
+      return;
+    }
+
+    await this.connect(
+      session.jwtToken,
+      credentials.apiKey,
+      credentials.clientCode,
+      session.feedToken
+    );
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer) return;
+
+    // Exponential backoff with jitter
+    const baseDelay = 1000; // 1 second
+    const delay = Math.min(
+      baseDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
+      this.maxReconnectDelay
+    );
+
+    console.log(`🔶 [WEBSOCKET] Scheduling reconnect in ${Math.round(delay/1000)}s (attempt ${this.reconnectAttempts + 1})...`);
+    
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.reconnectAttempts++;
+      this.ensureConnection();
+    }, delay);
+  }
+
+  getStatus(): { connected: boolean; clients: number; subscriptions: number; symbols: string[] } {
+    return {
+      connected: this.isConnected,
+      clients: this.clients.size,
+      subscriptions: this.subscriptions.size,
+      symbols: Array.from(this.subscriptions.keys())
+    };
+  }
+
+  disconnect(): void {
+    if (this.broadcastInterval) {
+      clearInterval(this.broadcastInterval);
+      this.broadcastInterval = null;
+    }
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    if (this.ws) {
+      try {
+        this.ws.close();
+      } catch (error) {
+        console.debug('[WEBSOCKET] Error closing WebSocket');
+      }
+      this.ws = null;
+    }
+
+    this.clients.clear();
+    this.subscriptions.clear();
+    this.latestPrices.clear();
+    this.isConnected = false;
+    this.isConnecting = false;
+    this.reconnectAttempts = 0;
+
+    console.log('🔶 [WEBSOCKET] Disconnected and cleaned up');
+  }
+}
+
+export const angelOneWebSocket = new AngelOneWebSocket();

@@ -4544,10 +4544,19 @@ ${
       journalEventSourceRef.current = null;
     }
 
-    // Start new SSE connection
-    const sseUrl = getFullApiUrl(`/api/angelone/live-stream?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}`);
+    // Get the last candle from chart data for initial OHLC values
+    const lastCandle = journalChartData[journalChartData.length - 1];
     
-    console.log('📡 [SSE] Connecting for live prices');
+    // Start new SSE connection with initial chart data for fallback
+    let sseUrl = getFullApiUrl(`/api/angelone/live-stream?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}`);
+    
+    // Add initial OHLC data for fallback when API is unavailable
+    if (lastCandle && lastCandle.close > 0) {
+      sseUrl += `&open=${lastCandle.open}&high=${lastCandle.high}&low=${lastCandle.low}&close=${lastCandle.close}`;
+      console.log('📡 [SSE] Connecting with initial OHLC:', { open: lastCandle.open, high: lastCandle.high, low: lastCandle.low, close: lastCandle.close });
+    }
+    
+    console.log('📡 [SSE] Connecting for live prices at 700ms intervals');
     
     const eventSource = new EventSource(sseUrl);
     journalEventSourceRef.current = eventSource;
