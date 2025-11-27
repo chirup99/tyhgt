@@ -11166,7 +11166,21 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
-                  <p className="text-blue-700 dark:text-blue-300 text-sm">Loading option chain data...</p>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">Loading option chain data from NSE...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Info: Using Mock/Demo Data */}
+            {optionChainData && !optionError && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <p className="text-amber-700 dark:text-amber-300 text-sm">
+                    {optionChainData.source === 'mock' 
+                      ? '📊 Showing demo option chain data (NSE API unavailable - live data requires authentication)' 
+                      : '✅ Live option chain data from NSE API'}
+                  </p>
                 </div>
               </div>
             )}
