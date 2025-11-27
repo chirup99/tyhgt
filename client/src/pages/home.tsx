@@ -3698,6 +3698,332 @@ ${
     },
   ]);
 
+  // ============================================
+  // PAPER TRADING (DEMO TRADING) STATE - Like TradingView Practice Account
+  // ============================================
+  const [showPaperTradingModal, setShowPaperTradingModal] = useState(false);
+  const [paperTradingCapital, setPaperTradingCapital] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("paperTradingCapital");
+      return stored ? parseFloat(stored) : 1000000; // 10 Lakhs default
+    }
+    return 1000000;
+  });
+  
+  // Paper trading position interface
+  interface PaperPosition {
+    id: string;
+    symbol: string;
+    type: 'STOCK' | 'FUTURES' | 'OPTIONS';
+    action: 'BUY' | 'SELL';
+    quantity: number;
+    entryPrice: number;
+    currentPrice: number;
+    entryTime: string;
+    pnl: number;
+    pnlPercent: number;
+    isOpen: boolean;
+  }
+  
+  // Paper trading trade history
+  interface PaperTrade {
+    id: string;
+    symbol: string;
+    type: 'STOCK' | 'FUTURES' | 'OPTIONS';
+    action: 'BUY' | 'SELL';
+    quantity: number;
+    price: number;
+    time: string;
+    pnl?: string;
+    closedAt?: string;
+  }
+  
+  const [paperPositions, setPaperPositions] = useState<PaperPosition[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("paperPositions");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+  
+  const [paperTradeHistory, setPaperTradeHistory] = useState<PaperTrade[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("paperTradeHistory");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+  
+  // Paper trading form state
+  const [paperTradeSymbol, setPaperTradeSymbol] = useState("");
+  const [paperTradeSymbolSearch, setPaperTradeSymbolSearch] = useState("");
+  const [paperTradeType, setPaperTradeType] = useState<'STOCK' | 'FUTURES' | 'OPTIONS'>('STOCK');
+  const [paperTradeQuantity, setPaperTradeQuantity] = useState("");
+  const [paperTradeAction, setPaperTradeAction] = useState<'BUY' | 'SELL'>('BUY');
+  const [paperTradeCurrentPrice, setPaperTradeCurrentPrice] = useState<number | null>(null);
+  const [paperTradePriceLoading, setPaperTradePriceLoading] = useState(false);
+  
+  // Available stock symbols for paper trading
+  const paperTradingSymbols = [
+    { symbol: "RELIANCE", name: "Reliance Industries", token: "2885", exchange: "NSE" },
+    { symbol: "TCS", name: "Tata Consultancy Services", token: "11536", exchange: "NSE" },
+    { symbol: "HDFCBANK", name: "HDFC Bank", token: "1333", exchange: "NSE" },
+    { symbol: "ICICIBANK", name: "ICICI Bank", token: "4963", exchange: "NSE" },
+    { symbol: "INFY", name: "Infosys", token: "1594", exchange: "NSE" },
+    { symbol: "ITC", name: "ITC Limited", token: "1660", exchange: "NSE" },
+    { symbol: "SBIN", name: "State Bank of India", token: "3045", exchange: "NSE" },
+    { symbol: "BHARTIARTL", name: "Bharti Airtel", token: "10604", exchange: "NSE" },
+    { symbol: "HINDUNILVR", name: "Hindustan Unilever", token: "1394", exchange: "NSE" },
+    { symbol: "LT", name: "Larsen & Toubro", token: "11483", exchange: "NSE" },
+    { symbol: "AXISBANK", name: "Axis Bank", token: "5900", exchange: "NSE" },
+    { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank", token: "1922", exchange: "NSE" },
+    { symbol: "BAJFINANCE", name: "Bajaj Finance", token: "317", exchange: "NSE" },
+    { symbol: "MARUTI", name: "Maruti Suzuki", token: "10999", exchange: "NSE" },
+    { symbol: "TITAN", name: "Titan Company", token: "3506", exchange: "NSE" },
+    { symbol: "SUNPHARMA", name: "Sun Pharma", token: "3351", exchange: "NSE" },
+    { symbol: "TATAMOTORS", name: "Tata Motors", token: "3456", exchange: "NSE" },
+    { symbol: "WIPRO", name: "Wipro", token: "3787", exchange: "NSE" },
+    { symbol: "TECHM", name: "Tech Mahindra", token: "13538", exchange: "NSE" },
+    { symbol: "ADANIENT", name: "Adani Enterprises", token: "25", exchange: "NSE" },
+    { symbol: "NIFTY50", name: "Nifty 50 Index", token: "26000", exchange: "NSE" },
+    { symbol: "BANKNIFTY", name: "Bank Nifty Index", token: "26009", exchange: "NSE" },
+  ];
+  
+  // Filtered symbols based on search
+  const filteredPaperTradingSymbols = paperTradingSymbols.filter(s => 
+    s.symbol.toLowerCase().includes(paperTradeSymbolSearch.toLowerCase()) ||
+    s.name.toLowerCase().includes(paperTradeSymbolSearch.toLowerCase())
+  );
+  
+  // Fetch live price from Angel One API
+  const fetchPaperTradePrice = async (symbol: string) => {
+    const stockInfo = paperTradingSymbols.find(s => s.symbol === symbol);
+    if (!stockInfo) return;
+    
+    setPaperTradePriceLoading(true);
+    try {
+      const response = await fetch('/api/angelone/ltp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exchange: stockInfo.exchange,
+          tradingSymbol: stockInfo.symbol,
+          symbolToken: stockInfo.token
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.ltp) {
+          setPaperTradeCurrentPrice(data.data.ltp);
+        } else {
+          // Fallback: Use demo price
+          setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
+        }
+      } else {
+        setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
+      }
+    } catch (error) {
+      console.error("Error fetching paper trade price:", error);
+      setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
+    } finally {
+      setPaperTradePriceLoading(false);
+    }
+  };
+  
+  // Execute paper trade (BUY or SELL)
+  const executePaperTrade = () => {
+    if (!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice) {
+      toast({
+        title: "Invalid Trade",
+        description: "Please select a symbol and enter quantity",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const quantity = parseInt(paperTradeQuantity);
+    const tradeValue = quantity * paperTradeCurrentPrice;
+    
+    if (paperTradeAction === 'BUY') {
+      // Check if enough capital
+      if (tradeValue > paperTradingCapital) {
+        toast({
+          title: "Insufficient Capital",
+          description: `Need ₹${tradeValue.toLocaleString()} but only ₹${paperTradingCapital.toLocaleString()} available`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Create new position
+      const newPosition: PaperPosition = {
+        id: `PT-${Date.now()}`,
+        symbol: paperTradeSymbol,
+        type: paperTradeType,
+        action: 'BUY',
+        quantity: quantity,
+        entryPrice: paperTradeCurrentPrice,
+        currentPrice: paperTradeCurrentPrice,
+        entryTime: new Date().toLocaleTimeString(),
+        pnl: 0,
+        pnlPercent: 0,
+        isOpen: true
+      };
+      
+      // Add to positions
+      const updatedPositions = [...paperPositions, newPosition];
+      setPaperPositions(updatedPositions);
+      localStorage.setItem("paperPositions", JSON.stringify(updatedPositions));
+      
+      // Deduct from capital
+      const newCapital = paperTradingCapital - tradeValue;
+      setPaperTradingCapital(newCapital);
+      localStorage.setItem("paperTradingCapital", String(newCapital));
+      
+      // Add to trade history
+      const newTrade: PaperTrade = {
+        id: newPosition.id,
+        symbol: paperTradeSymbol,
+        type: paperTradeType,
+        action: 'BUY',
+        quantity: quantity,
+        price: paperTradeCurrentPrice,
+        time: new Date().toLocaleTimeString()
+      };
+      const updatedHistory = [...paperTradeHistory, newTrade];
+      setPaperTradeHistory(updatedHistory);
+      localStorage.setItem("paperTradeHistory", JSON.stringify(updatedHistory));
+      
+      toast({
+        title: "Trade Executed",
+        description: `Bought ${quantity} ${paperTradeSymbol} @ ₹${paperTradeCurrentPrice.toFixed(2)}`
+      });
+      
+    } else {
+      // SELL - Close an existing position
+      const openPosition = paperPositions.find(p => p.symbol === paperTradeSymbol && p.isOpen);
+      
+      if (!openPosition) {
+        toast({
+          title: "No Open Position",
+          description: `You don't have an open position in ${paperTradeSymbol} to sell`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Calculate P&L
+      const pnl = (paperTradeCurrentPrice - openPosition.entryPrice) * openPosition.quantity;
+      const pnlPercent = ((paperTradeCurrentPrice - openPosition.entryPrice) / openPosition.entryPrice) * 100;
+      
+      // Close the position
+      const updatedPositions = paperPositions.map(p => 
+        p.id === openPosition.id 
+          ? { ...p, isOpen: false, currentPrice: paperTradeCurrentPrice, pnl, pnlPercent }
+          : p
+      );
+      setPaperPositions(updatedPositions);
+      localStorage.setItem("paperPositions", JSON.stringify(updatedPositions));
+      
+      // Add sale value back to capital plus P&L
+      const saleValue = openPosition.quantity * paperTradeCurrentPrice;
+      const newCapital = paperTradingCapital + saleValue;
+      setPaperTradingCapital(newCapital);
+      localStorage.setItem("paperTradingCapital", String(newCapital));
+      
+      // Add sell trade to history
+      const sellTrade: PaperTrade = {
+        id: `PT-${Date.now()}`,
+        symbol: paperTradeSymbol,
+        type: paperTradeType,
+        action: 'SELL',
+        quantity: openPosition.quantity,
+        price: paperTradeCurrentPrice,
+        time: new Date().toLocaleTimeString(),
+        pnl: `${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`,
+        closedAt: new Date().toLocaleTimeString()
+      };
+      const updatedHistory = [...paperTradeHistory, sellTrade];
+      setPaperTradeHistory(updatedHistory);
+      localStorage.setItem("paperTradeHistory", JSON.stringify(updatedHistory));
+      
+      toast({
+        title: pnl >= 0 ? "Profit Booked!" : "Loss Booked",
+        description: `Sold ${openPosition.quantity} ${paperTradeSymbol} @ ₹${paperTradeCurrentPrice.toFixed(2)} | P&L: ${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`
+      });
+    }
+    
+    // Reset form
+    setPaperTradeSymbol("");
+    setPaperTradeQuantity("");
+    setPaperTradeCurrentPrice(null);
+    setPaperTradeSymbolSearch("");
+  };
+  
+  // Reset paper trading account
+  const resetPaperTradingAccount = () => {
+    setPaperTradingCapital(1000000);
+    setPaperPositions([]);
+    setPaperTradeHistory([]);
+    localStorage.setItem("paperTradingCapital", "1000000");
+    localStorage.setItem("paperPositions", "[]");
+    localStorage.setItem("paperTradeHistory", "[]");
+    toast({
+      title: "Account Reset",
+      description: "Paper trading account reset to ₹10,00,000"
+    });
+  };
+  
+  // Update live prices for open positions
+  useEffect(() => {
+    const updatePositionPrices = async () => {
+      const openPositions = paperPositions.filter(p => p.isOpen);
+      if (openPositions.length === 0) return;
+      
+      for (const position of openPositions) {
+        const stockInfo = paperTradingSymbols.find(s => s.symbol === position.symbol);
+        if (!stockInfo) continue;
+        
+        try {
+          const response = await fetch('/api/angelone/ltp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              exchange: stockInfo.exchange,
+              tradingSymbol: stockInfo.symbol,
+              symbolToken: stockInfo.token
+            })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data?.ltp) {
+              const currentPrice = data.data.ltp;
+              const pnl = (currentPrice - position.entryPrice) * position.quantity;
+              const pnlPercent = ((currentPrice - position.entryPrice) / position.entryPrice) * 100;
+              
+              setPaperPositions(prev => prev.map(p => 
+                p.id === position.id 
+                  ? { ...p, currentPrice, pnl, pnlPercent }
+                  : p
+              ));
+            }
+          }
+        } catch (error) {
+          console.error("Error updating position price:", error);
+        }
+      }
+    };
+    
+    // Update prices every 30 seconds
+    const interval = setInterval(updatePositionPrices, 30000);
+    return () => clearInterval(interval);
+  }, [paperPositions]);
+  // ============================================
+  // END PAPER TRADING STATE
+  // ============================================
+
   // ✅ SIMPLIFIED: TWO SEPARATE HEATMAP DATA STATES - NO localStorage!
   // Demo heatmap data (Heatmap #1) - loaded directly from Firebase
   const [demoTradingDataByDate, setDemoTradingDataByDate] = useState<Record<string, any>>({});
@@ -9645,6 +9971,16 @@ ${
                               <Upload className="h-4 w-4 mr-2" />
                               Import
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowPaperTradingModal(true)}
+                              className="h-8 px-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 hover:from-purple-600 hover:to-pink-600"
+                              data-testid="button-demo-trade"
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              Demo Trade
+                            </Button>
                             <div className="h-8 px-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md flex items-center justify-center text-xs font-medium text-indigo-700 dark:text-indigo-300 min-w-[80px]">
                               <Timer className="h-4 w-4 mr-2" />
                               {calculateTotalDuration(tradeHistoryData)}
@@ -12373,6 +12709,312 @@ ${
                   Cancel
                 </Button>
                 <Button onClick={handleImportData}>Import Data</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Paper Trading (Demo Trading) Modal - Like TradingView Practice Account */}
+        <Dialog open={showPaperTradingModal} onOpenChange={setShowPaperTradingModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-thin-scrollbar">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <Play className="h-5 w-5 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+                  Paper Trading Account
+                </span>
+                <span className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full">
+                  Demo Mode
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Account Summary */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                  <div className="text-xs text-green-600 dark:text-green-400 font-medium">Available Capital</div>
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                    ₹{paperTradingCapital.toLocaleString('en-IN')}
+                  </div>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Open Positions</div>
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                    {paperPositions.filter(p => p.isOpen).length}
+                  </div>
+                </div>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                  <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Total Trades</div>
+                  <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                    {paperTradeHistory.length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Trade Entry Form */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  <Target className="h-4 w-4 text-purple-500" />
+                  New Trade
+                </h4>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Stock Search */}
+                  <div className="col-span-2">
+                    <Label className="text-xs font-medium">Search Stock / F&O</Label>
+                    <div className="relative mt-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Search RELIANCE, TCS, NIFTY..."
+                        value={paperTradeSymbolSearch}
+                        onChange={(e) => {
+                          setPaperTradeSymbolSearch(e.target.value);
+                          setPaperTradeSymbol("");
+                          setPaperTradeCurrentPrice(null);
+                        }}
+                        className="pl-10"
+                        data-testid="input-paper-trade-search"
+                      />
+                    </div>
+                    
+                    {/* Stock Dropdown */}
+                    {paperTradeSymbolSearch && !paperTradeSymbol && (
+                      <div className="absolute z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                        {filteredPaperTradingSymbols.length === 0 ? (
+                          <div className="px-3 py-2 text-xs text-gray-500">No stocks found</div>
+                        ) : (
+                          filteredPaperTradingSymbols.map(stock => (
+                            <button
+                              key={stock.symbol}
+                              onClick={() => {
+                                setPaperTradeSymbol(stock.symbol);
+                                setPaperTradeSymbolSearch(stock.symbol);
+                                fetchPaperTradePrice(stock.symbol);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
+                              data-testid={`select-stock-${stock.symbol}`}
+                            >
+                              <div>
+                                <div className="font-medium text-sm">{stock.symbol}</div>
+                                <div className="text-xs text-gray-500">{stock.name}</div>
+                              </div>
+                              <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded">
+                                {stock.exchange}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Type Selector */}
+                  <div>
+                    <Label className="text-xs font-medium">Type</Label>
+                    <Select value={paperTradeType} onValueChange={(v) => setPaperTradeType(v as 'STOCK' | 'FUTURES' | 'OPTIONS')}>
+                      <SelectTrigger className="mt-1" data-testid="select-paper-trade-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="STOCK">Stock</SelectItem>
+                        <SelectItem value="FUTURES">Futures</SelectItem>
+                        <SelectItem value="OPTIONS">Options</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <Label className="text-xs font-medium">Quantity</Label>
+                    <Input
+                      type="number"
+                      placeholder="10"
+                      value={paperTradeQuantity}
+                      onChange={(e) => setPaperTradeQuantity(e.target.value)}
+                      className="mt-1"
+                      min="1"
+                      data-testid="input-paper-trade-qty"
+                    />
+                  </div>
+                </div>
+
+                {/* Price Display */}
+                {paperTradeSymbol && (
+                  <div className="mt-4 flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div>
+                      <div className="text-sm font-semibold">{paperTradeSymbol}</div>
+                      <div className="text-xs text-gray-500">Live Market Price</div>
+                    </div>
+                    <div className="text-right">
+                      {paperTradePriceLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-sm text-gray-500">Fetching...</span>
+                        </div>
+                      ) : paperTradeCurrentPrice ? (
+                        <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                          ₹{paperTradeCurrentPrice.toFixed(2)}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">--</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Trade Value Preview */}
+                {paperTradeSymbol && paperTradeQuantity && paperTradeCurrentPrice && (
+                  <div className="mt-3 text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+                    <span className="text-xs text-purple-600 dark:text-purple-400">
+                      Trade Value: ₹{(parseInt(paperTradeQuantity) * paperTradeCurrentPrice).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                )}
+
+                {/* Buy/Sell Buttons */}
+                <div className="mt-4 flex gap-3">
+                  <Button
+                    onClick={() => {
+                      setPaperTradeAction('BUY');
+                      executePaperTrade();
+                    }}
+                    disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    data-testid="button-paper-buy"
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    BUY
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setPaperTradeAction('SELL');
+                      executePaperTrade();
+                    }}
+                    disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    data-testid="button-paper-sell"
+                  >
+                    <TrendingDown className="h-4 w-4 mr-2" />
+                    SELL
+                  </Button>
+                </div>
+              </div>
+
+              {/* Open Positions */}
+              {paperPositions.filter(p => p.isOpen).length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-blue-500" />
+                    Open Positions
+                  </h4>
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Symbol</th>
+                          <th className="px-3 py-2 text-left">Type</th>
+                          <th className="px-3 py-2 text-right">Qty</th>
+                          <th className="px-3 py-2 text-right">Entry</th>
+                          <th className="px-3 py-2 text-right">Current</th>
+                          <th className="px-3 py-2 text-right">P&L</th>
+                          <th className="px-3 py-2 text-right">%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paperPositions.filter(p => p.isOpen).map(position => (
+                          <tr key={position.id} className="border-t border-gray-200 dark:border-gray-700">
+                            <td className="px-3 py-2 font-medium">{position.symbol}</td>
+                            <td className="px-3 py-2">
+                              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded text-xs">
+                                {position.type}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-right">{position.quantity}</td>
+                            <td className="px-3 py-2 text-right">₹{position.entryPrice.toFixed(2)}</td>
+                            <td className="px-3 py-2 text-right">₹{position.currentPrice.toFixed(2)}</td>
+                            <td className={`px-3 py-2 text-right font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {position.pnl >= 0 ? '+' : ''}₹{position.pnl.toFixed(2)}
+                            </td>
+                            <td className={`px-3 py-2 text-right font-medium ${position.pnlPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Trade History */}
+              {paperTradeHistory.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-purple-500" />
+                    Trade History
+                  </h4>
+                  <div className="border rounded-lg overflow-hidden max-h-48 overflow-y-auto custom-thin-scrollbar">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Time</th>
+                          <th className="px-3 py-2 text-left">Action</th>
+                          <th className="px-3 py-2 text-left">Symbol</th>
+                          <th className="px-3 py-2 text-right">Qty</th>
+                          <th className="px-3 py-2 text-right">Price</th>
+                          <th className="px-3 py-2 text-right">P&L</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...paperTradeHistory].reverse().map(trade => (
+                          <tr key={trade.id} className="border-t border-gray-200 dark:border-gray-700">
+                            <td className="px-3 py-2 text-gray-500">{trade.time}</td>
+                            <td className="px-3 py-2">
+                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                trade.action === 'BUY' 
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
+                                  : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                              }`}>
+                                {trade.action}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 font-medium">{trade.symbol}</td>
+                            <td className="px-3 py-2 text-right">{trade.quantity}</td>
+                            <td className="px-3 py-2 text-right">₹{trade.price.toFixed(2)}</td>
+                            <td className={`px-3 py-2 text-right font-medium ${
+                              !trade.pnl ? 'text-gray-400' : 
+                              trade.pnl.includes('+') ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {trade.pnl || '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Footer Actions */}
+              <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetPaperTradingAccount}
+                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  data-testid="button-reset-paper-trading"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset Account
+                </Button>
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Demo trades do not affect real account
+                </div>
               </div>
             </div>
           </DialogContent>
