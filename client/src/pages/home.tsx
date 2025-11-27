@@ -9929,11 +9929,11 @@ ${
                                               case 'stock':
                                                 return i.instrumentType === 'EQ' && (i.exchange === 'NSE' || i.exchange === 'BSE');
                                               case 'commodity':
-                                                return i.exchange === 'MCX';
+                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM');
                                               case 'fo':
-                                                return (i.instrumentType.includes('FUT') || i.instrumentType.includes('OPT')) && i.exchange !== 'MCX';
+                                                return ((i.instrumentType === 'FUTSTK' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTIDX') && i.exchange !== 'MCX') || (i.exchange === 'MCX' && (i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM'));
                                               case 'index':
-                                                return i.instrumentType === 'INDEX' || i.instrumentType.includes('FUTIDX') || i.instrumentType.includes('OPTIDX');
+                                                return i.instrumentType === 'INDEX' || i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'AMXIDX';
                                               default:
                                                 return true;
                                             }
@@ -9960,11 +9960,11 @@ ${
                                               case 'stock':
                                                 return i.instrumentType === 'EQ' && (i.exchange === 'NSE' || i.exchange === 'BSE');
                                               case 'commodity':
-                                                return i.exchange === 'MCX';
+                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM');
                                               case 'fo':
-                                                return (i.instrumentType.includes('FUT') || i.instrumentType.includes('OPT')) && i.exchange !== 'MCX';
+                                                return ((i.instrumentType === 'FUTSTK' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTIDX') && i.exchange !== 'MCX') || (i.exchange === 'MCX' && (i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' || i.instrumentType === 'FUTCOM'));
                                               case 'index':
-                                                return i.instrumentType === 'INDEX' || i.instrumentType.includes('FUTIDX') || i.instrumentType.includes('OPTIDX');
+                                                return i.instrumentType === 'INDEX' || i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX' || i.instrumentType === 'AMXIDX';
                                               default:
                                                 return true;
                                             }
