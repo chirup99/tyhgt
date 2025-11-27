@@ -4307,6 +4307,29 @@ ${
     return intervalMap[interval] || 'FIFTEEN_MINUTE';
   };
 
+  // Convert interval to minutes
+  const getIntervalInSeconds = (interval: string): number => {
+    const intervalMap: { [key: string]: number } = {
+      '1': 60,
+      '3': 180,
+      '5': 300,
+      '10': 600,
+      '15': 900,
+      '30': 1800,
+      '60': 3600,
+      '1D': 86400,
+      '5D': 86400,
+      '1W': 86400,
+      '1M': 86400,
+    };
+    return intervalMap[interval] || 900; // Default 15 minutes
+  };
+
+  // Calculate the start time of the candle that contains the given timestamp
+  const getCandleStartTime = (timestamp: number, intervalSeconds: number): number => {
+    return Math.floor(timestamp / intervalSeconds) * intervalSeconds;
+  };
+
   // Calculate date range based on timeframe (TradingView style)
   const getDateRangeForInterval = (interval: string): { fromDate: string; toDate: string } => {
     const now = new Date();
@@ -4568,33 +4591,54 @@ ${
 
     eventSource.onmessage = (event) => {
       try {
-        const candle = JSON.parse(event.data);
-        console.log('💹 [PRICE] LTP:', candle.close, 'Time:', candle.time, 'Ref:', !!journalCandlestickSeriesRef.current);
+        const liveCandle = JSON.parse(event.data);
+        console.log('💹 [PRICE] LTP:', liveCandle.close, 'Time:', liveCandle.time);
         
         // Update chart candlestick - only if chart is initialized
-        if (journalCandlestickSeriesRef.current && journalChartRef.current && candle.close > 0) {
-          // Calculate % change based on open price
-          const changePercent = candle.open > 0 ? ((candle.close - candle.open) / candle.open) * 100 : 0;
+        if (journalCandlestickSeriesRef.current && journalChartRef.current && liveCandle.close > 0) {
+          // Get the selected interval in seconds
+          const intervalSeconds = getIntervalInSeconds(selectedJournalInterval);
           
-          // Update OHLC ticker
-          setLiveOhlc({
-            open: candle.open,
-            high: candle.high,
-            low: candle.low,
-            close: candle.close,
-            change: changePercent
-          });
+          // Get the last candle from the chart
+          const lastChartCandle = journalChartData[journalChartData.length - 1];
+          if (!lastChartCandle) return;
           
-          // Animate chart update with 50ms delay for smooth animation
-          setTimeout(() => {
-            journalCandlestickSeriesRef.current?.update({
-              time: candle.time as any,
-              open: candle.open,
-              high: candle.high,
-              low: candle.low,
-              close: candle.close
+          // Calculate the candle start time for the incoming live data
+          const currentCandleStartTime = getCandleStartTime(liveCandle.time, intervalSeconds);
+          
+          // Calculate the start time of the last chart candle
+          const lastCandleStartTime = getCandleStartTime(lastChartCandle.time, intervalSeconds);
+          
+          // Only update if we're within the same candle interval
+          if (currentCandleStartTime === lastCandleStartTime) {
+            // Update ONLY the OHLC of the current candle, keep the timestamp fixed
+            const changePercent = liveCandle.open > 0 ? ((liveCandle.close - liveCandle.open) / liveCandle.open) * 100 : 0;
+            
+            setLiveOhlc({
+              open: liveCandle.open,
+              high: liveCandle.high,
+              low: liveCandle.low,
+              close: liveCandle.close,
+              change: changePercent
             });
-          }, 50);
+            
+            // Update the current candle with fixed timestamp - use the last chart candle's time
+            setTimeout(() => {
+              journalCandlestickSeriesRef.current?.update({
+                time: lastChartCandle.time as any,
+                open: liveCandle.open,
+                high: liveCandle.high,
+                low: liveCandle.low,
+                close: liveCandle.close
+              });
+            }, 50);
+            
+            console.log('📊 [UPDATE] Same candle interval, updating OHLC only');
+          } else if (currentCandleStartTime > lastCandleStartTime) {
+            // We've crossed into a new candle interval - this means the previous candle is complete
+            console.log('🆕 [NEW CANDLE] New interval detected, previous candle complete');
+            // The new candle will come in the next update or from backend refresh
+          }
         } else {
           console.log('⏳ Chart not ready yet:', { hasRef: !!journalCandlestickSeriesRef.current, hasChart: !!journalChartRef.current });
         }
