@@ -4613,7 +4613,7 @@ ${
       }
       setIsJournalStreaming(false);
     };
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, journalChartData]);
 
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
