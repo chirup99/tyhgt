@@ -821,7 +821,7 @@ async function fetchMoneyControlData(symbol: string) {
 }
 
 // Helper function to clean symbol for Fyers API
-function cleanSymbolForFyers(symbol: string): string {
+function symbol.toUpperCase(symbol: string): string {
   // Remove $ prefix and any other invalid characters
   return symbol.replace(/^\$+/, '').replace(/[^A-Z0-9]/g, '').toUpperCase();
 }
@@ -830,18 +830,18 @@ function cleanSymbolForFyers(symbol: string): string {
 async function getLatestDailyVolumeFromCandle(symbol: string): Promise<string> {
   try {
     // Convert symbol to Fyers API format
-    const cleanedSymbol = cleanSymbolForFyers(symbol);
-    const fyersSymbol = `NSE:${cleanedSymbol}-EQ`;
+    const cleanedSymbol = symbol.toUpperCase();
+    const angelSymbol = `NSE:${cleanedSymbol}-EQ`;
     
     // Get today's date for daily candle
     const today = new Date();
     const dateStr = today.toISOString().split('T')[0];
     
-    console.log(`📊 [DAILY-VOLUME] Fetching daily volume for ${symbol} (${fyersSymbol})`);
+    console.log(`📊 [DAILY-VOLUME] Fetching daily volume for ${symbol} (${angelSymbol})`);
     
     // Fetch daily candle data from Fyers
     const chartData = await fyersHistoricalData(
-      fyersSymbol,
+      angelSymbol,
       'D', // Daily resolution
       dateStr,
       dateStr
@@ -888,16 +888,16 @@ async function fetchFyersData(symbol: string) {
   
   try {
     // Clean the symbol for Fyers API compatibility
-    const cleanedSymbol = cleanSymbolForFyers(symbol);
+    const cleanedSymbol = symbol.toUpperCase();
     console.log(`🧼 [FYERS-PRIMARY] Cleaned symbol: ${symbol} → ${cleanedSymbol}`);
     
     // Simplified check - just try the API call directly
     console.log(`📈 [FYERS-PRIMARY] Attempting to call getQuotes for ${cleanedSymbol}...`);
     
     // Use the existing Fyers API instance with cleaned symbol
-    const fyersSymbol = `NSE:${cleanedSymbol}-EQ`;
-    console.log(`🗒 [FYERS-PRIMARY] Calling getQuotes with symbol: ${fyersSymbol}`);
-    const quotes = await fyersApi.getQuotes([fyersSymbol]);
+    const angelSymbol = `NSE:${cleanedSymbol}-EQ`;
+    console.log(`🗒 [FYERS-PRIMARY] Calling getQuotes with symbol: ${angelSymbol}`);
+    const quotes = await angelOneApi.getQuotes([angelSymbol]);
     
     console.log(`📡 [FYERS-PRIMARY] Raw API response for ${symbol}:`, {
       hasQuotes: !!quotes,
@@ -1388,7 +1388,7 @@ async function calculateEMA50(symbol: string, period: number = 50): Promise<numb
     console.log(`📈 [EMA50] Attempting EMA 50 calculation for ${symbol}...`);
     
     // Check if Fyers API is authenticated
-    if (!fyersApi || !fyersApi.isAuthenticated) {
+    if (// Angel One API check:  !angelOneApi.isConnected() {
       console.log(`❌ [EMA50] Fyers API not authenticated, using sample EMA for ${symbol}`);
       return null;
     }
@@ -1406,15 +1406,15 @@ async function calculateEMA50(symbol: string, period: number = 50): Promise<numb
     };
     
     // Use cleaned symbol for Fyers API compatibility
-    const cleanedSymbol = cleanSymbolForFyers(symbol);
+    const cleanedSymbol = symbol.toUpperCase();
     console.log(`🧼 [EMA50] Cleaned symbol: ${symbol} → ${cleanedSymbol}`);
-    const fyersSymbol = `NSE:${cleanedSymbol}-EQ`;
+    const angelSymbol = `NSE:${cleanedSymbol}-EQ`;
     
     // Try to get daily historical data for EMA calculation
     let historicalData;
     try {
-      historicalData = await fyersApi.getHistoricalData({
-        symbol: fyersSymbol,
+      historicalData = await nseApi.getHistoricalData({
+        symbol: angelSymbol,
         resolution: 'D', // Daily data for EMA
         date_format: '1',
         range_from: formatDate(startDate),
@@ -1459,7 +1459,7 @@ async function calculateRSI(symbol: string, period: number = 14): Promise<number
     console.log(`📈 [RSI] Attempting RSI calculation for ${symbol}...`);
     
     // Check if Fyers API is authenticated
-    if (!fyersApi || !fyersApi.isAuthenticated) {
+    if (// Angel One API check:  !angelOneApi.isConnected() {
       console.log(`❌ [RSI] Fyers API not authenticated, skipping RSI for ${symbol}`);
       return null;
     }
@@ -1477,15 +1477,15 @@ async function calculateRSI(symbol: string, period: number = 14): Promise<number
     };
     
     // Use cleaned symbol for Fyers API compatibility
-    const cleanedSymbol = cleanSymbolForFyers(symbol);
+    const cleanedSymbol = symbol.toUpperCase();
     console.log(`🧼 [RSI] Cleaned symbol: ${symbol} → ${cleanedSymbol}`);
-    const fyersSymbol = `NSE:${cleanedSymbol}-EQ`;
+    const angelSymbol = `NSE:${cleanedSymbol}-EQ`;
     
     // Try to get daily historical data for RSI calculation
     let historicalData;
     try {
-      historicalData = await fyersApi.getHistoricalData({
-        symbol: fyersSymbol,
+      historicalData = await nseApi.getHistoricalData({
+        symbol: angelSymbol,
         resolution: 'D', // Daily data for RSI
         date_format: '1',
         range_from: formatDate(startDate),
@@ -1704,9 +1704,9 @@ function calculateMACDFromPrices(prices: number[], fastPeriod: number = 12, slow
 
 async function getCurrentPrice(symbol: string): Promise<number | null> {
   try {
-    const cleanedSymbol = cleanSymbolForFyers(symbol);
-    const fyersSymbol = `NSE:${cleanedSymbol}-EQ`;
-    const quotes = await fyersApi.getQuotes([fyersSymbol]);
+    const cleanedSymbol = symbol.toUpperCase();
+    const angelSymbol = `NSE:${cleanedSymbol}-EQ`;
+    const quotes = await angelOneApi.getQuotes([angelSymbol]);
     
     if (quotes && Array.isArray(quotes) && quotes.length > 0) {
       return quotes[0].ltp || null;
@@ -2752,7 +2752,7 @@ async function fetchFyersChartData(symbol: string, timeframe: string) {
     // Convert symbol to Fyers format (remove $ prefix if exists and add NSE: prefix)
     const cleanSymbol = symbol.replace(/^\$+/, '');
     // Use INDEX format for NIFTY50, EQ format for individual stocks
-    const fyersSymbol = cleanSymbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : `NSE:${cleanSymbol}-EQ`;
+    const angelSymbol = cleanSymbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : `NSE:${cleanSymbol}-EQ`;
     
     // Convert timeframe to Fyers API format
     let resolution = '15'; // Default 15 minutes
@@ -2844,8 +2844,8 @@ async function fetchFyersChartData(symbol: string, timeframe: string) {
     let historicalData;
     
     try {
-      historicalData = await fyersApi.getHistoricalData({
-        symbol: fyersSymbol,
+      historicalData = await nseApi.getHistoricalData({
+        symbol: angelSymbol,
         resolution,
         range_from: fromDate.toISOString().split('T')[0],
         range_to: toDate.toISOString().split('T')[0],
@@ -2872,8 +2872,8 @@ async function fetchFyersChartData(symbol: string, timeframe: string) {
           
           console.log(`🔄 [TRADING-DAY-FALLBACK] Trying date: ${fallbackDate.toISOString().split('T')[0]} (${daysBack} days back)`);
           
-          historicalData = await fyersApi.getHistoricalData({
-            symbol: fyersSymbol,
+          historicalData = await nseApi.getHistoricalData({
+            symbol: angelSymbol,
             resolution,
             range_from: fallbackDate.toISOString().split('T')[0],
             range_to: fallbackDate.toISOString().split('T')[0],
@@ -2996,7 +2996,7 @@ async function fetchFyersChartDataForDate(symbol: string, dateStr: string, timef
     // Convert symbol to Fyers format
     const cleanSymbol = symbol.replace(/^\$+/, '');
     // Use INDEX format for NIFTY50, EQ format for individual stocks
-    const fyersSymbol = cleanSymbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : `NSE:${cleanSymbol}-EQ`;
+    const angelSymbol = cleanSymbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : `NSE:${cleanSymbol}-EQ`;
     
     // Convert timeframe to proper resolution
     let resolution = '1'; // Default 1-minute
@@ -3016,8 +3016,8 @@ async function fetchFyersChartDataForDate(symbol: string, dateStr: string, timef
         break;
     }
     
-    const chartData = await fyersApi.getHistoricalData({
-      symbol: fyersSymbol,
+    const chartData = await nseApi.getHistoricalData({
+      symbol: angelSymbol,
       resolution,
       range_from: dateStr,
       range_to: dateStr,
@@ -3693,11 +3693,11 @@ async function attemptAutoReconnection() {
       console.log('🔑 [FIREBASE] Found token in Firebase - testing BEFORE connecting...');
       
       // Set the stored access token from Firebase
-      fyersApi.setAccessToken(firebaseToken.accessToken);
+      
       
       // TEST FIRST before marking as connected
       console.log('🔍 [FIREBASE] Testing token with Fyers API before connecting...');
-      const isConnected = await fyersApi.testConnection();
+      const isConnected = await angelOneApi.testConnection();
       
       if (isConnected) {
         console.log('✅ [FIREBASE] Token VALIDATED - marking as connected');
@@ -3794,12 +3794,12 @@ async function attemptAutoReconnection() {
         console.log('✅ Valid database token found, attempting auto-reconnection...');
         
         // Set the database token
-        fyersApi.setAccessToken(apiStatus.accessToken);
+        
         console.log('🔑 Database token set in Fyers API client');
         
         // Test the connection
         console.log('🧪 Testing connection with database token...');
-        const isConnected = await fyersApi.testConnection();
+        const isConnected = await angelOneApi.testConnection();
         console.log('🔗 Database token connection test result:', isConnected);
         
         if (isConnected) {
@@ -3891,7 +3891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tokenExpiryDate > now) {
         console.log('✅ [STARTUP] Token is FRESH (expires:', tokenExpiryDate.toISOString(), ')');
         console.log('🔑 [STARTUP] Loading fresh token from database...');
-        fyersApi.setAccessToken(apiStatus.accessToken);
+        
         console.log('✅ [STARTUP] Fresh token loaded successfully!');
         console.log('🔐 [STARTUP] Authorization header updated with fresh database token');
       } else {
@@ -7403,16 +7403,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ✅ STEP 1: CLEAR OLD TOKEN FIRST - no blocking!
       console.log('🔐 [AUTH/TOKEN] Clearing any old/expired token...');
-      fyersApi.setAccessToken(''); // Reset to empty first
+      
       console.log('✅ [AUTH/TOKEN] Old token cleared');
 
       // ✅ STEP 2: SET NEW TOKEN
       console.log('🔐 [AUTH/TOKEN] Setting NEW token on FyersAPI instance...');
-      fyersApi.setAccessToken(token);
+      
       console.log('✅ [AUTH/TOKEN] New token set on FyersAPI instance');
 
       // ✅ STEP 3: Verify token was set
-      const isAuth = fyersApi.isAuthenticated();
+      const isAuth = angelOneApi.isConnected();
       console.log(`✅ [AUTH/TOKEN] FyersAPI isAuthenticated(): ${isAuth}`);
 
       // ✅ STEP 4: Save to database (overwrite old one)
@@ -7460,7 +7460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ✅ STEP 1: Clear token in memory
       console.log('🔐 [AUTH/DISCONNECT] Clearing token from FyersAPI instance...');
-      fyersApi.setAccessToken('');
+      
       console.log('✅ [AUTH/DISCONNECT] Token cleared from memory');
 
       // ✅ STEP 2: Clear from database
@@ -7495,7 +7495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get Fyers Profile - fetch username and account details
   app.get("/api/auth/profile", async (req, res) => {
     try {
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           success: false,
           message: "Not authenticated - no token available" 
@@ -7503,7 +7503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('🔍 [AUTH/PROFILE] Fetching Fyers profile...');
-      const profile = await fyersApi.getProfile();
+      const profile = await angelOneApi.getProfile();
       
       if (profile) {
         console.log(`✅ [AUTH/PROFILE] Profile fetched - Username: ${profile.name}`);
@@ -7566,7 +7566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [CREDENTIALS] Updating: App ID=${trimmedAppId}, Secret Key length=${trimmedSecretKey.length}`);
 
       // Update FyersAPI instance with new credentials
-      fyersApi.setCredentials({
+      angelOneApi.setCredentials({
         appId: trimmedAppId,
         secretKey: trimmedSecretKey
       });
@@ -8110,11 +8110,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Exchange auth code for access token using the correct redirect URI
       const redirectUri = "https://www.google.com";
-      const accessToken = await fyersApi.generateAccessToken(authCode, redirectUri);
+      const accessToken = await angelOneApi.generateSession(authCode, redirectUri);
       
       if (accessToken) {
         // Test the connection with the new access token
-        const isConnected = await fyersApi.testConnection();
+        const isConnected = await angelOneApi.testConnection();
         
         if (isConnected) {
           // Calculate token expiry (24 hours from now for Fyers tokens)
@@ -8209,8 +8209,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (tokenData && tokenData.accessToken) {
         // Test the token
-        fyersApi.setAccessToken(tokenData.accessToken);
-        const isConnected = await fyersApi.testConnection();
+        
+        const isConnected = await angelOneApi.testConnection();
         
         if (isConnected) {
           console.log('✅ [FIREBASE] Found valid token for today');
@@ -8372,7 +8372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/url", async (req, res) => {
     try {
       const redirectUri = "https://www.google.com";
-      const authUrl = fyersApi.generateAuthUrl(redirectUri, 'cb_connect_auth');
+      const authUrl = angelOneApi.generateSession(redirectUri, 'cb_connect_auth');
       res.json({ authUrl });
     } catch (error) {
       res.status(500).json({ message: "Failed to generate auth URL" });
@@ -8644,7 +8644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`📡 [DEBUG] Testing hybrid data with params:`, hybridDataParams);
         
         // Simulate the hybrid data logic
-        const historicalData = await fyersApi.getHistoricalData({
+        const historicalData = await nseApi.getHistoricalData({
           symbol,
           resolution: timeframe.toString(),
           date_format: "1",
@@ -8902,7 +8902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/status", async (req, res) => {
     try {
       // Just check authentication status without making API calls
-      const isAuthenticated = fyersApi.isAuthenticated();
+      const isAuthenticated = angelOneApi.isConnected();
       
       let status = await storage.getApiStatus();
       
@@ -8949,9 +8949,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let profile = null;
       
       try {
-        connected = await fyersApi.testConnection();
+        connected = await angelOneApi.testConnection();
         if (connected) {
-          profile = await fyersApi.getProfile();
+          profile = await angelOneApi.getProfile();
         }
       } catch (connError: any) {
         console.log('⚠️ [REFRESH] Connection test failed:', connError.message);
@@ -9035,7 +9035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         // Return error if not authenticated - no fake data allowed
         await safeAddActivityLog({
           type: "error",
@@ -9056,7 +9056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       // Fetch ONLY real live data from Fyers API
-      const quotes = await fyersApi.getQuotes(symbols);
+      const quotes = await angelOneApi.getQuotes(symbols);
       
       if (quotes.length === 0) {
         await safeAddActivityLog({
@@ -9159,7 +9159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get flexible 1-minute candles based on live market time for Step Verifier
   app.get("/api/step-verifier/real-nifty-candles", async (req, res) => {
     try {
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           error: "Authentication required",
           message: "Please authenticate with Fyers API to access real candle data" 
@@ -9229,7 +9229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🌍 Time zones comparison - Server time: ${new Date().toISOString()}`);
       console.log(`🇮🇳 IST conversion result: ${testCurrentTime + " IST"}`);
       
-      const oneMinuteData = await fyersApi.getHistoricalData(params);
+      const oneMinuteData = await nseApi.getHistoricalData(params);
       
       if (!oneMinuteData || oneMinuteData.length < 20) {
         return res.status(404).json({
@@ -9385,7 +9385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         // EXACT same API call that works for Trading Master
-        const candleData = await fyersApi.getHistoricalData(params);
+        const candleData = await nseApi.getHistoricalData(params);
         
         if (candleData && candleData.length > 0) {
           console.log(`✅ HISTORICAL SUCCESS: ${candleData.length} candles for ${symbol} (${fromDate} to ${toDate})`);
@@ -9491,7 +9491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             cont_flag: "1"
           };
 
-          const candleData = await fyersApi.getHistoricalData(params);
+          const candleData = await nseApi.getHistoricalData(params);
           
           if (candleData && candleData.length > 0) {
             console.log(`✅ OLDER-MONTHS SUCCESS: ${candleData.length} candles for ${symbol} (${fromDate} to ${toDate})`);
@@ -9610,15 +9610,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let dataSource = 'fyers';
 
       // Try Fyers API first if authenticated
-      if (fyersApi.isAuthenticated()) {
+      if (angelOneApi.isConnected()) {
         try {
           console.log(`🔌 Attempting Fyers API for ${symbol}...`);
           
           // Convert NIFTY50 to the correct Fyers symbol format
-          const fyersSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
+          const angelSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
 
           const params = {
-            symbol: fyersSymbol,
+            symbol: angelSymbol,
             resolution: resolution,
             date_format: "1",
             range_from: range_from,
@@ -9626,7 +9626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             cont_flag: "1"
           };
 
-          candleData = await fyersApi.getHistoricalData(params);
+          candleData = await nseApi.getHistoricalData(params);
           
           if (candleData && candleData.length > 0) {
             console.log(`✅ Fyers API success: ${candleData.length} candles for ${symbol}`);
@@ -9818,7 +9818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log(`🔄 Fetching first candle data from Fyers API...`);
-      const candleData = await fyersApi.getHistoricalData(historicalParams);
+      const candleData = await nseApi.getHistoricalData(historicalParams);
       
       if (!candleData || candleData.length === 0) {
         throw new Error("No candle data available for the specified time period");
@@ -9916,7 +9916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update market data (refresh from Fyers API)
   app.post("/api/market-data/refresh", async (req, res) => {
     try {
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ message: "Not authenticated with Fyers API" });
       }
 
@@ -9929,7 +9929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       // Fetch fresh data from Fyers API
-      const quotes = await fyersApi.getQuotes(symbols);
+      const quotes = await angelOneApi.getQuotes(symbols);
       const updatedData = [];
       
       if (quotes.length > 0) {
@@ -10112,7 +10112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check authentication
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           error: "Authentication required",
           message: "Please authenticate with Fyers API to execute analysis" 
@@ -10128,9 +10128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 Executing Battu Scan instruction: ${instruction.name}`);
       
       // Fetch historical data first
-      const fyersSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
+      const angelSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
       const params = {
-        symbol: fyersSymbol,
+        symbol: angelSymbol,
         resolution: "1", // Always fetch 1-minute base data for accurate analysis
         date_format: "1",
         range_from: fromDate,
@@ -10138,7 +10138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cont_flag: "1"
       };
 
-      const candleData = await fyersApi.getHistoricalData(params);
+      const candleData = await nseApi.getHistoricalData(params);
       
       if (!candleData || candleData.length === 0) {
         return res.status(404).json({ 
@@ -10243,9 +10243,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`⏱️ Timeframe: ${timeframe || '1min'}`);
 
       // Fetch historical data first
-      const fyersSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
+      const angelSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
       const params = {
-        symbol: fyersSymbol,
+        symbol: angelSymbol,
         resolution: "1", // Always fetch 1-minute for intraday accuracy
         date_format: "1",
         range_from: fromDate,
@@ -10253,7 +10253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cont_flag: "1"
       };
 
-      const rawCandleData = await fyersApi.getHistoricalData(params);
+      const rawCandleData = await nseApi.getHistoricalData(params);
       
       if (!rawCandleData || rawCandleData.length === 0) {
         return res.status(404).json({ 
@@ -10264,7 +10264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 Raw data fetched: ${rawCandleData.length} candles`);
 
       // STEP 1: Apply market session boundary filtering with API-based market detection
-      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, fyersSymbol, fyersApi);
+      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, angelSymbol, fyersApi);
       
       if (intradayCandles.length === 0) {
         return res.status(404).json({ 
@@ -10540,9 +10540,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📅 Date Range: ${fromDate} to ${toDate}`);
 
       // First get session data from Step 1
-      const fyersSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
+      const angelSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
       const params = {
-        symbol: fyersSymbol,
+        symbol: angelSymbol,
         resolution: "5", // 5-minute candles for 4-candle rule
         date_format: "1",
         range_from: fromDate,
@@ -10550,7 +10550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cont_flag: "1"
       };
 
-      const rawCandleData = await fyersApi.getHistoricalData(params);
+      const rawCandleData = await nseApi.getHistoricalData(params);
       
       if (!rawCandleData || rawCandleData.length === 0) {
         return res.status(404).json({ 
@@ -10561,7 +10561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 Raw 5-minute data fetched: ${rawCandleData.length} candles`);
 
       // Filter to market hours only
-      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, fyersSymbol, fyersApi);
+      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, angelSymbol, fyersApi);
       
       if (intradayCandles.length === 0) {
         return res.status(404).json({ 
@@ -10591,7 +10591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🔍 Analyzing ${sessionDate}: ${sessionData.length} five-minute candles`);
         
         // Apply the 4-candle rule to first 20 minutes (now with 1-minute precision)
-        const fourCandleAnalysis = await patternDetector.analyzeFourCandleRule(sessionData, symbol, sessionDate, fyersApi);
+        const fourCandleAnalysis = await patternDetector.analyzeFourCandleRule(sessionData, symbol, sessionDate, angelOneApi);
         
         fourCandleResults.push({
           sessionDate,
@@ -10614,7 +10614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get market status for context
-      const marketStatus = intradayAnalyzer.getCurrentSessionStatus(fyersSymbol);
+      const marketStatus = intradayAnalyzer.getCurrentSessionStatus(angelSymbol);
 
       await safeAddActivityLog({
         type: "success",
@@ -10701,7 +10701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`⏰ 6th candle end time: ${new Date(sixthCandleEndTime * 1000).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })}`);
 
       // Use the corrected processor for 7th and 8th candle predictions
-      const correctedProcessor = new CorrectedFourCandleProcessor(fyersApi);
+      const correctedProcessor = new CorrectedFourCandleProcessor(angelOneApi);
       const predictions = await correctedProcessor.predict7thAnd8thCandles(
         symbol,
         date,
@@ -10765,7 +10765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📈 Fetching 1-minute data from ${fromDate} to ${toDate}...`);
       
       // Get 1-minute historical data
-      const candleData = await fyersApi.getHistoricalData(
+      const candleData = await nseApi.getHistoricalData(
         symbol,
         1, // 1-minute resolution
         fromDate,
@@ -11057,7 +11057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [EXTENDED] Input validation passed, calling extended analysis...`);
       
       // Create pattern detector and apply extended 4-candle rule
-      const patternDetector = new IntradayPatternDetector(fyersApi);
+      const patternDetector = new IntradayPatternDetector(angelOneApi);
       const result = await patternDetector.apply4CandleRuleExtended(
         body.symbol,
         body.fromDate,
@@ -11125,7 +11125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [T-RULE] Input validation passed, calling T-rule analysis...`);
       
       // Create pattern detector and apply T-rule
-      const patternDetector = new IntradayPatternDetector(fyersApi);
+      const patternDetector = new IntradayPatternDetector(angelOneApi);
       const result = await patternDetector.applyTRule(
         body.symbol,
         body.fromDate,
@@ -11191,7 +11191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [STEP-3] Input validation passed, calling Step 3 timeframe doubling...`);
       
       // Create pattern detector and apply Step 3
-      const patternDetector = new IntradayPatternDetector(fyersApi);
+      const patternDetector = new IntradayPatternDetector(angelOneApi);
       const result = await patternDetector.applyStep3TimeframeDoubling(
         body.symbol,
         body.fromDate,
@@ -11257,7 +11257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Import and use battu intraday base with existing FyersAPI
       const { createBattuIntradayBase } = await import('./battu-intraday-base');
-      const battuIntradayBase = createBattuIntradayBase(fyersApi);
+      const battuIntradayBase = createBattuIntradayBase(angelOneApi);
       
       // Step 1: Fetch 1-minute base data
       const baseData = await battuIntradayBase.fetchOneMinuteBaseData({
@@ -11403,7 +11403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 [CORRECTED] Fetching real 1-minute data from Fyers API for ${symbol} on ${date}`);
       
       // Use the existing working getHistoricalData method
-      const candleDataArray = await fyersApi.getHistoricalData({
+      const candleDataArray = await nseApi.getHistoricalData({
         symbol: symbol,
         resolution: '1', // 1-minute resolution
         date_format: '1',
@@ -11470,7 +11470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Step 2: Apply CORRECTED 4-candle methodology
       const { CorrectedFourCandleProcessor } = await import('./corrected-four-candle-processor');
-      const correctedProcessor = new CorrectedFourCandleProcessor(fyersApi);
+      const correctedProcessor = new CorrectedFourCandleProcessor(angelOneApi);
       
       const analysis = await correctedProcessor.analyzeWithCorrectMethodology(
         baseData.oneMinuteCandles,
@@ -11784,17 +11784,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fetch real market data if candles are available
       if (realCandleData.fifthCandle.available || realCandleData.sixthCandle.available) {
-        const fyersSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
+        const angelSymbol = symbol === 'NIFTY50' ? 'NSE:NIFTY50-INDEX' : symbol;
         
         // Calculate extended date range to include both candles
         const extendedEndTime = sixthCandleEnd + (3600 * 2); // Add 2 hours buffer
         const fromDate = new Date(fifthCandleStart * 1000).toISOString().split('T')[0];
         const toDate = new Date(extendedEndTime * 1000).toISOString().split('T')[0];
 
-        console.log(`📊 Fetching real candle data for ${fyersSymbol} from ${fromDate} to ${toDate}`);
+        console.log(`📊 Fetching real candle data for ${angelSymbol} from ${fromDate} to ${toDate}`);
 
         const params = {
-          symbol: fyersSymbol,
+          symbol: angelSymbol,
           resolution: "1", // 1-minute data
           date_format: "1",
           range_from: fromDate,
@@ -11803,7 +11803,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         try {
-          const historicalData = await fyersApi.getHistoricalData(params);
+          const historicalData = await nseApi.getHistoricalData(params);
           
           if (historicalData && historicalData.length > 0) {
             console.log(`📈 Received ${historicalData.length} 1-minute candles`);
@@ -11911,7 +11911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { riskAmount = 1000 } = req.body;
 
       // Check authentication
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           error: "Authentication required",
           message: "Please authenticate with Fyers API to monitor breakouts" 
@@ -12293,7 +12293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📈 Fetching 1-minute data from ${date} to ${extendedEndDateStr}...`);
       
-      const candleData = await fyersApi.getHistoricalData(symbol, '1', date, extendedEndDateStr);
+      const candleData = await nseApi.getHistoricalData(symbol, '1', date, extendedEndDateStr);
       
       if (!candleData?.candles || candleData.candles.length === 0) {
         return res.status(404).json({ 
@@ -12495,7 +12495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/battu-scan/intraday/market-aware-slope-calculation", async (req, res) => {
     try {
       // Check authentication
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           success: false,
           error: "Authentication required",
@@ -13046,7 +13046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }, {} as Record<string, number>)
         },
         api: {
-          authenticated: fyersApi.isAuthenticated(),
+          authenticated: angelOneApi.isConnected(),
           connectionStatus: (await storage.getApiStatus())?.connected || false
         }
       };
@@ -13090,7 +13090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { CorrectedContinuousBattuBacktest } = await import('./corrected-continuous-battu-backtest');
-      const continuousBacktest = new CorrectedContinuousBattuBacktest(fyersApi);
+      const continuousBacktest = new CorrectedContinuousBattuBacktest(angelOneApi);
       
       const result = await continuousBacktest.startContinuousBacktest(symbol, date, timeframe);
       
@@ -13122,7 +13122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🚀 [FINAL-CORRECTED] Starting final corrected continuous backtest for ${symbol} on ${date}`);
 
       const { FinalCorrectedContinuousBattuBacktest } = await import('./final-corrected-continuous-battu-backtest');
-      const finalBacktest = new FinalCorrectedContinuousBattuBacktest(fyersApi);
+      const finalBacktest = new FinalCorrectedContinuousBattuBacktest(angelOneApi);
       
       const result = await finalBacktest.runContinuousBacktest(symbol, date, timeframe);
       
@@ -13372,7 +13372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Initialize the corrected flexible timeframe system
-      correctedFlexibleSystem = new CorrectedFlexibleTimeframeSystem(fyersApi, config);
+      correctedFlexibleSystem = new CorrectedFlexibleTimeframeSystem(angelOneApi, config);
       
       // Start the system
       await correctedFlexibleSystem.startSystem();
@@ -13515,7 +13515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/step-verifier/cycle1-nifty-fetch", async (req, res) => {
     try {
       // Check authentication
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           success: false,
           error: "Authentication required",
@@ -13539,7 +13539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cont_flag: "1"
       };
       
-      const candleData = await fyersApi.getHistoricalData(params);
+      const candleData = await nseApi.getHistoricalData(params);
       
       if (!candleData || candleData.length < 4) {
         return res.status(404).json({
@@ -13632,7 +13632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/step-verifier/cycle2-battu-analysis", async (req, res) => {
     try {
       // Check authentication
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({ 
           success: false,
           error: "Authentication required",
@@ -13656,7 +13656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔄 CYCLE 2: Applying Battu API to 4 candles for ${symbol} on ${date}`);
       
-      const candleData = await fyersApi.getHistoricalData(params);
+      const candleData = await nseApi.getHistoricalData(params);
       
       if (!candleData || candleData.length < 4) {
         return res.status(404).json({
@@ -13705,7 +13705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log(`🔍 Fetching 1-minute data for exact Point A/B timing...`);
-      const oneMinuteData = await fyersApi.getHistoricalData(oneMinParams);
+      const oneMinuteData = await nseApi.getHistoricalData(oneMinParams);
       
       if (!oneMinuteData || oneMinuteData.length < 20) {
         console.log(`⚠️ Limited 1-minute data: ${oneMinuteData?.length || 0} candles`);
@@ -14536,7 +14536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🎯 STEP VERIFIER BACKTEST EXECUTION:', { symbol, dateRange, timeframe, cycles });
 
-      if (!fyersApi.isAuthenticated()) {
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({
           success: false,
           error: "Authentication required",
@@ -14737,7 +14737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Fetch current live price for active trades
         const symbols = ['NSE:NIFTY50-INDEX']; // Add more symbols as needed
-        const liveQuotes = await fyersApi.getQuotes(symbols);
+        const liveQuotes = await angelOneApi.getQuotes(symbols);
         
         if (liveQuotes && liveQuotes.length > 0) {
           const currentPrice = liveQuotes[0].ltp; // Last price
@@ -16029,7 +16029,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 [OPTIONS-FLOW] Analyzing option flow for ${underlying} on ${date}...`);
       
       // Get option chain data
-      const optionChain = await fyersApi.getOptionChain(underlying);
+      const optionChain = await nseApi.getOptionChain(underlying);
       
       if (!optionChain) {
         return res.status(404).json({
@@ -16121,7 +16121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🧪 [STRATEGY-TEST] Testing ${strategy.name} with EMA-${strategy.period || 9}`);
 
-      if (!fyersApi || !fyersApi.isAuthenticated) {
+      if (// Angel One API check:  !angelOneApi.isConnected() {
         return res.status(401).json({
           success: false,
           error: "Fyers API not authenticated"
@@ -16267,7 +16267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const period = parseInt(strategy.valueType.split('-')[1]) || 14;
           
           // Get historical data for RSI calculation
-          const historicalData = await fyersApi.getHistoricalData({
+          const historicalData = await nseApi.getHistoricalData({
             symbol: symbol,
             resolution: timeframe === '1min' ? '1' : timeframe.replace('min', ''),
             date_format: '1',
@@ -16507,7 +16507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`📊 [SMA-STRATEGY] Using SMA-${smaPeriod}`);
           
           // Get historical data
-          const historicalData = await fyersApi.getHistoricalData({
+          const historicalData = await nseApi.getHistoricalData({
             symbol: symbol,
             resolution: timeframe === '1min' ? '1' : timeframe.replace('min', ''),
             date_format: '1',
@@ -16611,7 +16611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`📊 [RSI-STRATEGY] Using RSI-${rsiPeriod}`);
           
           // Get historical data
-          const historicalData = await fyersApi.getHistoricalData({
+          const historicalData = await nseApi.getHistoricalData({
             symbol: symbol,
             resolution: timeframe === '1min' ? '1' : timeframe.replace('min', ''),
             date_format: '1',
@@ -16755,7 +16755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const signalPeriod = parseInt(periods[3]) || 9;
           
           // Get historical data for MACD calculation
-          const historicalData = await fyersApi.getHistoricalData({
+          const historicalData = await nseApi.getHistoricalData({
             symbol: symbol,
             resolution: timeframe === '1min' ? '1' : timeframe.replace('min', ''),
             date_format: '1',
@@ -17008,9 +17008,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch Fyers data if available
       let fyersData = null;
       try {
-        if (fyersApi.isAuthenticated()) {
-          const fyersSymbol = `NSE:${symbol.toUpperCase()}-EQ`;
-          const fyersQuotes = await fyersApi.getQuotes([fyersSymbol]);
+        if (angelOneApi.isConnected()) {
+          const angelSymbol = `NSE:${symbol.toUpperCase()}-EQ`;
+          const fyersQuotes = await angelOneApi.getQuotes([angelSymbol]);
           if (fyersQuotes.length > 0) {
             fyersData = fyersQuotes[0];
             console.log(`[INTELLIGENT-AGENT] Fetched Fyers data for ${symbol}`);
