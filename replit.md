@@ -10,6 +10,36 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## November 27, 2025 - Trading Journal TradingView Chart with Angel One API
+
+Fixed and completed the Trading Journal TradingView-style candlestick chart:
+
+**Chart Features:**
+- Professional candlestick display (green #16a34a up, red #dc2626 down)
+- Volume histogram with color coding
+- EMA 12 (bright blue #0066ff) and EMA 26 (orange #ff6600) indicators
+- Light theme with full dark mode support
+- Responsive design for desktop and mobile
+
+**Fixes Applied:**
+1. **Connection Check**: Added Angel One connection status verification before fetching chart data (prevents 401 errors)
+2. **Tab Name Fix**: Fixed activeTab condition from 'trading-journal' to 'journal' for proper chart rendering
+3. **Timezone Handling**: Implemented proper IST timestamp conversion for Angel One API data:
+   - Handles string timestamps (e.g., "2025-11-27 09:15")
+   - Handles milliseconds (>10 billion) 
+   - Handles seconds format
+   - Converts to Unix seconds for lightweight-charts library
+
+**Data Transformation:**
+Uses exact same logic as Visual Chart window - converts Angel One OHLC data to lightweight-charts format with:
+- Candlestick series: open, high, low, close, volume
+- EMA calculations (12 & 26 periods) on close prices
+- Proper time series alignment
+
+**Symbols Supported:**
+- NSE stocks (Reliance, TCS, HDFC Bank, Bajaj Auto, Infosys, etc.)
+- 15-minute candles (extendable to other intervals)
+
 ## November 26, 2025 - Angel One SmartAPI Integration
 
 Added Angel One SmartAPI as a free alternative to Fyers API:

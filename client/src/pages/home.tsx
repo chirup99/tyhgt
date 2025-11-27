@@ -4433,14 +4433,31 @@ ${
         }));
       } else if (data.success && data.candles && Array.isArray(data.candles) && data.candles.length > 0) {
         // Format 2: Array of objects (current API response format)
-        candleData = data.candles.map((candle: any) => ({
-          time: candle.timestamp / 1000, // Convert ms to seconds
-          open: parseFloat(candle.open),
-          high: parseFloat(candle.high),
-          low: parseFloat(candle.low),
-          close: parseFloat(candle.close),
-          volume: parseInt(candle.volume) || 0,
-        }));
+        candleData = data.candles.map((candle: any) => {
+          // Handle different timestamp formats from Angel One
+          let unixSeconds: number;
+          
+          if (typeof candle.timestamp === 'string') {
+            // If timestamp is a string (e.g., "2025-11-27 09:15"), parse it as IST
+            const date = new Date(candle.timestamp);
+            unixSeconds = Math.floor(date.getTime() / 1000);
+          } else if (candle.timestamp > 10000000000) {
+            // Timestamp is in milliseconds (> 10 billion)
+            unixSeconds = Math.floor(candle.timestamp / 1000);
+          } else {
+            // Timestamp is already in seconds
+            unixSeconds = candle.timestamp;
+          }
+          
+          return {
+            time: unixSeconds as any,
+            open: parseFloat(candle.open),
+            high: parseFloat(candle.high),
+            low: parseFloat(candle.low),
+            close: parseFloat(candle.close),
+            volume: parseInt(candle.volume) || 0,
+          };
+        });
       }
       
       if (candleData.length > 0) {
