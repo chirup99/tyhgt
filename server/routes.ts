@@ -821,7 +821,7 @@ async function fetchMoneyControlData(symbol: string) {
 }
 
 // Helper function to clean symbol for Fyers API
-function symbol.toUpperCase(symbol: string): string {
+function cleanSymbolForFyers(symbol: string): string {
   // Remove $ prefix and any other invalid characters
   return symbol.replace(/^\$+/, '').replace(/[^A-Z0-9]/g, '').toUpperCase();
 }
@@ -839,13 +839,16 @@ async function getLatestDailyVolumeFromCandle(symbol: string): Promise<string> {
     
     console.log(`📊 [DAILY-VOLUME] Fetching daily volume for ${symbol} (${angelSymbol})`);
     
-    // Fetch daily candle data from Fyers
-    const chartData = await fyersHistoricalData(
-      angelSymbol,
-      'D', // Daily resolution
-      dateStr,
-      dateStr
-    );
+    // Fetch daily candle data from Angel One
+    const params = {
+      symbol: angelSymbol,
+      resolution: 'D',
+      date_format: '1',
+      range_from: dateStr,
+      range_to: dateStr,
+      cont_flag: '1'
+    };
+    const chartData = await nseApi.getHistoricalData(params);
     
     if (chartData && chartData.length > 0) {
       const latestCandle = chartData[chartData.length - 1];
@@ -1387,9 +1390,9 @@ async function calculateEMA50(symbol: string, period: number = 50): Promise<numb
   try {
     console.log(`📈 [EMA50] Attempting EMA 50 calculation for ${symbol}...`);
     
-    // Check if Fyers API is authenticated
-    if (// Angel One API check:  !angelOneApi.isConnected() {
-      console.log(`❌ [EMA50] Fyers API not authenticated, using sample EMA for ${symbol}`);
+    // Check if Angel One API is authenticated
+    if (!angelOneApi.isConnected()) {
+      console.log(`❌ [EMA50] Angel One API not authenticated, using sample EMA for ${symbol}`);
       return null;
     }
     
@@ -1458,9 +1461,9 @@ async function calculateRSI(symbol: string, period: number = 14): Promise<number
   try {
     console.log(`📈 [RSI] Attempting RSI calculation for ${symbol}...`);
     
-    // Check if Fyers API is authenticated
-    if (// Angel One API check:  !angelOneApi.isConnected() {
-      console.log(`❌ [RSI] Fyers API not authenticated, skipping RSI for ${symbol}`);
+    // Check if Angel One API is authenticated
+    if (!angelOneApi.isConnected()) {
+      console.log(`❌ [RSI] Angel One API not authenticated, skipping RSI for ${symbol}`);
       return null;
     }
     
@@ -10264,7 +10267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 Raw data fetched: ${rawCandleData.length} candles`);
 
       // STEP 1: Apply market session boundary filtering with API-based market detection
-      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, angelSymbol, fyersApi);
+      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, angelSymbol, angelOneApi);
       
       if (intradayCandles.length === 0) {
         return res.status(404).json({ 
@@ -10561,7 +10564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 Raw 5-minute data fetched: ${rawCandleData.length} candles`);
 
       // Filter to market hours only
-      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, angelSymbol, fyersApi);
+      const intradayCandles = await intradayAnalyzer.processIntradayDataWithAPI(rawCandleData, angelSymbol, angelOneApi);
       
       if (intradayCandles.length === 0) {
         return res.status(404).json({ 
@@ -16121,10 +16124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🧪 [STRATEGY-TEST] Testing ${strategy.name} with EMA-${strategy.period || 9}`);
 
-      if (// Angel One API check:  !angelOneApi.isConnected() {
+      // Check if Angel One API is authenticated
+      if (!angelOneApi.isConnected()) {
         return res.status(401).json({
           success: false,
-          error: "Fyers API not authenticated"
+          error: "Angel One API not authenticated"
         });
       }
 
