@@ -9565,7 +9565,7 @@ ${
                     <div className="md:grid md:grid-cols-3 gap-6">
                       {/* Left Block - Performance Chart */}
                       <div
-                        className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
+                        className={`h-[500px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
                       >
                         {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
                         <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
