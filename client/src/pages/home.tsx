@@ -4200,14 +4200,15 @@ ${
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   
   // Default popular instruments for each category (pre-populated)
+  // Note: Only stocks and indices have stable tokens. Commodity/F&O tokens change with contract expiry.
   const defaultInstruments = {
     all: [
       { symbol: 'RELIANCE-EQ', name: 'Reliance Industries', token: '2885', exchange: 'NSE', instrumentType: '', displayName: 'RELIANCE', tradingSymbol: 'RELIANCE-EQ' },
       { symbol: 'TCS-EQ', name: 'Tata Consultancy Services', token: '11536', exchange: 'NSE', instrumentType: '', displayName: 'TCS', tradingSymbol: 'TCS-EQ' },
       { symbol: 'INFY-EQ', name: 'Infosys Limited', token: '1594', exchange: 'NSE', instrumentType: '', displayName: 'INFY', tradingSymbol: 'INFY-EQ' },
       { symbol: 'HDFCBANK-EQ', name: 'HDFC Bank', token: '1333', exchange: 'NSE', instrumentType: '', displayName: 'HDFCBANK', tradingSymbol: 'HDFCBANK-EQ' },
-      { symbol: 'GOLD', name: 'Gold', token: '66745', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'GOLD', tradingSymbol: 'GOLD' },
       { symbol: 'Nifty 50', name: 'Nifty 50 Index', token: '99926000', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY 50', tradingSymbol: 'Nifty 50' },
+      { symbol: 'Nifty Bank', name: 'Nifty Bank Index', token: '99926009', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'BANK NIFTY', tradingSymbol: 'Nifty Bank' },
     ],
     stock: [
       { symbol: 'RELIANCE-EQ', name: 'Reliance Industries', token: '2885', exchange: 'NSE', instrumentType: '', displayName: 'RELIANCE', tradingSymbol: 'RELIANCE-EQ' },
@@ -4219,20 +4220,8 @@ ${
       { symbol: 'BHARTIARTL-EQ', name: 'Bharti Airtel', token: '10604', exchange: 'NSE', instrumentType: '', displayName: 'BHARTIARTL', tradingSymbol: 'BHARTIARTL-EQ' },
       { symbol: 'KOTAKBANK-EQ', name: 'Kotak Mahindra Bank', token: '1922', exchange: 'NSE', instrumentType: '', displayName: 'KOTAKBANK', tradingSymbol: 'KOTAKBANK-EQ' },
     ],
-    commodity: [
-      { symbol: 'GOLD', name: 'Gold', token: '66745', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'GOLD', tradingSymbol: 'GOLD' },
-      { symbol: 'SILVER', name: 'Silver', token: '66746', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'SILVER', tradingSymbol: 'SILVER' },
-      { symbol: 'CRUDEOIL', name: 'Crude Oil', token: '66747', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'CRUDEOIL', tradingSymbol: 'CRUDEOIL' },
-      { symbol: 'NATURALGAS', name: 'Natural Gas', token: '66748', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'NATURALGAS', tradingSymbol: 'NATURALGAS' },
-      { symbol: 'COPPER', name: 'Copper', token: '66749', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'COPPER', tradingSymbol: 'COPPER' },
-      { symbol: 'ALUMINIUM', name: 'Aluminium', token: '66750', exchange: 'MCX', instrumentType: 'COMDTY', displayName: 'ALUMINIUM', tradingSymbol: 'ALUMINIUM' },
-    ],
-    fo: [
-      { symbol: 'NIFTY25DECFUT', name: 'Nifty Dec Futures', token: '35001', exchange: 'NFO', instrumentType: 'FUTIDX', displayName: 'NIFTY FUT', tradingSymbol: 'NIFTY25DECFUT' },
-      { symbol: 'BANKNIFTY25DECFUT', name: 'Bank Nifty Dec Futures', token: '35002', exchange: 'NFO', instrumentType: 'FUTIDX', displayName: 'BANKNIFTY FUT', tradingSymbol: 'BANKNIFTY25DECFUT' },
-      { symbol: 'RELIANCE25DECFUT', name: 'Reliance Dec Futures', token: '35003', exchange: 'NFO', instrumentType: 'FUTSTK', displayName: 'RELIANCE FUT', tradingSymbol: 'RELIANCE25DECFUT' },
-      { symbol: 'TCS25DECFUT', name: 'TCS Dec Futures', token: '35004', exchange: 'NFO', instrumentType: 'FUTSTK', displayName: 'TCS FUT', tradingSymbol: 'TCS25DECFUT' },
-    ],
+    commodity: [], // Commodity tokens change with contract expiry - use search
+    fo: [], // F&O tokens change with contract expiry - use search
     index: [
       { symbol: 'Nifty 50', name: 'Nifty 50 Index', token: '99926000', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY 50', tradingSymbol: 'Nifty 50' },
       { symbol: 'Nifty Bank', name: 'Nifty Bank Index', token: '99926009', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'BANK NIFTY', tradingSymbol: 'Nifty Bank' },
@@ -4241,6 +4230,12 @@ ${
       { symbol: 'Nifty Midcap 50', name: 'Nifty Midcap 50 Index', token: '99926027', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'NIFTY MIDCAP', tradingSymbol: 'Nifty Midcap 50' },
       { symbol: 'INDIA VIX', name: 'India VIX', token: '99926004', exchange: 'NSE', instrumentType: 'AMXIDX', displayName: 'INDIA VIX', tradingSymbol: 'INDIA VIX' },
     ],
+  };
+  
+  // Search suggestions for categories without pre-populated defaults
+  const categorySearchSuggestions: Record<string, string[]> = {
+    commodity: ['gold', 'silver', 'crude', 'copper', 'natural gas', 'aluminium'],
+    fo: ['nifty', 'banknifty', 'reliance', 'tcs', 'infy'],
   };
   
   // Dynamic instrument search state
@@ -9999,58 +9994,85 @@ ${
                                         {/* Default Popular Instruments - Show when no search query */}
                                         {stockSearchQuery.length < 2 && (
                                           <>
-                                            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                                              Popular {selectedInstrumentCategory !== 'all' ? selectedInstrumentCategory.charAt(0).toUpperCase() + selectedInstrumentCategory.slice(1) : ''} Instruments
-                                            </div>
-                                            {(defaultInstruments[selectedInstrumentCategory as keyof typeof defaultInstruments] || defaultInstruments.all).map((instrument) => (
-                                              <button
-                                                key={`default-${instrument.exchange}:${instrument.symbol}`}
-                                                onClick={() => {
-                                                  const formattedSymbol = `${instrument.exchange}:${instrument.symbol}`;
-                                                  setSelectedJournalSymbol(formattedSymbol);
-                                                  setSelectedInstrument({
-                                                    symbol: instrument.symbol,
-                                                    token: instrument.token,
-                                                    exchange: instrument.exchange,
-                                                    tradingSymbol: instrument.tradingSymbol
-                                                  });
-                                                  setShowStockSearch(false);
-                                                  setStockSearchQuery("");
-                                                }}
-                                                className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                                                  selectedJournalSymbol === `${instrument.exchange}:${instrument.symbol}`
-                                                    ? "bg-blue-100 dark:bg-blue-900 font-medium"
-                                                    : ""
-                                                }`}
-                                                data-testid={`default-stock-${instrument.exchange}:${instrument.symbol}`}
-                                              >
-                                                <div className="flex items-center justify-between gap-2">
-                                                  <span className="flex-1 font-medium">{instrument.name}</span>
-                                                  <div className="flex items-center gap-1">
-                                                    <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${
-                                                      instrument.exchange === 'NSE' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
-                                                      instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
-                                                      instrument.exchange === 'MCX' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
-                                                      instrument.exchange === 'NFO' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
-                                                      'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                                                    }`}>
-                                                      {instrument.exchange}
-                                                    </span>
-                                                    {instrument.instrumentType && (
-                                                      <span className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-                                                        {instrument.instrumentType}
-                                                      </span>
-                                                    )}
-                                                  </div>
+                                            {/* Show defaults for categories that have them */}
+                                            {(defaultInstruments[selectedInstrumentCategory as keyof typeof defaultInstruments]?.length > 0) ? (
+                                              <>
+                                                <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                                  Popular {selectedInstrumentCategory !== 'all' ? selectedInstrumentCategory.charAt(0).toUpperCase() + selectedInstrumentCategory.slice(1) : ''} Instruments
                                                 </div>
-                                                <div className="text-xs text-gray-500 mt-0.5">
-                                                  {instrument.symbol}
+                                                {(defaultInstruments[selectedInstrumentCategory as keyof typeof defaultInstruments] || defaultInstruments.all).map((instrument) => (
+                                                  <button
+                                                    key={`default-${instrument.exchange}:${instrument.symbol}`}
+                                                    onClick={() => {
+                                                      const formattedSymbol = `${instrument.exchange}:${instrument.symbol}`;
+                                                      setSelectedJournalSymbol(formattedSymbol);
+                                                      setSelectedInstrument({
+                                                        symbol: instrument.symbol,
+                                                        token: instrument.token,
+                                                        exchange: instrument.exchange,
+                                                        tradingSymbol: instrument.tradingSymbol
+                                                      });
+                                                      setShowStockSearch(false);
+                                                      setStockSearchQuery("");
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                                      selectedJournalSymbol === `${instrument.exchange}:${instrument.symbol}`
+                                                        ? "bg-blue-100 dark:bg-blue-900 font-medium"
+                                                        : ""
+                                                    }`}
+                                                    data-testid={`default-stock-${instrument.exchange}:${instrument.symbol}`}
+                                                  >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                      <span className="flex-1 font-medium">{instrument.name}</span>
+                                                      <div className="flex items-center gap-1">
+                                                        <span className={`px-1.5 py-0.5 text-xs font-semibold rounded ${
+                                                          instrument.exchange === 'NSE' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
+                                                          instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
+                                                          instrument.exchange === 'MCX' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
+                                                          instrument.exchange === 'NFO' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                                                          'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                                        }`}>
+                                                          {instrument.exchange}
+                                                        </span>
+                                                        {instrument.instrumentType && (
+                                                          <span className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                                                            {instrument.instrumentType}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 mt-0.5">
+                                                      {instrument.symbol}
+                                                    </div>
+                                                  </button>
+                                                ))}
+                                                <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 mt-1">
+                                                  Or type to search more instruments...
                                                 </div>
-                                              </button>
-                                            ))}
-                                            <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 mt-1">
-                                              Or type to search more instruments...
-                                            </div>
+                                              </>
+                                            ) : (
+                                              /* Show search suggestions for Commodity and F&O */
+                                              <div className="px-3 py-3 space-y-3">
+                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                  Search for {selectedInstrumentCategory === 'commodity' ? 'MCX Commodities' : 'F&O Derivatives'}:
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                  {(categorySearchSuggestions[selectedInstrumentCategory] || []).map((suggestion) => (
+                                                    <button
+                                                      key={suggestion}
+                                                      onClick={() => setStockSearchQuery(suggestion)}
+                                                      className="px-2.5 py-1.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                                                      data-testid={`search-suggestion-${suggestion}`}
+                                                    >
+                                                      {suggestion}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                                <div className="text-xs text-gray-400 dark:text-gray-500 pt-1 border-t border-gray-200 dark:border-gray-700">
+                                                  Click a suggestion or type to search...
+                                                </div>
+                                              </div>
+                                            )}
                                           </>
                                         )}
                                         
