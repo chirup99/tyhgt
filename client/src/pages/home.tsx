@@ -4504,6 +4504,14 @@ ${
 
     try {
       const containerWidth = journalChartContainerRef.current.clientWidth || 400;
+      let containerHeight = journalChartContainerRef.current.clientHeight;
+      
+      // If container height is 0 (not yet sized by layout), wait a tick
+      if (containerHeight === 0) {
+        containerHeight = 350; // fallback to 350px
+      }
+      
+      console.log('📊 Chart container dimensions:', { containerWidth, containerHeight });
       
       const chart = createChart(journalChartContainerRef.current, {
         layout: {
@@ -4532,7 +4540,7 @@ ${
           minBarSpacing: 4,
         },
         width: containerWidth,
-        height: 350,
+        height: containerHeight,
       });
 
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
@@ -9729,7 +9737,7 @@ ${
                             </div>
 
                             {/* TradingView-Style Candlestick Chart */}
-                            <div className="flex-1 relative">
+                            <div className="flex-1 relative flex flex-col h-full">
                               {journalChartLoading && (
                                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#131722]/90 rounded-lg backdrop-blur-sm">
                                   <div className="flex flex-col items-center gap-3">
@@ -9743,7 +9751,7 @@ ${
                               )}
                               
                               {/* Professional Chart Header with Symbol Info - TradingView Style */}
-                              <div className="bg-[#131722] rounded-t-lg border-x border-t border-[#2B2B43] px-3 py-2">
+                              <div className="bg-[#131722] rounded-t-lg border-x border-t border-[#2B2B43] px-3 py-2 flex-shrink-0">
                                 <div className="flex flex-col gap-1">
                                   {/* Top Row: Symbol and OHLC */}
                                   <div className="flex items-center justify-between flex-wrap gap-2">
@@ -9817,16 +9825,16 @@ ${
                                 </div>
                               </div>
                               
-                              {/* Chart Container - Increased Height */}
+                              {/* Chart Container - Fills remaining space */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="w-full h-[350px] border-x border-b border-[#2B2B43] bg-[#131722]"
+                                className="flex-1 w-full border-x border-b border-[#2B2B43] bg-[#131722] relative"
                                 data-testid="journal-tradingview-chart"
                               />
                               
                               {/* No Data Message - Professional Style */}
                               {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-[#131722] rounded-lg border border-[#2B2B43]">
+                                <div className="absolute inset-0 flex items-center justify-center bg-[#131722] rounded-lg border border-[#2B2B43] pointer-events-none">
                                   <div className="text-center">
                                     <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#1e222d] flex items-center justify-center">
                                       <BarChart3 className="h-8 w-8 text-[#787B86]" />
