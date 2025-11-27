@@ -11430,15 +11430,11 @@ ${
                               return `M ${points.split(' ').join(' L ')}`;
                             };
                             
-                            // Calculate visible stat counts to determine grid columns dynamically
-                            const visibleStatCount = [visibleStats.pnl, visibleStats.trend, visibleStats.fomo, visibleStats.winRate, visibleStats.streak].filter(Boolean).length;
-                            const visibleTagCount = [visibleStats.overtrading, visibleStats.topTags].filter(Boolean).length;
-                            
                             return (
                               <div className="space-y-2">
                                 {/* Header row with stats and menu */}
                                 <div className="flex justify-between items-start gap-2">
-                                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${visibleStatCount + visibleTagCount}, 1fr)`, gap: '0.5rem' }} className="text-white flex-1">
+                                  <div className="grid grid-cols-5 gap-2 text-white flex-1">
                                     {visibleStats.pnl && (
                                       <div className="flex flex-col items-center justify-center" data-testid="stat-total-pnl">
                                         <div className="text-[10px] opacity-80">P&L</div>
@@ -11474,22 +11470,6 @@ ${
                                         <div className="text-[10px] opacity-80">Streak</div>
                                         <div className="text-xs font-bold">{maxWinStreak}</div>
                                       </div>
-                                    )}
-                                    {visibleStats.overtrading && (
-                                      <button className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
-                                        activeTagHighlight?.tag === 'overtrading' ? 'bg-white/30 ring-2 ring-white/50' : ''
-                                      }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === 'overtrading' ? null : { tag: 'overtrading', dates: overTradingDates })} data-testid="stat-overtrading">
-                                        <div className="text-[10px] opacity-80">OT</div>
-                                        <div className="text-xs font-bold text-orange-200">{overTradingCount}</div>
-                                      </button>
-                                    )}
-                                    {visibleStats.topTags && topTags.length > 0 && (
-                                      <button className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
-                                        activeTagHighlight?.tag === topTags[0].tag ? 'bg-white/30 ring-2 ring-white/50' : ''
-                                      }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === topTags[0].tag ? null : { tag: topTags[0].tag, dates: tagDates[topTags[0].tag] || [] })} data-testid="stat-toptag">
-                                        <div className="text-[10px] opacity-80">{topTags[0].tag.substring(0, 3).toUpperCase()}</div>
-                                        <div className="text-xs font-bold">{topTags[0].count}</div>
-                                      </button>
                                     )}
                                   </div>
                                   
@@ -11552,6 +11532,37 @@ ${
                                     </PopoverContent>
                                   </Popover>
                                 </div>
+                                
+                                {/* Overtrading Block with Curved Lines */}
+                                {visibleStats.overtrading && (
+                                  <button className={`w-full hover-elevate active-elevate-2 rounded px-2 py-1 text-xs text-white transition-all ${
+                                    activeTagHighlight?.tag === 'overtrading' ? 'bg-white/30 ring-2 ring-white/50' : 'bg-white/10'
+                                  }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === 'overtrading' ? null : { tag: 'overtrading', dates: overTradingDates })} data-testid="stat-overtrading-block">
+                                    <span className="opacity-80">Overtrading Days: </span>
+                                    <span className="font-semibold text-orange-200">{overTradingCount}</span>
+                                  </button>
+                                )}
+                                
+                                {/* Top Tags Block with Curved Lines */}
+                                {visibleStats.topTags && topTags.length > 0 && (
+                                  <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
+                                    <div className="opacity-80 mb-1">Top Tags:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {topTags.map(({tag, count}) => (
+                                        <button 
+                                          key={tag}
+                                          className={`hover-elevate active-elevate-2 rounded px-2 py-0.5 text-xs transition-all ${
+                                            activeTagHighlight?.tag === tag ? 'bg-white/50 ring-2 ring-white/50' : 'bg-white/20'
+                                          }`}
+                                          onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === tag ? null : { tag, dates: tagDates[tag] || [] })}
+                                          data-testid={`stat-toptag-${tag}`}
+                                        >
+                                          {tag} <span className="text-white/60">({count})</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                                 
                                 {/* AI Analysis Block - Static Text Only */}
                                 {visibleStats.aiAnalysis && (
