@@ -11362,7 +11362,9 @@ ${
                             let maxWinStreak = 0;
                             const trendData: number[] = [];
                             const fomoDates: string[] = [];
+                            const overTradingDates: string[] = [];
                             const tagStats: Record<string, any> = {};
+                            const tagDates: Record<string, string[]> = {};
                             let overTradingCount = 0;
                             
                             dates.sort().forEach(dateKey => {
@@ -11377,9 +11379,10 @@ ${
                                 winningTrades += metrics.winningTrades || 0;
                                 trendData.push(netPnL);
                                 
-                                // Count trades > 10 as overtrading
+                                // Track overtrading dates (> 10 trades)
                                 if ((metrics.totalTrades || 0) > 10) {
                                   overTradingCount++;
+                                  overTradingDates.push(dateKey);
                                 }
                                 
                                 if (Array.isArray(tags) && tags.length > 0) {
@@ -11388,9 +11391,11 @@ ${
                                     fomoTrades++;
                                     fomoDates.push(dateKey);
                                   }
-                                  // Track all tags
+                                  // Track all tags with their dates
                                   normalizedTags.forEach(tag => {
                                     tagStats[tag] = (tagStats[tag] || 0) + 1;
+                                    if (!tagDates[tag]) tagDates[tag] = [];
+                                    tagDates[tag].push(dateKey);
                                   });
                                 }
                                 
@@ -11425,11 +11430,15 @@ ${
                               return `M ${points.split(' ').join(' L ')}`;
                             };
                             
+                            // Calculate visible stat counts to determine grid columns dynamically
+                            const visibleStatCount = [visibleStats.pnl, visibleStats.trend, visibleStats.fomo, visibleStats.winRate, visibleStats.streak].filter(Boolean).length;
+                            const visibleTagCount = [visibleStats.overtrading, visibleStats.topTags].filter(Boolean).length;
+                            
                             return (
                               <div className="space-y-2">
                                 {/* Header row with stats and menu */}
                                 <div className="flex justify-between items-start gap-2">
-                                  <div className="grid grid-cols-5 gap-2 text-white flex-1">
+                                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${visibleStatCount + visibleTagCount}, 1fr)`, gap: '0.5rem' }} className="text-white flex-1">
                                     {visibleStats.pnl && (
                                       <div className="flex flex-col items-center justify-center" data-testid="stat-total-pnl">
                                         <div className="text-[10px] opacity-80">P&L</div>
@@ -11465,6 +11474,22 @@ ${
                                         <div className="text-[10px] opacity-80">Streak</div>
                                         <div className="text-xs font-bold">{maxWinStreak}</div>
                                       </div>
+                                    )}
+                                    {visibleStats.overtrading && (
+                                      <button className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                                        activeTagHighlight?.tag === 'overtrading' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                                      }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === 'overtrading' ? null : { tag: 'overtrading', dates: overTradingDates })} data-testid="stat-overtrading">
+                                        <div className="text-[10px] opacity-80">OT</div>
+                                        <div className="text-xs font-bold text-orange-200">{overTradingCount}</div>
+                                      </button>
+                                    )}
+                                    {visibleStats.topTags && topTags.length > 0 && (
+                                      <button className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                                        activeTagHighlight?.tag === topTags[0].tag ? 'bg-white/30 ring-2 ring-white/50' : ''
+                                      }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === topTags[0].tag ? null : { tag: topTags[0].tag, dates: tagDates[topTags[0].tag] || [] })} data-testid="stat-toptag">
+                                        <div className="text-[10px] opacity-80">{topTags[0].tag.substring(0, 3).toUpperCase()}</div>
+                                        <div className="text-xs font-bold">{topTags[0].count}</div>
+                                      </button>
                                     )}
                                   </div>
                                   
@@ -11528,27 +11553,7 @@ ${
                                   </Popover>
                                 </div>
                                 
-                                {/* Additional Stats Blocks */}
-                                {visibleStats.overtrading && (
-                                  <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
-                                    <span className="opacity-80">Overtrading Days: </span>
-                                    <span className="font-semibold text-orange-200">{overTradingCount}</span>
-                                  </div>
-                                )}
-                                
-                                {visibleStats.topTags && topTags.length > 0 && (
-                                  <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
-                                    <div className="opacity-80 mb-1">Top Tags:</div>
-                                    <div className="flex flex-wrap gap-1">
-                                      {topTags.map(({tag, count}) => (
-                                        <span key={tag} className="bg-white/20 px-2 py-0.5 rounded text-xs">
-                                          {tag} <span className="text-white/60">({count})</span>
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                                
+                                {/* AI Analysis Block - Static Text Only */}
                                 {visibleStats.aiAnalysis && (
                                   <div className="bg-white/10 rounded px-2 py-1 text-xs text-white">
                                     <span className="opacity-80">AI Insight: </span>
