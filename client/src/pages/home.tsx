@@ -4544,26 +4544,26 @@ ${
       });
 
       const candlestickSeries = chart.addSeries(CandlestickSeries, {
-        upColor: '#26a69a',
-        downColor: '#ef5350',
-        borderUpColor: '#26a69a',
-        borderDownColor: '#ef5350',
-        wickUpColor: '#26a69a',
-        wickDownColor: '#ef5350',
+        upColor: '#16a34a',
+        downColor: '#dc2626',
+        borderUpColor: '#15803d',
+        borderDownColor: '#b91c1c',
+        wickUpColor: '#15803d',
+        wickDownColor: '#b91c1c',
       });
 
       const volumeSeries = chart.addSeries(HistogramSeries, {
         priceFormat: { type: 'volume' },
         priceScaleId: '',
-        color: 'rgba(38, 166, 154, 0.5)',
+        color: 'rgba(22, 163, 74, 0.3)',
       });
       volumeSeries.priceScale().applyOptions({
         scaleMargins: { top: 0.85, bottom: 0 },
       });
 
       const ema12Series = chart.addSeries(LineSeries, {
-        color: '#2196F3',
-        lineWidth: 2,
+        color: '#0066ff',
+        lineWidth: 2.5,
         priceLineVisible: false,
         lastValueVisible: true,
         crosshairMarkerVisible: true,
@@ -4571,8 +4571,8 @@ ${
       });
 
       const ema26Series = chart.addSeries(LineSeries, {
-        color: '#FF9800',
-        lineWidth: 2,
+        color: '#ff6600',
+        lineWidth: 2.5,
         priceLineVisible: false,
         lastValueVisible: true,
         crosshairMarkerVisible: true,
