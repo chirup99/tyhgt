@@ -7922,7 +7922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Journal Chart - Live Stream with 700ms real Angel One price updates
   app.get("/api/angelone/live-stream-ws", async (req, res) => {
     try {
-      const { symbol, symbolToken, exchange, tradingSymbol } = req.query;
+      const { symbol, symbolToken, exchange, tradingSymbol, open, high, low, close, volume } = req.query;
       
       if (!symbol || !symbolToken || !exchange) {
         return res.status(400).json({
@@ -7934,14 +7934,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const clientId = `ticker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       console.log(`📡 [LIVE-STREAM] New chart client: ${clientId} for ${symbol} (Real Angel One data)`);
 
-      // Add client to real Angel One ticker (fetches real market data every 700ms)
+      // Prepare initial fallback OHLC data for when real API fails
+      const initialOhlc = {
+        open: parseFloat(open as string) || 0,
+        high: parseFloat(high as string) || 0,
+        low: parseFloat(low as string) || 0,
+        close: parseFloat(close as string) || 0,
+        volume: parseInt(volume as string) || 0
+      };
+
+      // Add client to real Angel One ticker (fetches real market data every 700ms, with fallback)
       angelOneRealTicker.addClient(
         clientId,
         res,
         symbol as string,
         symbolToken as string,
         exchange as string,
-        tradingSymbol as string || symbol as string
+        tradingSymbol as string || symbol as string,
+        initialOhlc
       );
 
     } catch (error: any) {

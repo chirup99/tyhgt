@@ -4573,6 +4573,12 @@ ${
     // Start new WebSocket SSE connection with REAL Angel One market data
     let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}`);
     
+    // Add initial OHLC as fallback for when real API fails
+    if (lastCandle && lastCandle.close > 0) {
+      sseUrl += `&open=${lastCandle.open}&high=${lastCandle.high}&low=${lastCandle.low}&close=${lastCandle.close}&volume=${lastCandle.volume || 0}`;
+      console.log('📡 [SSE] Initial fallback OHLC:', { open: lastCandle.open, high: lastCandle.high, low: lastCandle.low, close: lastCandle.close });
+    }
+    
     console.log('📡 [SSE] Connecting for REAL Angel One market data at 700ms intervals');
     
     const eventSource = new EventSource(sseUrl);
