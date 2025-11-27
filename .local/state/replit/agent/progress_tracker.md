@@ -58,3 +58,32 @@
 [x] 3425.   - Google Cloud health check failed - non-critical for basic functionality
 [x] 3426.   - Application is ready for development and user interaction
 [x] 3427. REPLIT ENVIRONMENT IMPORT 100% COMPLETE!
+
+[x] 3428. NOVEMBER 27, 2025 - SIMPLIFIED ANGEL ONE API AUTHENTICATION
+[x] 3429. Task: Simplify Angel One API authentication to match Python SmartAPI pattern
+[x] 3430. Problem:
+[x] 3431.   - 403 authentication errors when trying to connect
+[x] 3432.   - Complex authentication flow with unnecessary steps
+[x] 3433.   - Security vulnerability: Environment variables exposed to frontend
+[x] 3434. Solution:
+[x] 3435.   - Backend (server/angel-one-api.ts):
+[x] 3436.     * Made generateTOTP async/await for proper Promise handling
+[x] 3437.     * Simplified authentication flow: setCredentials -> generateTOTP -> generateSession -> generateToken
+[x] 3438.     * TOTP generated server-side from TOTP secret key (like Python pyotp.TOTP(secret).now())
+[x] 3439.   - Frontend (client/src/components/auth-button-angelone.tsx):
+[x] 3440.     * Completely rewrote component for security (no env variable exposure)
+[x] 3441.     * Simple form-based login: Client Code, PIN, API Key, TOTP Secret
+[x] 3442.     * Credentials sent securely via POST to backend only
+[x] 3443.     * Removed auto-connect with environment variables (security risk)
+[x] 3444.     * AngelOneGlobalAutoConnect now returns null (no-op)
+[x] 3445. Security improvements:
+[x] 3446.   - No sensitive credentials (API key, PIN, TOTP secret) exposed in frontend env vars
+[x] 3447.   - All authentication handled server-side
+[x] 3448.   - Form-based secure credential submission
+[x] 3449. Authentication flow (matches Python SmartAPI exactly):
+[x] 3450.   1. User enters: Client Code, PIN, API Key, TOTP Secret
+[x] 3451.   2. Frontend sends credentials to POST /api/angelone/connect
+[x] 3452.   3. Backend: setCredentials(apiKey) -> generateTOTP(secret) -> generateSession(clientCode, pin, totp) -> generateToken(refreshToken)
+[x] 3453.   4. Session and feed tokens stored for API calls
+[x] 3454. Additional fix: getFeedToken method name corrected (lowercase 'f' to uppercase 'F')
+[x] 3455. ANGEL ONE AUTHENTICATION SIMPLIFICATION 100% COMPLETE!

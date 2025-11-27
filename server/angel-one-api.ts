@@ -277,14 +277,18 @@ class AngelOneAPI {
         };
       }
 
-      // Step 5: Get feed token (like angleone.getfeedToken())
+      // Step 5: Get feed token (like SmartAPI getFeedToken())
       try {
-        const feedToken = await this.smartApi.getfeedToken?.();
-        if (feedToken) {
-          this.session.feedToken = feedToken;
+        if (this.smartApi.getFeedToken) {
+          const feedTokenResponse = await this.smartApi.getFeedToken();
+          if (feedTokenResponse) {
+            this.session.feedToken = typeof feedTokenResponse === 'string' 
+              ? feedTokenResponse 
+              : (feedTokenResponse.data || this.session.feedToken);
+          }
         }
       } catch (e) {
-        console.log('🔶 [Angel One] Feed token fetch skipped');
+        console.log('🔶 [Angel One] Feed token from API skipped, using session token');
       }
 
       this.isAuthenticated = true;
