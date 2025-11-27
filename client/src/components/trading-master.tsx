@@ -4479,8 +4479,17 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   const [stockRecommendations, setStockRecommendations] = useState<any[]>([]);
   const [feedStocks, setFeedStocks] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('feedStocks');
-      return saved ? JSON.parse(saved) : ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK'];
+      try {
+        const saved = localStorage.getItem('feedStocks');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse feedStocks from localStorage:', e);
+      }
     }
     return ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK'];
   });
@@ -4652,8 +4661,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
   // Add stock to feed stocks
   const addStockToFeed = (symbol: string) => {
-    if (!feedStocks.includes(symbol)) {
-      const newFeedStocks = [...feedStocks, symbol];
+    const currentStocks = Array.isArray(feedStocks) ? feedStocks : [];
+    if (!currentStocks.includes(symbol)) {
+      const newFeedStocks = [...currentStocks, symbol];
       setFeedStocks(newFeedStocks);
       localStorage.setItem('feedStocks', JSON.stringify(newFeedStocks));
       
@@ -4664,9 +4674,10 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
   // Add multiple stocks to feed at once (for Add All button)
   const addAllStocksToFeed = (stocks: string[]) => {
-    const stocksToAdd = stocks.filter(symbol => !feedStocks.includes(symbol));
+    const currentStocks = Array.isArray(feedStocks) ? feedStocks : [];
+    const stocksToAdd = stocks.filter(symbol => !currentStocks.includes(symbol));
     if (stocksToAdd.length > 0) {
-      const newFeedStocks = [...feedStocks, ...stocksToAdd];
+      const newFeedStocks = [...currentStocks, ...stocksToAdd];
       setFeedStocks(newFeedStocks);
       localStorage.setItem('feedStocks', JSON.stringify(newFeedStocks));
       
@@ -4678,7 +4689,8 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
   // Swipe to delete functions
   const removeStockFromFeed = (stockToRemove: string) => {
-    const newFeedStocks = feedStocks.filter(stock => stock !== stockToRemove);
+    const currentStocks = Array.isArray(feedStocks) ? feedStocks : [];
+    const newFeedStocks = currentStocks.filter(stock => stock !== stockToRemove);
     setFeedStocks(newFeedStocks);
     localStorage.setItem('feedStocks', JSON.stringify(newFeedStocks));
     setSwipedStock(null);
@@ -4743,11 +4755,11 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
           allLastTradedPrices[priceData.symbol] = priceData;
           
           // Update feed stocks
-          if (feedStocks.includes(priceData.symbol)) {
+          if (Array.isArray(feedStocks) && feedStocks.includes(priceData.symbol)) {
             feedPrices[priceData.symbol] = priceData;
           }
           // Update watchlist stocks
-          if (watchlistStocks.includes(priceData.symbol)) {
+          if (Array.isArray(watchlistStocks) && watchlistStocks.includes(priceData.symbol)) {
             watchlistPriceUpdates[priceData.symbol] = priceData;
           }
         }
@@ -4824,7 +4836,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
               
               console.log(`🔍 Mapped data for ${symbol}: price=${price}, change=${change}, changePercent=${changePercent}`);
               
-              if (feedStocks.includes(symbol)) {
+              if (Array.isArray(feedStocks) && feedStocks.includes(symbol)) {
                 feedPrices[symbol] = {
                   symbol,
                   price,
@@ -4835,7 +4847,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
                   timestamp: Date.now()
                 };
               }
-              if (watchlistStocks.includes(symbol)) {
+              if (Array.isArray(watchlistStocks) && watchlistStocks.includes(symbol)) {
                 watchlistPriceUpdates[symbol] = {
                   symbol,
                   price,
@@ -4903,8 +4915,10 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     
     setIsStreamingPrices(true);
     
-    // Get all unique symbols from feed stocks and watchlist
-    const allSymbols = Array.from(new Set([...feedStocks, ...watchlistStocks]));
+    // Get all unique symbols from feed stocks and watchlist with safety checks
+    const currentFeedStocks = Array.isArray(feedStocks) ? feedStocks : [];
+    const currentWatchlistStocks = Array.isArray(watchlistStocks) ? watchlistStocks : [];
+    const allSymbols = Array.from(new Set([...currentFeedStocks, ...currentWatchlistStocks]));
     
     if (allSymbols.length === 0) {
       console.log('⚠️ No symbols to stream, stopping');
@@ -4940,7 +4954,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
   // Auto-start streaming when component mounts and when feedStocks/watchlistStocks change
   useEffect(() => {
-    if (feedStocks.length > 0 || watchlistStocks.length > 0) {
+    const feedLen = Array.isArray(feedStocks) ? feedStocks.length : 0;
+    const watchLen = Array.isArray(watchlistStocks) ? watchlistStocks.length : 0;
+    if (feedLen > 0 || watchLen > 0) {
       startPriceStreaming();
     }
     
@@ -4963,7 +4979,9 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
   // Fetch last traded prices when stocks are loaded or changed
   useEffect(() => {
-    const allSymbols = Array.from(new Set([...feedStocks, ...watchlistStocks]));
+    const currentFeedStocks = Array.isArray(feedStocks) ? feedStocks : [];
+    const currentWatchlistStocks = Array.isArray(watchlistStocks) ? watchlistStocks : [];
+    const allSymbols = Array.from(new Set([...currentFeedStocks, ...currentWatchlistStocks]));
     
     if (allSymbols.length === 0) return;
 
@@ -4976,7 +4994,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [feedStocks.length, watchlistStocks.length]);
+  }, [feedStocks, watchlistStocks]);
 
   // Simplified swipe detection
   const [startPos, setStartPos] = useState<{x: number, stock: string} | null>(null);
