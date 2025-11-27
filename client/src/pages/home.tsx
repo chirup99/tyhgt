@@ -9939,7 +9939,7 @@ ${
             )}
 
             {activeTab === "journal" && (
-              <div className="space-y-6 px-0.5 md:px-0.5 py-0.5 relative">
+              <div className="space-y-6 px-0.5 md:px-6 py-0.5 relative">
                 {/* Back Button - Mobile Only */}
                 <Button
                   onClick={() => setTabWithAuthCheck("trading-home")}
@@ -11137,7 +11137,7 @@ ${
                     {/* Trade Book - Right Side (Functional Calendar) */}
                     <div className="relative">
                     <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
-                      <CardContent className="px-0.5 md:px-0.5 py-0.5">
+                      <CardContent className="px-0.5 md:px-4 py-0.5">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
