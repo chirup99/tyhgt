@@ -4547,8 +4547,8 @@ ${
     // Get the last candle from chart data for initial OHLC values
     const lastCandle = journalChartData[journalChartData.length - 1];
     
-    // Start new SSE connection with initial chart data for fallback
-    let sseUrl = getFullApiUrl(`/api/angelone/live-stream?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}`);
+    // Start new WebSocket SSE connection with initial chart data for fallback
+    let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}`);
     
     // Add initial OHLC data for fallback when API is unavailable
     if (lastCandle && lastCandle.close > 0) {
