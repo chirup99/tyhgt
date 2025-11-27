@@ -284,6 +284,26 @@
 [x] 3251. ✅ Workflow auto-restart in progress for changes to take effect
 [x] 3252. ✅✅✅ MCX COMMODITIES ADDITION 100% COMPLETE! ✅✅✅
 
+[x] 3260. NOVEMBER 27, 2025 - MCX COMMODITIES ANGEL ONE TOKEN MAPPING FIX
+[x] 3261. Task: Fix MCX stocks not loading in Trading Journal chart (NSE works, MCX shows blank)
+[x] 3262. ✅ Identified root cause in browser console logs:
+[x] 3263.   - Error: "No Angel One token found for symbol: MCX:CRUDEOIL-COM"
+[x] 3264.   - MCX symbols lacked Angel One symbol token mappings
+[x] 3265.   - getJournalAngelOneSymbol() only handled NSE: prefix, not MCX:
+[x] 3266. ✅ Added MCX commodity token mappings in journalAngelOneTokens:
+[x] 3267.   - GOLD: token '232801', exchange 'MCX', tradingSymbol 'GOLD'
+[x] 3268.   - CRUDEOIL: token '232665', exchange 'MCX', tradingSymbol 'CRUDEOIL'
+[x] 3269.   - SILVER: token '234977', exchange 'MCX', tradingSymbol 'SILVER'
+[x] 3270. ✅ Updated getJournalAngelOneSymbol() function:
+[x] 3271.   - Added .replace("MCX:", "") to handle MCX exchange
+[x] 3272.   - Added .replace("-COM", "") to strip commodity suffix
+[x] 3273.   - Now handles both NSE and MCX symbol formats
+[x] 3274. ✅ Code changes in client/src/pages/home.tsx:
+[x] 3275.   - Lines 4246-4248: Added MCX commodities to token mapping
+[x] 3276.   - Lines 4252-4259: Updated symbol cleaning function for MCX
+[x] 3277. ✅ Workflow restarted successfully to apply changes
+[x] 3278. ✅✅✅ MCX COMMODITIES ANGEL ONE TOKEN FIX 100% COMPLETE! ✅✅✅
+
 [x] 3253. NOVEMBER 27, 2025 - FINAL REPLIT ENVIRONMENT MIGRATION (CURRENT SESSION)
 [x] 3254. Task: Complete migration from Replit Agent to Replit environment
 [x] 3255. ✅ Identified workflow startup issue:

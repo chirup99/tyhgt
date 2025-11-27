@@ -4240,14 +4240,19 @@ ${
     'LT': { token: '11483', exchange: 'NSE', tradingSymbol: 'LT-EQ' },
     'AXISBANK': { token: '5900', exchange: 'NSE', tradingSymbol: 'AXISBANK-EQ' },
     'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
+    'GOLD': { token: '232801', exchange: 'MCX', tradingSymbol: 'GOLD' },
+    'CRUDEOIL': { token: '232665', exchange: 'MCX', tradingSymbol: 'CRUDEOIL' },
+    'SILVER': { token: '234977', exchange: 'MCX', tradingSymbol: 'SILVER' },
   };
 
-  // Convert NSE symbol format to Angel One format
+  // Convert NSE/MCX symbol format to Angel One format
   const getJournalAngelOneSymbol = (symbol: string): string => {
     const cleanSymbol = symbol
       .replace("NSE:", "")
+      .replace("MCX:", "")
       .replace("-EQ", "")
-      .replace("-INDEX", "");
+      .replace("-INDEX", "")
+      .replace("-COM", "");
     return cleanSymbol;
   };
 
