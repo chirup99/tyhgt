@@ -269,11 +269,11 @@ export function AuthButtonAngelOne() {
           <div className="flex items-center gap-2 mb-2">
             <Shield className="h-4 w-4 text-orange-600" />
             <h3 className="text-sm font-medium text-orange-900 dark:text-orange-200">
-              Angel One - Ready to Connect
+              Angel One - Connection Failed
             </h3>
           </div>
           <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
-            Environment credentials detected. Auto-connect will retry, or click below to connect manually.
+            Authentication failed (Token expired or invalid). Try reconnecting or clear credentials.
           </p>
         </div>
         <div className="flex gap-2">
@@ -297,6 +297,16 @@ export function AuthButtonAngelOne() {
           >
             <Key className="mr-2 h-4 w-4" />
             Retry Connection
+          </Button>
+          <Button
+            onClick={() => disconnectMutation.mutate()}
+            disabled={disconnectMutation.isPending}
+            variant="outline"
+            size="sm"
+            className="border-red-600 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+            data-testid="button-angelone-disconnect-failed"
+          >
+            {disconnectMutation.isPending ? "..." : "Disconnect"}
           </Button>
         </div>
       </div>
