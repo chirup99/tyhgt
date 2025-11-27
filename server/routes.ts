@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import axios from "axios";
 import { storage } from "./storage";
-import { fyersApi } from "./fyers-api";
 import { angelOneApi } from "./angel-one-api";
 import { AnalysisProcessor } from "./analysis-processor";
 import { insertAnalysisInstructionsSchema, insertAnalysisResultsSchema, socialPosts, socialPostLikes, socialPostComments, socialPostReposts, userFollows, insertSocialPostSchema, type SocialPost, brokerImportRequestSchema, type BrokerImportRequest, type BrokerTradesResponse, insertVerifiedReportSchema } from "@shared/schema";
@@ -147,24 +146,24 @@ function getAngelOneInterval(timeframe: string): string {
   return intervalMap[timeframe] || 'ONE_MINUTE';
 }
 
-const patternDetector = new IntradayPatternDetector(fyersApi);
-const enhanced4CandleProcessor = new Enhanced4CandleProcessor(fyersApi);
-const correctedSlopeCalculator = new CorrectedSlopeCalculator(fyersApi);
-const correctedFourCandleProcessor = new CorrectedFourCandleProcessor(fyersApi);
-const breakoutTradingEngine = new BreakoutTradingEngine(fyersApi);
-const progressiveTimeframeDoubler = new ProgressiveTimeframeDoubler(fyersApi);
-const dynamicBlockRotator = new DynamicBlockRotator(fyersApi);
-const progressiveThreeStepProcessor = new ProgressiveThreeStepProcessor(fyersApi);
-const advancedRulesEngine = new AdvancedBattuRulesEngine(fyersApi);
-const marketScanner = new AdvancedMarketScanner(fyersApi);
-const tRuleProcessor = new TRuleProcessor(fyersApi);
-const flexibleTimeframeDoubler = new FlexibleTimeframeDoubler(fyersApi);
+const patternDetector = new IntradayPatternDetector(angelOneApi);
+const enhanced4CandleProcessor = new Enhanced4CandleProcessor(angelOneApi);
+const correctedSlopeCalculator = new CorrectedSlopeCalculator(angelOneApi);
+const correctedFourCandleProcessor = new CorrectedFourCandleProcessor(angelOneApi);
+const breakoutTradingEngine = new BreakoutTradingEngine(angelOneApi);
+const progressiveTimeframeDoubler = new ProgressiveTimeframeDoubler(angelOneApi);
+const dynamicBlockRotator = new DynamicBlockRotator(angelOneApi);
+const progressiveThreeStepProcessor = new ProgressiveThreeStepProcessor(angelOneApi);
+const advancedRulesEngine = new AdvancedBattuRulesEngine(angelOneApi);
+const marketScanner = new AdvancedMarketScanner(angelOneApi);
+const tRuleProcessor = new TRuleProcessor(angelOneApi);
+const flexibleTimeframeDoubler = new FlexibleTimeframeDoubler(angelOneApi);
 const recursiveDrillingPredictor = new RecursiveDrillingPredictor();
 let realtimeMonitoring: RealTimeMonitoring | null = null;
 let liveScanner: BattuLiveScanner | null = null;
 
 // Initialize Cycle 3 Trading Execution Engine for strategy testing
-const cycle3TradingEngine = new Cycle3TradingExecutionEngine(fyersApi);
+const cycle3TradingEngine = new Cycle3TradingExecutionEngine(angelOneApi);
 
 // Corrected Flexible Timeframe System (with proper timeframe doubling)
 let correctedFlexibleSystem: CorrectedFlexibleTimeframeSystem | null = null;
@@ -4525,7 +4524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add news routes
   app.use(newsRouter);
   // Add backup data routes for historical data failover
-  app.use('/api/backup', initializeBackupRoutes(fyersApi));
+  app.use('/api/backup', initializeBackupRoutes(angelOneApi));
   
   // Stock Analysis endpoints
   app.get('/api/stock-analysis/:symbol', async (req, res) => {
@@ -15754,33 +15753,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get comprehensive options analytics data for Greeks, Flow, Premium, Volume/OI
+  // Get comprehensive options analytics data for Greeks, Flow, Premium, Volume/OI (Mock data)
   app.get("/api/options/analytics", async (req, res) => {
     try {
       console.log(`📊 [OPTIONS-ANALYTICS] Fetching comprehensive options analytics...`);
       
-      // Try to get real option chain data, fallback to mock if needed
-      let optionChain;
-      let dataSource = 'real';
-      
-      try {
-        optionChain = await fyersApi.getOptionChain('NIFTY50', '2025-09-09');
-      } catch (realDataError) {
-        console.warn('❌ [OPTIONS-ANALYTICS] Real data failed, using mock data:', realDataError);
-        dataSource = 'mock';
-      }
-      
-      if (!optionChain) {
-        console.log('📊 [OPTIONS-ANALYTICS] Generating mock option chain for analytics...');
-        optionChain = await fyersApi.generateMockOptionChain('NIFTY50', '2025-09-09');
-        dataSource = 'mock';
-      }
-
-      // Calculate real metrics from option chain data
+      const spotPrice = 24750;
       const now = new Date();
-      const marketOpenTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 15); // 9:15 AM
-      const currentTime = now.getHours() * 60 + now.getMinutes(); // Minutes from midnight
-      const marketOpenMinutes = 9 * 60 + 15; // 9:15 AM in minutes
+      const marketOpenMinutes = 9 * 60 + 15;
+      const currentTime = now.getHours() * 60 + now.getMinutes();
       const timeFromOpen = Math.max(0, currentTime - marketOpenMinutes);
 
       // Generate time-based flow data (every 30 minutes from market open)
@@ -15790,189 +15771,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hours = Math.floor(timeMinutes / 60);
         const minutes = timeMinutes % 60;
         const timeStr = `${hours}:${minutes.toString().padStart(2, '0')}`;
-        
-        // Calculate flow based on option volumes at different times
-        const callFlow = optionChain.calls.reduce((sum, call) => sum + (call.volume || 0), 0) * (0.8 + Math.random() * 0.4);
-        const putFlow = optionChain.puts.reduce((sum, put) => sum + (put.volume || 0), 0) * (0.8 + Math.random() * 0.4);
-        const netFlow = callFlow - putFlow;
+        const netFlow = (Math.random() - 0.5) * 5000;
         
         flowData.push({
           time: timeStr,
-          flow: Math.round(netFlow / 1000) // Convert to thousands
+          flow: Math.round(netFlow / 1000)
         });
       }
 
-      // Get ATM Strike 24750 Greeks data from OHLC endpoint
-      const greeksData = [];
-      const spotPrice = optionChain.spot_price;
-      
-      try {
-        // Fetch ATM OHLC data which includes Greeks for CE and PE
-        const atmResponse = await fyersApi.getAtmOptionOhlc('NIFTY50', 24750, '2025-09-09');
-        
-        if (atmResponse) {
-          // Add call option Greeks
-          greeksData.push({
-            strike: 24750,
-            type: 'CE',
-            delta: atmResponse.call?.greeks?.delta || 0,
-            gamma: atmResponse.call?.greeks?.gamma || 0,
-            theta: atmResponse.call?.greeks?.theta || 0,
-            vega: atmResponse.call?.greeks?.vega || 0,
-            iv: atmResponse.call?.greeks?.impliedVolatility || 0,
-            price: atmResponse.call?.currentPrice || 0
-          });
-          
-          // Add put option Greeks
-          greeksData.push({
-            strike: 24750,
-            type: 'PE', 
-            delta: atmResponse.put?.greeks?.delta || 0,
-            gamma: atmResponse.put?.greeks?.gamma || 0,
-            theta: atmResponse.put?.greeks?.theta || 0,
-            vega: atmResponse.put?.greeks?.vega || 0,
-            iv: atmResponse.put?.greeks?.impliedVolatility || 0,
-            price: atmResponse.put?.currentPrice || 0
-          });
+      // Mock Greeks data
+      const greeksData = [
+        {
+          strike: 24750,
+          type: 'CE',
+          delta: 0.5 + Math.random() * 0.1,
+          gamma: 0.008 + Math.random() * 0.004,
+          theta: -0.03 - Math.random() * 0.02,
+          vega: 0.15 + Math.random() * 0.1,
+          iv: 20 + Math.random() * 10,
+          price: 91.1
+        },
+        {
+          strike: 24750,
+          type: 'PE',
+          delta: -0.5 - Math.random() * 0.1,
+          gamma: 0.008 + Math.random() * 0.004,
+          theta: -0.03 - Math.random() * 0.02,
+          vega: 0.15 + Math.random() * 0.1,
+          iv: 20 + Math.random() * 10,
+          price: 71.9
         }
-      } catch (error) {
-        console.warn('❌ Failed to fetch ATM Greeks data, using fallback:', error);
-        
-        // Fallback: Use option chain data for 24750 strike
-        const atmCall = optionChain.calls.find(c => c.strike === 24750);
-        const atmPut = optionChain.puts.find(p => p.strike === 24750);
-        
-        if (atmCall) {
-          greeksData.push({
-            strike: 24750,
-            type: 'CE',
-            delta: atmCall.greeks?.delta || atmCall.delta || 0.5,
-            gamma: atmCall.greeks?.gamma || atmCall.gamma || 0.01,
-            theta: atmCall.greeks?.theta || atmCall.theta || -0.05,
-            vega: atmCall.greeks?.vega || atmCall.vega || 0.2,
-            iv: atmCall.implied_volatility || 25,
-            price: atmCall.ltp || 0
-          });
-        }
-        
-        if (atmPut) {
-          greeksData.push({
-            strike: 24750,
-            type: 'PE',
-            delta: atmPut.greeks?.delta || atmPut.delta || -0.5,
-            gamma: atmPut.greeks?.gamma || atmPut.gamma || 0.01,
-            theta: atmPut.greeks?.theta || atmPut.theta || -0.05,
-            vega: atmPut.greeks?.vega || atmPut.vega || 0.2,
-            iv: atmPut.implied_volatility || 25,
-            price: atmPut.ltp || 0
-          });
-        }
-      }
+      ];
 
-      // Calculate Premium Accumulation data
-      const totalCallPremium = optionChain.calls.reduce((sum, call) => 
-        sum + (call.ltp * (call.volume || 0)), 0
-      );
-      const totalPutPremium = optionChain.puts.reduce((sum, put) => 
-        sum + (put.ltp * (put.volume || 0)), 0
-      );
-
+      // Mock premium data
       const premiumData = [
-        { date: 'Feb', premium: totalCallPremium * 0.6, price: spotPrice * 0.98, buy: totalCallPremium * 0.7, sell: totalCallPremium * 0.3 },
-        { date: 'Mar', premium: totalCallPremium * 0.75, price: spotPrice * 0.99, buy: totalCallPremium * 0.8, sell: totalCallPremium * 0.4 },
-        { date: 'Apr', premium: totalCallPremium * 0.85, price: spotPrice * 1.01, buy: totalCallPremium * 0.9, sell: totalCallPremium * 0.5 },
-        { date: 'May', premium: totalCallPremium * 0.95, price: spotPrice * 1.005, buy: totalCallPremium * 0.95, sell: totalCallPremium * 0.6 },
-        { date: 'Jun', premium: totalCallPremium, price: spotPrice, buy: totalCallPremium * 1.1, sell: totalCallPremium * 0.7 }
-      ].map(item => ({
-        ...item,
-        premium: Math.round(item.premium / 10000), // Convert to lakhs
-        price: Math.round(item.price),
-        buy: Math.round(item.buy / 10000),
-        sell: Math.round(item.sell / 10000)
-      }));
+        { date: 'Feb', premium: 15, price: 24500, buy: 12, sell: 8 },
+        { date: 'Mar', premium: 18, price: 24600, buy: 14, sell: 10 },
+        { date: 'Apr', premium: 21, price: 24800, buy: 16, sell: 12 },
+        { date: 'May', premium: 25, price: 24750, buy: 18, sell: 14 },
+        { date: 'Jun', premium: 30, price: 24900, buy: 22, sell: 16 }
+      ];
 
-      // Calculate Volume vs OI data for different strikes
-      const volumeOiData = optionChain.strikes.slice(0, 8).map(strike => {
-        const callOption = optionChain.calls.find(c => c.strike === strike);
-        const putOption = optionChain.puts.find(p => p.strike === strike);
-        
-        return {
-          strike: strike,
-          callVolume: callOption?.volume || 0,
-          callOI: callOption?.open_interest || 0,
-          putVolume: putOption?.volume || 0,
-          putOI: putOption?.open_interest || 0
-        };
-      });
-
-      // Generate call/put activity heatmap data based on real OI and volume
-      const generateHeatmapData = (options: any[], isCall: boolean) => {
-        return Array.from({ length: 144 }, (_, i) => {
-          const row = Math.floor(i / 12);
-          const col = i % 12;
-          
-          // Use real option data to determine intensity
-          const optionIndex = (row + col) % options.length;
-          const option = options[optionIndex];
-          const intensity = option ? 
-            Math.min(1, ((option.volume || 0) + (option.open_interest || 0)) / 1000000) : 0;
-          
-          return {
-            intensity: intensity,
-            volume: option?.volume || 0,
-            oi: option?.open_interest || 0
-          };
+      // Mock volume vs OI data
+      const volumeOiData = [];
+      const strikes = [24550, 24650, 24750, 24850, 24950, 25050];
+      for (const strike of strikes) {
+        volumeOiData.push({
+          strike,
+          callVolume: Math.floor(Math.random() * 50000),
+          callOI: Math.floor(Math.random() * 500000),
+          putVolume: Math.floor(Math.random() * 50000),
+          putOI: Math.floor(Math.random() * 500000)
         });
-      };
+      }
 
-      const callHeatmapData = generateHeatmapData(optionChain.calls, true);
-      const putHeatmapData = generateHeatmapData(optionChain.puts, false);
+      // Mock heatmap data
+      const generateHeatmapData = () => {
+        return Array.from({ length: 144 }, () => ({
+          intensity: Math.random(),
+          volume: Math.floor(Math.random() * 50000),
+          oi: Math.floor(Math.random() * 500000)
+        }));
+      };
 
       res.json({
         success: true,
         data: {
-          // Options Flow Overview
           flow: {
-            netFlow: Math.round((optionChain.total_call_oi - optionChain.total_put_oi) / 1000),
-            callVolume: Math.round(optionChain.calls.reduce((sum, c) => sum + (c.volume || 0), 0) / 1000),
-            putVolume: Math.round(optionChain.puts.reduce((sum, p) => sum + (p.volume || 0), 0) / 1000),
-            pcr: optionChain.pcr,
+            netFlow: 2500,
+            callVolume: 125000,
+            putVolume: 145000,
+            pcr: 1.16,
             flowData: flowData
           },
-          
-          // Option Greeks
           greeks: {
             data: greeksData,
             spotPrice: spotPrice
           },
-          
-          // Premium Accumulation
           premium: {
-            totalCallPremium: Math.round(totalCallPremium / 10000), // In lakhs
-            totalPutPremium: Math.round(totalPutPremium / 10000),
+            totalCallPremium: 50,
+            totalPutPremium: 45,
             data: premiumData
           },
-          
-          // Volume vs Open Interest
           volumeOI: {
             data: volumeOiData,
-            totalCallVolume: optionChain.calls.reduce((sum, c) => sum + (c.volume || 0), 0),
-            totalPutVolume: optionChain.puts.reduce((sum, p) => sum + (p.volume || 0), 0),
-            totalCallOI: optionChain.total_call_oi,
-            totalPutOI: optionChain.total_put_oi
+            totalCallVolume: 275000,
+            totalPutVolume: 295000,
+            totalCallOI: 2500000,
+            totalPutOI: 2800000
           },
-          
-          // Heatmap Data
           heatmaps: {
-            calls: callHeatmapData,
-            puts: putHeatmapData
+            calls: generateHeatmapData(),
+            puts: generateHeatmapData()
           }
         },
         metadata: {
           timestamp: new Date().toISOString(),
           underlying: 'NIFTY50',
           spotPrice: spotPrice,
-          expiry: selectedExpiry
+          dataSource: 'mock'
         }
       });
 
@@ -15986,7 +15883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get multiple option quotes
+  // Get multiple option quotes (Mock data - Angel One)
   app.post("/api/options/quotes", async (req, res) => {
     try {
       const { symbols } = req.body;
@@ -16007,7 +15904,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`💰 [OPTIONS-QUOTES] Fetching quotes for ${symbols.length} option symbols...`);
       
-      const quotes = await fyersApi.getQuotes(symbols);
+      // Generate mock quotes for each symbol
+      const quotes = symbols.map(symbol => ({
+        symbol,
+        ltp: 200 + Math.random() * 100,
+        change: (Math.random() - 0.5) * 50,
+        changePercent: (Math.random() - 0.5) * 5,
+        bid: 199 + Math.random() * 100,
+        ask: 201 + Math.random() * 100,
+        volume: Math.floor(Math.random() * 100000),
+        oi: Math.floor(Math.random() * 500000),
+        iv: 20 + Math.random() * 15,
+        greeks: {
+          delta: (Math.random() - 0.5),
+          gamma: Math.random() * 0.01,
+          theta: (Math.random() - 1) * 0.05,
+          vega: Math.random() * 0.2
+        }
+      }));
 
       res.json({
         success: true,
@@ -16015,7 +15929,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: {
           requestedSymbols: symbols.length,
           receivedQuotes: quotes.length,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          dataSource: 'mock'
         }
       });
 
@@ -16029,7 +15944,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Calculate option Greeks for portfolio
+  // Calculate option Greeks for portfolio (Mock data)
   app.post("/api/options/calculate-greeks", async (req, res) => {
     try {
       const { positions } = req.body;
@@ -16056,32 +15971,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { symbol, quantity, type } = position; // type: 'long' or 'short'
         
         try {
-          const optionQuote = await fyersApi.getQuote(symbol);
+          const multiplier = type === 'short' ? -1 : 1;
+          const positionMultiplier = quantity * multiplier;
+
+          // Mock Greeks calculation
+          const positionGreeks = {
+            symbol,
+            quantity,
+            type,
+            delta: (0.5 + Math.random() - 0.5) * positionMultiplier,
+            gamma: (Math.random() * 0.01) * positionMultiplier,
+            theta: ((Math.random() - 1) * 0.05) * positionMultiplier,
+            vega: (Math.random() * 0.2) * positionMultiplier,
+            rho: (Math.random() * 0.1) * positionMultiplier,
+            ltp: 200 + Math.random() * 100
+          };
+
+          portfolioGreeks.totalDelta += positionGreeks.delta;
+          portfolioGreeks.totalGamma += positionGreeks.gamma;
+          portfolioGreeks.totalTheta += positionGreeks.theta;
+          portfolioGreeks.totalVega += positionGreeks.vega;
+          portfolioGreeks.totalRho += positionGreeks.rho;
           
-          if (optionQuote && optionQuote.greeks) {
-            const multiplier = type === 'short' ? -1 : 1;
-            const positionMultiplier = quantity * multiplier;
-
-            const positionGreeks = {
-              symbol,
-              quantity,
-              type,
-              delta: (optionQuote.greeks.delta || 0) * positionMultiplier,
-              gamma: (optionQuote.greeks.gamma || 0) * positionMultiplier,
-              theta: (optionQuote.greeks.theta || 0) * positionMultiplier,
-              vega: (optionQuote.greeks.vega || 0) * positionMultiplier,
-              rho: (optionQuote.greeks.rho || 0) * positionMultiplier,
-              ltp: optionQuote.ltp || 0
-            };
-
-            portfolioGreeks.totalDelta += positionGreeks.delta;
-            portfolioGreeks.totalGamma += positionGreeks.gamma;
-            portfolioGreeks.totalTheta += positionGreeks.theta;
-            portfolioGreeks.totalVega += positionGreeks.vega;
-            portfolioGreeks.totalRho += positionGreeks.rho;
-            
-            portfolioGreeks.positionDetails.push(positionGreeks);
-          }
+          portfolioGreeks.positionDetails.push(positionGreeks);
         } catch (error) {
           console.error(`❌ Failed to get Greeks for ${symbol}:`, error);
         }
@@ -16093,7 +16005,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: {
           totalPositions: positions.length,
           calculatedPositions: portfolioGreeks.positionDetails.length,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          dataSource: 'mock'
         }
       });
 
