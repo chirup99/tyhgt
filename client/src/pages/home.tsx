@@ -4629,6 +4629,24 @@ ${
     return ema;
   };
 
+  // Auto-fetch chart data when symbol or interval changes on journal tab
+  useEffect(() => {
+    if (activeTab === 'journal') {
+      fetchJournalChartData();
+    }
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+
+  // Continuous 700ms auto-fetch polling for live chart updates
+  useEffect(() => {
+    if (activeTab !== 'journal') return;
+
+    const pollInterval = setInterval(() => {
+      fetchJournalChartData();
+    }, 700);
+
+    return () => clearInterval(pollInterval);
+  }, [activeTab, fetchJournalChartData]);
+
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
     if (activeTab !== 'journal') {
@@ -9886,21 +9904,6 @@ ${
                                   <option value="1W">1W</option>
                                   <option value="1M">1M</option>
                                 </select>
-
-                                {/* Fetch Button - Icon Only with Loading State */}
-                                <Button
-                                  size="sm"
-                                  onClick={fetchJournalChartData}
-                                  disabled={journalChartLoading}
-                                  className="bg-orange-600 hover:bg-orange-700 text-white h-8 w-8 p-0"
-                                  data-testid="button-fetch-chart"
-                                >
-                                  {journalChartLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Check className="h-4 w-4" />
-                                  )}
-                                </Button>
 
                                 {/* Angel One API Badge */}
                                 <span className="hidden md:flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded">
