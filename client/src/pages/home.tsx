@@ -4810,8 +4810,8 @@ ${
     
     // Determine exchange from selected symbol
     let exchange = 'NSE';
-    if (selectedJournalSymbol.includes('MCX')) exchange = 'MCX';
-    else if (selectedJournalSymbol.includes('NCDEX')) exchange = 'NCDEX';
+    if (selectedJournalSymbol && selectedJournalSymbol.includes('MCX')) exchange = 'MCX';
+    else if (selectedJournalSymbol && selectedJournalSymbol.includes('NCDEX')) exchange = 'NCDEX';
     
     // For intraday, if market is closed, use yesterday's data
     let fetchDate = today;
@@ -5459,7 +5459,7 @@ ${
         journalEma26SeriesRef.current = null;
       }
     }
-  }, [selectedJournalInterval, activeTab, selectedJournalSymbol]);
+  }, [selectedJournalInterval, activeTab]);
 
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
