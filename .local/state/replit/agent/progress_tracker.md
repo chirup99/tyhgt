@@ -253,3 +253,16 @@
 [x] 3614.   - Project successfully imported to Replit environment
 [x] 3615.   - All progress tracker items marked as complete
 [x] 3616. COMPLETE REPLIT PROJECT IMPORT MIGRATION 100% COMPLETE!
+
+## Bug Fixes (Post-Migration)
+[x] 3617. Fix: Journal Tab WebSocket Subscribe Error
+  - Issue: Journal tab chart was failing with "angelOneWebSocket.subscribe is not a function" error
+  - Root cause: The `subscribe` method with callback support was missing from AngelOneWebSocket class
+  - Solution: Added public `subscribe(exchange, symbolToken, tradingSymbol, callback)` method to angel-one-websocket.ts
+  - Implementation details:
+    * Added `tickCallbacks` Map to store symbol-specific callbacks
+    * Created public `subscribe` method that registers callbacks and triggers WebSocket subscription
+    * Updated `handleTick` to invoke callbacks when price data arrives
+    * Updated `disconnect` to clear tickCallbacks on cleanup
+  - Files modified: server/angel-one-websocket.ts
+  - Status: ✅ FIXED - Server running, journal tab loading data correctly

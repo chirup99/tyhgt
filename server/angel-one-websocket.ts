@@ -58,6 +58,7 @@ class AngelOneWebSocket {
   private clients = new Map<string, WebSocketClient>();
   private latestPrices = new Map<string, WebSocketOHLC>();
   private subscriptions = new Map<string, SubscriptionInfo>();
+  private tickCallbacks = new Map<string, ((data: WebSocketOHLC) => void)[]>(); // Callbacks for tick data
   private broadcastInterval: NodeJS.Timeout | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
@@ -205,6 +206,18 @@ class AngelOneWebSocket {
 
       this.latestPrices.set(symbolKey, ohlcData);
       console.log(`💹 [WS] ${ohlcData.symbol}: LTP=${ohlcData.close} O=${ohlcData.open} H=${ohlcData.high} L=${ohlcData.low} V=${ohlcData.volume}`);
+
+      // Call tick callbacks for this symbol
+      const callbacks = this.tickCallbacks.get(symbolKey);
+      if (callbacks && callbacks.length > 0) {
+        for (const callback of callbacks) {
+          try {
+            callback(ohlcData);
+          } catch (cbError) {
+            console.error(`[WEBSOCKET] Tick callback error for ${symbolKey}:`, cbError);
+          }
+        }
+      }
 
     } catch (error: any) {
       console.error('[WEBSOCKET] Tick parse error:', error?.message, error?.stack);
@@ -483,6 +496,32 @@ class AngelOneWebSocket {
     }
   }
 
+  // Subscribe to a symbol with a callback for tick data (used by journal chart)
+  subscribe(exchange: string, symbolToken: string, tradingSymbol: string, callback: (data: WebSocketOHLC) => void): void {
+    const key = `${tradingSymbol}_${symbolToken}`;
+    const exchangeType = this.getExchangeType(exchange);
+    
+    console.log(`📊 [WEBSOCKET] Subscribe request: ${tradingSymbol} (${symbolToken}) on ${exchange}`);
+    
+    // Add to subscriptions
+    this.subscriptions.set(key, { symbolToken, exchange: exchangeType });
+    
+    // Add callback to the callbacks list
+    const existingCallbacks = this.tickCallbacks.get(key) || [];
+    existingCallbacks.push(callback);
+    this.tickCallbacks.set(key, existingCallbacks);
+    
+    console.log(`📊 [WEBSOCKET] Added subscription: ${key} with callback (total callbacks: ${existingCallbacks.length})`);
+    
+    // Subscribe if WebSocket is connected
+    if (this.isConnected && this.ws) {
+      this.subscribeToSymbols();
+    } else {
+      // Try to connect if not connected
+      this.ensureConnection();
+    }
+  }
+
   disconnect(): void {
     if (this.broadcastInterval) {
       clearInterval(this.broadcastInterval);
@@ -506,6 +545,7 @@ class AngelOneWebSocket {
     this.clients.clear();
     this.subscriptions.clear();
     this.latestPrices.clear();
+    this.tickCallbacks.clear();
     this.isConnected = false;
     this.isConnecting = false;
     this.reconnectAttempts = 0;
