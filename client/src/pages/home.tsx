@@ -4780,46 +4780,82 @@ ${
     return Math.floor(timestamp / intervalSeconds) * intervalSeconds;
   };
 
+  // Check if market is currently open for given exchange
+  const isMarketOpen = (exchange: string): boolean => {
+    const now = new Date();
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // Convert to IST
+    const hours = istTime.getHours();
+    const minutes = istTime.getMinutes();
+    const day = istTime.getDay();
+    
+    // Skip weekends
+    if (day === 0 || day === 6) return false;
+    
+    if (exchange === 'NSE' || exchange === 'BSE') {
+      // NSE/BSE: 9:15 - 15:30
+      return (hours > 9 || (hours === 9 && minutes >= 15)) && (hours < 15 || (hours === 15 && minutes < 30));
+    } else if (exchange === 'MCX' || exchange === 'NCDEX') {
+      // MCX: 9:00 - 23:55, NCDEX: 9:00 - 20:00
+      const endHour = exchange === 'NCDEX' ? 20 : 23;
+      const endMin = exchange === 'NCDEX' ? 0 : 55;
+      return hours >= 9 && (hours < endHour || (hours === endHour && minutes < endMin));
+    }
+    return false;
+  };
+
   // Calculate date range based on timeframe (TradingView style)
   const getDateRangeForInterval = (interval: string): { fromDate: string; toDate: string } => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     
-    let fromDate = today;
+    // Determine exchange from selected symbol
+    let exchange = 'NSE';
+    if (selectedJournalSymbol.includes('MCX')) exchange = 'MCX';
+    else if (selectedJournalSymbol.includes('NCDEX')) exchange = 'NCDEX';
+    
+    // For intraday, if market is closed, use yesterday's data
+    let fetchDate = today;
+    if (['1', '3', '5', '10', '15', '30', '60'].includes(interval)) {
+      if (!isMarketOpen(exchange)) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        fetchDate = yesterday.toISOString().split('T')[0];
+      }
+    }
+    
+    let fromDate = fetchDate;
     
     if (['1', '3', '5', '10', '15', '30'].includes(interval)) {
-      // Intraday: today's data
-      fromDate = today;
+      // Intraday
+      fromDate = fetchDate;
     } else if (interval === '60') {
-      // 1 hour: last 5 days
+      // 1 hour: last 5 days from fetch date
       const fiveDaysAgo = new Date(now);
       fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
       fromDate = fiveDaysAgo.toISOString().split('T')[0];
     } else if (interval === '1D') {
-      // 1 day: last 3 months
       const threeMonthsAgo = new Date(now);
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
       fromDate = threeMonthsAgo.toISOString().split('T')[0];
     } else if (interval === '5D') {
-      // 5 day: last 1 year
       const oneYearAgo = new Date(now);
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
       fromDate = oneYearAgo.toISOString().split('T')[0];
     } else if (interval === '1W') {
-      // 1 week: last 2 years
       const twoYearsAgo = new Date(now);
       twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
       fromDate = twoYearsAgo.toISOString().split('T')[0];
     } else if (interval === '1M') {
-      // 1 month: last 5 years
       const fiveYearsAgo = new Date(now);
       fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
       fromDate = fiveYearsAgo.toISOString().split('T')[0];
     }
     
+    console.log(`🕐 [MARKET] Exchange: ${exchange}, Open: ${isMarketOpen(exchange)}, Fetch: ${fromDate} to ${fetchDate}`);
+    
     return {
       fromDate: fromDate,
-      toDate: today,
+      toDate: fetchDate,
     };
   };
 
@@ -5423,7 +5459,7 @@ ${
         journalEma26SeriesRef.current = null;
       }
     }
-  }, [selectedJournalInterval, activeTab]);
+  }, [selectedJournalInterval, activeTab, selectedJournalSymbol]);
 
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
