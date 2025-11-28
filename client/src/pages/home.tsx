@@ -4957,13 +4957,17 @@ ${
       journalVolumeSeriesRef.current = null;
     }
 
-    try {
-      const containerWidth = journalChartContainerRef.current.clientWidth || 800;
-      const containerHeight = journalChartContainerRef.current.clientHeight || 450;
+    // Defer chart creation until layout is ready
+    requestAnimationFrame(() => {
+      if (!journalChartContainerRef.current) return;
       
-      console.log('📊 Chart container dimensions:', { containerWidth, containerHeight });
-      
-      const chart = createChart(journalChartContainerRef.current, {
+      try {
+        const containerWidth = journalChartContainerRef.current.clientWidth || 800;
+        const containerHeight = journalChartContainerRef.current.clientHeight || 400;
+        
+        console.log('📊 Chart container dimensions:', { containerWidth, containerHeight });
+        
+        const chart = createChart(journalChartContainerRef.current, {
         layout: {
           background: { type: ColorType.Solid, color: '#ffffff' },
           textColor: '#1f2937',
@@ -4981,7 +4985,7 @@ ${
           visible: true,
           borderVisible: true,
           borderColor: '#e5e7eb',
-          scaleMargins: { top: 0.1, bottom: 0.15 },
+          scaleMargins: { top: 0.1, bottom: 0.25 },
           autoScale: true,
         },
         timeScale: {
@@ -5125,13 +5129,16 @@ ${
       };
 
       window.addEventListener('resize', handleResize);
-
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    } catch (error) {
-      console.error('Error rendering journal chart:', error instanceof Error ? error.message : String(error), error);
-    }
+      } catch (error) {
+        console.error('Error rendering journal chart:', error instanceof Error ? error.message : String(error), error);
+      }
+    });
+    
+    return () => {
+      if (journalChartContainerRef.current && journalChartRef.current) {
+        window.removeEventListener('resize', () => {});
+      }
+    };
   }, [activeTab, journalChartData]);
 
   // Convert trade history to chart markers
@@ -10065,7 +10072,7 @@ ${
                     <div className="md:grid md:grid-cols-3 gap-6">
                       {/* Left Block - Performance Chart */}
                       <div
-                        className={`h-[500px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
+                        className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
                       >
                         {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
                         <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
@@ -10501,7 +10508,7 @@ ${
 
                       {/* Middle Block - Multiple Image Upload */}
                       <div
-                        className={`h-[500px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
+                        className={`h-[400px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
                       >
                         <MultipleImageUpload
                           ref={imageUploadRef}
@@ -10512,7 +10519,7 @@ ${
 
                       {/* Right Block - PERFORMANCE STATS (Split: 30% top, 70% bottom) */}
                       <Card
-                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[500px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
+                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
                       >
                         {/* Top 30% - Performance Insights */}
                         <div className="h-[30%] border-b border-gray-200 dark:border-gray-700">
