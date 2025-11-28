@@ -3932,13 +3932,13 @@ ${
   };
   
   // Fetch live price from Angel One WebSocket (same stream as chart)
-  const fetchPaperTradePrice = async () => {
-    if (!selectedPaperTradingInstrument) {
-      console.warn(`⚠️ [PAPER-TRADE] No instrument selected`);
+  const fetchPaperTradePrice = async (stockInfoOverride?: any) => {
+    const stockInfo = stockInfoOverride || selectedPaperTradingInstrument;
+    
+    if (!stockInfo) {
+      console.warn(`⚠️ [PAPER-TRADE-PRICE] No instrument selected`);
       return;
     }
-    
-    const stockInfo = selectedPaperTradingInstrument;
     console.log(`🔍 [PAPER-TRADE-PRICE] Selected instrument:`, {
       symbol: stockInfo.symbol,
       token: stockInfo.token,
@@ -14474,7 +14474,7 @@ ${
                                 setSelectedPaperTradingInstrument(stock);
                                 setPaperTradeSymbol(stock.symbol);
                                 setPaperTradeSymbolSearch(stock.symbol);
-                                fetchPaperTradePrice();
+                                fetchPaperTradePrice(stock);
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
                               data-testid={`select-stock-${stock.symbol}`}
