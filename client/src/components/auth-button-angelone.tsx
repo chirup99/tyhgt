@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Key, CheckCircle2, Shield, Clock, RefreshCw, CheckCircle, LogOut, Loader2, AlertCircle, Plug, Wifi, WifiOff, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { Key, CheckCircle2, Shield, Clock, RefreshCw, CheckCircle, LogOut, Loader2, AlertCircle, Plug, Wifi, WifiOff, TrendingUp, TrendingDown, Activity, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 interface AngelOneProfile {
   name: string;
