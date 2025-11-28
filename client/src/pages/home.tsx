@@ -10484,67 +10484,6 @@ ${
                                   <option value="1W">1W</option>
                                   <option value="1M">1M</option>
                                 </select>
-
-                                {/* Angel One API Badge */}
-                                <span className="hidden md:flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded">
-                                  Angel One
-                                </span>
-                                
-                                {/* Option Chain Icon - Only visible for F&O eligible instruments */}
-                                {hasOptionsAvailable() && (
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setShowOptionChain(true);
-                                      fetchOptionChainData();
-                                    }}
-                                    className="h-8 w-8 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 text-purple-700 dark:text-purple-300"
-                                    title="View Option Chain"
-                                    data-testid="button-option-chain"
-                                  >
-                                    <Grid3X3 className="h-4 w-4" />
-                                  </Button>
-                                )}
-
-                                {/* Live Streaming Status & OHLC Data */}
-                                {isJournalStreaming && journalLiveData && (
-                                  <>
-                                    {/* Live Status Indicator */}
-                                    <div className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-medium rounded animate-pulse">
-                                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                                      LIVE (700ms)
-                                    </div>
-                                    
-                                    {/* OHLC Data Display */}
-                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 text-xs font-mono rounded border border-indigo-200 dark:border-indigo-800">
-                                      <span>O: {journalLiveData.currentCandle.open.toFixed(2)}</span>
-                                      <span>H: {journalLiveData.currentCandle.high.toFixed(2)}</span>
-                                      <span>L: {journalLiveData.currentCandle.low.toFixed(2)}</span>
-                                      <span className="font-bold text-indigo-900 dark:text-indigo-200">C: {journalLiveData.currentCandle.close.toFixed(2)}</span>
-                                    </div>
-                                    
-                                    {/* LTP Display */}
-                                    <div className="hidden md:flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded font-mono">
-                                      LTP: {journalLiveData.ltp.toFixed(2)}
-                                    </div>
-                                    
-                                    {/* Candle Countdown Timer */}
-                                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded font-mono">
-                                      <Clock className="h-3 w-3" />
-                                      {journalLiveData.countdown.formatted}
-                                    </div>
-                                    
-                                    {/* Market Status */}
-                                    <div className={`hidden lg:flex items-center px-2 py-1 text-xs font-medium rounded ${
-                                      journalLiveData.isMarketOpen 
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                                    }`}>
-                                      {journalLiveData.isMarketOpen ? 'Market Open' : 'Market Closed'}
-                                    </div>
-                                  </>
-                                )}
                               </div>
                             </div>
 
