@@ -8083,13 +8083,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let results = instrumentCache;
 
+      // Mapping for exchange segment codes and names
+      const exchangeMapping: { [key: string]: string[] } = {
+        'NSE': ['1', 'NSE'],
+        'BSE': ['6', 'BSE'],
+        'MCX': ['3', 'MCX', '5', 'NCDEX'],  // MCX (3) and NCDEX (5)
+        'NFO': ['2', 'NFO', 'BFO', '7'],    // NFO (2) and BFO/7
+        'NCDEX': ['5', 'NCDEX']
+      };
+
       // Filter by exchange if specified
       if (exchange && typeof exchange === 'string') {
-        const exchanges = exchange.split(',').map(e => e.trim().toUpperCase());
-        results = results.filter(inst => exchanges.includes(inst.exch_seg));
+        const requestedExchanges = exchange.split(',').map(e => e.trim().toUpperCase());
+        const validSegCodes = new Set<string>();
+        
+        requestedExchanges.forEach(exch => {
+          if (exchangeMapping[exch]) {
+            exchangeMapping[exch].forEach(code => validSegCodes.add(code));
+          } else {
+            validSegCodes.add(exch);
+          }
+        });
+
+        results = results.filter(inst => {
+          const segCode = String(inst.exch_seg || '').toUpperCase();
+          return validSegCodes.has(segCode);
+        });
       } else {
         // Default to NSE, BSE, MCX only
-        results = results.filter(inst => ['NSE', 'BSE', 'MCX'].includes(inst.exch_seg));
+        const defaultSegCodes = new Set(['1', 'NSE', '6', 'BSE', '3', 'MCX', '5', 'NCDEX']);
+        results = results.filter(inst => {
+          const segCode = String(inst.exch_seg || '').toUpperCase();
+          return defaultSegCodes.has(segCode);
+        });
       }
 
       // Search by query if provided
@@ -8097,7 +8123,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const searchTerm = query.trim().toUpperCase();
         results = results.filter(inst => 
           inst.name?.toUpperCase().includes(searchTerm) ||
-          inst.symbol?.toUpperCase().includes(searchTerm)
+          inst.symbol?.toUpperCase().includes(searchTerm) ||
+          inst.tradingsymbol?.toUpperCase().includes(searchTerm) ||
+          inst.expiry?.toString().includes(query)
         );
       }
 
