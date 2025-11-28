@@ -4889,11 +4889,6 @@ ${
               journalCandleCountRef.current.textContent = `${journalChartData.length + 1}`;
             }
             
-            // Initialize candle count display on first load
-            if (journalChartData.length === 0 && journalCandleCountRef.current) {
-              journalCandleCountRef.current.textContent = '1';
-            }
-            
             console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
           }
         } else {
@@ -10425,6 +10420,15 @@ ${
                                 data-testid="journal-tradingview-chart"
                                 style={{ height: '100%', minHeight: '400px' }}
                               />
+                              
+                              {/* Candle Count Display - Bottom Right Corner */}
+                              <div 
+                                ref={journalCandleCountRef}
+                                className="absolute bottom-4 right-4 z-40 bg-black/80 text-white px-3 py-2 rounded font-mono text-sm font-semibold border border-orange-500/50 pointer-events-none"
+                                data-testid="candle-count-display"
+                              >
+                                {journalChartData?.length || 0}
+                              </div>
                               
                               {/* Live OHLC Ticker - Top Left Corner Overlay */}
                               {(liveOhlc || (journalChartData && journalChartData.length > 0)) && (

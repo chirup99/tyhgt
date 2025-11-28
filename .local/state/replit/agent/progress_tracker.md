@@ -306,3 +306,22 @@
     * Chart position stays fixed while new candles seamlessly appear on the right
   - Files modified: client/src/pages/home.tsx (lines 4856-4877)
   - Status: ✅ FIXED - Chart smoothly progresses with NO viewport jumping
+
+[x] 3620. Feature: Candle Count Display on Price Scale
+  - Requirement: Display candle count indicator on price scale bar/bottom right of chart
+  - Implementation:
+    * Added `journalCandleCountRef` ref for DOM element reference
+    * Created visual candle count display element showing current candle count
+    * Position: Bottom-right corner of chart (non-intrusive overlay)
+    * Styling: Black background with orange border, white text, fixed position
+    * Updates: Automatically updates as new candles are added
+  - Technical details:
+    * Element: `<div ref={journalCandleCountRef}>`
+    * Display format: Shows total count of candles on chart
+    * Updates when: New candle interval boundary is crossed
+    * Data source: `journalChartData.length` for accurate candle count
+  - File modified: client/src/pages/home.tsx
+    * Added candle count ref declaration (line 4354)
+    * Added visual display element (lines 10427-10434)
+    * Added count update logic in SSE stream handler (line 4892)
+  - Status: ✅ COMPLETED - Candle count now displays on bottom-right of chart
