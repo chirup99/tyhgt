@@ -4954,13 +4954,31 @@ ${
       // Calculate date range based on timeframe (TradingView style)
       const dateRange = getDateRangeForInterval(selectedJournalInterval);
       
-      // For intraday intervals, use market hours (9:15 AM to 3:30 PM)
+      // For intraday intervals, use exchange-specific market hours
       let fromDate = dateRange.fromDate;
       let toDate = dateRange.toDate;
       
       if (['1', '3', '5', '10', '15', '30'].includes(selectedJournalInterval)) {
-        fromDate = `${fromDate} 09:15`;
-        toDate = `${toDate} 15:30`;
+        // Exchange-specific market hours
+        const exchange = stockToken.exchange.toUpperCase();
+        const isMCX = exchange === 'MCX' || exchange === '3';
+        const isNCDEX = exchange === 'NCDEX' || exchange === '5';
+        
+        if (isMCX) {
+          // MCX: 9:00 AM - 11:55 PM
+          fromDate = `${fromDate} 09:00`;
+          toDate = `${toDate} 23:55`;
+        } else if (isNCDEX) {
+          // NCDEX: 9:00 AM - 8:00 PM
+          fromDate = `${fromDate} 09:00`;
+          toDate = `${toDate} 20:00`;
+        } else {
+          // NSE/BSE/NFO/BFO: 9:15 AM - 3:30 PM
+          fromDate = `${fromDate} 09:15`;
+          toDate = `${toDate} 15:30`;
+        }
+        
+        console.log(`🔶 Using exchange-specific hours for ${exchange}: ${fromDate} to ${toDate}`);
       } else {
         // For daily and higher intervals, use full day
         fromDate = `${fromDate} 00:00`;
