@@ -10967,39 +10967,59 @@ ${
                                   </PopoverContent>
                                 </Popover>
 
-                                {/* Time Interval Selector - TradingView Style */}
-                                <div className="flex items-center gap-2">
-                                  <select
-                                    className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-2 text-xs md:text-sm font-semibold"
-                                    value={selectedJournalInterval}
-                                    onChange={(e) => {
-                                      console.log(`📊 TIMEFRAME CHANGE: ${selectedJournalInterval} -> ${e.target.value}`);
-                                      setSelectedJournalInterval(e.target.value);
-                                    }}
-                                    data-testid="select-interval"
-                                  >
-                                    <option value="1">1m</option>
-                                    <option value="5">5m</option>
-                                    <option value="15">15m</option>
-                                    <option value="30">30m</option>
-                                    <option value="60">1h</option>
-                                    <option value="1D">1D</option>
-                                    <option value="5D">5D</option>
-                                    <option value="1W">1W</option>
-                                    <option value="1M">1M</option>
-                                  </select>
-                                  <span className="text-xs text-gray-500 hidden md:inline">
-                                    {selectedJournalInterval === '1' ? '1 min' :
-                                     selectedJournalInterval === '5' ? '5 min' :
-                                     selectedJournalInterval === '15' ? '15 min' :
-                                     selectedJournalInterval === '30' ? '30 min' :
-                                     selectedJournalInterval === '60' ? '1 hour' :
-                                     selectedJournalInterval === '1D' ? '1 day' :
-                                     selectedJournalInterval === '5D' ? '5 day' :
-                                     selectedJournalInterval === '1W' ? '1 week' :
-                                     selectedJournalInterval === '1M' ? '1 month' : 'chart'}
-                                  </span>
-                                </div>
+                                {/* Time Interval Selector - TradingView Style with Custom Timeframe Support */}
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-20 h-8 justify-between bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-xs px-2"
+                                      data-testid="button-journal-timeframe"
+                                    >
+                                      {getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label || selectedJournalInterval}
+                                      <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-40 p-1 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                                    <div className="grid gap-1">
+                                      {getAllJournalTimeframes().map((timeframe) => (
+                                        <div key={timeframe.value} className="flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                                          <button 
+                                            className="flex-1 text-left text-xs text-gray-900 dark:text-gray-300"
+                                            onClick={() => {
+                                              console.log(`📊 TIMEFRAME CHANGE: ${selectedJournalInterval} -> ${timeframe.value}`);
+                                              setSelectedJournalInterval(timeframe.value);
+                                            }}
+                                            data-testid={`button-timeframe-${timeframe.value}`}
+                                          >
+                                            {timeframe.label}
+                                          </button>
+                                          {timeframe.deletable && (
+                                            <button
+                                              className="ml-1 w-4 h-4 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-500 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteJournalTimeframe(timeframe.value);
+                                              }}
+                                              title="Delete timeframe"
+                                              data-testid={`button-delete-timeframe-${timeframe.value}`}
+                                            >
+                                              x
+                                            </button>
+                                          )}
+                                        </div>
+                                      ))}
+                                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1">
+                                        <button 
+                                          className="w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-xs text-gray-900 dark:text-gray-300"
+                                          onClick={() => setShowJournalCustomTimeframe(true)}
+                                          data-testid="button-add-custom-timeframe"
+                                        >
+                                          + Add Custom
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                             </div>
 
