@@ -3772,8 +3772,9 @@ ${
   const paperTradingEventSourcesRef = useRef<Map<string, EventSource>>(new Map());
   const paperTradingLastUpdateRef = useRef<number>(Date.now());
   
-  // Available stock symbols for paper trading
+  // Available stock symbols for paper trading - Multi-exchange support
   const paperTradingSymbols = [
+    // NSE EQUITIES
     { symbol: "RELIANCE", name: "Reliance Industries", token: "2885", exchange: "NSE" },
     { symbol: "TCS", name: "Tata Consultancy Services", token: "11536", exchange: "NSE" },
     { symbol: "HDFCBANK", name: "HDFC Bank", token: "1333", exchange: "NSE" },
@@ -3794,8 +3795,52 @@ ${
     { symbol: "WIPRO", name: "Wipro", token: "3787", exchange: "NSE" },
     { symbol: "TECHM", name: "Tech Mahindra", token: "13538", exchange: "NSE" },
     { symbol: "ADANIENT", name: "Adani Enterprises", token: "25", exchange: "NSE" },
-    { symbol: "NIFTY50", name: "Nifty 50 Index", token: "26000", exchange: "NSE" },
-    { symbol: "BANKNIFTY", name: "Bank Nifty Index", token: "26009", exchange: "NSE" },
+    { symbol: "BAJAJFINSV", name: "Bajaj Finserv", token: "14979", exchange: "NSE" },
+    { symbol: "NESTLEIND", name: "Nestle India", token: "2379", exchange: "NSE" },
+
+    // NSE INDICES & FUTURES
+    { symbol: "NIFTY50", name: "Nifty 50 Index", token: "26000", exchange: "NFO" },
+    { symbol: "BANKNIFTY", name: "Bank Nifty Index", token: "26009", exchange: "NFO" },
+    { symbol: "NIFTYNXT50", name: "Nifty Next 50", token: "26061", exchange: "NFO" },
+    { symbol: "FINNIFTY", name: "Financial Nifty", token: "26037", exchange: "NFO" },
+    { symbol: "MIDCPNIFTY", name: "Nifty Midcap 50", token: "26074", exchange: "NFO" },
+
+    // BSE EQUITIES
+    { symbol: "SENSEX", name: "BSE Sensex", token: "12800", exchange: "BFO" },
+    { symbol: "RELIANCE_BSE", name: "Reliance (BSE)", token: "500325", exchange: "BSE" },
+    { symbol: "SBIN_BSE", name: "SBI (BSE)", token: "500112", exchange: "BSE" },
+    { symbol: "TATASTEEL", name: "Tata Steel", token: "500570", exchange: "BSE" },
+    { symbol: "HINDALCO", name: "Hindalco Industries", token: "500440", exchange: "BSE" },
+
+    // MCX COMMODITIES
+    { symbol: "GOLD", name: "Gold Futures (MCX)", token: "261121", exchange: "MCX" },
+    { symbol: "SILVER", name: "Silver Futures (MCX)", token: "261221", exchange: "MCX" },
+    { symbol: "CRUDEOIL", name: "Crude Oil Futures (MCX)", token: "261022", exchange: "MCX" },
+    { symbol: "NATURALGAS", name: "Natural Gas Futures (MCX)", token: "261422", exchange: "MCX" },
+    { symbol: "COPPER", name: "Copper Futures (MCX)", token: "261322", exchange: "MCX" },
+    { symbol: "ZINC", name: "Zinc Futures (MCX)", token: "261521", exchange: "MCX" },
+    { symbol: "NICKEL", name: "Nickel Futures (MCX)", token: "261621", exchange: "MCX" },
+    { symbol: "LEAD", name: "Lead Futures (MCX)", token: "261421", exchange: "MCX" },
+    { symbol: "ALUMINIUM", name: "Aluminium Futures (MCX)", token: "261721", exchange: "MCX" },
+
+    // NCDEX AGRICULTURAL COMMODITIES
+    { symbol: "COTTON", name: "Cotton Futures (NCDEX)", token: "285121", exchange: "NCDEX" },
+    { symbol: "SOYBEAN", name: "Soybean Futures (NCDEX)", token: "284921", exchange: "NCDEX" },
+    { symbol: "CORN", name: "Corn Futures (NCDEX)", token: "281121", exchange: "NCDEX" },
+    { symbol: "JEERA", name: "Jeera Futures (NCDEX)", token: "283921", exchange: "NCDEX" },
+    { symbol: "TURMERIC", name: "Turmeric Futures (NCDEX)", token: "280721", exchange: "NCDEX" },
+    { symbol: "CHANA", name: "Chana Futures (NCDEX)", token: "282821", exchange: "NCDEX" },
+    { symbol: "WHEAT", name: "Wheat Futures (NCDEX)", token: "281621", exchange: "NCDEX" },
+
+    // CDS (CURRENCY DERIVATIVES)
+    { symbol: "EURINR", name: "EUR/INR (CDS)", token: "251121", exchange: "CDS" },
+    { symbol: "GBPINR", name: "GBP/INR (CDS)", token: "251221", exchange: "CDS" },
+    { symbol: "JPYINR", name: "JPY/INR (CDS)", token: "251321", exchange: "CDS" },
+    { symbol: "USDINR", name: "USD/INR (CDS)", token: "251021", exchange: "CDS" },
+
+    // BFO (BSE FUTURES & OPTIONS)
+    { symbol: "SENSEXFUT", name: "Sensex Futures (BFO)", token: "12800", exchange: "BFO" },
+    { symbol: "BAJAJFUT", name: "Bajaj Auto Futures (BFO)", token: "500058", exchange: "BFO" },
   ];
   
   // Filtered symbols based on search
