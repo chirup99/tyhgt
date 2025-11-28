@@ -3781,11 +3781,11 @@ ${
       case 'STOCK':
         return 'NSE,BSE';  // Equity stocks
       case 'FUTURES':
-        return 'NFO';  // NSE F&O segment for futures
+        return 'NFO,BFO';  // NSE F&O + BSE F&O for futures
       case 'OPTIONS':
-        return 'NFO';  // NSE F&O segment for options
+        return 'NFO,BFO';  // NSE F&O + BSE F&O for options
       case 'MCX':
-        return 'MCX';  // Commodity exchange (Gold, Silver, Crude, etc.)
+        return 'MCX,NCDEX';  // MCX + NCDEX for commodities
       default:
         return 'NSE,BSE';
     }
