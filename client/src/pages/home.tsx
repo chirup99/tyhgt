@@ -3823,7 +3823,7 @@ ${
     { symbol: "LEAD", name: "Lead Futures (MCX)", token: "99920007", exchange: "MCX" },
     { symbol: "ALUMINIUM", name: "Aluminium Futures (MCX)", token: "99920011", exchange: "MCX" },
 
-    // NCDEX AGRICULTURAL COMMODITIES (Angel One token format: 999xxxxx)
+    // NCDEX AGRICULTURAL FUTURES (Angel One token format: 999xxxxx)
     { symbol: "COTTON", name: "Cotton Futures (NCDEX)", token: "99930001", exchange: "NCDEX" },
     { symbol: "SOYBEAN", name: "Soybean Futures (NCDEX)", token: "99930002", exchange: "NCDEX" },
     { symbol: "CORN", name: "Corn Futures (NCDEX)", token: "99930003", exchange: "NCDEX" },
@@ -3831,6 +3831,22 @@ ${
     { symbol: "TURMERIC", name: "Turmeric Futures (NCDEX)", token: "99930005", exchange: "NCDEX" },
     { symbol: "CHANA", name: "Chana Futures (NCDEX)", token: "99930006", exchange: "NCDEX" },
     { symbol: "WHEAT", name: "Wheat Futures (NCDEX)", token: "99930007", exchange: "NCDEX" },
+
+    // NCDEX AGRICULTURAL OPTIONS (Angel One token format: 999xxxxx)
+    { symbol: "COTTON-CALL", name: "Cotton Call Option (NCDEX)", token: "99931001", exchange: "NCDEX" },
+    { symbol: "COTTON-PUT", name: "Cotton Put Option (NCDEX)", token: "99931002", exchange: "NCDEX" },
+    { symbol: "SOYBEAN-CALL", name: "Soybean Call Option (NCDEX)", token: "99931003", exchange: "NCDEX" },
+    { symbol: "SOYBEAN-PUT", name: "Soybean Put Option (NCDEX)", token: "99931004", exchange: "NCDEX" },
+    { symbol: "CORN-CALL", name: "Corn Call Option (NCDEX)", token: "99931005", exchange: "NCDEX" },
+    { symbol: "CORN-PUT", name: "Corn Put Option (NCDEX)", token: "99931006", exchange: "NCDEX" },
+    { symbol: "JEERA-CALL", name: "Jeera Call Option (NCDEX)", token: "99931007", exchange: "NCDEX" },
+    { symbol: "JEERA-PUT", name: "Jeera Put Option (NCDEX)", token: "99931008", exchange: "NCDEX" },
+    { symbol: "TURMERIC-CALL", name: "Turmeric Call Option (NCDEX)", token: "99931009", exchange: "NCDEX" },
+    { symbol: "TURMERIC-PUT", name: "Turmeric Put Option (NCDEX)", token: "99931010", exchange: "NCDEX" },
+    { symbol: "CHANA-CALL", name: "Chana Call Option (NCDEX)", token: "99931011", exchange: "NCDEX" },
+    { symbol: "CHANA-PUT", name: "Chana Put Option (NCDEX)", token: "99931012", exchange: "NCDEX" },
+    { symbol: "WHEAT-CALL", name: "Wheat Call Option (NCDEX)", token: "99931013", exchange: "NCDEX" },
+    { symbol: "WHEAT-PUT", name: "Wheat Put Option (NCDEX)", token: "99931014", exchange: "NCDEX" },
 
     // CDS (CURRENCY DERIVATIVES - Angel One token format: 999xxxxx)
     { symbol: "EURINR", name: "EUR/INR (CDS)", token: "99931003", exchange: "CDS" },
