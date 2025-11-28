@@ -4372,6 +4372,17 @@ ${
   
   // Live OHLC ticker for display
   const [liveOhlc, setLiveOhlc] = useState<{ open: number; high: number; low: number; close: number; change: number } | null>(null);
+  
+  // Hovered candle OHLC for crosshair display (TradingView style)
+  const [hoveredCandleOhlc, setHoveredCandleOhlc] = useState<{
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    change: number;
+    changePercent: number;
+    time: number;
+  } | null>(null);
 
   // Angel One Stock Token Mapping for Journal Chart
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
@@ -5067,6 +5078,52 @@ ${
       journalEma26SeriesRef.current = ema26Series;
       journalVolumeSeriesRef.current = volumeSeries;
 
+      // Subscribe to crosshair move for OHLC display (TradingView style)
+      chart.subscribeCrosshairMove((param) => {
+        if (!param.time || !param.point) {
+          // Reset to latest candle when cursor leaves chart
+          const latestData = journalChartData[journalChartData.length - 1];
+          if (latestData) {
+            const prevCandle = journalChartData[journalChartData.length - 2];
+            const prevClose = prevCandle?.close || latestData.open;
+            const change = latestData.close - prevClose;
+            const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+            setHoveredCandleOhlc({
+              open: latestData.open,
+              high: latestData.high,
+              low: latestData.low,
+              close: latestData.close,
+              change,
+              changePercent,
+              time: latestData.time,
+            });
+          }
+          return;
+        }
+
+        // Get candle data at crosshair position
+        const candleData = param.seriesData.get(candlestickSeries);
+        if (candleData && 'open' in candleData) {
+          // Find previous candle for change calculation
+          const sortedData = [...journalChartData].sort((a, b) => a.time - b.time);
+          const currentIndex = sortedData.findIndex((c) => c.time === param.time);
+          const prevCandle = currentIndex > 0 ? sortedData[currentIndex - 1] : null;
+          const prevClose = prevCandle?.close || candleData.open;
+          const change = candleData.close - prevClose;
+          const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+
+          setHoveredCandleOhlc({
+            open: candleData.open,
+            high: candleData.high,
+            low: candleData.low,
+            close: candleData.close,
+            change,
+            changePercent,
+            time: param.time as number,
+          });
+        }
+      });
+
       // Set data immediately
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
@@ -5079,6 +5136,24 @@ ${
       }));
 
       candlestickSeries.setData(chartData);
+
+      // Initialize hovered OHLC with latest candle data
+      if (sortedData.length > 0) {
+        const latestCandle = sortedData[sortedData.length - 1];
+        const prevCandle = sortedData.length > 1 ? sortedData[sortedData.length - 2] : null;
+        const prevClose = prevCandle?.close || latestCandle.open;
+        const change = latestCandle.close - prevClose;
+        const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+        setHoveredCandleOhlc({
+          open: latestCandle.open,
+          high: latestCandle.high,
+          low: latestCandle.low,
+          close: latestCandle.close,
+          change,
+          changePercent,
+          time: latestCandle.time,
+        });
+      }
 
       // Volume data with color based on price movement
       const volumeData = sortedData.map((candle: any) => ({
@@ -10440,6 +10515,33 @@ ${
                                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching candles from Angel One API</p>
                                     </div>
                                   </div>
+                                </div>
+                              )}
+                              
+                              {/* TradingView-style OHLC Display - Crosshair Position */}
+                              {hoveredCandleOhlc && journalChartData && journalChartData.length > 0 && (
+                                <div 
+                                  className="absolute top-1 left-2 z-40 flex items-center gap-1 text-xs font-mono pointer-events-none"
+                                  data-testid="chart-ohlc-display"
+                                >
+                                  <span className="text-green-600 dark:text-green-400 font-medium">
+                                    O{hoveredCandleOhlc.open.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                    H{hoveredCandleOhlc.high.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                    L{hoveredCandleOhlc.low.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className={`font-medium ${hoveredCandleOhlc.close >= hoveredCandleOhlc.open ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    C{hoveredCandleOhlc.close.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className={`font-medium ${hoveredCandleOhlc.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {hoveredCandleOhlc.change >= 0 ? '+' : ''}{hoveredCandleOhlc.change.toFixed(2)}
+                                  </span>
+                                  <span className={`font-medium ${hoveredCandleOhlc.changePercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    ({hoveredCandleOhlc.changePercent >= 0 ? '+' : ''}{hoveredCandleOhlc.changePercent.toFixed(2)}%)
+                                  </span>
                                 </div>
                               )}
                               
