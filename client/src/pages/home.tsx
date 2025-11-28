@@ -3759,6 +3759,9 @@ ${
   // Paper trading form state
   const [paperTradeSymbol, setPaperTradeSymbol] = useState("");
   const [paperTradeSymbolSearch, setPaperTradeSymbolSearch] = useState("");
+  const [paperTradeSearchResults, setPaperTradeSearchResults] = useState<any[]>([]);
+  const [paperTradeSearchLoading, setPaperTradeSearchLoading] = useState(false);
+  const [selectedPaperTradingInstrument, setSelectedPaperTradingInstrument] = useState<any>(null);
   const [paperTradeType, setPaperTradeType] = useState<'STOCK' | 'FUTURES' | 'OPTIONS'>('STOCK');
   const [paperTradeQuantity, setPaperTradeQuantity] = useState("");
   const [paperTradeAction, setPaperTradeAction] = useState<'BUY' | 'SELL'>('BUY');
@@ -3772,98 +3775,44 @@ ${
   const paperTradingEventSourcesRef = useRef<Map<string, EventSource>>(new Map());
   const paperTradingLastUpdateRef = useRef<number>(Date.now());
   
-  // Available stock symbols for paper trading - Multi-exchange support
-  const paperTradingSymbols = [
-    // NSE EQUITIES
-    { symbol: "RELIANCE", name: "Reliance Industries", token: "2885", exchange: "NSE" },
-    { symbol: "TCS", name: "Tata Consultancy Services", token: "11536", exchange: "NSE" },
-    { symbol: "HDFCBANK", name: "HDFC Bank", token: "1333", exchange: "NSE" },
-    { symbol: "ICICIBANK", name: "ICICI Bank", token: "4963", exchange: "NSE" },
-    { symbol: "INFY", name: "Infosys", token: "1594", exchange: "NSE" },
-    { symbol: "ITC", name: "ITC Limited", token: "1660", exchange: "NSE" },
-    { symbol: "SBIN", name: "State Bank of India", token: "3045", exchange: "NSE" },
-    { symbol: "BHARTIARTL", name: "Bharti Airtel", token: "10604", exchange: "NSE" },
-    { symbol: "HINDUNILVR", name: "Hindustan Unilever", token: "1394", exchange: "NSE" },
-    { symbol: "LT", name: "Larsen & Toubro", token: "11483", exchange: "NSE" },
-    { symbol: "AXISBANK", name: "Axis Bank", token: "5900", exchange: "NSE" },
-    { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank", token: "1922", exchange: "NSE" },
-    { symbol: "BAJFINANCE", name: "Bajaj Finance", token: "317", exchange: "NSE" },
-    { symbol: "MARUTI", name: "Maruti Suzuki", token: "10999", exchange: "NSE" },
-    { symbol: "TITAN", name: "Titan Company", token: "3506", exchange: "NSE" },
-    { symbol: "SUNPHARMA", name: "Sun Pharma", token: "3351", exchange: "NSE" },
-    { symbol: "TATAMOTORS", name: "Tata Motors", token: "3456", exchange: "NSE" },
-    { symbol: "WIPRO", name: "Wipro", token: "3787", exchange: "NSE" },
-    { symbol: "TECHM", name: "Tech Mahindra", token: "13538", exchange: "NSE" },
-    { symbol: "ADANIENT", name: "Adani Enterprises", token: "25", exchange: "NSE" },
-    { symbol: "BAJAJFINSV", name: "Bajaj Finserv", token: "14979", exchange: "NSE" },
-    { symbol: "NESTLEIND", name: "Nestle India", token: "2379", exchange: "NSE" },
-
-    // NSE INDICES & FUTURES
-    { symbol: "NIFTY50", name: "Nifty 50 Index", token: "26000", exchange: "NFO" },
-    { symbol: "BANKNIFTY", name: "Bank Nifty Index", token: "26009", exchange: "NFO" },
-    { symbol: "NIFTYNXT50", name: "Nifty Next 50", token: "26061", exchange: "NFO" },
-    { symbol: "FINNIFTY", name: "Financial Nifty", token: "26037", exchange: "NFO" },
-    { symbol: "MIDCPNIFTY", name: "Nifty Midcap 50", token: "26074", exchange: "NFO" },
-
-    // BSE EQUITIES
-    { symbol: "SENSEX", name: "BSE Sensex", token: "12800", exchange: "BFO" },
-    { symbol: "RELIANCE_BSE", name: "Reliance (BSE)", token: "500325", exchange: "BSE" },
-    { symbol: "SBIN_BSE", name: "SBI (BSE)", token: "500112", exchange: "BSE" },
-    { symbol: "TATASTEEL", name: "Tata Steel", token: "500570", exchange: "BSE" },
-    { symbol: "HINDALCO", name: "Hindalco Industries", token: "500440", exchange: "BSE" },
-
-    // MCX COMMODITIES (Angel One token format: 999xxxxx)
-    { symbol: "GOLD", name: "Gold Futures (MCX)", token: "99920003", exchange: "MCX" },
-    { symbol: "SILVER", name: "Silver Futures (MCX)", token: "99920014", exchange: "MCX" },
-    { symbol: "CRUDEOIL", name: "Crude Oil Futures (MCX)", token: "99920002", exchange: "MCX" },
-    { symbol: "NATURALGAS", name: "Natural Gas Futures (MCX)", token: "99920016", exchange: "MCX" },
-    { symbol: "COPPER", name: "Copper Futures (MCX)", token: "99920004", exchange: "MCX" },
-    { symbol: "ZINC", name: "Zinc Futures (MCX)", token: "99920008", exchange: "MCX" },
-    { symbol: "NICKEL", name: "Nickel Futures (MCX)", token: "99920009", exchange: "MCX" },
-    { symbol: "LEAD", name: "Lead Futures (MCX)", token: "99920007", exchange: "MCX" },
-    { symbol: "ALUMINIUM", name: "Aluminium Futures (MCX)", token: "99920011", exchange: "MCX" },
-
-    // NCDEX AGRICULTURAL FUTURES (Angel One token format: 999xxxxx)
-    { symbol: "COTTON", name: "Cotton Futures (NCDEX)", token: "99930001", exchange: "NCDEX" },
-    { symbol: "SOYBEAN", name: "Soybean Futures (NCDEX)", token: "99930002", exchange: "NCDEX" },
-    { symbol: "CORN", name: "Corn Futures (NCDEX)", token: "99930003", exchange: "NCDEX" },
-    { symbol: "JEERA", name: "Jeera Futures (NCDEX)", token: "99930004", exchange: "NCDEX" },
-    { symbol: "TURMERIC", name: "Turmeric Futures (NCDEX)", token: "99930005", exchange: "NCDEX" },
-    { symbol: "CHANA", name: "Chana Futures (NCDEX)", token: "99930006", exchange: "NCDEX" },
-    { symbol: "WHEAT", name: "Wheat Futures (NCDEX)", token: "99930007", exchange: "NCDEX" },
-
-    // NCDEX AGRICULTURAL OPTIONS (Angel One token format: 999xxxxx)
-    { symbol: "COTTON-CALL", name: "Cotton Call Option (NCDEX)", token: "99931001", exchange: "NCDEX" },
-    { symbol: "COTTON-PUT", name: "Cotton Put Option (NCDEX)", token: "99931002", exchange: "NCDEX" },
-    { symbol: "SOYBEAN-CALL", name: "Soybean Call Option (NCDEX)", token: "99931003", exchange: "NCDEX" },
-    { symbol: "SOYBEAN-PUT", name: "Soybean Put Option (NCDEX)", token: "99931004", exchange: "NCDEX" },
-    { symbol: "CORN-CALL", name: "Corn Call Option (NCDEX)", token: "99931005", exchange: "NCDEX" },
-    { symbol: "CORN-PUT", name: "Corn Put Option (NCDEX)", token: "99931006", exchange: "NCDEX" },
-    { symbol: "JEERA-CALL", name: "Jeera Call Option (NCDEX)", token: "99931007", exchange: "NCDEX" },
-    { symbol: "JEERA-PUT", name: "Jeera Put Option (NCDEX)", token: "99931008", exchange: "NCDEX" },
-    { symbol: "TURMERIC-CALL", name: "Turmeric Call Option (NCDEX)", token: "99931009", exchange: "NCDEX" },
-    { symbol: "TURMERIC-PUT", name: "Turmeric Put Option (NCDEX)", token: "99931010", exchange: "NCDEX" },
-    { symbol: "CHANA-CALL", name: "Chana Call Option (NCDEX)", token: "99931011", exchange: "NCDEX" },
-    { symbol: "CHANA-PUT", name: "Chana Put Option (NCDEX)", token: "99931012", exchange: "NCDEX" },
-    { symbol: "WHEAT-CALL", name: "Wheat Call Option (NCDEX)", token: "99931013", exchange: "NCDEX" },
-    { symbol: "WHEAT-PUT", name: "Wheat Put Option (NCDEX)", token: "99931014", exchange: "NCDEX" },
-
-    // CDS (CURRENCY DERIVATIVES - Angel One token format: 999xxxxx)
-    { symbol: "EURINR", name: "EUR/INR (CDS)", token: "99931003", exchange: "CDS" },
-    { symbol: "GBPINR", name: "GBP/INR (CDS)", token: "99931004", exchange: "CDS" },
-    { symbol: "JPYINR", name: "JPY/INR (CDS)", token: "99931005", exchange: "CDS" },
-    { symbol: "USDINR", name: "USD/INR (CDS)", token: "99931001", exchange: "CDS" },
-
-    // BFO (BSE FUTURES & OPTIONS)
-    { symbol: "SENSEXFUT", name: "Sensex Futures (BFO)", token: "99919000", exchange: "BFO" },
-    { symbol: "BAJAJFUT", name: "Bajaj Auto Futures (BFO)", token: "99925002", exchange: "BFO" },
-  ];
-  
-  // Filtered symbols based on search
-  const filteredPaperTradingSymbols = paperTradingSymbols.filter(s => 
-    s.symbol.toLowerCase().includes(paperTradeSymbolSearch.toLowerCase()) ||
-    s.name.toLowerCase().includes(paperTradeSymbolSearch.toLowerCase())
-  );
+  // Dynamic search for paper trading instruments across all exchanges
+  const searchPaperTradingInstruments = async (query: string) => {
+    if (!query || query.length < 1) {
+      setPaperTradeSearchResults([]);
+      return;
+    }
+    
+    setPaperTradeSearchLoading(true);
+    try {
+      const response = await fetch(
+        getFullApiUrl(`/api/angelone/search-instruments?query=${encodeURIComponent(query)}&limit=50`)
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const instruments = data.instruments || data.results || [];
+        
+        // Format instruments for display
+        const formatted = instruments.map((inst: any) => ({
+          symbol: inst.symbol || inst.tradingSymbol || "",
+          name: inst.name || inst.symbol || "",
+          token: inst.token || inst.symbolToken || "",
+          exchange: inst.exchange || "",
+          type: inst.type || "STOCK",
+          lotSize: inst.lotSize || 1,
+        }));
+        
+        setPaperTradeSearchResults(formatted);
+      } else {
+        setPaperTradeSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Paper trading search error:", error);
+      setPaperTradeSearchResults([]);
+    } finally {
+      setPaperTradeSearchLoading(false);
+    }
+  };
   
   // Fetch live price from Angel One WebSocket (same stream as chart)
   const fetchPaperTradePrice = async (symbol: string) => {
