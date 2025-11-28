@@ -10443,51 +10443,12 @@ ${
                                 </div>
                               )}
                               
-                              {/* Chart Container - Takes full height with proper spacing for time scale */}
+                              {/* Chart Container - Uses built-in price scale display */}
                               <div 
                                 ref={journalChartContainerRef}
                                 className="w-full h-full relative bg-white dark:bg-gray-800"
                                 data-testid="journal-tradingview-chart"
                               />
-                              
-                              {/* Candle Count Display - Bottom Right Corner */}
-                              <div 
-                                ref={journalCandleCountRef}
-                                className="absolute bottom-4 right-4 z-40 bg-black/80 text-white px-3 py-2 rounded font-mono text-sm font-semibold border border-orange-500/50 pointer-events-none"
-                                data-testid="candle-count-display"
-                              >
-                                {journalChartData?.length || 0}
-                              </div>
-                              
-                              {/* Countdown Bar - Price Scale Live Price Level */}
-                              <div 
-                                className="absolute z-30 bg-gradient-to-r from-orange-500 to-red-500 pointer-events-none transition-all"
-                                ref={journalCountdownBarRef}
-                                style={{ 
-                                  right: '60px',
-                                  top: '50%',
-                                  width: '60px',
-                                  height: '24px',
-                                  borderRadius: '4px',
-                                  transform: 'translateY(-50%)',
-                                  scaleX: 1
-                                }}
-                                data-testid="countdown-bar"
-                                title="Candle countdown"
-                              />
-                              
-                              {/* Live OHLC Ticker - Top Left Corner Overlay */}
-                              {(liveOhlc || (journalChartData && journalChartData.length > 0)) && (
-                                <div className="absolute top-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded font-mono text-xs border border-green-500/50 pointer-events-none"
-                                  data-testid="live-ohlc-ticker"
-                                >
-                                  {liveOhlc ? (
-                                    <>O{liveOhlc.open.toFixed(2)} H{liveOhlc.high.toFixed(2)} L{liveOhlc.low.toFixed(2)} C{liveOhlc.close.toFixed(2)} <span className={liveOhlc.change >= 0 ? 'text-green-400' : 'text-red-400'}>(+{liveOhlc.change.toFixed(2)}%)</span></>
-                                  ) : (
-                                    <>O{journalChartData[journalChartData.length - 1].open.toFixed(2)} H{journalChartData[journalChartData.length - 1].high.toFixed(2)} L{journalChartData[journalChartData.length - 1].low.toFixed(2)} C{journalChartData[journalChartData.length - 1].close.toFixed(2)}</>
-                                  )}
-                                </div>
-                              )}
                               
                               {/* No Data Message */}
                               {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
