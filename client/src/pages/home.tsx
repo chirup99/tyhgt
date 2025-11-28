@@ -15328,6 +15328,81 @@ ${
           </DialogContent>
         </Dialog>
 
+        {/* Custom Timeframe Dialog for Journal Chart */}
+        <Dialog open={showJournalCustomTimeframe} onOpenChange={setShowJournalCustomTimeframe}>
+          <DialogContent className="sm:max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-gray-900 dark:text-white text-center">Add custom interval</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4 px-2">
+              <div className="grid gap-2">
+                <Label htmlFor="journal-timeframe-type" className="text-gray-700 dark:text-gray-300 text-sm font-medium">Type</Label>
+                <Select value={journalCustomTimeframeType} onValueChange={setJournalCustomTimeframeType}>
+                  <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                    <SelectItem value="minutes">minutes</SelectItem>
+                    <SelectItem value="hr">hr</SelectItem>
+                    <SelectItem value="d">d</SelectItem>
+                    <SelectItem value="m">m</SelectItem>
+                    <SelectItem value="w">w</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="journal-timeframe-interval" className="text-gray-700 dark:text-gray-300 text-sm font-medium">Interval</Label>
+                <Input
+                  id="journal-timeframe-interval"
+                  placeholder="Enter number"
+                  value={journalCustomTimeframeInterval}
+                  onChange={(e) => setJournalCustomTimeframeInterval(e.target.value)}
+                  className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                  data-testid="input-custom-timeframe-interval"
+                />
+              </div>
+            </div>
+            <div className="flex justify-center gap-3 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowJournalCustomTimeframe(false);
+                  setJournalCustomTimeframeInterval('');
+                }}
+                className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
+                data-testid="button-cancel-custom-timeframe"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (journalCustomTimeframeInterval && parseInt(journalCustomTimeframeInterval) > 0) {
+                    const convertedValue = convertJournalCustomTimeframe(journalCustomTimeframeType, journalCustomTimeframeInterval);
+                    const label = createJournalCustomTimeframeLabel(journalCustomTimeframeType, journalCustomTimeframeInterval);
+                    
+                    setJournalCustomTimeframes(prev => {
+                      const exists = prev.some(tf => tf.value === convertedValue);
+                      if (!exists) {
+                        return [...prev, { value: convertedValue, label, deletable: true }];
+                      }
+                      return prev;
+                    });
+                    
+                    setSelectedJournalInterval(convertedValue);
+                    setShowJournalCustomTimeframe(false);
+                    setJournalCustomTimeframeInterval('');
+                  }
+                }}
+                disabled={!journalCustomTimeframeInterval || parseInt(journalCustomTimeframeInterval) <= 0}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                data-testid="button-add-custom-timeframe-confirm"
+              >
+                Add
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Minimalist Floating Pill Navigation - Mobile Only */}
         {activeTab === "journal" && (
           <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-4 px-6 pointer-events-none">
