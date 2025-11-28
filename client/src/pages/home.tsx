@@ -4356,6 +4356,7 @@ ${
   const journalEma26SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const journalVolumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const journalPriceLineRef = useRef<IPriceLine | null>(null);
+  const journalChartDataRef = useRef<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   
   // EMA values for display in header
   const [journalEmaValues, setJournalEmaValues] = useState<{ ema12: number | null; ema26: number | null }>({ ema12: null, ema26: null });
@@ -4568,6 +4569,19 @@ ${
   const fetchJournalChartData = useCallback(async () => {
     try {
       setJournalChartLoading(true);
+      
+      // CRITICAL: Clear chart refs when fetching new data (symbol/interval change)
+      // This ensures the chart will be recreated with new data
+      if (journalChartRef.current) {
+        try {
+          journalChartRef.current.remove();
+        } catch (e) {}
+      }
+      journalChartRef.current = null;
+      journalCandlestickSeriesRef.current = null;
+      journalEma12SeriesRef.current = null;
+      journalEma26SeriesRef.current = null;
+      journalVolumeSeriesRef.current = null;
       
       // Note: We don't check connection status anymore - API works with theoretical prices when not connected
       // Get token data - use selectedInstrument if available (for dynamic search), otherwise use hardcoded mapping
@@ -4806,8 +4820,9 @@ ${
           // Get the selected interval in seconds
           const intervalSeconds = getIntervalInSeconds(selectedJournalInterval);
           
-          // Get the last candle from the chart
-          const lastChartCandle = journalChartData[journalChartData.length - 1];
+          // Get the last candle from the chart (use ref to avoid triggering re-render)
+          const chartData = journalChartDataRef.current;
+          const lastChartCandle = chartData[chartData.length - 1];
           if (!lastChartCandle) return;
           
           // Calculate the candle start time for the incoming live data
@@ -4943,9 +4958,9 @@ ${
               change: changePercent
             });
             
-            // Update candle count display
+            // Update candle count display (use ref to get count)
             if (journalCandleCountRef.current) {
-              journalCandleCountRef.current.textContent = `${journalChartData.length + 1}`;
+              journalCandleCountRef.current.textContent = `${chartData.length + 1}`;
             }
             
             console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
@@ -4976,7 +4991,12 @@ ${
       }
       setIsJournalStreaming(false);
     };
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, journalChartData]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+
+  // Keep ref in sync with state for SSE logic (avoid recreating SSE on every data change)
+  useEffect(() => {
+    journalChartDataRef.current = journalChartData;
+  }, [journalChartData]);
 
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
@@ -5003,7 +5023,14 @@ ${
     if (!journalChartContainerRef.current) return;
     if (!journalChartData || journalChartData.length === 0) return;
 
-    // Clean up existing chart
+    // CRITICAL: Only recreate chart if it doesn't exist yet
+    // If chart already exists, SSE updates handle incremental data changes
+    if (journalChartRef.current && journalCandlestickSeriesRef.current) {
+      console.log('📊 Chart already initialized, skipping recreation (SSE handles updates)');
+      return;
+    }
+
+    // Clean up existing chart (only runs on initial creation or symbol/interval change)
     if (journalChartRef.current) {
       try {
         journalChartRef.current.remove();
@@ -5261,7 +5288,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, journalChartData]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, journalChartData]);
 
   // Convert trade history to chart markers
   const getTradeMarkersForChart = useCallback(() => {
