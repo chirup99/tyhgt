@@ -496,3 +496,14 @@ Implementation Date: November 28, 2025
 [x] 3685.   - Retrieved 33 journal entries from Firebase
 [x] 3686.   - Performance analysis and trade data displaying correctly
 [x] 3687. JOURNAL TAB FIX 100% COMPLETE!
+
+[x] 3688. NOVEMBER 28, 2025 - FIX INSTRUMENT SEARCH MULTI-EXCHANGE SUPPORT
+[x] 3689. Problem: Chart window's instrument search only showing NSE/BSE stocks, not MCX, NCDEX, NFO, BFO
+[x] 3690. Root cause: fetchInstruments function didn't pass exchange parameter to API
+[x] 3691. Solution: Added getExchangeForJournalSearchType function to map search type to exchanges:
+[x] 3692.   - STOCK → NSE,BSE (Equity stocks)
+[x] 3693.   - COMMODITY → MCX,NCDEX (Commodities)
+[x] 3694.   - F&O → NFO,BFO (Futures & Options)
+[x] 3695. Updated fetchInstruments to accept searchType parameter and pass exchange to API
+[x] 3696. Updated useEffect to include journalSearchType dependency for re-fetching
+[x] 3697. MULTI-EXCHANGE INSTRUMENT SEARCH FIX 100% COMPLETE!

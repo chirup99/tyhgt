@@ -4823,8 +4823,22 @@ ${
     };
   };
 
+  // Map journal search type to exchange segment for filtering (similar to paper trading)
+  const getExchangeForJournalSearchType = (type: 'STOCK' | 'COMMODITY' | 'F&O'): string => {
+    switch (type) {
+      case 'STOCK':
+        return 'NSE,BSE';  // Equity stocks from NSE and BSE
+      case 'COMMODITY':
+        return 'MCX,NCDEX';  // Commodities from MCX and NCDEX
+      case 'F&O':
+        return 'NFO,BFO';  // Futures & Options from NSE F&O and BSE F&O
+      default:
+        return 'NSE,BSE';
+    }
+  };
+
   // 🔍 Fetch instruments from Angel One master file API
-  const fetchInstruments = async (searchQuery: string) => {
+  const fetchInstruments = async (searchQuery: string, searchType: 'STOCK' | 'COMMODITY' | 'F&O') => {
     if (!searchQuery || searchQuery.trim().length < 2) {
       setSearchedInstruments([]);
       return;
@@ -4832,10 +4846,15 @@ ${
 
     setIsSearchingInstruments(true);
     try {
-      const response = await fetch(`/api/angelone/search-instruments?query=${encodeURIComponent(searchQuery)}&limit=50`);
+      // Get exchange segment based on selected journal search type
+      const exchange = getExchangeForJournalSearchType(searchType);
+      console.log(`🔍 [JOURNAL-CHART] Searching for "${searchQuery}" on exchange: ${exchange} (type: ${searchType})`);
+      
+      const response = await fetch(`/api/angelone/search-instruments?query=${encodeURIComponent(searchQuery)}&exchange=${encodeURIComponent(exchange)}&limit=50`);
       const data = await response.json();
       
       if (data.success && data.instruments) {
+        console.log(`🔍 [JOURNAL-CHART] Found ${data.instruments.length} instruments`);
         setSearchedInstruments(data.instruments);
       } else {
         setSearchedInstruments([]);
@@ -4848,18 +4867,18 @@ ${
     }
   };
 
-  // useEffect to fetch instruments when search query changes (with debouncing)
+  // useEffect to fetch instruments when search query or search type changes (with debouncing)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (stockSearchQuery.length >= 2) {
-        fetchInstruments(stockSearchQuery);
+        fetchInstruments(stockSearchQuery, journalSearchType);
       } else {
         setSearchedInstruments([]);
       }
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timer);
-  }, [stockSearchQuery]);
+  }, [stockSearchQuery, journalSearchType]);
 
   // Mobile carousel state for journal panels (0=chart, 1=image, 2=notes)
   const [mobileJournalPanel, setMobileJournalPanel] = useState(2);
