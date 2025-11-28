@@ -3913,6 +3913,11 @@ ${
         const sorted = sortInstruments(formatted);
         
         console.log(`🔍 [PAPER-TRADE] Formatted and sorted ${sorted.length} results:`, sorted.slice(0, 3));
+        sorted.forEach((inst, idx) => {
+          if (idx < 3) {
+            console.log(`  [${idx}] ${inst.symbol} | Token: ${inst.token} | Exchange: ${inst.exchange} | Type: ${inst.instrumentType}`);
+          }
+        });
         setPaperTradeSearchResults(sorted);
       } else {
         console.error(`🔍 [PAPER-TRADE] API error: ${response.status}`);
@@ -3928,22 +3933,49 @@ ${
   
   // Fetch live price from Angel One WebSocket (same stream as chart)
   const fetchPaperTradePrice = async () => {
-    if (!selectedPaperTradingInstrument) return;
+    if (!selectedPaperTradingInstrument) {
+      console.warn(`⚠️ [PAPER-TRADE] No instrument selected`);
+      return;
+    }
     
     const stockInfo = selectedPaperTradingInstrument;
+    console.log(`🔍 [PAPER-TRADE-PRICE] Selected instrument:`, {
+      symbol: stockInfo.symbol,
+      token: stockInfo.token,
+      exchange: stockInfo.exchange,
+      instrumentType: stockInfo.instrumentType,
+      type: stockInfo.type
+    });
+    
+    // Validate required fields
+    if (!stockInfo.symbol || !stockInfo.token || !stockInfo.exchange) {
+      console.error(`❌ [PAPER-TRADE-PRICE] Missing required fields:`, {
+        symbol: stockInfo.symbol,
+        token: stockInfo.token,
+        exchange: stockInfo.exchange
+      });
+      setPaperTradePriceLoading(false);
+      return;
+    }
+    
     setPaperTradePriceLoading(true);
     try {
       // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
       const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
       
-      console.log(`📊 [PAPER-TRADE] Subscribing to live price stream for ${stockInfo.symbol}`);
+      console.log(`📊 [PAPER-TRADE-PRICE] Subscribing to live price stream`);
+      console.log(`  URL: ${sseUrl}`);
       
       const eventSource = new EventSource(sseUrl);
+      
+      eventSource.onopen = () => {
+        console.log(`✅ [PAPER-TRADE-PRICE] WebSocket connected for ${stockInfo.symbol}`);
+      };
       
       let priceReceived = false;
       const timeout = setTimeout(() => {
         if (!priceReceived) {
-          console.warn(`⚠️ [PAPER-TRADE] No price received for ${stockInfo.symbol} after 5s`);
+          console.warn(`⚠️ [PAPER-TRADE-PRICE] No price received for ${stockInfo.symbol} after 5s`);
           eventSource.close();
           setPaperTradePriceLoading(false);
         }
@@ -3954,8 +3986,10 @@ ${
           const data = JSON.parse(event.data);
           const ltp = data.ltp || data.close;
           
+          console.log(`📦 [PAPER-TRADE-PRICE] Received data:`, { ltp, data });
+          
           if (ltp && ltp > 0) {
-            console.log(`✅ [PAPER-TRADE] Got real price for ${stockInfo.symbol}: ₹${ltp}`);
+            console.log(`✅ [PAPER-TRADE-PRICE] Got real price for ${stockInfo.symbol}: ₹${ltp}`);
             setPaperTradeCurrentPrice(ltp);
             priceReceived = true;
             clearTimeout(timeout);
@@ -3963,18 +3997,21 @@ ${
             setPaperTradePriceLoading(false);
           }
         } catch (err) {
-          console.error(`[PAPER-TRADE] Parse error for ${stockInfo.symbol}:`, err);
+          console.error(`[PAPER-TRADE-PRICE] Parse error for ${stockInfo.symbol}:`, err);
         }
       };
       
-      eventSource.onerror = () => {
-        console.warn(`⚠️ [PAPER-TRADE] Connection error for ${stockInfo.symbol}`);
+      eventSource.onerror = (event) => {
+        console.error(`❌ [PAPER-TRADE-PRICE] Connection error for ${stockInfo.symbol}:`, event);
         clearTimeout(timeout);
         eventSource.close();
-        if (!priceReceived) setPaperTradePriceLoading(false);
+        if (!priceReceived) {
+          console.warn(`⚠️ [PAPER-TRADE-PRICE] Setting price loading to false due to error`);
+          setPaperTradePriceLoading(false);
+        }
       };
     } catch (error) {
-      console.error("Error fetching paper trade price:", error);
+      console.error("❌ [PAPER-TRADE-PRICE] Exception:", error);
       setPaperTradePriceLoading(false);
     }
   };
