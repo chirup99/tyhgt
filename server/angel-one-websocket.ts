@@ -93,37 +93,18 @@ class AngelOneWebSocket {
         feedtype: feedToken
       });
 
-      // Set up ALL event handlers BEFORE connecting (per Angel One documentation)
-      
-      // 1. Set up tick handler for receiving market data
+      // Set up tick handler for receiving market data (BEFORE connect)
       this.ws.on('tick', (data: any) => {
+        console.log('[WEBSOCKET] Tick received:', data?.token);
         this.handleTick(data);
       });
 
-      // 2. Set up connection open handler - subscribe to symbols when connection is ready
-      this.ws.on('open', () => {
-        console.log('✅ [WEBSOCKET] Connection opened, subscribing to symbols...');
-        this.isConnected = true;
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        
-        // Subscribe to all active symbols NOW that connection is ready
-        if (this.subscriptions.size > 0) {
-          this.subscribeToSymbols();
-        }
-
-        // Start 700ms broadcast interval
-        if (!this.broadcastInterval) {
-          this.startBroadcasting();
-        }
-      });
-
-      // 3. Set up error handler
+      // Set up error handler
       this.ws.on('error', (error: any) => {
         console.error('❌ [WEBSOCKET] WebSocket error:', error?.message || String(error));
       });
 
-      // 4. Set up close handler
+      // Set up close handler
       this.ws.on('close', () => {
         console.log('🔶 [WEBSOCKET] WebSocket closed');
         this.isConnected = false;
@@ -131,9 +112,24 @@ class AngelOneWebSocket {
         this.scheduleReconnect();
       });
 
-      // Now connect - callbacks will be triggered when ready
+      // Connect to WebSocket
       await this.ws.connect();
-      console.log('🔶 [WEBSOCKET] Connection initiated, waiting for open event...');
+      
+      // Connection successful - set connected flag and subscribe immediately
+      this.isConnected = true;
+      this.isConnecting = false;
+      this.reconnectAttempts = 0;
+      console.log('✅ [WEBSOCKET] Connected, subscribing to symbols...');
+
+      // Subscribe to all active symbols NOW that connection is ready
+      if (this.subscriptions.size > 0) {
+        this.subscribeToSymbols();
+      }
+
+      // Start 700ms broadcast interval
+      if (!this.broadcastInterval) {
+        this.startBroadcasting();
+      }
 
     } catch (error: any) {
       console.error('❌ [WEBSOCKET] Failed to connect:', error?.message || String(error));
