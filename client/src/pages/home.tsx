@@ -5405,6 +5405,26 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
+  // CRITICAL: Clear chart and data when interval changes
+  useEffect(() => {
+    if (activeTab === 'journal') {
+      console.log(`🔄 INTERVAL CHANGED TO: ${selectedJournalInterval}`);
+      // Clear chart data to force fresh fetch
+      setJournalChartData([]);
+      setLiveOhlc(null);
+      // Destroy existing chart
+      if (journalChartRef.current) {
+        try {
+          journalChartRef.current.remove();
+        } catch (e) {}
+        journalChartRef.current = null;
+        journalCandlestickSeriesRef.current = null;
+        journalEma12SeriesRef.current = null;
+        journalEma26SeriesRef.current = null;
+      }
+    }
+  }, [selectedJournalInterval, activeTab]);
+
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
     if (activeTab === 'journal') {
