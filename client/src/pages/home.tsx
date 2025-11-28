@@ -4816,6 +4816,53 @@ ${
           // Calculate the start time of the last chart candle
           const lastCandleStartTime = getCandleStartTime(lastChartCandle.time, intervalSeconds);
           
+          // Calculate countdown for the current candle
+          const currentTime = Math.floor(Date.now() / 1000);
+          const nextCandleTime = currentCandleStartTime + intervalSeconds;
+          const remainingSeconds = Math.max(0, nextCandleTime - currentTime);
+          const remainingMinutes = Math.floor(remainingSeconds / 60);
+          const remainingSecondsDisplay = remainingSeconds % 60;
+          const countdownFormatted = remainingMinutes > 0 
+            ? `${remainingMinutes}:${remainingSecondsDisplay.toString().padStart(2, '0')}`
+            : `${remainingSeconds}s`;
+          
+          // Update or create price line with LTP and countdown
+          if (journalCandlestickSeriesRef.current) {
+            // Remove existing price line if it exists
+            if (journalPriceLineRef.current) {
+              journalCandlestickSeriesRef.current.removePriceLine(journalPriceLineRef.current);
+            }
+            
+            // Create new price line with current LTP and countdown
+            journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
+              price: liveCandle.close,
+              color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',
+              lineWidth: 1,
+              lineStyle: 2, // Dashed
+              axisLabelVisible: true,
+              title: countdownFormatted,
+            });
+          }
+          
+          // Update journalLiveData state with countdown
+          setJournalLiveData({
+            ltp: liveCandle.close,
+            countdown: {
+              remaining: remainingSeconds,
+              total: intervalSeconds,
+              formatted: countdownFormatted
+            },
+            currentCandle: {
+              time: liveCandle.time,
+              open: liveCandle.open,
+              high: liveCandle.high,
+              low: liveCandle.low,
+              close: liveCandle.close,
+              volume: liveCandle.volume || 0
+            },
+            isMarketOpen: true // Assuming market is open if we're receiving data
+          });
+          
           // Only update if we're within the same candle interval
           if (currentCandleStartTime === lastCandleStartTime) {
             // Update ONLY the OHLC of the current candle, keep the timestamp fixed
@@ -4905,11 +4952,11 @@ ${
           }
           
           // Update countdown bar
-          if (journalCountdownBarRef.current && data.countdown) {
-            const percentRemaining = (data.countdown.remaining / data.countdown.total) * 100;
-            journalCountdownBarRef.current.style.scaleX = percentRemaining / 100;
+          if (journalCountdownBarRef.current) {
+            const percentRemaining = (remainingSeconds / intervalSeconds) * 100;
+            journalCountdownBarRef.current.style.width = `${percentRemaining}%`;
             journalCountdownBarRef.current.style.transformOrigin = 'right center';
-            journalCountdownBarRef.current.title = `${data.countdown.remaining}s / ${data.countdown.total}s`;
+            journalCountdownBarRef.current.title = `${remainingSeconds}s / ${intervalSeconds}s`;
           }
         } else {
           console.log('⏳ Chart not ready yet:', { hasRef: !!journalCandlestickSeriesRef.current, hasChart: !!journalChartRef.current });
