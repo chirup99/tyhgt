@@ -4959,7 +4959,7 @@ ${
 
     try {
       const containerWidth = journalChartContainerRef.current.clientWidth || 800;
-      let containerHeight = journalChartContainerRef.current.clientHeight || 450;
+      const containerHeight = journalChartContainerRef.current.clientHeight || 450;
       
       console.log('📊 Chart container dimensions:', { containerWidth, containerHeight });
       
@@ -10420,7 +10420,7 @@ ${
                             </div>
 
                             {/* TradingView Light Theme Chart Container - Clean */}
-                            <div className="flex-1 relative flex flex-col h-full min-h-[400px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div className="flex-1 relative flex flex-col min-h-[450px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
                               {journalChartLoading && (
                                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                   <div className="flex flex-col items-center gap-4">
@@ -10436,12 +10436,11 @@ ${
                                 </div>
                               )}
                               
-                              {/* Chart Container - Full Space with explicit height and padding at bottom for time scale */}
+                              {/* Chart Container - Takes full height with proper spacing for time scale */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="flex-1 w-full relative bg-white dark:bg-gray-800 pb-2"
+                                className="w-full h-full relative bg-white dark:bg-gray-800"
                                 data-testid="journal-tradingview-chart"
-                                style={{ height: 'calc(100% - 8px)', minHeight: '400px' }}
                               />
                               
                               {/* Candle Count Display - Bottom Right Corner */}
