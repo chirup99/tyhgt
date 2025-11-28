@@ -10577,39 +10577,34 @@ ${
                                     align="start"
                                   >
                                     <div className="space-y-3">
-                                      <Input
-                                        placeholder="Search stocks, commodities, F&O..."
-                                        value={stockSearchQuery}
-                                        onChange={(e) =>
-                                          setStockSearchQuery(e.target.value)
-                                        }
-                                        className="text-sm"
-                                        data-testid="input-stock-search"
-                                      />
-                                      
-                                      {/* Category Filter Buttons */}
-                                      <div className="flex flex-wrap gap-2">
-                                        {[
-                                          { id: 'all', label: 'All' },
-                                          { id: 'stock', label: 'Stock' },
-                                          { id: 'commodity', label: 'Commodity' },
-                                          { id: 'fo', label: 'F&O' },
-                                          { id: 'currency', label: 'Currency' },
-                                          { id: 'index', label: 'Index' }
-                                        ].map(cat => (
-                                          <button
-                                            key={cat.id}
-                                            onClick={() => setSelectedInstrumentCategory(cat.id)}
-                                            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-                                              selectedInstrumentCategory === cat.id
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                                            }`}
-                                            data-testid={`category-filter-${cat.id}`}
-                                          >
-                                            {cat.label}
-                                          </button>
-                                        ))}
+                                      <div className="flex gap-2">
+                                        <Input
+                                          placeholder={
+                                            journalSearchType === 'STOCK'
+                                              ? 'Search RELIANCE, TCS, INFY...'
+                                              : journalSearchType === 'COMMODITY'
+                                              ? 'Search GOLD, SILVER, CRUDEOIL...'
+                                              : 'Search NIFTY, BANKNIFTY...'
+                                          }
+                                          value={stockSearchQuery}
+                                          onChange={(e) => setStockSearchQuery(e.target.value)}
+                                          className="text-sm flex-1"
+                                          data-testid="input-stock-search"
+                                        />
+                                        <select
+                                          value={journalSearchType}
+                                          onChange={(e) => {
+                                            setJournalSearchType(e.target.value as 'STOCK' | 'COMMODITY' | 'F&O');
+                                            setStockSearchQuery('');
+                                            setSearchedInstruments([]);
+                                          }}
+                                          className="bg-gray-800 text-white border border-gray-600 rounded px-2 text-xs"
+                                          data-testid="select-journal-type"
+                                        >
+                                          <option value="STOCK">Stock</option>
+                                          <option value="COMMODITY">Commodity</option>
+                                          <option value="F&O">F&O</option>
+                                        </select>
                                       </div>
                                       
                                       <div className="max-h-64 overflow-y-auto space-y-1 custom-thin-scrollbar">
