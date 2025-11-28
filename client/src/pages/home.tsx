@@ -3840,7 +3840,7 @@ ${
         if (inst.expiry) {
           const expiryDate = new Date(inst.expiry);
           expiryDate.setHours(0, 0, 0, 0);
-          const daysUntilExpiry = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+          const daysUntilExpiry = Math.floor((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
           if (daysUntilExpiry <= 7) {
             categories.futuresNear.push(inst);
@@ -4748,22 +4748,79 @@ ${
     return cleanSymbol;
   };
 
-  // Convert interval to Angel One format
-  const getJournalAngelOneInterval = (interval: string): string => {
-    const intervalMap: { [key: string]: string } = {
-      '1': 'ONE_MINUTE',
-      '3': 'THREE_MINUTE',
-      '5': 'FIVE_MINUTE',
-      '10': 'TEN_MINUTE',
-      '15': 'FIFTEEN_MINUTE',
-      '30': 'THIRTY_MINUTE',
-      '60': 'ONE_HOUR',
-      '1D': 'ONE_DAY',
-      '5D': 'ONE_DAY',
-      '1W': 'ONE_DAY',
-      '1M': 'ONE_DAY',
-    };
-    return intervalMap[interval] || 'FIFTEEN_MINUTE';
+  // Always fetch 1-minute data and aggregate to desired timeframe
+  const getJournalAngelOneInterval = (): string => {
+    // Always fetch 1-minute candles for proper aggregation
+    return 'ONE_MINUTE';
+  };
+
+  // Aggregate 1-minute candles to desired timeframe
+  const aggregateJournalCandles = (candles: any[], timeframeMinutes: number): any[] => {
+    if (timeframeMinutes <= 1) return candles; // No aggregation needed for 1-min
+    
+    const aggregated: any[] = [];
+    let currentCandle: any = null;
+
+    for (const candle of candles) {
+      if (!currentCandle) {
+        // Start new aggregated candle
+        currentCandle = {
+          time: candle.time,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+          volume: candle.volume,
+          candleCount: 1,
+        };
+      } else {
+        // Check if this candle should be included in current aggregated candle
+        const timeDiff = (candle.time - currentCandle.time) / 60; // Convert seconds to minutes
+        
+        if (timeDiff < timeframeMinutes) {
+          // Add to current aggregated candle
+          currentCandle.high = Math.max(currentCandle.high, candle.high);
+          currentCandle.low = Math.min(currentCandle.low, candle.low);
+          currentCandle.close = candle.close;
+          currentCandle.volume += candle.volume;
+          currentCandle.candleCount += 1;
+        } else {
+          // Finalize current aggregated candle and start new one
+          aggregated.push({
+            time: currentCandle.time,
+            open: currentCandle.open,
+            high: currentCandle.high,
+            low: currentCandle.low,
+            close: currentCandle.close,
+            volume: currentCandle.volume,
+          });
+          
+          currentCandle = {
+            time: candle.time,
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+            volume: candle.volume,
+            candleCount: 1,
+          };
+        }
+      }
+    }
+
+    // Add final aggregated candle
+    if (currentCandle) {
+      aggregated.push({
+        time: currentCandle.time,
+        open: currentCandle.open,
+        high: currentCandle.high,
+        low: currentCandle.low,
+        close: currentCandle.close,
+        volume: currentCandle.volume,
+      });
+    }
+
+    return aggregated;
   };
 
   // Custom timeframe helper functions for Journal tab (same as Trading Master)
@@ -5000,8 +5057,11 @@ ${
       let fromDate = today;
       let toDate = today;
       
-      if (['1', '3', '5', '10', '15', '30'].includes(selectedJournalInterval)) {
-        // Exchange-specific market hours
+      // Check if this is a day+ interval
+      const isDayOrHigher = selectedJournalInterval.endsWith('D') || selectedJournalInterval.endsWith('W') || selectedJournalInterval.endsWith('M');
+      
+      if (!isDayOrHigher) {
+        // Intraday: use exchange-specific market hours
         const exchange = stockToken.exchange.toUpperCase();
         const isMCX = exchange === 'MCX' || exchange === '3';
         const isNCDEX = exchange === 'NCDEX' || exchange === '5';
@@ -5020,14 +5080,15 @@ ${
           toDate = `${toDate} 15:30`;
         }
         
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${exchange} | Hours: ${fromDate} to ${toDate}`);
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${stockToken.exchange} | Hours: ${fromDate} to ${toDate}`);
       } else {
         // For daily and higher intervals, use full day
         fromDate = `${fromDate} 00:00`;
         toDate = `${toDate} 23:59`;
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | Hours: ${fromDate} to ${toDate}`);
       }
       
-      const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
+      const angelInterval = getJournalAngelOneInterval();
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
@@ -5112,8 +5173,18 @@ ${
       }
       
       if (candleData.length > 0) {
-        console.log(`🔶 Angel One: Loaded ${candleData.length} candles for journal chart`);
-        setJournalChartData(candleData);
+        console.log(`🔶 Angel One: Loaded ${candleData.length} 1-minute candles`);
+        
+        // Aggregate 1-minute candles to the selected timeframe
+        const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval);
+        let finalCandles = candleData;
+        
+        if (timeframeMinutes > 1) {
+          finalCandles = aggregateJournalCandles(candleData, timeframeMinutes);
+          console.log(`🔶 Aggregated to ${timeframeMinutes}-minute candles: ${finalCandles.length} bars`);
+        }
+        
+        setJournalChartData(finalCandles);
       } else {
         console.warn('🔶 Angel One: No candle data returned', data);
         setJournalChartData([]);

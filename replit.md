@@ -10,6 +10,31 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## November 28, 2025 - Fixed Critical Custom Timeframe Candle Chart Bug
+
+**CRITICAL FIX**: Chart now properly filters candles to exact custom timeframe:
+
+**Problem**: 
+- Hardcoded interval mapping (1, 3, 5, 10, 15, 30, 60 min) only worked for those exact intervals
+- Custom timeframes like 20min, 40min, 45min, 2hr displayed wrong candle data
+- Fallback to 15-minute default for unmapped intervals
+
+**Solution** (`client/src/pages/home.tsx`):
+- Removed hardcoded interval mapping completely
+- Always fetch 1-minute candles from Angel One API
+- Implemented `aggregateJournalCandles()` function that:
+  - Groups consecutive 1-minute candles into desired timeframe
+  - Tracks OHLC properly: open from first candle, high/low across all, close from last
+  - Aggregates volume across all candles in timeframe
+- Updated `getJournalAngelOneInterval()` to always return 'ONE_MINUTE'
+- Uses `getJournalTimeframeMinutes()` to convert all interval formats (1, 5, 20, 120, 1D, 1W, 1M) to minutes
+
+**Result**:
+- All preset timeframes work: 1min, 5min, 10min, 15min, 20min, 30min, 40min, 60min, 80min, 120min, 1D
+- All custom timeframes work perfectly with exact aggregation
+- Console logs show: "Loaded 50 1-minute candles" then "Aggregated to 20-minute candles: 2 bars"
+- No more display of wrong interval data
+
 ## November 27, 2025 - Dynamic Instrument Search Across All Exchanges
 
 Implemented comprehensive dynamic instrument search replacing hardcoded 18-stock dropdown with access to 10,000+ instruments from Angel One's master file:
