@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { angelOneApi } from './angel-one-api';
+import { angelOneWebSocket } from './angel-one-websocket';
 
 export interface RealLivePrice {
   symbol: string;
@@ -26,7 +27,8 @@ interface RealClientConnection {
   tradingSymbol: string;
   lastPrice: RealLivePrice | null;
   initialOhlc: { open: number; high: number; low: number; close: number; volume: number; ltp?: number };
-  fallbackCount: number; // Track fallback usage
+  fallbackCount: number;
+  webSocketSubscribed: boolean; // Track WebSocket subscription status
 }
 
 class AngelOneRealTicker {
@@ -56,11 +58,15 @@ class AngelOneRealTicker {
       tradingSymbol,
       lastPrice: null,
       initialOhlc: ohlc,
-      fallbackCount: 0
+      fallbackCount: 0,
+      webSocketSubscribed: false
     };
 
     this.clients.set(clientId, client);
-    console.log(`📡 [REAL-TICKER] Client connected: ${clientId} for ${symbol} (Fallback OHLC: ${ohlc.close}) (Total: ${this.clients.size})`);
+    console.log(`📡 [REAL-TICKER] Client connected: ${clientId} for ${symbol} (Total: ${this.clients.size})`);
+
+    // Subscribe to WebSocket for real-time tick-by-tick updates
+    this.subscribeToWebSocket(client);
 
     // Start broadcast if not running
     if (!this.broadcastInterval) {
@@ -90,122 +96,100 @@ class AngelOneRealTicker {
     return dayOfWeek >= 1 && dayOfWeek <= 5 && timeInMinutes >= marketOpen && timeInMinutes <= marketClose;
   }
 
+  private subscribeToWebSocket(client: RealClientConnection): void {
+    // Subscribe to WebSocket for tick-by-tick updates
+    const key = `${client.symbol}_${client.symbolToken}`;
+    
+    const tickCallback = (wsData: any) => {
+      // Convert WebSocket OHLC data to RealLivePrice format
+      const livePrice: RealLivePrice = {
+        symbol: client.symbol,
+        symbolToken: client.symbolToken,
+        exchange: client.exchange,
+        tradingSymbol: client.tradingSymbol,
+        time: Math.floor(Date.now() / 1000),
+        open: wsData.open || client.initialOhlc.open,
+        high: wsData.high || client.initialOhlc.high,
+        low: wsData.low || client.initialOhlc.low,
+        close: wsData.close || client.initialOhlc.close,
+        ltp: wsData.close || wsData.ltp || client.initialOhlc.close,
+        volume: wsData.volume || 0,
+        isRealTime: true,
+        marketStatus: 'live'
+      };
+      
+      client.lastPrice = livePrice;
+      if (client.res.writable) {
+        client.res.write(`data: ${JSON.stringify(livePrice)}\n\n`);
+      }
+    };
+
+    // Subscribe using Angel One API
+    angelOneApi.subscribeToWebSocket(
+      client.exchange,
+      client.symbolToken,
+      client.tradingSymbol,
+      tickCallback
+    );
+    
+    client.webSocketSubscribed = true;
+    console.log(`📡 [REAL-TICKER] WebSocket subscribed for ${client.symbol}`);
+  }
+
   private startBroadcast(): void {
-    const marketOpen = this.isMarketOpen();
-    console.log(`📡 [REAL-TICKER] Starting market data stream (Market: ${marketOpen ? 'OPEN' : 'CLOSED'})`);
+    console.log(`📡 [REAL-TICKER] Starting broadcast loop for fallback data (700ms interval)`);
     
     let broadcastCount = 0;
-    let lastQuoteFetchTime = 0;
-    const QUOTE_FETCH_INTERVAL = 1000; // Fetch quotes every 1 second max
     
-    this.broadcastInterval = setInterval(async () => {
+    this.broadcastInterval = setInterval(() => {
       broadcastCount++;
-      const activeClients = this.clients.size;
-      const currentTime = Date.now();
       
       // Log status periodically
       if (broadcastCount % 50 === 1) {
+        const activeClients = this.clients.size;
         const marketStatus = this.isMarketOpen() ? 'OPEN' : 'CLOSED';
         console.log(`📡 [REAL-TICKER] Cycle ${broadcastCount} | ${activeClients} clients | Market: ${marketStatus}`);
       }
 
-      // Throttle API calls
-      const shouldFetchQuotes = currentTime - lastQuoteFetchTime >= QUOTE_FETCH_INTERVAL;
-      
-      // Fetch real data for each client
+      // For each client, send fallback data if WebSocket hasn't provided live data
       const clientEntries = Array.from(this.clients.entries());
       for (const [clientId, client] of clientEntries) {
         try {
-          let livePrice: RealLivePrice | null = null;
-          let gotRealData = false;
-
-          // Try to get real quote from Angel One API (throttled)
-          if (shouldFetchQuotes) {
-            try {
-              const quote = await angelOneApi.getLTP(client.exchange, client.tradingSymbol, client.symbolToken);
-              
-              if (quote && quote.ltp > 0) {
-                livePrice = {
-                  symbol: client.symbol,
-                  symbolToken: client.symbolToken,
-                  exchange: client.exchange,
-                  tradingSymbol: client.tradingSymbol,
-                  time: Math.floor(Date.now() / 1000),
-                  open: quote.open,
-                  high: quote.high,
-                  low: quote.low,
-                  close: quote.close,
-                  ltp: quote.ltp,
-                  volume: quote.volume,
-                  isRealTime: true,
-                  marketStatus: 'live'
-                };
-                client.fallbackCount = 0;
-                this.lastRealDataTime = Date.now();
-                gotRealData = true;
-                lastQuoteFetchTime = currentTime;
-                
-                if (broadcastCount % 30 === 1) {
-                  console.log(`✅ [REAL-TICKER] LIVE: ${client.symbol} @ ₹${livePrice.ltp.toFixed(2)}`);
-                }
-              }
-            } catch (apiError: any) {
-              // API failed - log only occasionally to avoid spam
-              if (broadcastCount % 100 === 1) {
-                console.log(`⚠️ [REAL-TICKER] API unavailable for ${client.symbol}: ${apiError.message || 'Unknown error'}`);
-              }
-            }
-          }
-
-          // If no real data, use last candle data (static - no simulation)
-          if (!livePrice) {
-            // Use the last known price without any random changes
-            const basePrice = client.lastPrice || {
-              open: client.initialOhlc.open,
-              high: client.initialOhlc.high,
-              low: client.initialOhlc.low,
-              close: client.initialOhlc.close,
-              ltp: client.initialOhlc.close,
-              volume: client.initialOhlc.volume
-            };
-
-            livePrice = {
+          // If no live price yet, use fallback data (will be overridden by WebSocket)
+          if (!client.lastPrice) {
+            const fallbackPrice: RealLivePrice = {
               symbol: client.symbol,
               symbolToken: client.symbolToken,
               exchange: client.exchange,
               tradingSymbol: client.tradingSymbol,
               time: Math.floor(Date.now() / 1000),
-              open: basePrice.open,
-              high: basePrice.high,
-              low: basePrice.low,
-              close: basePrice.close,
-              ltp: basePrice.ltp || basePrice.close,
-              volume: basePrice.volume,
+              open: client.initialOhlc.open,
+              high: client.initialOhlc.high,
+              low: client.initialOhlc.low,
+              close: client.initialOhlc.close,
+              ltp: client.initialOhlc.close,
+              volume: client.initialOhlc.volume,
               isRealTime: false,
-              marketStatus: this.isMarketOpen() ? 'delayed' : 'closed'
+              marketStatus: this.isMarketOpen() ? 'awaiting_websocket' : 'closed'
             };
-            
+
             client.fallbackCount++;
-            
-            // Log market closed status once
             if (client.fallbackCount === 1) {
-              const status = this.isMarketOpen() ? 'Using last known price' : 'Market closed';
-              console.log(`📊 [REAL-TICKER] ${status}: ${client.symbol} @ ₹${livePrice.ltp.toFixed(2)}`);
+              console.log(`📊 [REAL-TICKER] Waiting for WebSocket data: ${client.symbol}`);
+            }
+
+            if (client.res.writable) {
+              client.lastPrice = fallbackPrice;
+              client.res.write(`data: ${JSON.stringify(fallbackPrice)}\n\n`);
             }
           }
-
-          // Send data if available
-          if (livePrice && client.res.writable) {
-            client.lastPrice = livePrice;
-            client.res.write(`data: ${JSON.stringify(livePrice)}\n\n`);
-          }
         } catch (error) {
-          if (broadcastCount % 50 === 1) {
+          if (broadcastCount % 100 === 1) {
             console.error(`❌ [REAL-TICKER] Error for ${client.symbol}:`, error instanceof Error ? error.message : String(error));
           }
         }
       }
-    }, 700); // 700ms interval
+    }, 700); // 700ms interval - fallback only, WebSocket provides live updates
   }
 
   private removeClient(clientId: string): void {
