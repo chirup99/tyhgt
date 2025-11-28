@@ -2,6 +2,38 @@ import { Response } from 'express';
 import { angelOneApi } from './angel-one-api';
 import { angelOneWebSocket } from './angel-one-websocket';
 
+// Exchange-specific trading hours configuration (IST)
+interface TradingSession {
+  openTime: number;   // Minutes from midnight (e.g., 9*60 + 15 = 555)
+  closeTime: number;  // Minutes from midnight (e.g., 15*60 + 30 = 930)
+}
+
+const EXCHANGE_TRADING_HOURS: Record<string, TradingSession> = {
+  // NSE - Cash & Equity (exch_seg: 'NSE' or '1')
+  'NSE': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },      // 9:15 AM - 3:30 PM
+  '1': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },        // 9:15 AM - 3:30 PM
+  
+  // NFO - NSE Futures & Options (exch_seg: 'NFO' or '2')
+  'NFO': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },      // 9:15 AM - 3:30 PM
+  '2': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },        // 9:15 AM - 3:30 PM
+  
+  // MCX - Commodities (exch_seg: 'MCX' or '3')
+  'MCX': { openTime: 9 * 60 + 0, closeTime: 23 * 60 + 55 },       // 9:00 AM - 11:55 PM
+  '3': { openTime: 9 * 60 + 0, closeTime: 23 * 60 + 55 },         // 9:00 AM - 11:55 PM
+  
+  // NCDEX - Agri Commodities (exch_seg: 'NCDEX' or '5')
+  'NCDEX': { openTime: 9 * 60 + 0, closeTime: 20 * 60 + 0 },      // 9:00 AM - 8:00 PM
+  '5': { openTime: 9 * 60 + 0, closeTime: 20 * 60 + 0 },          // 9:00 AM - 8:00 PM
+  
+  // BSE - Cash & Equity (exch_seg: 'BSE' or '6')
+  'BSE': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },      // 9:15 AM - 3:30 PM
+  '6': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },        // 9:15 AM - 3:30 PM
+  
+  // BFO - BSE Futures & Options (exch_seg: 'BFO' or '7')
+  'BFO': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },      // 9:15 AM - 3:30 PM
+  '7': { openTime: 9 * 60 + 15, closeTime: 15 * 60 + 30 },        // 9:15 AM - 3:30 PM
+};
+
 export interface RealLivePrice {
   symbol: string;
   symbolToken: string;
@@ -96,8 +128,36 @@ class AngelOneRealTicker {
     });
   }
 
-  private isMarketOpen(): boolean {
-    // Check if Indian market is open (9:15 AM - 3:30 PM IST, Monday-Friday)
+  private normalizeExchange(exchange: string): string {
+    // Normalize exchange codes to canonical form
+    // Handles composite codes like MCX_COMM, NSE_EQ, etc.
+    const upperExchange = exchange.toUpperCase();
+    
+    // Direct match first
+    if (EXCHANGE_TRADING_HOURS[upperExchange]) {
+      return upperExchange;
+    }
+    
+    // Extract base exchange from composite codes
+    if (upperExchange.startsWith('NSE')) return 'NSE';
+    if (upperExchange.startsWith('BSE')) return 'BSE';
+    if (upperExchange.startsWith('MCX')) return 'MCX';
+    if (upperExchange.startsWith('NFO')) return 'NFO';
+    if (upperExchange.startsWith('BFO')) return 'BFO';
+    if (upperExchange.startsWith('NCDEX')) return 'NCDEX';
+    
+    // Default to NSE if unknown
+    return 'NSE';
+  }
+
+  private isMarketOpen(exchange: string): boolean {
+    // Normalize exchange code first
+    const normalizedExchange = this.normalizeExchange(exchange);
+    
+    // Get exchange-specific trading hours
+    const session = EXCHANGE_TRADING_HOURS[normalizedExchange] || EXCHANGE_TRADING_HOURS['NSE'];
+    
+    // Check if market is open based on exchange-specific hours (Monday-Friday)
     const now = new Date();
     const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
     const istTime = new Date(now.getTime() + istOffset);
@@ -107,10 +167,7 @@ class AngelOneRealTicker {
     const minutes = istTime.getUTCMinutes();
     const timeInMinutes = hours * 60 + minutes;
     
-    const marketOpen = 9 * 60 + 15; // 9:15 AM
-    const marketClose = 15 * 60 + 30; // 3:30 PM
-    
-    return dayOfWeek >= 1 && dayOfWeek <= 5 && timeInMinutes >= marketOpen && timeInMinutes <= marketClose;
+    return dayOfWeek >= 1 && dayOfWeek <= 5 && timeInMinutes >= session.openTime && timeInMinutes <= session.closeTime;
   }
 
   private subscribeToWebSocket(client: RealClientConnection): void {
@@ -197,8 +254,10 @@ class AngelOneRealTicker {
       // Log status periodically
       if (broadcastCount % 50 === 1) {
         const activeClients = this.clients.size;
-        const marketStatus = this.isMarketOpen() ? 'OPEN' : 'CLOSED';
-        console.log(`📡 [REAL-TICKER] Cycle ${broadcastCount} | ${activeClients} clients | Market: ${marketStatus}`);
+        // Check market status for active exchanges
+        const exchanges = Array.from(new Set(Array.from(this.clients.values()).map(c => c.exchange)));
+        const marketStatuses = exchanges.map(ex => `${ex}:${this.isMarketOpen(ex) ? 'OPEN' : 'CLOSED'}`).join(', ');
+        console.log(`📡 [REAL-TICKER] Cycle ${broadcastCount} | ${activeClients} clients | Markets: ${marketStatuses || 'NONE'}`);
       }
 
       // For each client, send fallback data if WebSocket hasn't provided live data
@@ -220,7 +279,7 @@ class AngelOneRealTicker {
               ltp: client.initialOhlc.close,
               volume: client.initialOhlc.volume,
               isRealTime: false,
-              marketStatus: this.isMarketOpen() ? 'awaiting_websocket' : 'closed'
+              marketStatus: this.isMarketOpen(client.exchange) ? 'delayed' : 'closed'
             };
 
             client.fallbackCount++;
