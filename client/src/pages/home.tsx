@@ -4910,15 +4910,15 @@ ${
               return [...prev, newCandle];
             });
             
-            // Add new candle to chart series (NOT update, which modifies the last candle)
+            // Add new candle to chart series using update() - it adds if timestamp is newer
             setTimeout(() => {
               if (journalCandlestickSeriesRef.current && journalChartRef.current) {
                 // Save current viewport position before adding new candle
                 const timeScale = journalChartRef.current.timeScale();
                 const visibleRange = timeScale.getVisibleRange();
                 
-                // Add the new candle
-                journalCandlestickSeriesRef.current.addData({
+                // Use update() to add the new candle - it will add if time > last candle time
+                journalCandlestickSeriesRef.current.update({
                   time: currentCandleStartTime as any,
                   open: liveCandle.open,
                   high: liveCandle.high,
