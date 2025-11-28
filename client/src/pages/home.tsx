@@ -4896,8 +4896,9 @@ ${
           // Update countdown bar
           if (journalCountdownBarRef.current && data.countdown) {
             const percentRemaining = (data.countdown.remaining / data.countdown.total) * 100;
-            journalCountdownBarRef.current.style.width = `${percentRemaining}%`;
-            journalCountdownBarRef.current.title = `${data.countdown.remaining}s remaining`;
+            journalCountdownBarRef.current.style.scaleX = percentRemaining / 100;
+            journalCountdownBarRef.current.style.transformOrigin = 'right center';
+            journalCountdownBarRef.current.title = `${data.countdown.remaining}s / ${data.countdown.total}s`;
           }
         } else {
           console.log('⏳ Chart not ready yet:', { hasRef: !!journalCandlestickSeriesRef.current, hasChart: !!journalChartRef.current });
@@ -10446,12 +10447,21 @@ ${
                                 {journalChartData?.length || 0}
                               </div>
                               
-                              {/* Countdown Bar - Price Scale Bottom */}
+                              {/* Countdown Bar - Price Scale Live Price Level */}
                               <div 
-                                className="absolute bottom-0 right-0 z-30 h-1 bg-gradient-to-r from-orange-500 to-red-500 pointer-events-none transition-all"
+                                className="absolute z-30 bg-gradient-to-r from-orange-500 to-red-500 pointer-events-none transition-all"
                                 ref={journalCountdownBarRef}
-                                style={{ width: '100%' }}
+                                style={{ 
+                                  right: '60px',
+                                  top: '50%',
+                                  width: '60px',
+                                  height: '24px',
+                                  borderRadius: '4px',
+                                  transform: 'translateY(-50%)',
+                                  scaleX: 1
+                                }}
                                 data-testid="countdown-bar"
+                                title="Candle countdown"
                               />
                               
                               {/* Live OHLC Ticker - Top Left Corner Overlay */}
