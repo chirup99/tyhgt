@@ -5288,7 +5288,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, journalChartData]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
 
   // Convert trade history to chart markers
   const getTradeMarkersForChart = useCallback(() => {
