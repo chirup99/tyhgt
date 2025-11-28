@@ -7885,74 +7885,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Fetch live quotes from Angel One
-      const symbolsToFetch = indices.map(idx => ({
-        exchange: idx.exchange,
-        tradingSymbol: ANGEL_ONE_STOCK_TOKENS[idx.symbol]?.tradingSymbol || idx.symbol,
-        symbolToken: idx.token
-      }));
+      // Get cached WebSocket prices for live indices
+      const tokens = indices.map(idx => idx.token);
+      const cachedPrices = angelOneWebSocket.getLatestPrices(tokens);
 
-      try {
-        const quotesResponse = await angelOneApi.getQuotes(symbolsToFetch);
+      // Build results using cached WebSocket data
+      const results = indices.map((idx) => {
+        const price = cachedPrices.get(idx.token);
+        const isLive = idx.marketOpen && price && price.close > 0;
         
-        // Angel One API returns data as object with keys like "NSE:99926009" or direct data array
-        // Handle both formats defensively
-        let quotesData: any = quotesResponse;
-        if (quotesResponse?.data) {
-          quotesData = quotesResponse.data;
-        }
-        
-        const results = indices.map((idx) => {
-          // Try multiple key formats: "NSE:99926009", "99926009", or array access
-          const quoteKey = `${idx.exchange}:${idx.token}`;
-          let quote = quotesData?.[quoteKey] || quotesData?.[idx.token];
-          
-          // If quotesData is an array, find by token
-          if (Array.isArray(quotesData)) {
-            quote = quotesData.find((q: any) => 
-              q?.symbolToken === idx.token || 
-              q?.token === idx.token ||
-              q?.symboltoken === idx.token
-            );
-          }
-          
-          const ltp = quote?.ltp || quote?.lastPrice || quote?.last_price || 0;
-          const isLive = idx.marketOpen && ltp > 0;
-          
-          return {
-            ...idx,
-            ltp,
-            change: quote?.change || quote?.netChange || 0,
-            changePercent: quote?.changePercent || quote?.percentChange || quote?.pChange || 0,
-            open: quote?.open || quote?.openPrice || 0,
-            high: quote?.high || quote?.dayHigh || 0,
-            low: quote?.low || quote?.dayLow || 0,
-            close: quote?.close || quote?.previousClose || ltp || 0,
-            volume: quote?.volume || quote?.tradedVolume || 0,
-            isLive,
-            lastUpdate: isLive ? new Date().toISOString() : (quote?.timestamp || quote?.exchFeedTime || null)
-          };
-        });
+        return {
+          ...idx,
+          ltp: price?.close || 0,
+          change: 0,
+          changePercent: 0,
+          open: price?.open || 0,
+          high: price?.high || 0,
+          low: price?.low || 0,
+          close: price?.close || 0,
+          volume: price?.volume || 0,
+          isLive,
+          lastUpdate: isLive && price ? new Date(price.time * 1000).toISOString() : null
+        };
+      });
 
-        res.json({
-          success: true,
-          connected: true,
-          websocketActive: angelOneApi.getApiStats?.()?.websocketActive || false,
-          timestamp: new Date().toISOString(),
-          istTime: `${istHour.toString().padStart(2, '0')}:${istMinute.toString().padStart(2, '0')}`,
-          marketStatus: { nseOpen: !isWeekend && nseOpen, mcxOpen: !isWeekend && mcxOpen, isWeekend },
-          indices: results
-        });
-      } catch (quoteError: any) {
-        console.error('❌ [LIVE-INDICES] Quote fetch error:', quoteError.message);
-        res.json({
-          success: true,
-          connected: true,
-          websocketActive: false,
-          error: quoteError.message,
-          indices: indices.map(createEmptyIndex)
-        });
-      }
+      res.json({
+        success: true,
+        connected: true,
+        websocketActive: cachedPrices.size > 0,
+        timestamp: new Date().toISOString(),
+        istTime: `${istHour.toString().padStart(2, '0')}:${istMinute.toString().padStart(2, '0')}`,
+        marketStatus: { nseOpen: !isWeekend && nseOpen, mcxOpen: !isWeekend && mcxOpen, isWeekend },
+        indices: results
+      });
     } catch (error: any) {
       console.error('❌ [LIVE-INDICES] Error:', error.message);
       res.status(500).json({ 

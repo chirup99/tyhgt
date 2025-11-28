@@ -405,6 +405,58 @@ class AngelOneWebSocket {
     };
   }
 
+  // Get latest prices for specific tokens (used for live-indices endpoint)
+  getLatestPrices(tokens: string[]): Map<string, WebSocketOHLC> {
+    const prices = new Map<string, WebSocketOHLC>();
+    
+    for (const token of tokens) {
+      // Find by token in latestPrices
+      let found = false;
+      for (const [key, price] of this.latestPrices.entries()) {
+        if (price.symbolToken === token) {
+          prices.set(token, price);
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        // Check if subscription exists but no price yet
+        const hasSubscription = Array.from(this.subscriptions.values()).some(
+          sub => sub.symbolToken === token
+        );
+        if (hasSubscription) {
+          console.log(`⏳ [WEBSOCKET] Token ${token} subscribed but no price data yet`);
+        }
+      }
+    }
+    
+    return prices;
+  }
+
+  // Subscribe to live index prices (BANKNIFTY, SENSEX, GOLD)
+  subscribeToLiveIndices(): void {
+    const indices = [
+      { symbol: 'BANKNIFTY', token: '99926009', exchange: 'NSE' },
+      { symbol: 'SENSEX', token: '99919000', exchange: 'BSE' },
+      { symbol: 'GOLD', token: '99920003', exchange: 'MCX' }
+    ];
+
+    for (const idx of indices) {
+      const key = `${idx.symbol}_${idx.token}`;
+      const exchangeType = this.getExchangeType(idx.exchange);
+      
+      // Add to subscriptions
+      this.subscriptions.set(key, { symbolToken: idx.token, exchange: exchangeType });
+      console.log(`📊 [WEBSOCKET] Added live index subscription: ${idx.symbol} (${idx.token})`);
+    }
+
+    // Subscribe if connected
+    if (this.isConnected && this.ws) {
+      this.subscribeToSymbols();
+    }
+  }
+
   disconnect(): void {
     if (this.broadcastInterval) {
       clearInterval(this.broadcastInterval);

@@ -314,6 +314,9 @@ class AngelOneAPI {
         console.log('⚠️ [Angel One] WebSocket connection deferred:', err.message);
       });
 
+      // Auto-subscribe to live indices (BANKNIFTY, SENSEX, GOLD)
+      angelOneWebSocket.subscribeToLiveIndices();
+
       return this.session;
 
     } catch (error: any) {
