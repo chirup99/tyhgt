@@ -4640,8 +4640,9 @@ ${
   
   // Search suggestions for categories without pre-populated defaults
   const categorySearchSuggestions: Record<string, string[]> = {
-    commodity: ['gold', 'silver', 'crude', 'copper', 'natural gas', 'aluminium'],
-    fo: ['nifty', 'banknifty', 'reliance', 'tcs', 'infy'],
+    commodity: ['gold', 'silver', 'crude', 'copper', 'natural gas', 'aluminium', 'zinc', 'nickel'],
+    fo: ['nifty', 'banknifty', 'finnifty', 'reliance', 'tcs', 'infy', 'hdfcbank'],
+    currency: ['usdinr', 'eurinr', 'gbpinr', 'jpyinr', 'eurusd'],
   };
   
   // Dynamic instrument search state
@@ -10593,6 +10594,7 @@ ${
                                           { id: 'stock', label: 'Stock' },
                                           { id: 'commodity', label: 'Commodity' },
                                           { id: 'fo', label: 'F&O' },
+                                          { id: 'currency', label: 'Currency' },
                                           { id: 'index', label: 'Index' }
                                         ].map(cat => (
                                           <button
@@ -10630,14 +10632,23 @@ ${
                                                 return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
                                                   (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || i.symbol?.endsWith('-EQ'));
                                               case 'commodity':
-                                                // MCX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
-                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM');
+                                                // MCX and NCDEX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
+                                                return (i.exchange === 'MCX' || i.exchange === 'NCDEX') && 
+                                                  (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || 
+                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' ||
+                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'FUTCDS');
                                               case 'fo':
-                                                // F&O: Futures and Options on NSE/BSE (not MCX commodities in this category)
-                                                return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
+                                                // F&O: Futures and Options on NSE/BSE/NFO/BFO
+                                                return (i.exchange === 'NSE' || i.exchange === 'BSE' || i.exchange === 'NFO' || i.exchange === 'BFO') && 
                                                   (i.instrumentType === 'FUTSTK' || i.instrumentType === 'FUTIDX' || 
                                                    i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTIDX' || 
-                                                   i.instrumentType === 'OPTFUT');
+                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTBAS' ||
+                                                   i.instrumentType === 'FUTIRT' || i.instrumentType === 'OPTIRT');
+                                              case 'currency':
+                                                // Currency Derivatives: CDS exchange AND currency instrument types
+                                                return i.exchange === 'CDS' && 
+                                                  (i.instrumentType === 'FUTCUR' || i.instrumentType === 'OPTCUR' || 
+                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX');
                                               case 'index':
                                                 // Indices: AMXIDX is the main index type from Angel One
                                                 return i.instrumentType === 'AMXIDX' || i.instrumentType === 'INDEX';
@@ -10691,6 +10702,9 @@ ${
                                                           instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
                                                           instrument.exchange === 'MCX' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
                                                           instrument.exchange === 'NFO' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                                                          instrument.exchange === 'BFO' ? 'bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300' :
+                                                          instrument.exchange === 'CDS' ? 'bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-300' :
+                                                          instrument.exchange === 'NCDEX' ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300' :
                                                           'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                                                         }`}>
                                                           {instrument.exchange}
@@ -10715,7 +10729,7 @@ ${
                                               /* Show search suggestions for Commodity and F&O */
                                               <div className="px-3 py-3 space-y-3">
                                                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                  Search for {selectedInstrumentCategory === 'commodity' ? 'MCX Commodities' : 'F&O Derivatives'}:
+                                                  Search for {selectedInstrumentCategory === 'commodity' ? 'MCX/NCDEX Commodities' : selectedInstrumentCategory === 'currency' ? 'Currency Derivatives' : 'F&O Derivatives'}:
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5">
                                                   {(categorySearchSuggestions[selectedInstrumentCategory] || []).map((suggestion) => (
@@ -10748,14 +10762,23 @@ ${
                                                 return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
                                                   (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || i.symbol?.endsWith('-EQ'));
                                               case 'commodity':
-                                                // MCX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
-                                                return i.exchange === 'MCX' && (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM');
+                                                // MCX and NCDEX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
+                                                return (i.exchange === 'MCX' || i.exchange === 'NCDEX') && 
+                                                  (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || 
+                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' ||
+                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'FUTCDS');
                                               case 'fo':
-                                                // F&O: Futures and Options on NSE/BSE (not MCX commodities in this category)
-                                                return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
+                                                // F&O: Futures and Options on NSE/BSE/NFO/BFO
+                                                return (i.exchange === 'NSE' || i.exchange === 'BSE' || i.exchange === 'NFO' || i.exchange === 'BFO') && 
                                                   (i.instrumentType === 'FUTSTK' || i.instrumentType === 'FUTIDX' || 
                                                    i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTIDX' || 
-                                                   i.instrumentType === 'OPTFUT');
+                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTBAS' ||
+                                                   i.instrumentType === 'FUTIRT' || i.instrumentType === 'OPTIRT');
+                                              case 'currency':
+                                                // Currency Derivatives: CDS exchange AND currency instrument types
+                                                return i.exchange === 'CDS' && 
+                                                  (i.instrumentType === 'FUTCUR' || i.instrumentType === 'OPTCUR' || 
+                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX');
                                               case 'index':
                                                 // Indices: AMXIDX is the main index type from Angel One
                                                 return i.instrumentType === 'AMXIDX' || i.instrumentType === 'INDEX';
@@ -10793,6 +10816,10 @@ ${
                                                   instrument.exchange === 'NSE' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
                                                   instrument.exchange === 'BSE' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
                                                   instrument.exchange === 'MCX' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' :
+                                                  instrument.exchange === 'NFO' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                                                  instrument.exchange === 'BFO' ? 'bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300' :
+                                                  instrument.exchange === 'CDS' ? 'bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-300' :
+                                                  instrument.exchange === 'NCDEX' ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300' :
                                                   'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                                                 }`}>
                                                   {instrument.exchange}
