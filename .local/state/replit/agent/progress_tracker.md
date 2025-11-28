@@ -116,3 +116,24 @@
 [x] 3481.   - Application is fully functional and ready for development
 [x] 3482.   - All progress tracker items marked as complete
 [x] 3483. REPLIT PROJECT IMPORT 100% COMPLETE!
+
+[x] 3484. NOVEMBER 28, 2025 - FIXED FOMO CURVED LINES ON TRADE BOOK PURPLE BAR
+[x] 3485. Task: Fix FOMO curved lines not displaying when tapped on Trade Book purple bar
+[x] 3486. Problem identified:
+[x] 3487.   - After adding 3-dot dropdown menu, FOMO curved lines stopped displaying
+[x] 3488.   - User could tap FOMO block but no curved lines appeared connecting to heatmap dates
+[x] 3489.   - Curved lines still worked in Share dialog (My Trading Report)
+[x] 3490. Root cause found:
+[x] 3491.   - FOMO button in Trade Book purple bar was missing `ref={fomoButtonRef}`
+[x] 3492.   - Curved lines logic at line 11255 checks for `fomoButtonRef.current` 
+[x] 3493.   - Without the ref, the check returned null and no lines were drawn
+[x] 3494.   - Report Dialog had the correct ref: `ref={reportDialogFomoButtonRef}` (that's why it worked)
+[x] 3495. Solution applied:
+[x] 3496.   - Added `ref={fomoButtonRef}` to the FOMO button in Trade Book purple bar
+[x] 3497.   - Added helpful title attribute for better UX
+[x] 3498.   - File: client/src/pages/home.tsx (around line 11458)
+[x] 3499. Verification:
+[x] 3500.   - Workflow restarted successfully
+[x] 3501.   - Application running on port 5000
+[x] 3502.   - FOMO curved lines now display correctly when FOMO block is tapped
+[x] 3503. FOMO CURVED LINES FIX 100% COMPLETE!

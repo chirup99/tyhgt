@@ -11452,9 +11452,15 @@ ${
                                       </div>
                                     )}
                                     {visibleStats.fomo && (
-                                      <button className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
-                                        activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
-                                      }`} onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === 'fomo' ? null : { tag: 'fomo', dates: fomoDates })} data-testid="stat-fomo">
+                                      <button 
+                                        ref={fomoButtonRef}
+                                        className={`flex flex-col items-center justify-center hover-elevate active-elevate-2 rounded px-1 transition-all ${
+                                          activeTagHighlight?.tag === 'fomo' ? 'bg-white/30 ring-2 ring-white/50' : ''
+                                        }`} 
+                                        onClick={() => setActiveTagHighlight(activeTagHighlight?.tag === 'fomo' ? null : { tag: 'fomo', dates: fomoDates })} 
+                                        data-testid="stat-fomo"
+                                        title={`Click to ${activeTagHighlight?.tag === 'fomo' ? 'hide' : 'show'} FOMO dates on heatmap`}
+                                      >
                                         <div className="text-[10px] opacity-80">FOMO</div>
                                         <div className="text-xs font-bold">{fomoTrades}</div>
                                       </button>
