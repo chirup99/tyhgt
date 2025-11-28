@@ -8000,6 +8000,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Convert Angel One interval format to seconds
+  const getIntervalInSeconds = (interval: string): number => {
+    const intervalMap: { [key: string]: number } = {
+      'ONE_MINUTE': 60,
+      'THREE_MINUTE': 180,
+      'FIVE_MINUTE': 300,
+      'TEN_MINUTE': 600,
+      'FIFTEEN_MINUTE': 900,
+      'THIRTY_MINUTE': 1800,
+      'ONE_HOUR': 3600,
+      'ONE_DAY': 86400,
+    };
+    return intervalMap[interval] || 900; // Default to 15 minutes
+  };
+
   // Angel One - Get historical candle data
   app.post("/api/angelone/historical", async (req, res) => {
     try {
@@ -8021,12 +8036,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Return mock/theoretical candles when not connected (for UI testing)
         console.log('📊 Angel One not connected - returning theoretical candle data for chart preview');
+        console.log(`📊 Generating mock candles with interval: ${interval}`);
+        
         const mockCandles = [];
         const now = Math.floor(Date.now() / 1000);
+        const intervalSeconds = getIntervalInSeconds(interval); // Use actual interval, not hardcoded 900
         let price = 75000; // Starting price
         
-        for (let i = 50; i > 0; i--) {
-          const time = now - (i * 900); // 15-min intervals
+        // Generate more candles for daily/weekly intervals to show meaningful data
+        const candleCount = interval === 'ONE_DAY' ? 100 : (interval === 'ONE_HOUR' ? 72 : 50);
+        
+        for (let i = candleCount; i > 0; i--) {
+          const time = now - (i * intervalSeconds); // Use actual interval
           const open = price;
           const close = price + (Math.random() - 0.5) * 200;
           mockCandles.push({
@@ -8040,6 +8061,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           price = close;
         }
         
+        console.log(`📊 Generated ${mockCandles.length} mock candles with ${intervalSeconds}s interval`);
         res.json({ 
           success: true,
           candles: mockCandles
