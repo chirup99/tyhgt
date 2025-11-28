@@ -160,20 +160,32 @@ class AngelOneWebSocket {
 
       if (!token || !ltp) return;
 
-      // Find subscription by token
+      // Normalize token to string (remove quotes, whitespace)
+      const normalizedToken = String(token).replace(/"/g, '').trim();
+
+      // Find subscription by token - try multiple formats
       let symbolKey: string | null = null;
       let symbolData: SubscriptionInfo | undefined;
 
       const entries = Array.from(this.subscriptions.entries());
       for (const [key, sub] of entries) {
-        if (sub.symbolToken === String(token)) {
+        const subToken = String(sub.symbolToken).replace(/"/g, '').trim();
+        
+        // Try exact match, number match, and string match
+        if (subToken === normalizedToken || 
+            subToken === String(token) ||
+            parseInt(subToken) === parseInt(normalizedToken)) {
           symbolKey = key;
           symbolData = sub;
+          console.log(`✅ [WS] Token match found: ${normalizedToken} -> ${key}`);
           break;
         }
       }
 
-      if (!symbolKey || !symbolData) return;
+      if (!symbolKey || !symbolData) {
+        console.debug(`⚠️ [WS] No subscription found for token: ${normalizedToken}. Available subscriptions: ${Array.from(this.subscriptions.values()).map(s => s.symbolToken).join(', ')}`);
+        return;
+      }
 
       // Parse prices (Angel One sends prices in paise, divide by 100)
       const priceDiv = 100;
@@ -181,21 +193,21 @@ class AngelOneWebSocket {
       // Update latest price data
       const ohlcData: WebSocketOHLC = {
         symbol: symbolKey.split('_')[0],
-        symbolToken: String(token).replace(/"/g, '').trim(),
+        symbolToken: normalizedToken,
         exchange: this.getExchangeName(symbolData.exchange),
         time: Math.floor(Date.now() / 1000),
-        open: open ? parseFloat(open) / priceDiv : parseFloat(ltp) / priceDiv,
-        high: high ? parseFloat(high) / priceDiv : parseFloat(ltp) / priceDiv,
-        low: low ? parseFloat(low) / priceDiv : parseFloat(ltp) / priceDiv,
-        close: parseFloat(ltp) / priceDiv,
-        volume: volume ? parseFloat(volume) : 0
+        open: open ? parseFloat(String(open)) / priceDiv : parseFloat(String(ltp)) / priceDiv,
+        high: high ? parseFloat(String(high)) / priceDiv : parseFloat(String(ltp)) / priceDiv,
+        low: low ? parseFloat(String(low)) / priceDiv : parseFloat(String(ltp)) / priceDiv,
+        close: parseFloat(String(ltp)) / priceDiv,
+        volume: volume ? parseFloat(String(volume)) : 0
       };
 
       this.latestPrices.set(symbolKey, ohlcData);
-      console.log(`💹 [WS] ${ohlcData.symbol}: O=${ohlcData.open} H=${ohlcData.high} L=${ohlcData.low} C=${ohlcData.close}`);
+      console.log(`💹 [WS] ${ohlcData.symbol}: LTP=${ohlcData.close} O=${ohlcData.open} H=${ohlcData.high} L=${ohlcData.low} V=${ohlcData.volume}`);
 
     } catch (error: any) {
-      console.debug('[WEBSOCKET] Tick parse error:', error?.message);
+      console.error('[WEBSOCKET] Tick parse error:', error?.message, error?.stack);
     }
   }
 
