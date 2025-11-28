@@ -10628,27 +10628,19 @@ ${
                                             
                                             switch(selectedInstrumentCategory) {
                                               case 'stock':
-                                                // NSE/BSE stocks have empty instrumentType, symbol ends with -EQ
+                                                // NSE/BSE stocks - equity instruments (like paper trading STOCK type)
                                                 return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
-                                                  (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || i.symbol?.endsWith('-EQ'));
+                                                  (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || 
+                                                   i.symbol?.endsWith('-EQ') || i.instrumentType === 'AMXIDX');
                                               case 'commodity':
-                                                // MCX and NCDEX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
-                                                return (i.exchange === 'MCX' || i.exchange === 'NCDEX') && 
-                                                  (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || 
-                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' ||
-                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'FUTCDS');
+                                                // MCX and NCDEX - ALL commodity instruments (like paper trading MCX type)
+                                                return i.exchange === 'MCX' || i.exchange === 'NCDEX';
                                               case 'fo':
-                                                // F&O: Futures and Options on NSE/BSE/NFO/BFO
-                                                return (i.exchange === 'NSE' || i.exchange === 'BSE' || i.exchange === 'NFO' || i.exchange === 'BFO') && 
-                                                  (i.instrumentType === 'FUTSTK' || i.instrumentType === 'FUTIDX' || 
-                                                   i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTIDX' || 
-                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTBAS' ||
-                                                   i.instrumentType === 'FUTIRT' || i.instrumentType === 'OPTIRT');
+                                                // F&O: NFO and BFO exchanges (like paper trading FUTURES/OPTIONS type)
+                                                return i.exchange === 'NFO' || i.exchange === 'BFO';
                                               case 'currency':
-                                                // Currency Derivatives: CDS exchange AND currency instrument types
-                                                return i.exchange === 'CDS' && 
-                                                  (i.instrumentType === 'FUTCUR' || i.instrumentType === 'OPTCUR' || 
-                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX');
+                                                // Currency Derivatives: CDS exchange
+                                                return i.exchange === 'CDS';
                                               case 'index':
                                                 // Indices: AMXIDX is the main index type from Angel One
                                                 return i.instrumentType === 'AMXIDX' || i.instrumentType === 'INDEX';
@@ -10758,27 +10750,19 @@ ${
                                             
                                             switch(selectedInstrumentCategory) {
                                               case 'stock':
-                                                // NSE/BSE stocks have empty instrumentType, symbol ends with -EQ
+                                                // NSE/BSE stocks - equity instruments (like paper trading STOCK type)
                                                 return (i.exchange === 'NSE' || i.exchange === 'BSE') && 
-                                                  (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || i.symbol?.endsWith('-EQ'));
+                                                  (!i.instrumentType || i.instrumentType === '' || i.instrumentType === 'EQ' || 
+                                                   i.symbol?.endsWith('-EQ') || i.instrumentType === 'AMXIDX');
                                               case 'commodity':
-                                                // MCX and NCDEX commodities: COMDTY for spot, FUTCOM for futures, OPTFUT/OPTCOM for options
-                                                return (i.exchange === 'MCX' || i.exchange === 'NCDEX') && 
-                                                  (i.instrumentType === 'COMDTY' || i.instrumentType === 'FUTCOM' || 
-                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'OPTCOM' ||
-                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'FUTCDS');
+                                                // MCX and NCDEX - ALL commodity instruments (like paper trading MCX type)
+                                                return i.exchange === 'MCX' || i.exchange === 'NCDEX';
                                               case 'fo':
-                                                // F&O: Futures and Options on NSE/BSE/NFO/BFO
-                                                return (i.exchange === 'NSE' || i.exchange === 'BSE' || i.exchange === 'NFO' || i.exchange === 'BFO') && 
-                                                  (i.instrumentType === 'FUTSTK' || i.instrumentType === 'FUTIDX' || 
-                                                   i.instrumentType === 'OPTSTK' || i.instrumentType === 'OPTIDX' || 
-                                                   i.instrumentType === 'OPTFUT' || i.instrumentType === 'FUTBAS' ||
-                                                   i.instrumentType === 'FUTIRT' || i.instrumentType === 'OPTIRT');
+                                                // F&O: NFO and BFO exchanges (like paper trading FUTURES/OPTIONS type)
+                                                return i.exchange === 'NFO' || i.exchange === 'BFO';
                                               case 'currency':
-                                                // Currency Derivatives: CDS exchange AND currency instrument types
-                                                return i.exchange === 'CDS' && 
-                                                  (i.instrumentType === 'FUTCUR' || i.instrumentType === 'OPTCUR' || 
-                                                   i.instrumentType === 'FUTIDX' || i.instrumentType === 'OPTIDX');
+                                                // Currency Derivatives: CDS exchange
+                                                return i.exchange === 'CDS';
                                               case 'index':
                                                 // Indices: AMXIDX is the main index type from Angel One
                                                 return i.instrumentType === 'AMXIDX' || i.instrumentType === 'INDEX';
