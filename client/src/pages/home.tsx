@@ -4978,17 +4978,23 @@ ${
           horzLine: { color: '#9ca3af', width: 1, style: 2, labelBackgroundColor: '#f3f4f6' },
         },
         rightPriceScale: {
+          visible: true,
+          borderVisible: true,
           borderColor: '#e5e7eb',
-          scaleMargins: { top: 0.05, bottom: 0.2 },
+          scaleMargins: { top: 0.1, bottom: 0.15 },
           autoScale: true,
         },
         timeScale: {
+          visible: true,
+          borderVisible: true,
           borderColor: '#e5e7eb',
           timeVisible: true,
           secondsVisible: false,
           barSpacing: 12,
           minBarSpacing: 4,
-          scaleMargins: { top: 0.1, bottom: 0.05 },
+          fixLeftEdge: false,
+          fixRightEdge: false,
+          lockVisibleTimeRangeOnResize: false,
           tickMarkFormatter: (time: number) => {
             // Convert UTC timestamp to IST (UTC+5:30) and format for display
             const date = new Date(time * 1000);
