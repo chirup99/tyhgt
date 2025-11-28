@@ -29,6 +29,8 @@ interface RealClientConnection {
   initialOhlc: { open: number; high: number; low: number; close: number; volume: number; ltp?: number };
   fallbackCount: number;
   webSocketSubscribed: boolean; // Track WebSocket subscription status
+  // Candle OHLC tracking - tracks OHL for current candle interval based on LTP ticks
+  candleOhlc: { open: number; high: number; low: number; close: number; candleStartTime: number; intervalSeconds: number };
 }
 
 class AngelOneRealTicker {
@@ -36,7 +38,7 @@ class AngelOneRealTicker {
   private broadcastInterval: NodeJS.Timeout | null = null;
   private lastRealDataTime: number = 0;
 
-  addClient(clientId: string, res: Response, symbol: string, symbolToken: string, exchange: string, tradingSymbol: string, initialOhlc?: { open: number; high: number; low: number; close: number; volume: number; ltp?: number }): void {
+  addClient(clientId: string, res: Response, symbol: string, symbolToken: string, exchange: string, tradingSymbol: string, initialOhlc?: { open: number; high: number; low: number; close: number; volume: number; ltp?: number }, intervalSecondsParam?: number): void {
     // Set SSE headers
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -47,6 +49,12 @@ class AngelOneRealTicker {
 
     // Initialize with last known candle data
     const ohlc = initialOhlc || { open: 0, high: 0, low: 0, close: 0, volume: 0, ltp: 0 };
+
+    // Use interval from frontend, default to 15 min if not provided
+    const intervalSeconds = intervalSecondsParam || 900;
+    const now = Math.floor(Date.now() / 1000);
+    const candleStartTime = Math.floor(now / intervalSeconds) * intervalSeconds;
+    console.log(`📡 [REAL-TICKER] Using ${intervalSeconds}s candle interval for ${symbol}`);
 
     // Store client
     const client: RealClientConnection = {
@@ -59,7 +67,16 @@ class AngelOneRealTicker {
       lastPrice: null,
       initialOhlc: ohlc,
       fallbackCount: 0,
-      webSocketSubscribed: false
+      webSocketSubscribed: false,
+      // Initialize candle OHLC with initial values from historical data
+      candleOhlc: {
+        open: ohlc.open,
+        high: ohlc.high,
+        low: ohlc.low,
+        close: ohlc.close,
+        candleStartTime,
+        intervalSeconds
+      }
     };
 
     this.clients.set(clientId, client);
@@ -101,22 +118,55 @@ class AngelOneRealTicker {
     const key = `${client.symbol}_${client.symbolToken}`;
     
     const tickCallback = (wsData: any) => {
-      // Convert WebSocket OHLC data to RealLivePrice format
+      const currentTime = Math.floor(Date.now() / 1000);
+      const ltp = wsData.close || wsData.ltp || client.initialOhlc.close;
+      
+      if (ltp <= 0) return; // Skip invalid prices
+      
+      // Calculate current candle's start time
+      const currentCandleStart = Math.floor(currentTime / client.candleOhlc.intervalSeconds) * client.candleOhlc.intervalSeconds;
+      
+      // Determine if this is a new candle BEFORE updating the candleOhlc
+      const isNewCandle = currentCandleStart > client.candleOhlc.candleStartTime;
+      
+      // Check if we've moved to a new candle interval
+      if (isNewCandle) {
+        // New candle! Reset OHLC with current LTP as the new candle's open
+        console.log(`🕯️ [CANDLE-NEW] ${client.symbol}: New candle started at ${new Date(currentCandleStart * 1000).toLocaleTimeString()} (${client.candleOhlc.intervalSeconds}s interval)`);
+        client.candleOhlc = {
+          open: ltp,
+          high: ltp,
+          low: ltp,
+          close: ltp,
+          candleStartTime: currentCandleStart,
+          intervalSeconds: client.candleOhlc.intervalSeconds
+        };
+      } else {
+        // Same candle - update HLC based on LTP
+        client.candleOhlc.high = Math.max(client.candleOhlc.high, ltp);
+        client.candleOhlc.low = Math.min(client.candleOhlc.low, ltp);
+        client.candleOhlc.close = ltp;
+      }
+      
+      // Send candle data with properly tracked OHLC (not day's OHLC)
       const livePrice: RealLivePrice = {
         symbol: client.symbol,
         symbolToken: client.symbolToken,
         exchange: client.exchange,
         tradingSymbol: client.tradingSymbol,
-        time: Math.floor(Date.now() / 1000),
-        open: wsData.open || client.initialOhlc.open,
-        high: wsData.high || client.initialOhlc.high,
-        low: wsData.low || client.initialOhlc.low,
-        close: wsData.close || client.initialOhlc.close,
-        ltp: wsData.close || wsData.ltp || client.initialOhlc.close,
+        time: currentTime,
+        open: client.candleOhlc.open,
+        high: client.candleOhlc.high,
+        low: client.candleOhlc.low,
+        close: client.candleOhlc.close,
+        ltp: ltp,
         volume: wsData.volume || 0,
         isRealTime: true,
-        marketStatus: 'live'
-      };
+        marketStatus: 'live',
+        // Include candle timing info for frontend
+        candleStartTime: client.candleOhlc.candleStartTime,
+        isNewCandle: isNewCandle
+      } as any;
       
       client.lastPrice = livePrice;
       if (client.res.writable) {

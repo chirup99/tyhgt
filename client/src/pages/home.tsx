@@ -4744,8 +4744,11 @@ ${
     // Get the last candle from chart data for initial OHLC values
     const lastCandle = journalChartData[journalChartData.length - 1];
     
+    // Get interval in seconds for candle tracking on server
+    const intervalSeconds = getIntervalInSeconds(selectedJournalInterval);
+    
     // Start new WebSocket SSE connection with REAL Angel One market data
-    let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}`);
+    let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}&interval=${intervalSeconds}`);
     
     // Add initial OHLC as fallback for when real API fails
     if (lastCandle && lastCandle.close > 0) {
@@ -4753,7 +4756,7 @@ ${
       console.log('📡 [SSE] Initial fallback OHLC:', { open: lastCandle.open, high: lastCandle.high, low: lastCandle.low, close: lastCandle.close });
     }
     
-    console.log('📡 [SSE] Connecting for REAL Angel One market data at 700ms intervals');
+    console.log(`📡 [SSE] Connecting for REAL Angel One market data at 700ms intervals (${intervalSeconds}s candle interval)`);
     
     const eventSource = new EventSource(sseUrl);
     journalEventSourceRef.current = eventSource;
@@ -4827,8 +4830,50 @@ ${
             console.log('📊 [UPDATE] Same candle interval, updating OHLC only');
           } else if (currentCandleStartTime > lastCandleStartTime) {
             // We've crossed into a new candle interval - this means the previous candle is complete
-            console.log('🆕 [NEW CANDLE] New interval detected, previous candle complete');
-            // The new candle will come in the next update or from backend refresh
+            console.log('🆕 [NEW CANDLE] New interval detected, adding new candle to chart');
+            
+            // Create new candle with proper timestamp and OHLC from backend
+            const newCandle = {
+              time: currentCandleStartTime,
+              open: liveCandle.open,
+              high: liveCandle.high,
+              low: liveCandle.low,
+              close: liveCandle.close,
+              volume: liveCandle.volume || 0
+            };
+            
+            // Add new candle to chart data state
+            setJournalChartData(prev => {
+              // Avoid duplicates
+              const exists = prev.some(c => c.time === currentCandleStartTime);
+              if (exists) return prev;
+              return [...prev, newCandle];
+            });
+            
+            // Update chart series with new candle
+            setTimeout(() => {
+              if (journalCandlestickSeriesRef.current) {
+                journalCandlestickSeriesRef.current.update({
+                  time: currentCandleStartTime as any,
+                  open: liveCandle.open,
+                  high: liveCandle.high,
+                  low: liveCandle.low,
+                  close: liveCandle.close
+                });
+              }
+            }, 50);
+            
+            // Update live OHLC display for the new candle
+            const changePercent = liveCandle.open > 0 ? ((liveCandle.close - liveCandle.open) / liveCandle.open) * 100 : 0;
+            setLiveOhlc({
+              open: liveCandle.open,
+              high: liveCandle.high,
+              low: liveCandle.low,
+              close: liveCandle.close,
+              change: changePercent
+            });
+            
+            console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
           }
         } else {
           console.log('⏳ Chart not ready yet:', { hasRef: !!journalCandlestickSeriesRef.current, hasChart: !!journalChartRef.current });
