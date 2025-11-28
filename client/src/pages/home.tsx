@@ -3762,7 +3762,7 @@ ${
   const [paperTradeSearchResults, setPaperTradeSearchResults] = useState<any[]>([]);
   const [paperTradeSearchLoading, setPaperTradeSearchLoading] = useState(false);
   const [selectedPaperTradingInstrument, setSelectedPaperTradingInstrument] = useState<any>(null);
-  const [paperTradeType, setPaperTradeType] = useState<'STOCK' | 'FUTURES' | 'OPTIONS'>('STOCK');
+  const [paperTradeType, setPaperTradeType] = useState<'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'>('STOCK');
   const [paperTradeQuantity, setPaperTradeQuantity] = useState("");
   const [paperTradeAction, setPaperTradeAction] = useState<'BUY' | 'SELL'>('BUY');
   const [paperTradeCurrentPrice, setPaperTradeCurrentPrice] = useState<number | null>(null);
@@ -14345,7 +14345,7 @@ ${
                   {/* Type Selector */}
                   <div>
                     <Label className="text-xs font-medium">Type</Label>
-                    <Select value={paperTradeType} onValueChange={(v) => setPaperTradeType(v as 'STOCK' | 'FUTURES' | 'OPTIONS')}>
+                    <Select value={paperTradeType} onValueChange={(v) => setPaperTradeType(v as 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX')}>
                       <SelectTrigger className="mt-1" data-testid="select-paper-trade-type">
                         <SelectValue />
                       </SelectTrigger>
@@ -14353,6 +14353,7 @@ ${
                         <SelectItem value="STOCK">Stock</SelectItem>
                         <SelectItem value="FUTURES">Futures</SelectItem>
                         <SelectItem value="OPTIONS">Options</SelectItem>
+                        <SelectItem value="MCX">MCX</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
