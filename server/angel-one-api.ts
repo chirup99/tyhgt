@@ -371,14 +371,16 @@ class AngelOneAPI {
     }
   }
 
-  // Get LTP (Last Traded Price)
+  // Get LTP (Last Traded Price) using ltpData method
   async getLTP(exchange: string, tradingSymbol: string, symbolToken: string): Promise<AngelOneQuote | null> {
-    if (!this.isAuthenticated) return null;
+    if (!this.isAuthenticated) {
+      return null;
+    }
 
     try {
       const response = await this.smartApi.ltpData(exchange, tradingSymbol, symbolToken);
       
-      if (response.status && response.data) {
+      if (response && response.status && response.data) {
         const data = response.data;
         return {
           symbol: symbolToken,
@@ -395,7 +397,8 @@ class AngelOneAPI {
         };
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
+      // Silently fail - market may be closed
       return null;
     }
   }
