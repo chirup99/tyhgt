@@ -5277,9 +5277,9 @@ ${
     // Get the last candle from chart data for initial OHLC values
     const lastCandle = journalChartData[journalChartData.length - 1];
     
-    // Get interval in seconds for candle tracking on server
-    const intervalMap: { [key: string]: number } = { '1': 60, '3': 180, '5': 300, '10': 600, '15': 900, '30': 1800, '60': 3600, '1D': 86400 };
-    const intervalSeconds = intervalMap[selectedJournalInterval] || 60;
+    // Get interval in seconds for candle tracking - use timeframe conversion for all intervals
+    const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval);
+    const intervalSeconds = timeframeMinutes * 60;
     
     // Start new WebSocket SSE connection with REAL Angel One market data
     let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}&interval=${intervalSeconds}`);
@@ -5324,9 +5324,9 @@ ${
         
         // Update chart candlestick - only if chart is initialized
         if (journalCandlestickSeriesRef.current && journalChartRef.current && liveCandle.close > 0) {
-          // Get the selected interval in seconds
-          const intervalMap: { [key: string]: number } = { '1': 60, '3': 180, '5': 300, '10': 600, '15': 900, '30': 1800, '60': 3600, '1D': 86400 };
-          const intervalSeconds = intervalMap[selectedJournalInterval] || 60;
+          // Get the selected interval in seconds - use timeframe conversion for all intervals
+          const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval);
+          const intervalSeconds = timeframeMinutes * 60;
           
           // Get the last candle from the chart (use ref to avoid triggering re-render)
           const chartData = journalChartDataRef.current;

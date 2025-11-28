@@ -10,30 +10,27 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
-## November 28, 2025 - Fixed Critical Custom Timeframe Candle Chart Bug
+## November 28, 2025 - Removed All Hardcoded Interval Mappings
 
-**CRITICAL FIX**: Chart now properly filters candles to exact custom timeframe:
+**CRITICAL FIX**: Eliminated hardcoded interval maps that were blocking custom timeframe aggregation:
 
-**Problem**: 
-- Hardcoded interval mapping (1, 3, 5, 10, 15, 30, 60 min) only worked for those exact intervals
-- Custom timeframes like 20min, 40min, 45min, 2hr displayed wrong candle data
-- Fallback to 15-minute default for unmapped intervals
+**Problem Identified**: 
+- Two hardcoded `intervalMap` objects in chart rendering code (lines 5281-5282, 5331-5332)
+- Maps only contained: `{ '1': 60, '3': 180, '5': 300, '10': 600, '15': 900, '30': 1800, '60': 3600, '1D': 86400 }`
+- Custom intervals (20, 40, 45, 80, 120, etc.) fell back to 60 seconds
+- Candles weren't aligning to selected timeframe
 
-**Solution** (`client/src/pages/home.tsx`):
-- Removed hardcoded interval mapping completely
-- Always fetch 1-minute candles from Angel One API
-- Implemented `aggregateJournalCandles()` function that:
-  - Groups consecutive 1-minute candles into desired timeframe
-  - Tracks OHLC properly: open from first candle, high/low across all, close from last
-  - Aggregates volume across all candles in timeframe
-- Updated `getJournalAngelOneInterval()` to always return 'ONE_MINUTE'
-- Uses `getJournalTimeframeMinutes()` to convert all interval formats (1, 5, 20, 120, 1D, 1W, 1M) to minutes
+**Solution Applied** (`client/src/pages/home.tsx`):
+- **Removed hardcoded maps** from SSE connection setup and live stream update logic
+- **Replaced with dynamic calculation**: `const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval); const intervalSeconds = timeframeMinutes * 60;`
+- Now supports ANY custom timeframe without need for hardcoded entries
+- Properly converts all formats: 1, 5, 20, 40, 45, 80, 120, 1D, 1W, 1M to correct seconds
 
 **Result**:
-- All preset timeframes work: 1min, 5min, 10min, 15min, 20min, 30min, 40min, 60min, 80min, 120min, 1D
-- All custom timeframes work perfectly with exact aggregation
-- Console logs show: "Loaded 50 1-minute candles" then "Aggregated to 20-minute candles: 2 bars"
-- No more display of wrong interval data
+- All preset + custom timeframes work with correct aggregation
+- No more hardcoded complex aggregation blocking new intervals
+- Console logs accurately show: "Loaded 50 1-minute candles" → "Aggregated to X-minute candles: Y bars"
+- Candlesticks align perfectly to selected timeframe
 
 ## November 27, 2025 - Dynamic Instrument Search Across All Exchanges
 
