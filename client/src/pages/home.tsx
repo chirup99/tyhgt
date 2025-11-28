@@ -4348,6 +4348,7 @@ ${
   
   // TradingView-style chart refs for Journal
   const journalChartContainerRef = useRef<HTMLDivElement>(null);
+  const journalCandleCountRef = useRef<HTMLDivElement>(null);
   const journalChartRef = useRef<IChartApi | null>(null);
   const journalCandlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const journalEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
@@ -4882,6 +4883,16 @@ ${
               close: liveCandle.close,
               change: changePercent
             });
+            
+            // Update candle count display
+            if (journalCandleCountRef.current) {
+              journalCandleCountRef.current.textContent = `${journalChartData.length + 1}`;
+            }
+            
+            // Initialize candle count display on first load
+            if (journalChartData.length === 0 && journalCandleCountRef.current) {
+              journalCandleCountRef.current.textContent = '1';
+            }
             
             console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
           }
