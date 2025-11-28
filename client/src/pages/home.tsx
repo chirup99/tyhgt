@@ -4570,6 +4570,9 @@ ${
     try {
       setJournalChartLoading(true);
       
+      // CRITICAL: Immediately clear all old data to prevent sync issues between timeframes
+      setJournalChartData([]);
+      
       // CRITICAL: Clear chart refs when fetching new data (symbol/interval change)
       // This ensures the chart will be recreated with new data
       if (journalChartRef.current) {
