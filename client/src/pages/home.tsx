@@ -4757,106 +4757,27 @@ ${
     return intervalMap[interval] || 'FIFTEEN_MINUTE';
   };
 
-  // Convert interval to minutes
-  const getIntervalInSeconds = (interval: string): number => {
-    const intervalMap: { [key: string]: number } = {
-      '1': 60,
-      '3': 180,
-      '5': 300,
-      '10': 600,
-      '15': 900,
-      '30': 1800,
-      '60': 3600,
-      '1D': 86400,
-      '5D': 86400,
-      '1W': 86400,
-      '1M': 86400,
-    };
-    return intervalMap[interval] || 900; // Default 15 minutes
-  };
-
-  // Calculate the start time of the candle that contains the given timestamp
-  const getCandleStartTime = (timestamp: number, intervalSeconds: number): number => {
-    return Math.floor(timestamp / intervalSeconds) * intervalSeconds;
-  };
-
-  // Check if market is currently open for given exchange
-  const isMarketOpen = (exchange: string): boolean => {
-    const now = new Date();
-    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // Convert to IST
-    const hours = istTime.getHours();
-    const minutes = istTime.getMinutes();
-    const day = istTime.getDay();
-    
-    // Skip weekends
-    if (day === 0 || day === 6) return false;
-    
-    if (exchange === 'NSE' || exchange === 'BSE') {
-      // NSE/BSE: 9:15 - 15:30
-      return (hours > 9 || (hours === 9 && minutes >= 15)) && (hours < 15 || (hours === 15 && minutes < 30));
-    } else if (exchange === 'MCX' || exchange === 'NCDEX') {
-      // MCX: 9:00 - 23:55, NCDEX: 9:00 - 20:00
-      const endHour = exchange === 'NCDEX' ? 20 : 23;
-      const endMin = exchange === 'NCDEX' ? 0 : 55;
-      return hours >= 9 && (hours < endHour || (hours === endHour && minutes < endMin));
+  // Simple, working timeframe mapping (same as OHLC data window)
+  const calculateTimeRangeForTimeframe = (timeframe: string): [number, number] => {
+    switch (timeframe) {
+      case '1':
+      case '5':
+      case '15':
+      case '30':
+        // Intraday: 9:15 AM - 3:30 PM IST
+        return [555, 930]; // 555 min = 9:15, 930 min = 15:30
+      case '60':
+        // Hourly: 9:00 AM - 4:00 PM IST
+        return [540, 960]; // 540 min = 9:00, 960 min = 16:00
+      case '1D':
+      case '5D':
+      case '1W':
+      case '1M':
+        // Daily/Weekly/Monthly: 9:00 AM - 5:00 PM IST
+        return [540, 1020]; // 540 min = 9:00, 1020 min = 17:00
+      default:
+        return [555, 930];
     }
-    return false;
-  };
-
-  // Calculate date range based on timeframe (TradingView style)
-  const getDateRangeForInterval = (interval: string): { fromDate: string; toDate: string } => {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    
-    // Determine exchange from selected symbol
-    let exchange = 'NSE';
-    if (selectedJournalSymbol && selectedJournalSymbol.includes('MCX')) exchange = 'MCX';
-    else if (selectedJournalSymbol && selectedJournalSymbol.includes('NCDEX')) exchange = 'NCDEX';
-    
-    // For intraday, if market is closed, use yesterday's data
-    let fetchDate = today;
-    if (['1', '3', '5', '10', '15', '30', '60'].includes(interval)) {
-      if (!isMarketOpen(exchange)) {
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        fetchDate = yesterday.toISOString().split('T')[0];
-      }
-    }
-    
-    let fromDate = fetchDate;
-    
-    if (['1', '3', '5', '10', '15', '30'].includes(interval)) {
-      // Intraday
-      fromDate = fetchDate;
-    } else if (interval === '60') {
-      // 1 hour: last 5 days from fetch date
-      const fiveDaysAgo = new Date(now);
-      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-      fromDate = fiveDaysAgo.toISOString().split('T')[0];
-    } else if (interval === '1D') {
-      const threeMonthsAgo = new Date(now);
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      fromDate = threeMonthsAgo.toISOString().split('T')[0];
-    } else if (interval === '5D') {
-      const oneYearAgo = new Date(now);
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-      fromDate = oneYearAgo.toISOString().split('T')[0];
-    } else if (interval === '1W') {
-      const twoYearsAgo = new Date(now);
-      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-      fromDate = twoYearsAgo.toISOString().split('T')[0];
-    } else if (interval === '1M') {
-      const fiveYearsAgo = new Date(now);
-      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-      fromDate = fiveYearsAgo.toISOString().split('T')[0];
-    }
-    
-    console.log(`🕐 [MARKET] Exchange: ${exchange}, Open: ${isMarketOpen(exchange)}, Fetch: ${fromDate} to ${fetchDate}`);
-    
-    return {
-      fromDate: fromDate,
-      toDate: fetchDate,
-    };
   };
 
   // Map journal search type to exchange segment for filtering (similar to paper trading)
@@ -4987,12 +4908,11 @@ ${
         return;
       }
 
-      // Calculate date range based on timeframe (TradingView style)
-      const dateRange = getDateRangeForInterval(selectedJournalInterval);
-      
       // For intraday intervals, use exchange-specific market hours
-      let fromDate = dateRange.fromDate;
-      let toDate = dateRange.toDate;
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      let fromDate = today;
+      let toDate = today;
       
       if (['1', '3', '5', '10', '15', '30'].includes(selectedJournalInterval)) {
         // Exchange-specific market hours
@@ -5201,7 +5121,8 @@ ${
     const lastCandle = journalChartData[journalChartData.length - 1];
     
     // Get interval in seconds for candle tracking on server
-    const intervalSeconds = getIntervalInSeconds(selectedJournalInterval);
+    const intervalMap: { [key: string]: number } = { '1': 60, '3': 180, '5': 300, '10': 600, '15': 900, '30': 1800, '60': 3600, '1D': 86400 };
+    const intervalSeconds = intervalMap[selectedJournalInterval] || 60;
     
     // Start new WebSocket SSE connection with REAL Angel One market data
     let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}&interval=${intervalSeconds}`);
@@ -5247,18 +5168,19 @@ ${
         // Update chart candlestick - only if chart is initialized
         if (journalCandlestickSeriesRef.current && journalChartRef.current && liveCandle.close > 0) {
           // Get the selected interval in seconds
-          const intervalSeconds = getIntervalInSeconds(selectedJournalInterval);
+          const intervalMap: { [key: string]: number } = { '1': 60, '3': 180, '5': 300, '10': 600, '15': 900, '30': 1800, '60': 3600, '1D': 86400 };
+          const intervalSeconds = intervalMap[selectedJournalInterval] || 60;
           
           // Get the last candle from the chart (use ref to avoid triggering re-render)
           const chartData = journalChartDataRef.current;
           const lastChartCandle = chartData[chartData.length - 1];
           if (!lastChartCandle) return;
           
-          // Calculate the candle start time for the incoming live data
-          const currentCandleStartTime = getCandleStartTime(liveCandle.time, intervalSeconds);
+          // Calculate the candle start time for the incoming live data (align to interval)
+          const currentCandleStartTime = Math.floor(liveCandle.time / intervalSeconds) * intervalSeconds;
           
           // Calculate the start time of the last chart candle
-          const lastCandleStartTime = getCandleStartTime(lastChartCandle.time, intervalSeconds);
+          const lastCandleStartTime = Math.floor(lastChartCandle.time / intervalSeconds) * intervalSeconds;
           
           // Calculate countdown for the current candle
           const currentTime = Math.floor(Date.now() / 1000);
