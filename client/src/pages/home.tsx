@@ -176,6 +176,7 @@ import {
   Loader2,
   RefreshCcw,
   MoreVertical,
+  ChevronsUpDown,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
