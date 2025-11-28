@@ -4513,6 +4513,14 @@ ${
   const [selectedJournalSymbol, setSelectedJournalSymbol] =
     useState("NSE:NIFTY50-INDEX");
   const [selectedJournalInterval, setSelectedJournalInterval] = useState("1");
+  
+  // Custom timeframe state for Journal tab (same as Trading Master)
+  const [showJournalCustomTimeframe, setShowJournalCustomTimeframe] = useState(false);
+  const [journalCustomTimeframeType, setJournalCustomTimeframeType] = useState('minutes');
+  const [journalCustomTimeframeInterval, setJournalCustomTimeframeInterval] = useState('');
+  const [journalCustomTimeframes, setJournalCustomTimeframes] = useState<Array<{value: string, label: string, deletable: boolean}>>([]);
+  const [journalHiddenPresetTimeframes, setJournalHiddenPresetTimeframes] = useState<string[]>([]);
+  
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [journalSearchType, setJournalSearchType] = useState<'STOCK' | 'COMMODITY' | 'F&O'>('STOCK');
@@ -4755,6 +4763,83 @@ ${
       '1M': 'ONE_DAY',
     };
     return intervalMap[interval] || 'FIFTEEN_MINUTE';
+  };
+
+  // Custom timeframe helper functions for Journal tab (same as Trading Master)
+  const convertJournalCustomTimeframe = (type: string, interval: string): string => {
+    const num = parseInt(interval);
+    if (isNaN(num) || num <= 0) return '1';
+    
+    switch (type) {
+      case 'minutes': return num.toString();
+      case 'hr': return (num * 60).toString();
+      case 'd': return `${num}D`;
+      case 'm': return `${num}M`;
+      case 'w': return `${num}W`;
+      default: return '1';
+    }
+  };
+
+  const createJournalCustomTimeframeLabel = (type: string, interval: string): string => {
+    const num = parseInt(interval);
+    switch (type) {
+      case 'minutes': return `${num}min`;
+      case 'hr': return `${num}hr`;
+      case 'd': return `${num}d`;
+      case 'm': return `${num}m`;
+      case 'w': return `${num}w`;
+      default: return `${num}min`;
+    }
+  };
+
+  const getJournalTimeframeMinutes = (value: string): number => {
+    if (value === '1D') return 1440;
+    if (value.endsWith('D')) return parseInt(value) * 1440;
+    if (value.endsWith('W')) return parseInt(value) * 10080;
+    if (value.endsWith('M')) return parseInt(value) * 43200;
+    return parseInt(value) || 0;
+  };
+
+  const deleteJournalTimeframe = (valueToDelete: string) => {
+    const isCustom = journalCustomTimeframes.some(tf => tf.value === valueToDelete);
+    
+    if (isCustom) {
+      setJournalCustomTimeframes(prev => prev.filter(tf => tf.value !== valueToDelete));
+    } else {
+      setJournalHiddenPresetTimeframes(prev => [...prev, valueToDelete]);
+    }
+    
+    if (selectedJournalInterval === valueToDelete) {
+      setSelectedJournalInterval('1');
+    }
+  };
+
+  const getAllJournalTimeframes = () => {
+    const allPresetTimeframes = [
+      { value: '1', label: '1min', deletable: false },
+      { value: '5', label: '5min', deletable: false },
+      { value: '10', label: '10min', deletable: true },
+      { value: '15', label: '15min', deletable: true },
+      { value: '20', label: '20min', deletable: true },
+      { value: '30', label: '30min', deletable: true },
+      { value: '40', label: '40min', deletable: true },
+      { value: '60', label: '1hr', deletable: true },
+      { value: '80', label: '80min', deletable: true },
+      { value: '120', label: '2hr', deletable: true },
+      { value: '1D', label: '1D', deletable: true },
+    ];
+    
+    const visiblePresetTimeframes = allPresetTimeframes.filter(tf => 
+      !journalHiddenPresetTimeframes.includes(tf.value)
+    );
+    
+    const allTimeframes = [...visiblePresetTimeframes, ...journalCustomTimeframes];
+    
+    return allTimeframes.sort((a, b) => {
+      const minutesA = getJournalTimeframeMinutes(a.value);
+      const minutesB = getJournalTimeframeMinutes(b.value);
+      return minutesA - minutesB;
+    });
   };
 
   // Simple, working timeframe mapping (same as OHLC data window)
