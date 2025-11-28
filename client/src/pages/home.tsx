@@ -4515,6 +4515,7 @@ ${
   const [selectedJournalInterval, setSelectedJournalInterval] = useState("15");
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
+  const [journalSearchType, setJournalSearchType] = useState<'STOCK' | 'COMMODITY' | 'F&O'>('STOCK');
   
   // Option Chain state
   const [showOptionChain, setShowOptionChain] = useState(false);
