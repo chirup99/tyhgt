@@ -596,9 +596,11 @@ export function AngelOneSystemStatus() {
 
 // Live Market Prices Component - Shows BANKNIFTY, SENSEX, GOLD with WebSocket status
 export function AngelOneLiveMarketPrices() {
-  const { data: indicesData, isLoading } = useQuery<LiveIndicesResponse>({
+  const { data: indicesData, isLoading, isError } = useQuery<LiveIndicesResponse>({
     queryKey: ["/api/angelone/live-indices"],
     refetchInterval: 700, // 700ms for tick-by-tick updates
+    retry: 2,
+    staleTime: 0
   });
 
   const formatPrice = (price: number) => {
@@ -622,8 +624,16 @@ export function AngelOneLiveMarketPrices() {
     }
   };
 
+  // Default empty indices structure
+  const defaultIndices = [
+    { symbol: 'BANKNIFTY', name: 'Bank Nifty', token: '99926009', exchange: 'NSE', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false, open: 0, high: 0, low: 0, close: 0, volume: 0, lastUpdate: null },
+    { symbol: 'SENSEX', name: 'Sensex', token: '99919000', exchange: 'BSE', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false, open: 0, high: 0, low: 0, close: 0, volume: 0, lastUpdate: null },
+    { symbol: 'GOLD', name: 'Gold', token: '99920003', exchange: 'MCX', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false, open: 0, high: 0, low: 0, close: 0, volume: 0, lastUpdate: null }
+  ];
+
   const connected = indicesData?.connected ?? false;
   const websocketActive = indicesData?.websocketActive ?? false;
+  const displayIndices = indicesData?.indices && indicesData.indices.length > 0 ? indicesData.indices : defaultIndices;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
@@ -644,20 +654,17 @@ export function AngelOneLiveMarketPrices() {
                 {websocketActive ? 'WebSocket Active' : 'WebSocket Off'}
               </span>
             </div>
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin text-orange-500" />}
+            {(isLoading || isError) && <Loader2 className="h-4 w-4 animate-spin text-orange-500" />}
           </div>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          {connected ? 'Real-time 700ms tick data from Angel One API' : 'Connect to Angel One for live prices'}
+          {connected ? 'Real-time 700ms tick data from Angel One API' : 'Waiting for Angel One connection...'}
         </p>
+        {isError && <p className="text-xs text-red-500 dark:text-red-400 mt-1">Error fetching prices, retrying...</p>}
       </div>
 
       <div className="space-y-3">
-        {(indicesData?.indices || [
-          { symbol: 'BANKNIFTY', name: 'Bank Nifty', exchange: 'NSE', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false },
-          { symbol: 'SENSEX', name: 'Sensex', exchange: 'BSE', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false },
-          { symbol: 'GOLD', name: 'Gold', exchange: 'MCX', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false }
-        ] as LiveIndexData[]).map((idx) => (
+        {displayIndices.map((idx) => (
           <div 
             key={idx.symbol}
             className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600"
