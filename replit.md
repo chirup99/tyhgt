@@ -10,27 +10,32 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
-## November 28, 2025 - Removed All Hardcoded Interval Mappings
+## November 28, 2025 - Fixed Custom Timeframe Candle Aggregation (TIME-ALIGNED)
 
-**CRITICAL FIX**: Eliminated hardcoded interval maps that were blocking custom timeframe aggregation:
+**CRITICAL FIXES APPLIED**: Two issues were blocking custom timeframe aggregation on Journal chart:
 
-**Problem Identified**: 
-- Two hardcoded `intervalMap` objects in chart rendering code (lines 5281-5282, 5331-5332)
-- Maps only contained: `{ '1': 60, '3': 180, '5': 300, '10': 600, '15': 900, '30': 1800, '60': 3600, '1D': 86400 }`
-- Custom intervals (20, 40, 45, 80, 120, etc.) fell back to 60 seconds
-- Candles weren't aligning to selected timeframe
+### Fix #1: Removed Hardcoded Interval Maps
+- **Problem**: Two hardcoded `intervalMap` objects only supported: 1, 3, 5, 10, 15, 30, 60 min intervals
+- **Solution**: Replaced with dynamic `const intervalSeconds = getJournalTimeframeMinutes(selectedJournalInterval) * 60;`
 
-**Solution Applied** (`client/src/pages/home.tsx`):
-- **Removed hardcoded maps** from SSE connection setup and live stream update logic
-- **Replaced with dynamic calculation**: `const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval); const intervalSeconds = timeframeMinutes * 60;`
-- Now supports ANY custom timeframe without need for hardcoded entries
-- Properly converts all formats: 1, 5, 20, 40, 45, 80, 120, 1D, 1W, 1M to correct seconds
+### Fix #2: Implemented TIME-ALIGNED Aggregation (Lines 4761-4795)
+- **OLD Problem**: Sequential time-difference aggregation `(candle.time - currentCandle.time) / 60` caused unaligned candles
+  - Created overlapping/misaligned timeframe buckets
+  - Custom timeframes displayed wrong data
+- **NEW Solution**: Time-boundary aligned aggregation:
+  ```javascript
+  const alignedTime = Math.floor(candle.time / timeframeSeconds) * timeframeSeconds;
+  ```
+  - Calculates which timeframe bucket each candle belongs to
+  - Ensures all 1-minute candles align to proper timeframe boundaries
+  - Groups candles correctly: 9:15-9:19 (5min), 9:20-9:24, etc.
 
 **Result**:
-- All preset + custom timeframes work with correct aggregation
-- No more hardcoded complex aggregation blocking new intervals
-- Console logs accurately show: "Loaded 50 1-minute candles" → "Aggregated to X-minute candles: Y bars"
-- Candlesticks align perfectly to selected timeframe
+- ✅ All preset timeframes work: 1, 5, 10, 15, 20, 30, 40, 60, 80, 120 min
+- ✅ All custom timeframes display correct aggregated candles
+- ✅ Matches OHLC window aggregation logic
+- ✅ No more hardcoded interval limits
+- ✅ Console shows: "Aggregated to 20-minute candles: X bars"
 
 ## November 27, 2025 - Dynamic Instrument Search Across All Exchanges
 

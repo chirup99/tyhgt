@@ -4754,70 +4754,38 @@ ${
     return 'ONE_MINUTE';
   };
 
-  // Aggregate 1-minute candles to desired timeframe
+  // Aggregate 1-minute candles to desired timeframe (TIME-ALIGNED)
   const aggregateJournalCandles = (candles: any[], timeframeMinutes: number): any[] => {
     if (timeframeMinutes <= 1) return candles; // No aggregation needed for 1-min
     
     const aggregated: any[] = [];
-    let currentCandle: any = null;
-
+    const timeframeSeconds = timeframeMinutes * 60;
+    
     for (const candle of candles) {
-      if (!currentCandle) {
-        // Start new aggregated candle
-        currentCandle = {
-          time: candle.time,
+      // Align to timeframe boundaries: calculate which timeframe bucket this candle belongs to
+      const alignedTime = Math.floor(candle.time / timeframeSeconds) * timeframeSeconds;
+      
+      // Check if we already have an aggregated candle for this timeframe bucket
+      let existingCandle = aggregated.find(c => c.time === alignedTime);
+      
+      if (!existingCandle) {
+        // Create new aggregated candle for this timeframe bucket
+        existingCandle = {
+          time: alignedTime,
           open: candle.open,
           high: candle.high,
           low: candle.low,
           close: candle.close,
-          volume: candle.volume,
-          candleCount: 1,
+          volume: candle.volume || 0,
         };
+        aggregated.push(existingCandle);
       } else {
-        // Check if this candle should be included in current aggregated candle
-        const timeDiff = (candle.time - currentCandle.time) / 60; // Convert seconds to minutes
-        
-        if (timeDiff < timeframeMinutes) {
-          // Add to current aggregated candle
-          currentCandle.high = Math.max(currentCandle.high, candle.high);
-          currentCandle.low = Math.min(currentCandle.low, candle.low);
-          currentCandle.close = candle.close;
-          currentCandle.volume += candle.volume;
-          currentCandle.candleCount += 1;
-        } else {
-          // Finalize current aggregated candle and start new one
-          aggregated.push({
-            time: currentCandle.time,
-            open: currentCandle.open,
-            high: currentCandle.high,
-            low: currentCandle.low,
-            close: currentCandle.close,
-            volume: currentCandle.volume,
-          });
-          
-          currentCandle = {
-            time: candle.time,
-            open: candle.open,
-            high: candle.high,
-            low: candle.low,
-            close: candle.close,
-            volume: candle.volume,
-            candleCount: 1,
-          };
-        }
+        // Update existing aggregated candle
+        existingCandle.high = Math.max(existingCandle.high, candle.high);
+        existingCandle.low = Math.min(existingCandle.low, candle.low);
+        existingCandle.close = candle.close;
+        existingCandle.volume += (candle.volume || 0);
       }
-    }
-
-    // Add final aggregated candle
-    if (currentCandle) {
-      aggregated.push({
-        time: currentCandle.time,
-        open: currentCandle.open,
-        high: currentCandle.high,
-        low: currentCandle.low,
-        close: currentCandle.close,
-        volume: currentCandle.volume,
-      });
     }
 
     return aggregated;
