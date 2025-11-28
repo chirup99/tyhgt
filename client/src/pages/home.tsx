@@ -5037,12 +5037,18 @@ ${
           let unixSeconds: number;
           
           if (typeof candle.timestamp === 'string') {
-            // If timestamp is a string (e.g., "2025-11-27 09:15"), parse it as IST
-            // IST is UTC+5:30, so add 5.5 hours to browser local time interpretation
-            const date = new Date(candle.timestamp);
-            const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-            const utcTime = date.getTime() - (date.getTimezoneOffset() * 60 * 1000) + istOffset;
-            unixSeconds = Math.floor(utcTime / 1000);
+            // If timestamp is a string (e.g., "2025-11-27 09:15"), parse it as IST time
+            // Parse as: YYYY-MM-DD HH:MM (in IST)
+            // IST = UTC+5:30, so to get UTC we subtract 5:30
+            const [datePart, timePart] = candle.timestamp.split(' ');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hours, minutes] = timePart.split(':').map(Number);
+            
+            // Create UTC date (treating IST values as UTC, then subtract IST offset to get actual UTC)
+            const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+            const istOffsetMs = 5.5 * 60 * 60 * 1000; // 5:30 in milliseconds
+            const actualUtcMs = utcDate.getTime() - istOffsetMs;
+            unixSeconds = Math.floor(actualUtcMs / 1000);
           } else if (candle.timestamp > 10000000000) {
             // Timestamp is in milliseconds (> 10 billion)
             unixSeconds = Math.floor(candle.timestamp / 1000);
@@ -5081,6 +5087,31 @@ ${
   useEffect(() => {
     fetchJournalChartData();
   }, [fetchJournalChartData]);
+
+  // Reset OHLC display when chart data changes (e.g., timeframe changed)
+  useEffect(() => {
+    if (journalChartData && journalChartData.length > 0) {
+      // Update OHLC display with latest candle from new data
+      const latestCandle = journalChartData[journalChartData.length - 1];
+      const prevCandle = journalChartData.length > 1 ? journalChartData[journalChartData.length - 2] : null;
+      const prevClose = prevCandle?.close || latestCandle.open;
+      const change = latestCandle.close - prevClose;
+      const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+      
+      setHoveredCandleOhlc({
+        open: latestCandle.open,
+        high: latestCandle.high,
+        low: latestCandle.low,
+        close: latestCandle.close,
+        change,
+        changePercent,
+        time: latestCandle.time,
+      });
+      console.log('📊 Chart data updated, OHLC reset for timeframe:', selectedJournalInterval);
+    } else {
+      setHoveredCandleOhlc(null);
+    }
+  }, [journalChartData, selectedJournalInterval]);
 
   // Live streaming SSE connection for Journal Chart
   useEffect(() => {
@@ -5241,25 +5272,31 @@ ${
           
           // Only update if we're within the same candle interval
           if (currentCandleStartTime === lastCandleStartTime) {
-            // Update ONLY the OHLC of the current candle, keep the timestamp fixed
-            const changePercent = liveCandle.open > 0 ? ((liveCandle.close - liveCandle.open) / liveCandle.open) * 100 : 0;
+            // CRITICAL: Preserve candle OHLC - update only what changed
+            // Use the last chart candle's open value (don't replace with latest price)
+            const candleOpen = lastChartCandle.open; // PRESERVE original open
+            const candleHigh = Math.max(lastChartCandle.high, liveCandle.close); // Update high if price exceeded
+            const candleLow = Math.min(lastChartCandle.low, liveCandle.close); // Update low if price went below
+            const candleClose = liveCandle.close; // Update close with latest price
+            
+            const changePercent = candleOpen > 0 ? ((candleClose - candleOpen) / candleOpen) * 100 : 0;
             
             setLiveOhlc({
-              open: liveCandle.open,
-              high: liveCandle.high,
-              low: liveCandle.low,
-              close: liveCandle.close,
+              open: candleOpen,
+              high: candleHigh,
+              low: candleLow,
+              close: candleClose,
               change: changePercent
             });
             
-            // Update the current candle with fixed timestamp - use the last chart candle's time
+            // Update the current candle with preserved OHLC
             setTimeout(() => {
               journalCandlestickSeriesRef.current?.update({
                 time: lastChartCandle.time as any,
-                open: liveCandle.open,
-                high: liveCandle.high,
-                low: liveCandle.low,
-                close: liveCandle.close
+                open: candleOpen,
+                high: candleHigh,
+                low: candleLow,
+                close: candleClose
               });
             }, 50);
             
