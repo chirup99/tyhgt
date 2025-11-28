@@ -4977,8 +4977,9 @@ ${
           borderColor: '#e5e7eb',
           timeVisible: true,
           secondsVisible: false,
-          barSpacing: 8,
+          barSpacing: 12,
           minBarSpacing: 4,
+          scaleMargins: { top: 0.1, bottom: 0.05 },
           tickMarkFormatter: (time: number) => {
             // Convert UTC timestamp to IST (UTC+5:30) and format for display
             const date = new Date(time * 1000);
@@ -5091,7 +5092,14 @@ ${
         setJournalEmaValues(prev => ({ ...prev, ema26: ema26Data[ema26Data.length - 1]?.value || null }));
       }
 
-      chart.timeScale().fitContent();
+      // Fit content but with better zoom to show time scale
+      setTimeout(() => {
+        if (journalChartRef.current) {
+          journalChartRef.current.timeScale().fitContent();
+          // Reset zoom to prevent over-zooming that hides time scale
+          journalChartRef.current.timeScale().applyOptions({ rightOffset: 10 });
+        }
+      }, 100);
 
       const handleResize = () => {
         if (journalChartContainerRef.current && journalChartRef.current) {
