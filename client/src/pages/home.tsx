@@ -3818,14 +3818,18 @@ ${
     try {
       // Get exchange segment based on selected trade type
       const exchange = getExchangeForTradeType(paperTradeType);
+      console.log(`🔍 [PAPER-TRADE] Searching for "${query}" on exchange: ${exchange} (type: ${paperTradeType})`);
       
-      const response = await fetch(
-        getFullApiUrl(`/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&limit=50`)
-      );
+      const url = `/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&limit=50`;
+      console.log(`🔍 [PAPER-TRADE] API URL: ${url}`);
+      
+      const response = await fetch(url);
       
       if (response.ok) {
         const data = await response.json();
+        console.log(`🔍 [PAPER-TRADE] API Response:`, data);
         const instruments = data.instruments || data.results || [];
+        console.log(`🔍 [PAPER-TRADE] Found ${instruments.length} instruments`);
         
         // Format instruments for display
         const formatted = instruments.map((inst: any) => ({
@@ -3839,8 +3843,10 @@ ${
           expiry: inst.expiry || null,
         }));
         
+        console.log(`🔍 [PAPER-TRADE] Formatted ${formatted.length} results:`, formatted.slice(0, 3));
         setPaperTradeSearchResults(formatted);
       } else {
+        console.error(`🔍 [PAPER-TRADE] API error: ${response.status}`);
         setPaperTradeSearchResults([]);
       }
     } catch (error) {
@@ -14346,7 +14352,7 @@ ${
                     
                     {/* Stock Dropdown - Dynamic Search Results */}
                     {paperTradeSymbolSearch && !paperTradeSymbol && (
-                      <div className="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-[100] left-0 right-0 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg" style={{ top: '100%' }}>
                         {paperTradeSearchLoading ? (
                           <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
                             <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
