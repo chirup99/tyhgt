@@ -3804,40 +3804,55 @@ ${
     s.name.toLowerCase().includes(paperTradeSymbolSearch.toLowerCase())
   );
   
-  // Fetch live price from Angel One API (connects to chart WebSocket)
+  // Fetch live price from Angel One WebSocket (same stream as chart)
   const fetchPaperTradePrice = async (symbol: string) => {
     const stockInfo = paperTradingSymbols.find(s => s.symbol === symbol);
     if (!stockInfo) return;
     
     setPaperTradePriceLoading(true);
     try {
-      // Subscribe this symbol to the live chart stream
-      paperTradingStreamSymbolsRef.current.add(symbol);
+      // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
       
-      const response = await fetch('/api/angelone/ltp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          exchange: stockInfo.exchange,
-          tradingSymbol: stockInfo.symbol,
-          symbolToken: stockInfo.token
-        })
-      });
+      console.log(`📊 [PAPER-TRADE] Subscribing to live price stream for ${symbol}`);
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.ltp) {
-          setPaperTradeCurrentPrice(data.data.ltp);
-        } else {
-          setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
+      const eventSource = new EventSource(sseUrl);
+      
+      let priceReceived = false;
+      const timeout = setTimeout(() => {
+        if (!priceReceived) {
+          console.warn(`⚠️ [PAPER-TRADE] No price received for ${symbol} after 5s`);
+          eventSource.close();
+          setPaperTradePriceLoading(false);
         }
-      } else {
-        setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
-      }
+      }, 5000);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const ltp = data.ltp || data.close;
+          
+          if (ltp && ltp > 0) {
+            console.log(`✅ [PAPER-TRADE] Got real price for ${symbol}: ₹${ltp}`);
+            setPaperTradeCurrentPrice(ltp);
+            priceReceived = true;
+            clearTimeout(timeout);
+            eventSource.close();
+            setPaperTradePriceLoading(false);
+          }
+        } catch (err) {
+          console.error(`[PAPER-TRADE] Parse error for ${symbol}:`, err);
+        }
+      };
+      
+      eventSource.onerror = () => {
+        console.warn(`⚠️ [PAPER-TRADE] Connection error for ${symbol}`);
+        clearTimeout(timeout);
+        eventSource.close();
+        if (!priceReceived) setPaperTradePriceLoading(false);
+      };
     } catch (error) {
       console.error("Error fetching paper trade price:", error);
-      setPaperTradeCurrentPrice(Math.floor(Math.random() * 3000) + 500);
-    } finally {
       setPaperTradePriceLoading(false);
     }
   };
