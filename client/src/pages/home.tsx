@@ -14318,7 +14318,7 @@ ${
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Stock Search */}
-                  <div className="col-span-2">
+                  <div className="col-span-2 relative">
                     <Label className="text-xs font-medium">
                       Search {paperTradeType === 'MCX' ? 'MCX Commodities' : paperTradeType === 'FUTURES' ? 'Futures' : paperTradeType === 'OPTIONS' ? 'Options' : 'Stock'}
                     </Label>
@@ -14346,7 +14346,7 @@ ${
                     
                     {/* Stock Dropdown - Dynamic Search Results */}
                     {paperTradeSymbolSearch && !paperTradeSymbol && (
-                      <div className="absolute z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         {paperTradeSearchLoading ? (
                           <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
                             <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
@@ -14367,13 +14367,32 @@ ${
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
                               data-testid={`select-stock-${stock.symbol}`}
                             >
-                              <div>
-                                <div className="font-medium text-sm">{stock.symbol}</div>
-                                <div className="text-xs text-gray-500">{stock.name}</div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm truncate">{stock.symbol}</div>
+                                <div className="text-xs text-gray-500 truncate">{stock.name} {stock.expiry ? `(${stock.expiry})` : ''}</div>
                               </div>
-                              <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded">
-                                {stock.exchange}
-                              </span>
+                              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                                {stock.instrumentType && (
+                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                    stock.instrumentType === 'FUTCOM' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' :
+                                    stock.instrumentType === 'FUTSTK' || stock.instrumentType === 'FUTIDX' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-300' :
+                                    stock.instrumentType === 'OPTFUT' || stock.instrumentType === 'OPTSTK' || stock.instrumentType === 'OPTIDX' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300' :
+                                    'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                                  }`}>
+                                    {stock.instrumentType === 'FUTCOM' ? 'FUT' :
+                                     stock.instrumentType === 'FUTSTK' ? 'FUT' :
+                                     stock.instrumentType === 'FUTIDX' ? 'FUT' :
+                                     stock.instrumentType === 'OPTFUT' ? 'OPT' :
+                                     stock.instrumentType === 'OPTSTK' ? 'OPT' :
+                                     stock.instrumentType === 'OPTIDX' ? 'OPT' :
+                                     stock.instrumentType === 'COMDTY' ? 'SPOT' :
+                                     stock.instrumentType || 'EQ'}
+                                  </span>
+                                )}
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                                  {stock.exchange}
+                                </span>
+                              </div>
                             </button>
                           ))
                         )}
