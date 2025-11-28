@@ -3,6 +3,7 @@
 import { SmartAPI } from 'smartapi-javascript';
 // @ts-ignore - totp-generator import compatibility
 import { TOTP } from 'totp-generator';
+import { angelOneWebSocket } from './angel-one-websocket';
 
 export interface AngelOneCredentials {
   clientCode: string;
@@ -302,6 +303,17 @@ class AngelOneAPI {
       console.log(`   Refresh Token: ${this.session.refreshToken.substring(0, 20)}...`);
       console.log(`   Feed Token: ${this.session.feedToken}`);
 
+      // Connect WebSocket for real-time market data streaming
+      this.addActivityLog('info', 'Initializing WebSocket for real-time market data...');
+      await angelOneWebSocket.connect(
+        this.session.jwtToken,
+        this.credentials.apiKey,
+        this.credentials.clientCode,
+        this.session.feedToken
+      ).catch(err => {
+        console.log('⚠️ [Angel One] WebSocket connection deferred:', err.message);
+      });
+
       return this.session;
 
     } catch (error: any) {
@@ -401,6 +413,11 @@ class AngelOneAPI {
       // Silently fail - market may be closed
       return null;
     }
+  }
+
+  // Subscribe to WebSocket streaming for a symbol
+  subscribeToWebSocket(exchange: string, symbolToken: string, tradingSymbol: string, callback: (data: any) => void): void {
+    angelOneWebSocket.subscribe(exchange, symbolToken, tradingSymbol, callback);
   }
 
   // Get candle/historical data
