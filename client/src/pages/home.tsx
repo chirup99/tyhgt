@@ -4850,10 +4850,10 @@ ${
               return [...prev, newCandle];
             });
             
-            // Update chart series with new candle
+            // Add new candle to chart series (NOT update, which modifies the last candle)
             setTimeout(() => {
               if (journalCandlestickSeriesRef.current) {
-                journalCandlestickSeriesRef.current.update({
+                journalCandlestickSeriesRef.current.addData({
                   time: currentCandleStartTime as any,
                   open: liveCandle.open,
                   high: liveCandle.high,

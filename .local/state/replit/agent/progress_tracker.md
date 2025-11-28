@@ -284,3 +284,19 @@
     * Candle OHLC now tracks actual candle's OHL based on LTP ticks during interval
   - Files modified: client/src/pages/home.tsx, server/routes.ts, server/angel-one-real-ticker.ts
   - Status: ✅ FIXED - All journal chart intervals (1m/5m/15m/etc.) now display correct OHLC
+
+[x] 3619. Fix: Smooth Candle Progression Without Chart Reset
+  - Issue: When a candle completed and moved to next candle, the chart was resetting
+  - Problem: Previous completed candle structure was changing - not displaying real OHLC
+  - Root cause: Using `.update()` method for new candles, which modifies the LAST candle instead of adding
+  - Solution: Changed from `.update()` to `.addData()` when new candle is detected
+  - Technical fix:
+    * When currentCandleStartTime === lastCandleStartTime: Use `.update()` to update current candle's OHLC
+    * When currentCandleStartTime > lastCandleStartTime: Use `.addData()` to ADD new candle (NOT modify old one)
+  - How it works:
+    * `.update()` modifies the last existing candle in the chart
+    * `.addData()` adds a completely new candle to the chart
+    * This preserves the completed candle's final OHLC structure
+    * New candle smoothly appears without affecting previous candles
+  - File modified: client/src/pages/home.tsx (line 4859)
+  - Status: ✅ FIXED - Chart now smoothly progresses to new candles without resetting
