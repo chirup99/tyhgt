@@ -3812,35 +3812,35 @@ ${
     { symbol: "TATASTEEL", name: "Tata Steel", token: "500570", exchange: "BSE" },
     { symbol: "HINDALCO", name: "Hindalco Industries", token: "500440", exchange: "BSE" },
 
-    // MCX COMMODITIES
-    { symbol: "GOLD", name: "Gold Futures (MCX)", token: "261121", exchange: "MCX" },
-    { symbol: "SILVER", name: "Silver Futures (MCX)", token: "261221", exchange: "MCX" },
-    { symbol: "CRUDEOIL", name: "Crude Oil Futures (MCX)", token: "261022", exchange: "MCX" },
-    { symbol: "NATURALGAS", name: "Natural Gas Futures (MCX)", token: "261422", exchange: "MCX" },
-    { symbol: "COPPER", name: "Copper Futures (MCX)", token: "261322", exchange: "MCX" },
-    { symbol: "ZINC", name: "Zinc Futures (MCX)", token: "261521", exchange: "MCX" },
-    { symbol: "NICKEL", name: "Nickel Futures (MCX)", token: "261621", exchange: "MCX" },
-    { symbol: "LEAD", name: "Lead Futures (MCX)", token: "261421", exchange: "MCX" },
-    { symbol: "ALUMINIUM", name: "Aluminium Futures (MCX)", token: "261721", exchange: "MCX" },
+    // MCX COMMODITIES (Angel One token format: 999xxxxx)
+    { symbol: "GOLD", name: "Gold Futures (MCX)", token: "99920003", exchange: "MCX" },
+    { symbol: "SILVER", name: "Silver Futures (MCX)", token: "99920014", exchange: "MCX" },
+    { symbol: "CRUDEOIL", name: "Crude Oil Futures (MCX)", token: "99920002", exchange: "MCX" },
+    { symbol: "NATURALGAS", name: "Natural Gas Futures (MCX)", token: "99920016", exchange: "MCX" },
+    { symbol: "COPPER", name: "Copper Futures (MCX)", token: "99920004", exchange: "MCX" },
+    { symbol: "ZINC", name: "Zinc Futures (MCX)", token: "99920008", exchange: "MCX" },
+    { symbol: "NICKEL", name: "Nickel Futures (MCX)", token: "99920009", exchange: "MCX" },
+    { symbol: "LEAD", name: "Lead Futures (MCX)", token: "99920007", exchange: "MCX" },
+    { symbol: "ALUMINIUM", name: "Aluminium Futures (MCX)", token: "99920011", exchange: "MCX" },
 
-    // NCDEX AGRICULTURAL COMMODITIES
-    { symbol: "COTTON", name: "Cotton Futures (NCDEX)", token: "285121", exchange: "NCDEX" },
-    { symbol: "SOYBEAN", name: "Soybean Futures (NCDEX)", token: "284921", exchange: "NCDEX" },
-    { symbol: "CORN", name: "Corn Futures (NCDEX)", token: "281121", exchange: "NCDEX" },
-    { symbol: "JEERA", name: "Jeera Futures (NCDEX)", token: "283921", exchange: "NCDEX" },
-    { symbol: "TURMERIC", name: "Turmeric Futures (NCDEX)", token: "280721", exchange: "NCDEX" },
-    { symbol: "CHANA", name: "Chana Futures (NCDEX)", token: "282821", exchange: "NCDEX" },
-    { symbol: "WHEAT", name: "Wheat Futures (NCDEX)", token: "281621", exchange: "NCDEX" },
+    // NCDEX AGRICULTURAL COMMODITIES (Angel One token format: 999xxxxx)
+    { symbol: "COTTON", name: "Cotton Futures (NCDEX)", token: "99930001", exchange: "NCDEX" },
+    { symbol: "SOYBEAN", name: "Soybean Futures (NCDEX)", token: "99930002", exchange: "NCDEX" },
+    { symbol: "CORN", name: "Corn Futures (NCDEX)", token: "99930003", exchange: "NCDEX" },
+    { symbol: "JEERA", name: "Jeera Futures (NCDEX)", token: "99930004", exchange: "NCDEX" },
+    { symbol: "TURMERIC", name: "Turmeric Futures (NCDEX)", token: "99930005", exchange: "NCDEX" },
+    { symbol: "CHANA", name: "Chana Futures (NCDEX)", token: "99930006", exchange: "NCDEX" },
+    { symbol: "WHEAT", name: "Wheat Futures (NCDEX)", token: "99930007", exchange: "NCDEX" },
 
-    // CDS (CURRENCY DERIVATIVES)
-    { symbol: "EURINR", name: "EUR/INR (CDS)", token: "251121", exchange: "CDS" },
-    { symbol: "GBPINR", name: "GBP/INR (CDS)", token: "251221", exchange: "CDS" },
-    { symbol: "JPYINR", name: "JPY/INR (CDS)", token: "251321", exchange: "CDS" },
-    { symbol: "USDINR", name: "USD/INR (CDS)", token: "251021", exchange: "CDS" },
+    // CDS (CURRENCY DERIVATIVES - Angel One token format: 999xxxxx)
+    { symbol: "EURINR", name: "EUR/INR (CDS)", token: "99931003", exchange: "CDS" },
+    { symbol: "GBPINR", name: "GBP/INR (CDS)", token: "99931004", exchange: "CDS" },
+    { symbol: "JPYINR", name: "JPY/INR (CDS)", token: "99931005", exchange: "CDS" },
+    { symbol: "USDINR", name: "USD/INR (CDS)", token: "99931001", exchange: "CDS" },
 
     // BFO (BSE FUTURES & OPTIONS)
-    { symbol: "SENSEXFUT", name: "Sensex Futures (BFO)", token: "12800", exchange: "BFO" },
-    { symbol: "BAJAJFUT", name: "Bajaj Auto Futures (BFO)", token: "500058", exchange: "BFO" },
+    { symbol: "SENSEXFUT", name: "Sensex Futures (BFO)", token: "99919000", exchange: "BFO" },
+    { symbol: "BAJAJFUT", name: "Bajaj Auto Futures (BFO)", token: "99925002", exchange: "BFO" },
   ];
   
   // Filtered symbols based on search
