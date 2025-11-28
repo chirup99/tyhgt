@@ -3775,7 +3775,39 @@ ${
   const paperTradingEventSourcesRef = useRef<Map<string, EventSource>>(new Map());
   const paperTradingLastUpdateRef = useRef<number>(Date.now());
   
-  // Dynamic search for paper trading instruments across all exchanges
+  // Map paper trade type to exchange segment for filtering
+  const getExchangeForTradeType = (type: 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'): string => {
+    switch (type) {
+      case 'STOCK':
+        return 'NSE,BSE';  // Equity stocks
+      case 'FUTURES':
+        return 'NFO';  // NSE F&O segment for futures
+      case 'OPTIONS':
+        return 'NFO';  // NSE F&O segment for options
+      case 'MCX':
+        return 'MCX';  // Commodity exchange (Gold, Silver, Crude, etc.)
+      default:
+        return 'NSE,BSE';
+    }
+  };
+
+  // Get placeholder text based on selected type
+  const getSearchPlaceholder = (): string => {
+    switch (paperTradeType) {
+      case 'STOCK':
+        return 'Search RELIANCE, TCS, INFY...';
+      case 'FUTURES':
+        return 'Search NIFTY, BANKNIFTY futures...';
+      case 'OPTIONS':
+        return 'Search NIFTY, BANKNIFTY options...';
+      case 'MCX':
+        return 'Search GOLD, SILVER, CRUDEOIL...';
+      default:
+        return 'Search instruments...';
+    }
+  };
+
+  // Dynamic search for paper trading instruments filtered by type/exchange
   const searchPaperTradingInstruments = async (query: string) => {
     if (!query || query.length < 1) {
       setPaperTradeSearchResults([]);
@@ -3784,8 +3816,11 @@ ${
     
     setPaperTradeSearchLoading(true);
     try {
+      // Get exchange segment based on selected trade type
+      const exchange = getExchangeForTradeType(paperTradeType);
+      
       const response = await fetch(
-        getFullApiUrl(`/api/angelone/search-instruments?query=${encodeURIComponent(query)}&limit=50`)
+        getFullApiUrl(`/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&limit=50`)
       );
       
       if (response.ok) {
@@ -3798,8 +3833,10 @@ ${
           name: inst.name || inst.symbol || "",
           token: inst.token || inst.symbolToken || "",
           exchange: inst.exchange || "",
-          type: inst.type || "STOCK",
+          instrumentType: inst.instrumentType || "",
+          type: inst.type || paperTradeType,
           lotSize: inst.lotSize || 1,
+          expiry: inst.expiry || null,
         }));
         
         setPaperTradeSearchResults(formatted);
@@ -14282,12 +14319,14 @@ ${
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Stock Search */}
                   <div className="col-span-2">
-                    <Label className="text-xs font-medium">Search Stock / F&O</Label>
+                    <Label className="text-xs font-medium">
+                      Search {paperTradeType === 'MCX' ? 'MCX Commodities' : paperTradeType === 'FUTURES' ? 'Futures' : paperTradeType === 'OPTIONS' ? 'Options' : 'Stock'}
+                    </Label>
                     <div className="relative mt-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         type="text"
-                        placeholder="Search RELIANCE, TCS, NIFTY..."
+                        placeholder={getSearchPlaceholder()}
                         value={paperTradeSymbolSearch}
                         onChange={(e) => {
                           const query = e.target.value;
@@ -14345,7 +14384,18 @@ ${
                   {/* Type Selector */}
                   <div>
                     <Label className="text-xs font-medium">Type</Label>
-                    <Select value={paperTradeType} onValueChange={(v) => setPaperTradeType(v as 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX')}>
+                    <Select 
+                      value={paperTradeType} 
+                      onValueChange={(v) => {
+                        const newType = v as 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX';
+                        setPaperTradeType(newType);
+                        setPaperTradeSymbol("");
+                        setPaperTradeSymbolSearch("");
+                        setPaperTradeSearchResults([]);
+                        setPaperTradeCurrentPrice(null);
+                        setSelectedPaperTradingInstrument(null);
+                      }}
+                    >
                       <SelectTrigger className="mt-1" data-testid="select-paper-trade-type">
                         <SelectValue />
                       </SelectTrigger>
