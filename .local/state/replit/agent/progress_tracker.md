@@ -266,3 +266,21 @@
     * Updated `disconnect` to clear tickCallbacks on cleanup
   - Files modified: server/angel-one-websocket.ts
   - Status: ✅ FIXED - Server running, journal tab loading data correctly
+
+[x] 3618. Fix: Journal Chart Candle OHLC Tracking & Interval Handling
+  - Issue 1: OHL values were incorrect (showing day's OHL instead of current candle's OHL)
+  - Issue 2: Hard-coded 15-minute interval caused wrong candle boundaries for 1m/5m intervals
+  - Issue 3: `isNewCandle` flag was always false (computed after OHLC reset)
+  - Root cause: Server used day's OHLC from WebSocket data and hard-coded 900s interval
+  - Solution:
+    * Frontend: Added interval parameter to SSE URL based on selected journal interval
+    * Backend routes.ts: Extract interval from query params and pass to addClient
+    * Backend angel-one-real-ticker.ts: Accept intervalSecondsParam and use for candle tracking
+    * Fixed isNewCandle to be computed BEFORE candleOhlc reset
+  - Implementation details:
+    * client/src/pages/home.tsx: Added `getIntervalInSeconds(selectedJournalInterval)` to SSE URL
+    * server/routes.ts: Parse `interval` query param, default to 900s, pass to addClient
+    * server/angel-one-real-ticker.ts: Use per-client interval for candle boundary calculations
+    * Candle OHLC now tracks actual candle's OHL based on LTP ticks during interval
+  - Files modified: client/src/pages/home.tsx, server/routes.ts, server/angel-one-real-ticker.ts
+  - Status: ✅ FIXED - All journal chart intervals (1m/5m/15m/etc.) now display correct OHLC
