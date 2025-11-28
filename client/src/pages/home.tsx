@@ -4053,8 +4053,11 @@ ${
         entryTime: new Date().toLocaleTimeString(),
         pnl: 0,
         pnlPercent: 0,
-        isOpen: true
-      };
+        isOpen: true,
+        // Store token and exchange for WebSocket live price streaming
+        symbolToken: (selectedPaperTradingInstrument as any)?.token || "0",
+        exchange: (selectedPaperTradingInstrument as any)?.exchange || "NSE"
+      } as any;
       
       // Add to positions
       const updatedPositions = [...paperPositions, newPosition];
@@ -4105,7 +4108,16 @@ ${
       // Close the position
       const updatedPositions = paperPositions.map(p => 
         p.id === openPosition.id 
-          ? { ...p, isOpen: false, currentPrice: paperTradeCurrentPrice, pnl, pnlPercent }
+          ? { 
+              ...p, 
+              isOpen: false, 
+              currentPrice: paperTradeCurrentPrice, 
+              pnl, 
+              pnlPercent,
+              // Preserve token and exchange for logging
+              symbolToken: (p as any).symbolToken,
+              exchange: (p as any).exchange
+            }
           : p
       );
       setPaperPositions(updatedPositions);
