@@ -3807,6 +3807,72 @@ ${
     }
   };
 
+  // Sort instruments by category: Index -> Futures (near, next, far) -> Options
+  const sortInstruments = (instruments: any[]): any[] => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Categorize instruments
+    const categories: any = {
+      index: [],
+      futuresNear: [],
+      futuresNext: [],
+      futuresFar: [],
+      options: [],
+      others: []
+    };
+    
+    instruments.forEach((inst) => {
+      const instrumentType = inst.instrumentType || '';
+      
+      // Check if it's an index (NIFTY50, NIFTY, BANKNIFTY, etc)
+      if (instrumentType === 'FUTIDX' || instrumentType === 'OPTIDX' || 
+          inst.symbol?.match(/^(NIFTY50|NIFTY|BANKNIFTY|FINNIFTY|MIDCPNIFTY)$/i)) {
+        if (instrumentType === 'OPTIDX') {
+          categories.options.push(inst);
+        } else {
+          categories.index.push(inst);
+        }
+      }
+      // Check if it's a future
+      else if (instrumentType === 'FUTSTK' || instrumentType === 'FUTIDX' || instrumentType === 'FUTCOM') {
+        if (inst.expiry) {
+          const expiryDate = new Date(inst.expiry);
+          expiryDate.setHours(0, 0, 0, 0);
+          const daysUntilExpiry = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilExpiry <= 7) {
+            categories.futuresNear.push(inst);
+          } else if (daysUntilExpiry <= 37) {
+            categories.futuresNext.push(inst);
+          } else {
+            categories.futuresFar.push(inst);
+          }
+        } else {
+          categories.futuresNear.push(inst);
+        }
+      }
+      // Check if it's an option
+      else if (instrumentType === 'OPTSTK' || instrumentType === 'OPTFUT' || instrumentType === 'OPTIDX') {
+        categories.options.push(inst);
+      }
+      // Everything else
+      else {
+        categories.others.push(inst);
+      }
+    });
+    
+    // Combine in order: Index -> Futures Near -> Futures Next -> Futures Far -> Options -> Others
+    return [
+      ...categories.index,
+      ...categories.futuresNear,
+      ...categories.futuresNext,
+      ...categories.futuresFar,
+      ...categories.options,
+      ...categories.others
+    ];
+  };
+
   // Dynamic search for paper trading instruments filtered by type/exchange
   const searchPaperTradingInstruments = async (query: string) => {
     if (!query || query.length < 1) {
@@ -3843,8 +3909,11 @@ ${
           expiry: inst.expiry || null,
         }));
         
-        console.log(`🔍 [PAPER-TRADE] Formatted ${formatted.length} results:`, formatted.slice(0, 3));
-        setPaperTradeSearchResults(formatted);
+        // Sort by category (Index -> Futures near/next/far -> Options)
+        const sorted = sortInstruments(formatted);
+        
+        console.log(`🔍 [PAPER-TRADE] Formatted and sorted ${sorted.length} results:`, sorted.slice(0, 3));
+        setPaperTradeSearchResults(sorted);
       } else {
         console.error(`🔍 [PAPER-TRADE] API error: ${response.status}`);
         setPaperTradeSearchResults([]);
@@ -3867,14 +3936,14 @@ ${
       // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
       const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
       
-      console.log(`📊 [PAPER-TRADE] Subscribing to live price stream for ${symbol}`);
+      console.log(`📊 [PAPER-TRADE] Subscribing to live price stream for ${stockInfo.symbol}`);
       
       const eventSource = new EventSource(sseUrl);
       
       let priceReceived = false;
       const timeout = setTimeout(() => {
         if (!priceReceived) {
-          console.warn(`⚠️ [PAPER-TRADE] No price received for ${symbol} after 5s`);
+          console.warn(`⚠️ [PAPER-TRADE] No price received for ${stockInfo.symbol} after 5s`);
           eventSource.close();
           setPaperTradePriceLoading(false);
         }
@@ -3939,7 +4008,7 @@ ${
       const newPosition: PaperPosition = {
         id: `PT-${Date.now()}`,
         symbol: paperTradeSymbol,
-        type: paperTradeType,
+        type: paperTradeType as any,
         action: 'BUY',
         quantity: quantity,
         entryPrice: paperTradeCurrentPrice,
@@ -3964,7 +4033,7 @@ ${
       const newTrade: PaperTrade = {
         id: newPosition.id,
         symbol: paperTradeSymbol,
-        type: paperTradeType,
+        type: paperTradeType as any,
         action: 'BUY',
         quantity: quantity,
         price: paperTradeCurrentPrice,
@@ -4015,7 +4084,7 @@ ${
       const sellTrade: PaperTrade = {
         id: `PT-${Date.now()}`,
         symbol: paperTradeSymbol,
-        type: paperTradeType,
+        type: paperTradeType as any,
         action: 'SELL',
         quantity: openPosition.quantity,
         price: paperTradeCurrentPrice,
@@ -4097,8 +4166,8 @@ ${
       
       // For open positions, we store symbol, token, exchange in the position data
       // Or fetch it from search results if available
-      const symbolToken = position.symbolToken || "0";
-      const exchange = position.exchange || "NSE";
+      const symbolToken = (position as any).symbolToken || "0";
+      const exchange = (position as any).exchange || "NSE";
       
       // Create SSE connection for this symbol (same endpoint as journal chart)
       const sseUrl = `/api/angelone/live-stream-ws?symbol=${position.symbol}&symbolToken=${symbolToken}&exchange=${exchange}&tradingSymbol=${position.symbol}&interval=60`;
