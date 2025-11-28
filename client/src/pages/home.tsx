@@ -4852,7 +4852,12 @@ ${
             
             // Add new candle to chart series (NOT update, which modifies the last candle)
             setTimeout(() => {
-              if (journalCandlestickSeriesRef.current) {
+              if (journalCandlestickSeriesRef.current && journalChartRef.current) {
+                // Save current viewport position before adding new candle
+                const timeScale = journalChartRef.current.timeScale();
+                const visibleRange = timeScale.getVisibleRange();
+                
+                // Add the new candle
                 journalCandlestickSeriesRef.current.addData({
                   time: currentCandleStartTime as any,
                   open: liveCandle.open,
@@ -4860,6 +4865,11 @@ ${
                   low: liveCandle.low,
                   close: liveCandle.close
                 });
+                
+                // Restore the viewport to prevent chart from jumping to center
+                if (visibleRange) {
+                  timeScale.setVisibleRange(visibleRange);
+                }
               }
             }, 50);
             

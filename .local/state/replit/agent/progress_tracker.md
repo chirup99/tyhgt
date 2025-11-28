@@ -286,17 +286,23 @@
   - Status: ✅ FIXED - All journal chart intervals (1m/5m/15m/etc.) now display correct OHLC
 
 [x] 3619. Fix: Smooth Candle Progression Without Chart Reset
-  - Issue: When a candle completed and moved to next candle, the chart was resetting
-  - Problem: Previous completed candle structure was changing - not displaying real OHLC
-  - Root cause: Using `.update()` method for new candles, which modifies the LAST candle instead of adding
-  - Solution: Changed from `.update()` to `.addData()` when new candle is detected
+  - Issue 1: When a candle completed, the chart was resetting and jumping to center
+  - Issue 2: Previous completed candle structure was changing - not displaying real OHLC
+  - Root cause: Using `.update()` method modified the LAST candle; chart auto-centered on new candles
+  - Solution: 
+    * Changed from `.update()` to `.addData()` when new candle is detected
+    * Preserve chart viewport by saving/restoring visible range when adding candles
   - Technical fix:
     * When currentCandleStartTime === lastCandleStartTime: Use `.update()` to update current candle's OHLC
-    * When currentCandleStartTime > lastCandleStartTime: Use `.addData()` to ADD new candle (NOT modify old one)
+    * When currentCandleStartTime > lastCandleStartTime: 
+      - Save current viewport position: `timeScale.getVisibleRange()`
+      - Add new candle with `.addData()`
+      - Restore viewport: `timeScale.setVisibleRange(visibleRange)`
   - How it works:
     * `.update()` modifies the last existing candle in the chart
     * `.addData()` adds a completely new candle to the chart
+    * Saving/restoring viewport prevents auto-centering on new data
     * This preserves the completed candle's final OHLC structure
-    * New candle smoothly appears without affecting previous candles
-  - File modified: client/src/pages/home.tsx (line 4859)
-  - Status: ✅ FIXED - Chart now smoothly progresses to new candles without resetting
+    * Chart position stays fixed while new candles seamlessly appear on the right
+  - Files modified: client/src/pages/home.tsx (lines 4856-4877)
+  - Status: ✅ FIXED - Chart smoothly progresses with NO viewport jumping
