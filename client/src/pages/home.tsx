@@ -3815,10 +3815,10 @@ ${
   };
   
   // Fetch live price from Angel One WebSocket (same stream as chart)
-  const fetchPaperTradePrice = async (symbol: string) => {
-    const stockInfo = paperTradingSymbols.find(s => s.symbol === symbol);
-    if (!stockInfo) return;
+  const fetchPaperTradePrice = async () => {
+    if (!selectedPaperTradingInstrument) return;
     
+    const stockInfo = selectedPaperTradingInstrument;
     setPaperTradePriceLoading(true);
     try {
       // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
@@ -3843,7 +3843,7 @@ ${
           const ltp = data.ltp || data.close;
           
           if (ltp && ltp > 0) {
-            console.log(`✅ [PAPER-TRADE] Got real price for ${symbol}: ₹${ltp}`);
+            console.log(`✅ [PAPER-TRADE] Got real price for ${stockInfo.symbol}: ₹${ltp}`);
             setPaperTradeCurrentPrice(ltp);
             priceReceived = true;
             clearTimeout(timeout);
@@ -3851,12 +3851,12 @@ ${
             setPaperTradePriceLoading(false);
           }
         } catch (err) {
-          console.error(`[PAPER-TRADE] Parse error for ${symbol}:`, err);
+          console.error(`[PAPER-TRADE] Parse error for ${stockInfo.symbol}:`, err);
         }
       };
       
       eventSource.onerror = () => {
-        console.warn(`⚠️ [PAPER-TRADE] Connection error for ${symbol}`);
+        console.warn(`⚠️ [PAPER-TRADE] Connection error for ${stockInfo.symbol}`);
         clearTimeout(timeout);
         eventSource.close();
         if (!priceReceived) setPaperTradePriceLoading(false);
@@ -4049,14 +4049,16 @@ ${
     
     // Subscribe to live stream for each open position
     openPositions.forEach(position => {
-      const stockInfo = paperTradingSymbols.find(s => s.symbol === position.symbol);
-      if (!stockInfo) return;
-      
       // Skip if already connected
       if (paperTradingEventSourcesRef.current.has(position.symbol)) return;
       
+      // For open positions, we store symbol, token, exchange in the position data
+      // Or fetch it from search results if available
+      const symbolToken = position.symbolToken || "0";
+      const exchange = position.exchange || "NSE";
+      
       // Create SSE connection for this symbol (same endpoint as journal chart)
-      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${position.symbol}&symbolToken=${symbolToken}&exchange=${exchange}&tradingSymbol=${position.symbol}&interval=60`;
       
       console.log(`📡 [PAPER-TRADING] Subscribing to ${position.symbol} live stream`);
       
@@ -14288,28 +14290,40 @@ ${
                         placeholder="Search RELIANCE, TCS, NIFTY..."
                         value={paperTradeSymbolSearch}
                         onChange={(e) => {
-                          setPaperTradeSymbolSearch(e.target.value);
+                          const query = e.target.value;
+                          setPaperTradeSymbolSearch(query);
                           setPaperTradeSymbol("");
                           setPaperTradeCurrentPrice(null);
+                          if (query.length > 0) {
+                            searchPaperTradingInstruments(query);
+                          } else {
+                            setPaperTradeSearchResults([]);
+                          }
                         }}
                         className="pl-10"
                         data-testid="input-paper-trade-search"
                       />
                     </div>
                     
-                    {/* Stock Dropdown */}
+                    {/* Stock Dropdown - Dynamic Search Results */}
                     {paperTradeSymbolSearch && !paperTradeSymbol && (
                       <div className="absolute z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
-                        {filteredPaperTradingSymbols.length === 0 ? (
-                          <div className="px-3 py-2 text-xs text-gray-500">No stocks found</div>
+                        {paperTradeSearchLoading ? (
+                          <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
+                            <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                            Searching...
+                          </div>
+                        ) : paperTradeSearchResults.length === 0 ? (
+                          <div className="px-3 py-2 text-xs text-gray-500">No instruments found</div>
                         ) : (
-                          filteredPaperTradingSymbols.map(stock => (
+                          paperTradeSearchResults.map((stock, idx) => (
                             <button
-                              key={stock.symbol}
+                              key={`${stock.symbol}-${stock.exchange}-${idx}`}
                               onClick={() => {
+                                setSelectedPaperTradingInstrument(stock);
                                 setPaperTradeSymbol(stock.symbol);
                                 setPaperTradeSymbolSearch(stock.symbol);
-                                fetchPaperTradePrice(stock.symbol);
+                                fetchPaperTradePrice();
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
                               data-testid={`select-stock-${stock.symbol}`}
