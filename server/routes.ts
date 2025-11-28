@@ -63,6 +63,8 @@ const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string
   'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
   'BANKNIFTY': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
   'SENSEX': { token: '99919000', exchange: 'BSE', tradingSymbol: 'SENSEX' },
+  'GOLD': { token: '99920003', exchange: 'MCX', tradingSymbol: 'MCXGOLDEX' },
+  'MCXGOLDEX': { token: '99920003', exchange: 'MCX', tradingSymbol: 'MCXGOLDEX' },
   'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
   'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
   'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
@@ -7813,6 +7815,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: error.message
+      });
+    }
+  });
+
+  // Angel One - Get live index prices (BANKNIFTY, SENSEX, GOLD) for WebSocket verification
+  app.get("/api/angelone/live-indices", async (req, res) => {
+    try {
+      const isConnected = angelOneApi.isConnected();
+      const now = new Date();
+      
+      // Properly calculate IST time (UTC + 5:30)
+      const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+      const istHour = istTime.getUTCHours();
+      const istMinute = istTime.getUTCMinutes();
+      const istTimeDecimal = istHour + (istMinute / 60); // e.g., 9:15 = 9.25, 15:30 = 15.5
+      
+      // Market hours: NSE/BSE 9:15 AM - 3:30 PM IST, MCX 9:00 AM - 11:30 PM IST
+      const nseOpen = istTimeDecimal >= 9.25 && istTimeDecimal <= 15.5;
+      const mcxOpen = istTimeDecimal >= 9 && istTimeDecimal <= 23.5;
+      const dayOfWeek = istTime.getUTCDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      
+      const indices = [
+        { 
+          symbol: 'BANKNIFTY', 
+          name: 'Bank Nifty', 
+          token: '99926009', 
+          exchange: 'NSE',
+          marketOpen: !isWeekend && nseOpen
+        },
+        { 
+          symbol: 'SENSEX', 
+          name: 'Sensex', 
+          token: '99919000', 
+          exchange: 'BSE',
+          marketOpen: !isWeekend && nseOpen
+        },
+        { 
+          symbol: 'GOLD', 
+          name: 'Gold', 
+          token: '99920003', 
+          exchange: 'MCX',
+          marketOpen: !isWeekend && mcxOpen
+        }
+      ];
+
+      // Create default empty response structure
+      const createEmptyIndex = (idx: typeof indices[0]) => ({
+        ...idx,
+        ltp: 0,
+        change: 0,
+        changePercent: 0,
+        open: 0,
+        high: 0,
+        low: 0,
+        close: 0,
+        volume: 0,
+        isLive: false,
+        lastUpdate: null
+      });
+
+      if (!isConnected) {
+        return res.json({
+          success: true,
+          connected: false,
+          websocketActive: false,
+          indices: indices.map(createEmptyIndex)
+        });
+      }
+
+      // Fetch live quotes from Angel One
+      const symbolsToFetch = indices.map(idx => ({
+        exchange: idx.exchange,
+        tradingSymbol: ANGEL_ONE_STOCK_TOKENS[idx.symbol]?.tradingSymbol || idx.symbol,
+        symbolToken: idx.token
+      }));
+
+      try {
+        const quotesResponse = await angelOneApi.getQuotes(symbolsToFetch);
+        
+        // Angel One API returns data as object with keys like "NSE:99926009" or direct data array
+        // Handle both formats defensively
+        let quotesData: any = quotesResponse;
+        if (quotesResponse?.data) {
+          quotesData = quotesResponse.data;
+        }
+        
+        const results = indices.map((idx) => {
+          // Try multiple key formats: "NSE:99926009", "99926009", or array access
+          const quoteKey = `${idx.exchange}:${idx.token}`;
+          let quote = quotesData?.[quoteKey] || quotesData?.[idx.token];
+          
+          // If quotesData is an array, find by token
+          if (Array.isArray(quotesData)) {
+            quote = quotesData.find((q: any) => 
+              q?.symbolToken === idx.token || 
+              q?.token === idx.token ||
+              q?.symboltoken === idx.token
+            );
+          }
+          
+          const ltp = quote?.ltp || quote?.lastPrice || quote?.last_price || 0;
+          const isLive = idx.marketOpen && ltp > 0;
+          
+          return {
+            ...idx,
+            ltp,
+            change: quote?.change || quote?.netChange || 0,
+            changePercent: quote?.changePercent || quote?.percentChange || quote?.pChange || 0,
+            open: quote?.open || quote?.openPrice || 0,
+            high: quote?.high || quote?.dayHigh || 0,
+            low: quote?.low || quote?.dayLow || 0,
+            close: quote?.close || quote?.previousClose || ltp || 0,
+            volume: quote?.volume || quote?.tradedVolume || 0,
+            isLive,
+            lastUpdate: isLive ? new Date().toISOString() : (quote?.timestamp || quote?.exchFeedTime || null)
+          };
+        });
+
+        res.json({
+          success: true,
+          connected: true,
+          websocketActive: angelOneApi.getApiStats?.()?.websocketActive || false,
+          timestamp: new Date().toISOString(),
+          istTime: `${istHour.toString().padStart(2, '0')}:${istMinute.toString().padStart(2, '0')}`,
+          marketStatus: { nseOpen: !isWeekend && nseOpen, mcxOpen: !isWeekend && mcxOpen, isWeekend },
+          indices: results
+        });
+      } catch (quoteError: any) {
+        console.error('❌ [LIVE-INDICES] Quote fetch error:', quoteError.message);
+        res.json({
+          success: true,
+          connected: true,
+          websocketActive: false,
+          error: quoteError.message,
+          indices: indices.map(createEmptyIndex)
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ [LIVE-INDICES] Error:', error.message);
+      res.status(500).json({ 
+        success: false,
+        message: error.message,
+        indices: []
       });
     }
   });

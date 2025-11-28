@@ -8,7 +8,7 @@ import React, {
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { AuthButton } from "@/components/auth-button";
-import { AuthButtonAngelOne, AngelOneStatus, AngelOneApiStatistics, AngelOneSystemStatus } from "@/components/auth-button-angelone";
+import { AuthButtonAngelOne, AngelOneStatus, AngelOneApiStatistics, AngelOneSystemStatus, AngelOneLiveMarketPrices } from "@/components/auth-button-angelone";
 import { ConnectionStatus } from "@/components/connection-status";
 import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
 import { SigninDataWindow } from "@/components/signin-data-window";
@@ -8686,6 +8686,9 @@ ${
                   {/* Angel One Status */}
                   <AngelOneStatus />
                 </div>
+
+                {/* Live Market Prices - BANKNIFTY, SENSEX, GOLD with WebSocket status */}
+                <AngelOneLiveMarketPrices />
 
                 {/* API Statistics Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

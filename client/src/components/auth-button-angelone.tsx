@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Key, CheckCircle2, Shield, Clock, RefreshCw, CheckCircle, LogOut, Loader2, AlertCircle, Plug } from "lucide-react";
+import { Key, CheckCircle2, Shield, Clock, RefreshCw, CheckCircle, LogOut, Loader2, AlertCircle, Plug, Wifi, WifiOff, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface AngelOneProfile {
   name: string;
@@ -43,6 +44,33 @@ interface AngelOneActivityLog {
   type: 'success' | 'info' | 'warning' | 'error';
   message: string;
   endpoint?: string;
+}
+
+interface LiveIndexData {
+  symbol: string;
+  name: string;
+  token: string;
+  exchange: string;
+  marketOpen: boolean;
+  ltp: number;
+  change: number;
+  changePercent: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  isLive: boolean;
+  lastUpdate: string | null;
+}
+
+interface LiveIndicesResponse {
+  success: boolean;
+  connected: boolean;
+  websocketActive: boolean;
+  timestamp?: string;
+  error?: string;
+  indices: LiveIndexData[];
 }
 
 // Simple Auth Button - Auto-connect using backend environment variables
@@ -559,6 +587,151 @@ export function AngelOneSystemStatus() {
             ))
           ) : (
             <div className="text-sm text-gray-500 dark:text-gray-400">No recent activity</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Live Market Prices Component - Shows BANKNIFTY, SENSEX, GOLD with WebSocket status
+export function AngelOneLiveMarketPrices() {
+  const { data: indicesData, isLoading } = useQuery<LiveIndicesResponse>({
+    queryKey: ["/api/angelone/live-indices"],
+    refetchInterval: 700, // 700ms for tick-by-tick updates
+  });
+
+  const formatPrice = (price: number) => {
+    if (price === 0) return '--';
+    return price.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  };
+
+  const formatChange = (change: number, changePercent: number) => {
+    if (change === 0 && changePercent === 0) return '--';
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`;
+  };
+
+  const getExchangeColor = (exchange: string, marketOpen: boolean) => {
+    if (!marketOpen) return 'bg-gray-100 dark:bg-gray-700 text-gray-500';
+    switch (exchange) {
+      case 'NSE': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
+      case 'BSE': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';
+      case 'MCX': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400';
+      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-500';
+    }
+  };
+
+  const connected = indicesData?.connected ?? false;
+  const websocketActive = indicesData?.websocketActive ?? false;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-3 mb-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400">Live Market Prices</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {websocketActive ? (
+                <Wifi className="h-4 w-4 text-green-500" />
+              ) : (
+                <WifiOff className="h-4 w-4 text-gray-400" />
+              )}
+              <span className={`text-xs font-medium ${websocketActive ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+                {websocketActive ? 'WebSocket Active' : 'WebSocket Off'}
+              </span>
+            </div>
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin text-orange-500" />}
+          </div>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          {connected ? 'Real-time 700ms tick data from Angel One API' : 'Connect to Angel One for live prices'}
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {(indicesData?.indices || [
+          { symbol: 'BANKNIFTY', name: 'Bank Nifty', exchange: 'NSE', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false },
+          { symbol: 'SENSEX', name: 'Sensex', exchange: 'BSE', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false },
+          { symbol: 'GOLD', name: 'Gold', exchange: 'MCX', marketOpen: false, ltp: 0, change: 0, changePercent: 0, isLive: false }
+        ] as LiveIndexData[]).map((idx) => (
+          <div 
+            key={idx.symbol}
+            className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600"
+            data-testid={`live-price-${idx.symbol.toLowerCase()}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">{idx.name}</span>
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-1.5 py-0 ${getExchangeColor(idx.exchange, idx.marketOpen)}`}
+                  >
+                    {idx.exchange}
+                  </Badge>
+                  {idx.isLive && (
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                      <span className="text-xs text-green-600 dark:text-green-400">LIVE</span>
+                    </span>
+                  )}
+                  {!idx.isLive && idx.ltp > 0 && (
+                    <span className="text-xs text-gray-500">Last Close</span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {idx.marketOpen ? 'Market Open' : 'Market Closed'}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="flex items-center gap-1 justify-end">
+                {idx.change !== 0 && (
+                  idx.change >= 0 ? (
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 text-red-500" />
+                  )
+                )}
+                <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                  {formatPrice(idx.ltp)}
+                </span>
+              </div>
+              <span className={`text-sm font-medium ${
+                idx.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              }`}>
+                {formatChange(idx.change, idx.changePercent)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Exchange Status Footer */}
+      <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span className="text-gray-600 dark:text-gray-400">NSE {indicesData?.indices?.[0]?.marketOpen ? 'Open' : 'Closed'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+              <span className="text-gray-600 dark:text-gray-400">BSE {indicesData?.indices?.[1]?.marketOpen ? 'Open' : 'Closed'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span className="text-gray-600 dark:text-gray-400">MCX {indicesData?.indices?.[2]?.marketOpen ? 'Open' : 'Closed'}</span>
+            </div>
+          </div>
+          {indicesData?.timestamp && (
+            <span className="text-xs text-gray-500">
+              Updated: {new Date(indicesData.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}
+            </span>
           )}
         </div>
       </div>

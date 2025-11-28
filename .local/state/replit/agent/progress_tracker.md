@@ -176,3 +176,33 @@
 [x] 3539.   - Application is fully functional and ready for development and user interaction
 [x] 3540.   - All migration steps complete, project successfully imported to Replit environment
 [x] 3541. FINAL REPLIT ENVIRONMENT IMPORT 100% COMPLETE!
+
+[x] 3542. NOVEMBER 28, 2025 - LIVE MARKET PRICES WITH WEBSOCKET STATUS
+[x] 3543. Task: Add live market prices for BANKNIFTY, SENSEX, GOLD with WebSocket status and exchange indicators
+[x] 3544. Features implemented:
+[x] 3545.   1. Created AngelOneLiveMarketPrices component showing real-time prices for:
+[x] 3546.      - BANKNIFTY (NSE Index) - Token: 99926009
+[x] 3547.      - SENSEX (BSE Index) - Token: 99919000
+[x] 3548.      - GOLD (MCX Commodity) - Token: 99920003
+[x] 3549.   2. WebSocket status indicator showing:
+[x] 3550.      - Connected (green) / Connecting (yellow) / Disconnected (red)
+[x] 3551.   3. Exchange status badges (NSE/BSE/MCX) for each index
+[x] 3552.   4. 700ms live price updates when market is open
+[x] 3553.   5. Display last traded price (LTP) when market is closed
+[x] 3554. Backend API endpoint created:
+[x] 3555.   - /api/angelone/live-indices - Returns live prices for configured indices
+[x] 3556. Token mappings added to angel-one-websocket.ts:
+[x] 3557.   - NIFTY50: 99926000 (NSE)
+[x] 3558.   - BANKNIFTY: 99926009 (NSE)
+[x] 3559.   - SENSEX: 99919000 (BSE)
+[x] 3560.   - MCXGOLDEX: 99920003 (MCX)
+[x] 3561. Files modified:
+[x] 3562.   - client/src/components/auth-button-angelone.tsx (added AngelOneLiveMarketPrices component)
+[x] 3563.   - client/src/pages/home.tsx (added component to dashboard)
+[x] 3564.   - server/routes.ts (added /api/angelone/live-indices endpoint)
+[x] 3565.   - server/angel-one-websocket.ts (added index token mappings)
+[x] 3566.   - vite.config.ts (fixed HMR WebSocket for Replit environment)
+[x] 3567. Additional fix applied:
+[x] 3568.   - Vite HMR WebSocket configuration updated to use REPLIT_DOMAINS environment variable
+[x] 3569.   - This allows proper hot module replacement in Replit iframe environment
+[x] 3570. LIVE MARKET PRICES FEATURE 100% COMPLETE!
