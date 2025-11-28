@@ -10065,7 +10065,7 @@ ${
                     <div className="md:grid md:grid-cols-3 gap-6">
                       {/* Left Block - Performance Chart */}
                       <div
-                        className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
+                        className={`h-[500px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
                       >
                         {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
                         <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
@@ -10420,7 +10420,7 @@ ${
                             </div>
 
                             {/* TradingView Light Theme Chart Container - Clean */}
-                            <div className="flex-1 relative flex flex-col min-h-[450px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
+                            <div className="flex-1 relative flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
                               {journalChartLoading && (
                                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                   <div className="flex flex-col items-center gap-4">
@@ -10501,7 +10501,7 @@ ${
 
                       {/* Middle Block - Multiple Image Upload */}
                       <div
-                        className={`h-[400px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
+                        className={`h-[500px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
                       >
                         <MultipleImageUpload
                           ref={imageUploadRef}
@@ -10512,7 +10512,7 @@ ${
 
                       {/* Right Block - PERFORMANCE STATS (Split: 30% top, 70% bottom) */}
                       <Card
-                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
+                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[500px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
                       >
                         {/* Top 30% - Performance Insights */}
                         <div className="h-[30%] border-b border-gray-200 dark:border-gray-700">
