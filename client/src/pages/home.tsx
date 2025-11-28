@@ -4512,7 +4512,7 @@ ${
   // Journal chart controls state
   const [selectedJournalSymbol, setSelectedJournalSymbol] =
     useState("NSE:NIFTY50-INDEX");
-  const [selectedJournalInterval, setSelectedJournalInterval] = useState("15");
+  const [selectedJournalInterval, setSelectedJournalInterval] = useState("1");
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [journalSearchType, setJournalSearchType] = useState<'STOCK' | 'COMMODITY' | 'F&O'>('STOCK');
@@ -4978,22 +4978,23 @@ ${
           toDate = `${toDate} 15:30`;
         }
         
-        console.log(`🔶 Using exchange-specific hours for ${exchange}: ${fromDate} to ${toDate}`);
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${exchange} | Hours: ${fromDate} to ${toDate}`);
       } else {
         // For daily and higher intervals, use full day
         fromDate = `${fromDate} 00:00`;
         toDate = `${toDate} 23:59`;
       }
       
+      const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
-        interval: getJournalAngelOneInterval(selectedJournalInterval),
+        interval: angelInterval,
         fromDate: fromDate,
         toDate: toDate,
       };
 
-      console.log('🔶 Fetching Angel One historical data for journal chart:', requestBody);
+      console.log(`🔶 FETCH INTERVAL: ${selectedJournalInterval} -> ${angelInterval}`, requestBody);
 
       console.log('🔶 Making request to /api/angelone/historical with body:', requestBody);
       
@@ -5291,13 +5292,17 @@ ${
             
             // Update the current candle with preserved OHLC
             setTimeout(() => {
-              journalCandlestickSeriesRef.current?.update({
-                time: lastChartCandle.time as any,
-                open: candleOpen,
-                high: candleHigh,
-                low: candleLow,
-                close: candleClose
-              });
+              try {
+                journalCandlestickSeriesRef.current?.update({
+                  time: lastChartCandle.time as any,
+                  open: candleOpen,
+                  high: candleHigh,
+                  low: candleLow,
+                  close: candleClose
+                });
+              } catch (e) {
+                console.warn('⚠️ Chart update skipped (time conflict)', e);
+              }
             }, 50);
             
             console.log('📊 [UPDATE] Same candle interval, updating OHLC only');
@@ -5326,22 +5331,26 @@ ${
             // Add new candle to chart series using update() - it adds if timestamp is newer
             setTimeout(() => {
               if (journalCandlestickSeriesRef.current && journalChartRef.current) {
-                // Save current viewport position before adding new candle
-                const timeScale = journalChartRef.current.timeScale();
-                const visibleRange = timeScale.getVisibleRange();
-                
-                // Use update() to add the new candle - it will add if time > last candle time
-                journalCandlestickSeriesRef.current.update({
-                  time: currentCandleStartTime as any,
-                  open: liveCandle.open,
-                  high: liveCandle.high,
-                  low: liveCandle.low,
-                  close: liveCandle.close
-                });
-                
-                // Restore the viewport to prevent chart from jumping to center
-                if (visibleRange) {
-                  timeScale.setVisibleRange(visibleRange);
+                try {
+                  // Save current viewport position before adding new candle
+                  const timeScale = journalChartRef.current.timeScale();
+                  const visibleRange = timeScale.getVisibleRange();
+                  
+                  // Use update() to add the new candle - it will add if time > last candle time
+                  journalCandlestickSeriesRef.current.update({
+                    time: currentCandleStartTime as any,
+                    open: liveCandle.open,
+                    high: liveCandle.high,
+                    low: liveCandle.low,
+                    close: liveCandle.close
+                  });
+                  
+                  // Restore the viewport to prevent chart from jumping to center
+                  if (visibleRange) {
+                    timeScale.setVisibleRange(visibleRange);
+                  }
+                } catch (e) {
+                  console.warn('⚠️ New candle add skipped (time conflict)', e);
                 }
               }
             }, 50);
@@ -10896,24 +10905,38 @@ ${
                                 </Popover>
 
                                 {/* Time Interval Selector - TradingView Style */}
-                                <select
-                                  className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-1.5 md:px-2 text-xs md:text-sm"
-                                  value={selectedJournalInterval}
-                                  onChange={(e) =>
-                                    setSelectedJournalInterval(e.target.value)
-                                  }
-                                  data-testid="select-interval"
-                                >
-                                  <option value="1">1m</option>
-                                  <option value="5">5m</option>
-                                  <option value="15">15m</option>
-                                  <option value="30">30m</option>
-                                  <option value="60">1h</option>
-                                  <option value="1D">1D</option>
-                                  <option value="5D">5D</option>
-                                  <option value="1W">1W</option>
-                                  <option value="1M">1M</option>
-                                </select>
+                                <div className="flex items-center gap-2">
+                                  <select
+                                    className="bg-gray-800 text-white border border-gray-600 rounded h-8 px-2 text-xs md:text-sm font-semibold"
+                                    value={selectedJournalInterval}
+                                    onChange={(e) => {
+                                      console.log(`📊 TIMEFRAME CHANGE: ${selectedJournalInterval} -> ${e.target.value}`);
+                                      setSelectedJournalInterval(e.target.value);
+                                    }}
+                                    data-testid="select-interval"
+                                  >
+                                    <option value="1">1m</option>
+                                    <option value="5">5m</option>
+                                    <option value="15">15m</option>
+                                    <option value="30">30m</option>
+                                    <option value="60">1h</option>
+                                    <option value="1D">1D</option>
+                                    <option value="5D">5D</option>
+                                    <option value="1W">1W</option>
+                                    <option value="1M">1M</option>
+                                  </select>
+                                  <span className="text-xs text-gray-500 hidden md:inline">
+                                    {selectedJournalInterval === '1' ? '1 min' :
+                                     selectedJournalInterval === '5' ? '5 min' :
+                                     selectedJournalInterval === '15' ? '15 min' :
+                                     selectedJournalInterval === '30' ? '30 min' :
+                                     selectedJournalInterval === '60' ? '1 hour' :
+                                     selectedJournalInterval === '1D' ? '1 day' :
+                                     selectedJournalInterval === '5D' ? '5 day' :
+                                     selectedJournalInterval === '1W' ? '1 week' :
+                                     selectedJournalInterval === '1M' ? '1 month' : 'chart'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
 
