@@ -325,3 +325,23 @@
     * Added visual display element (lines 10427-10434)
     * Added count update logic in SSE stream handler (line 4892)
   - Status: ✅ COMPLETED - Candle count now displays on bottom-right of chart
+
+[x] 3621. Feature: Countdown Bar on Price Scale
+  - Requirement: Display countdown bar showing remaining seconds in current candle on price scale
+  - User Reference: Countdown bar shrinks/grows to show time remaining (like progress bar)
+  - Implementation:
+    * Added `journalCountdownBarRef` ref for countdown bar DOM element
+    * Countdown bar positioned at bottom of chart (price scale area)
+    * Bar width updates based on: (remaining seconds / total seconds) * 100
+    * Gradient styling: Orange to red (shows urgency as time runs out)
+  - Technical details:
+    * Element: `<div ref={journalCountdownBarRef}>`
+    * Class: `absolute bottom-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500`
+    * Width calculation: `${percentRemaining}%` from SSE countdown data
+    * Hover title: Shows exact remaining seconds
+  - Data source: `data.countdown.remaining` and `data.countdown.total` from SSE stream
+  - File modified: client/src/pages/home.tsx
+    * Added countdown bar ref (line 4355)
+    * Added countdown bar DOM element (lines 10453-10459)
+    * Added width update logic in SSE handler (lines 4900-4904)
+  - Status: ✅ COMPLETED - Countdown bar now displays and updates on chart bottom-right

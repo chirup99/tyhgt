@@ -4349,6 +4349,7 @@ ${
   // TradingView-style chart refs for Journal
   const journalChartContainerRef = useRef<HTMLDivElement>(null);
   const journalCandleCountRef = useRef<HTMLDivElement>(null);
+  const journalCountdownBarRef = useRef<HTMLDivElement>(null);
   const journalChartRef = useRef<IChartApi | null>(null);
   const journalCandlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const journalEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
@@ -4890,6 +4891,13 @@ ${
             }
             
             console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
+          }
+          
+          // Update countdown bar
+          if (journalCountdownBarRef.current && data.countdown) {
+            const percentRemaining = (data.countdown.remaining / data.countdown.total) * 100;
+            journalCountdownBarRef.current.style.width = `${percentRemaining}%`;
+            journalCountdownBarRef.current.title = `${data.countdown.remaining}s remaining`;
           }
         } else {
           console.log('⏳ Chart not ready yet:', { hasRef: !!journalCandlestickSeriesRef.current, hasChart: !!journalChartRef.current });
@@ -10437,6 +10445,14 @@ ${
                               >
                                 {journalChartData?.length || 0}
                               </div>
+                              
+                              {/* Countdown Bar - Price Scale Bottom */}
+                              <div 
+                                className="absolute bottom-0 right-0 z-30 h-1 bg-gradient-to-r from-orange-500 to-red-500 pointer-events-none transition-all"
+                                ref={journalCountdownBarRef}
+                                style={{ width: '100%' }}
+                                data-testid="countdown-bar"
+                              />
                               
                               {/* Live OHLC Ticker - Top Left Corner Overlay */}
                               {(liveOhlc || (journalChartData && journalChartData.length > 0)) && (
