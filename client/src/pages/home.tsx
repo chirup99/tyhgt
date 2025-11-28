@@ -10414,7 +10414,7 @@ ${
                             </div>
 
                             {/* TradingView Light Theme Chart Container - Clean */}
-                            <div className="flex-1 relative flex flex-col h-full min-h-[400px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="flex-1 relative flex flex-col h-full min-h-[400px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                               {journalChartLoading && (
                                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                   <div className="flex flex-col items-center gap-4">
@@ -10430,12 +10430,12 @@ ${
                                 </div>
                               )}
                               
-                              {/* Chart Container - Full Space with explicit height */}
+                              {/* Chart Container - Full Space with explicit height and padding at bottom for time scale */}
                               <div 
                                 ref={journalChartContainerRef}
-                                className="flex-1 w-full relative bg-white dark:bg-gray-800"
+                                className="flex-1 w-full relative bg-white dark:bg-gray-800 pb-2"
                                 data-testid="journal-tradingview-chart"
-                                style={{ height: '100%', minHeight: '400px' }}
+                                style={{ height: 'calc(100% - 8px)', minHeight: '400px' }}
                               />
                               
                               {/* Candle Count Display - Bottom Right Corner */}
