@@ -398,3 +398,39 @@
 [x] 3671.   - Project successfully imported to Replit environment
 [x] 3672.   - All progress tracker items marked as complete
 [x] 3673. FINAL REPLIT ENVIRONMENT IMPORT 100% COMPLETE!
+
+## Paper Trading Live WebSocket Feature - Implementation Summary
+
+### Feature: TradingView-style Paper Trading with Live P&L
+Implementation Date: November 28, 2025
+
+### Architecture:
+- Uses SSE (Server-Sent Events) via `/api/angelone/live-stream-ws` endpoint
+- Same Angel One WebSocket infrastructure as journal chart
+- EventSource connection per open position for individual price streaming
+- Price updates every 700ms during market hours
+
+### State Management Added:
+[x] `paperTradingWsStatus`: Connection status ('connected', 'connecting', 'disconnected')
+[x] `paperTradingTotalPnl`: Live aggregated P&L across all positions
+[x] `paperTradingEventSourcesRef`: Reference to manage SSE connections per position
+
+### useEffect Hook Implementation:
+[x] Subscribes to SSE live stream for each open paper trading position
+[x] Calculates live P&L on every price update: (currentPrice - entryPrice) * quantity
+[x] Updates position state and total P&L in real-time
+[x] Proper cleanup on modal close or position changes
+
+### UI Enhancements:
+[x] WebSocket Status Indicator: Green pulsing "Live" badge / Yellow "Connecting..." / Gray "Offline"
+[x] Total Unrealized P&L Card: 4th summary card with real-time total P&L display
+[x] Open Positions Table: Live indicators on Current/P&L columns, pulse animation on streaming symbols
+[x] Color-coded P&L: Green for profits, Red for losses, with smooth transitions
+
+### Files Modified:
+- client/src/pages/home.tsx: Paper trading WebSocket state, SSE subscriptions, UI enhancements
+
+### Testing Notes:
+- Live streaming requires Angel One authentication
+- Works during market hours when WebSocket connection is active
+- Simulated prices available when market is closed (uses API fallback)

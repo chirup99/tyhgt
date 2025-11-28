@@ -3766,6 +3766,12 @@ ${
   const [paperTradePriceLoading, setPaperTradePriceLoading] = useState(false);
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
   
+  // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
+  const [paperTradingWsStatus, setPaperTradingWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
+  const [paperTradingLivePrices, setPaperTradingLivePrices] = useState<Map<string, number>>(new Map());
+  const paperTradingEventSourcesRef = useRef<Map<string, EventSource>>(new Map());
+  const paperTradingLastUpdateRef = useRef<number>(Date.now());
+  
   // Available stock symbols for paper trading
   const paperTradingSymbols = [
     { symbol: "RELIANCE", name: "Reliance Industries", token: "2885", exchange: "NSE" },
@@ -3984,6 +3990,131 @@ ${
   useEffect(() => {
     localStorage.setItem("paperPositions", JSON.stringify(paperPositions));
   }, [paperPositions]);
+  
+  // ============================================
+  // PAPER TRADING LIVE WEBSOCKET STREAMING (TradingView-style real-time P&L)
+  // Uses same SSE stream as journal chart for live 700ms price updates
+  // ============================================
+  useEffect(() => {
+    // Only stream when modal is open and there are open positions
+    const openPositions = paperPositions.filter(p => p.isOpen);
+    const openSymbols = new Set(openPositions.map(p => p.symbol));
+    
+    if (!showPaperTradingModal || openPositions.length === 0) {
+      // Clean up all existing connections
+      paperTradingEventSourcesRef.current.forEach((es) => {
+        es.close();
+      });
+      paperTradingEventSourcesRef.current.clear();
+      setPaperTradingWsStatus('disconnected');
+      return;
+    }
+    
+    // Clean up stale connections (positions that were closed)
+    paperTradingEventSourcesRef.current.forEach((es, symbol) => {
+      if (!openSymbols.has(symbol)) {
+        console.log(`🔌 [PAPER-TRADING] Closing stale connection: ${symbol}`);
+        es.close();
+        paperTradingEventSourcesRef.current.delete(symbol);
+      }
+    });
+    
+    setPaperTradingWsStatus('connecting');
+    console.log(`📊 [PAPER-TRADING] Starting live stream for ${openPositions.length} positions`);
+    
+    // Subscribe to live stream for each open position
+    openPositions.forEach(position => {
+      const stockInfo = paperTradingSymbols.find(s => s.symbol === position.symbol);
+      if (!stockInfo) return;
+      
+      // Skip if already connected
+      if (paperTradingEventSourcesRef.current.has(position.symbol)) return;
+      
+      // Create SSE connection for this symbol (same endpoint as journal chart)
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
+      
+      console.log(`📡 [PAPER-TRADING] Subscribing to ${position.symbol} live stream`);
+      
+      const eventSource = new EventSource(sseUrl);
+      paperTradingEventSourcesRef.current.set(position.symbol, eventSource);
+      
+      eventSource.onopen = () => {
+        console.log(`✅ [PAPER-TRADING] Connected: ${position.symbol}`);
+        setPaperTradingWsStatus('connected');
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const ltp = data.ltp || data.close;
+          
+          if (ltp && ltp > 0) {
+            paperTradingLastUpdateRef.current = Date.now();
+            
+            // Update live prices map
+            setPaperTradingLivePrices(prev => {
+              const newMap = new Map(prev);
+              newMap.set(position.symbol, ltp);
+              return newMap;
+            });
+            
+            // Update position with new price and recalculate P&L
+            // CRITICAL: Account for trade direction (BUY = long, SELL = short)
+            setPaperPositions(prevPositions => {
+              return prevPositions.map(p => {
+                if (p.symbol === position.symbol && p.isOpen) {
+                  // For BUY (long): P&L = (current - entry) * qty (profit when price rises)
+                  // For SELL (short): P&L = (entry - current) * qty (profit when price falls)
+                  const priceDiff = p.action === 'BUY' 
+                    ? (ltp - p.entryPrice) 
+                    : (p.entryPrice - ltp);
+                  const pnl = priceDiff * p.quantity;
+                  const pnlPercent = (priceDiff / p.entryPrice) * 100;
+                  return {
+                    ...p,
+                    currentPrice: ltp,
+                    pnl: pnl,
+                    pnlPercent: pnlPercent
+                  };
+                }
+                return p;
+              });
+            });
+          }
+        } catch (err) {
+          console.error(`[PAPER-TRADING] Parse error for ${position.symbol}:`, err);
+        }
+      };
+      
+      eventSource.onerror = () => {
+        console.warn(`⚠️ [PAPER-TRADING] Connection error: ${position.symbol}`);
+        // Try to reconnect after a delay
+        setTimeout(() => {
+          if (paperTradingEventSourcesRef.current.has(position.symbol)) {
+            const es = paperTradingEventSourcesRef.current.get(position.symbol);
+            if (es) es.close();
+            paperTradingEventSourcesRef.current.delete(position.symbol);
+          }
+        }, 5000);
+      };
+    });
+    
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      console.log(`🔌 [PAPER-TRADING] Cleaning up live stream connections`);
+      paperTradingEventSourcesRef.current.forEach((es) => {
+        es.close();
+      });
+      paperTradingEventSourcesRef.current.clear();
+    };
+  }, [showPaperTradingModal, paperPositions.filter(p => p.isOpen).map(p => `${p.symbol}:${p.action}`).join(',')]);
+  
+  // Calculate total unrealized P&L for all open positions
+  const paperTradingTotalPnl = useMemo(() => {
+    const openPositions = paperPositions.filter(p => p.isOpen);
+    return openPositions.reduce((total, p) => total + (p.pnl || 0), 0);
+  }, [paperPositions]);
+  
   // ============================================
   // END PAPER TRADING STATE
   // ============================================
@@ -14050,12 +14181,32 @@ ${
                 <span className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full">
                   Demo Mode
                 </span>
+                {/* WebSocket Status Indicator */}
+                <span 
+                  className={`text-xs px-2 py-1 rounded-full flex items-center gap-1.5 ${
+                    paperTradingWsStatus === 'connected' 
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                      : paperTradingWsStatus === 'connecting'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                  }`}
+                  data-testid="paper-trading-ws-status"
+                >
+                  <span className={`w-2 h-2 rounded-full ${
+                    paperTradingWsStatus === 'connected' 
+                      ? 'bg-green-500 animate-pulse' 
+                      : paperTradingWsStatus === 'connecting'
+                      ? 'bg-yellow-500 animate-pulse'
+                      : 'bg-gray-400'
+                  }`} />
+                  {paperTradingWsStatus === 'connected' ? 'Live' : paperTradingWsStatus === 'connecting' ? 'Connecting...' : 'Offline'}
+                </span>
               </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-6">
               {/* Account Summary */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                   <div className="text-xs text-green-600 dark:text-green-400 font-medium">Available Capital</div>
                   <div className="text-2xl font-bold text-green-700 dark:text-green-300">
@@ -14072,6 +14223,24 @@ ${
                   <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Total Trades</div>
                   <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
                     {paperTradeHistory.length}
+                  </div>
+                </div>
+                {/* Total Unrealized P&L - Live Updates */}
+                <div className={`bg-gradient-to-br ${
+                  paperTradingTotalPnl >= 0 
+                    ? 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800' 
+                    : 'from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-800'
+                } rounded-lg p-4 border`}>
+                  <div className={`text-xs font-medium flex items-center gap-1 ${
+                    paperTradingTotalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {paperTradingWsStatus === 'connected' && <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
+                    Unrealized P&L
+                  </div>
+                  <div className={`text-2xl font-bold ${
+                    paperTradingTotalPnl >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'
+                  }`} data-testid="paper-trading-total-pnl">
+                    {paperTradingTotalPnl >= 0 ? '+' : ''}₹{paperTradingTotalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -14226,12 +14395,18 @@ ${
                 </div>
               </div>
 
-              {/* Open Positions */}
+              {/* Open Positions - Live WebSocket Updates */}
               {paperPositions.filter(p => p.isOpen).length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                     <Briefcase className="h-4 w-4 text-blue-500" />
                     Open Positions
+                    {paperTradingWsStatus === 'connected' && (
+                      <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-normal">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                        Live
+                      </span>
+                    )}
                   </h4>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full text-xs">
@@ -14241,27 +14416,64 @@ ${
                           <th className="px-3 py-2 text-left">Type</th>
                           <th className="px-3 py-2 text-right">Qty</th>
                           <th className="px-3 py-2 text-right">Entry</th>
-                          <th className="px-3 py-2 text-right">Current</th>
-                          <th className="px-3 py-2 text-right">P&L</th>
+                          <th className="px-3 py-2 text-right">
+                            <span className="flex items-center justify-end gap-1">
+                              Current
+                              {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
+                            </span>
+                          </th>
+                          <th className="px-3 py-2 text-right">
+                            <span className="flex items-center justify-end gap-1">
+                              P&L
+                              {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
+                            </span>
+                          </th>
                           <th className="px-3 py-2 text-right">%</th>
                         </tr>
                       </thead>
                       <tbody>
                         {paperPositions.filter(p => p.isOpen).map(position => (
-                          <tr key={position.id} className="border-t border-gray-200 dark:border-gray-700">
-                            <td className="px-3 py-2 font-medium">{position.symbol}</td>
+                          <tr 
+                            key={position.id} 
+                            className={`border-t border-gray-200 dark:border-gray-700 transition-colors duration-300 ${
+                              paperTradingWsStatus === 'connected' ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''
+                            }`}
+                            data-testid={`position-row-${position.symbol}`}
+                          >
+                            <td className="px-3 py-2 font-medium">
+                              <span className="flex items-center gap-1.5">
+                                {position.symbol}
+                                {paperTradingWsStatus === 'connected' && (
+                                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" title="Live price streaming" />
+                                )}
+                              </span>
+                            </td>
                             <td className="px-3 py-2">
-                              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded text-xs">
-                                {position.type}
+                              <span className="flex items-center gap-1">
+                                <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  position.action === 'BUY' 
+                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
+                                    : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                                }`}>
+                                  {position.action === 'BUY' ? 'LONG' : 'SHORT'}
+                                </span>
+                                <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded text-xs">
+                                  {position.type}
+                                </span>
                               </span>
                             </td>
                             <td className="px-3 py-2 text-right">{position.quantity}</td>
-                            <td className="px-3 py-2 text-right">₹{position.entryPrice.toFixed(2)}</td>
-                            <td className="px-3 py-2 text-right">₹{position.currentPrice.toFixed(2)}</td>
-                            <td className={`px-3 py-2 text-right font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-400">₹{position.entryPrice.toFixed(2)}</td>
+                            <td className={`px-3 py-2 text-right font-medium ${
+                              position.currentPrice > position.entryPrice ? 'text-green-600 dark:text-green-400' : 
+                              position.currentPrice < position.entryPrice ? 'text-red-600 dark:text-red-400' : ''
+                            }`} data-testid={`position-ltp-${position.symbol}`}>
+                              ₹{position.currentPrice.toFixed(2)}
+                            </td>
+                            <td className={`px-3 py-2 text-right font-bold ${position.pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} data-testid={`position-pnl-${position.symbol}`}>
                               {position.pnl >= 0 ? '+' : ''}₹{position.pnl.toFixed(2)}
                             </td>
-                            <td className={`px-3 py-2 text-right font-medium ${position.pnlPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <td className={`px-3 py-2 text-right font-medium ${position.pnlPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                               {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
                             </td>
                           </tr>
