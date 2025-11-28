@@ -93,29 +93,47 @@ class AngelOneWebSocket {
         feedtype: feedToken
       });
 
-      // Connect to WebSocket
-      await this.ws.connect();
-
-      // Connection established
-      console.log('✅ [WEBSOCKET] Connected to Angel One WebSocket V2');
-      this.isConnected = true;
-      this.isConnecting = false;
-      this.reconnectAttempts = 0;
-
-      // Subscribe to all active symbols using correct Angel One format
-      if (this.subscriptions.size > 0) {
-        this.subscribeToSymbols();
-      }
-
-      // Start 700ms broadcast interval
-      if (!this.broadcastInterval) {
-        this.startBroadcasting();
-      }
-
-      // Set up tick handler for binary data
+      // Set up ALL event handlers BEFORE connecting (per Angel One documentation)
+      
+      // 1. Set up tick handler for receiving market data
       this.ws.on('tick', (data: any) => {
         this.handleTick(data);
       });
+
+      // 2. Set up connection open handler - subscribe to symbols when connection is ready
+      this.ws.on('open', () => {
+        console.log('✅ [WEBSOCKET] Connection opened, subscribing to symbols...');
+        this.isConnected = true;
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        
+        // Subscribe to all active symbols NOW that connection is ready
+        if (this.subscriptions.size > 0) {
+          this.subscribeToSymbols();
+        }
+
+        // Start 700ms broadcast interval
+        if (!this.broadcastInterval) {
+          this.startBroadcasting();
+        }
+      });
+
+      // 3. Set up error handler
+      this.ws.on('error', (error: any) => {
+        console.error('❌ [WEBSOCKET] WebSocket error:', error?.message || String(error));
+      });
+
+      // 4. Set up close handler
+      this.ws.on('close', () => {
+        console.log('🔶 [WEBSOCKET] WebSocket closed');
+        this.isConnected = false;
+        this.isConnecting = false;
+        this.scheduleReconnect();
+      });
+
+      // Now connect - callbacks will be triggered when ready
+      await this.ws.connect();
+      console.log('🔶 [WEBSOCKET] Connection initiated, waiting for open event...');
 
     } catch (error: any) {
       console.error('❌ [WEBSOCKET] Failed to connect:', error?.message || String(error));
