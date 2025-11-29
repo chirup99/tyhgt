@@ -5652,7 +5652,45 @@ ${
       // Set data immediately
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
-      const chartData = sortedData.map((candle: any) => ({
+      // Filter out incomplete candles that cross trading day boundaries
+      const filteredData = sortedData.filter((candle: any, index: number) => {
+        const candleDate = new Date(candle.time * 1000);
+        
+        // NSE trading hours: 9:15 AM - 3:30 PM IST
+        const hours = candleDate.getUTCHours() + 5.5; // Convert UTC to IST (UTC+5:30)
+        const minutes = candleDate.getUTCMinutes() + (hours % 1) * 60;
+        const totalMinutes = Math.floor(hours) * 60 + minutes;
+        
+        // Market close is at 15:30 (930 minutes from midnight)
+        // Skip candles at/after 3:30 PM or crossing into next day
+        if (totalMinutes >= 930) {
+          return false; // Skip incomplete candles at market close
+        }
+        
+        // Also skip candles that appear to start on a new day (after previous candle)
+        if (index > 0) {
+          const prevCandle = sortedData[index - 1];
+          const prevDate = new Date(prevCandle.time * 1000);
+          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
+          const currDateOnly = new Date(candleDate.getFullYear(), candleDate.getMonth(), candleDate.getDate());
+          
+          // If date changed, ensure previous candle wasn't incomplete
+          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
+            const prevHours = prevDate.getUTCHours() + 5.5;
+            const prevMinutes = prevDate.getUTCMinutes() + (prevHours % 1) * 60;
+            const prevTotalMinutes = Math.floor(prevHours) * 60 + prevMinutes;
+            
+            // Skip if previous day's candle was incomplete (too close to 3:30 PM)
+            if (prevTotalMinutes > 915) { // After 3:15 PM, likely incomplete
+              return false; // Skip this candle to prevent cross-day merge
+            }
+          }
+        }
+        
+        return true;
+      });
+      
+      const chartData = filteredData.map((candle: any) => ({
         time: candle.time as any,
         open: candle.open,
         high: candle.high,
@@ -5663,9 +5701,9 @@ ${
       candlestickSeries.setData(chartData);
 
       // Initialize hovered OHLC with latest candle data
-      if (sortedData.length > 0) {
-        const latestCandle = sortedData[sortedData.length - 1];
-        const prevCandle = sortedData.length > 1 ? sortedData[sortedData.length - 2] : null;
+      if (filteredData.length > 0) {
+        const latestCandle = filteredData[filteredData.length - 1];
+        const prevCandle = filteredData.length > 1 ? filteredData[filteredData.length - 2] : null;
         const prevClose = prevCandle?.close || latestCandle.open;
         const change = latestCandle.close - prevClose;
         const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
@@ -5681,24 +5719,24 @@ ${
       }
 
       // Volume data with color based on price movement
-      const volumeData = sortedData.map((candle: any) => ({
+      const volumeData = filteredData.map((candle: any) => ({
         time: candle.time as any,
         value: candle.volume || 0,
         color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
       }));
       volumeSeries.setData(volumeData);
 
-      const closePrices = sortedData.map((c: any) => c.close);
+      const closePrices = filteredData.map((c: any) => c.close);
       const ema12 = calculateEMA(closePrices, 12);
       const ema26 = calculateEMA(closePrices, 26);
 
       const ema12Data = ema12.map((value, index) => ({
-        time: sortedData[index + 11]?.time as any,
+        time: filteredData[index + 11]?.time as any,
         value: value,
       })).filter(d => d.time);
 
       const ema26Data = ema26.map((value, index) => ({
-        time: sortedData[index + 25]?.time as any,
+        time: filteredData[index + 25]?.time as any,
         value: value,
       })).filter(d => d.time);
 
