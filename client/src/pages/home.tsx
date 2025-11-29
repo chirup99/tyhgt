@@ -5449,12 +5449,12 @@ ${
     }
   }, [selectedJournalInterval, activeTab]);
 
-  // Auto-fetch chart data when symbol or interval changes on journal tab
+  // Auto-fetch chart data when symbol, interval, or date changes on journal tab
   useEffect(() => {
     if (activeTab === 'journal') {
       fetchJournalChartData();
     }
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -6732,6 +6732,10 @@ ${
           console.log("🖼️ Loaded images from Firebase:", images.length, "images");
         }
 
+        // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
+        setSelectedJournalDate(dateKey);
+        console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
+
         console.log("✅ Successfully loaded all FRESH Firebase data for:", dateKey);
       } else {
         console.log(`📭 No Firebase data for: ${dateKey}`);
@@ -6837,6 +6841,10 @@ ${
               "images",
             );
           }
+
+          // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
+          setSelectedJournalDate(dateKey);
+          console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
 
           // Show trading data windows automatically
           setShowTradingNotesWindow(true);
