@@ -4955,13 +4955,12 @@ ${
     return ema;
   };
 
-  // 🔶 SIMPLE FETCH - SAME LOGIC AS TRADING MASTER OHLC WINDOW
+  // Function to fetch journal chart data from Angel One API
   const fetchJournalChartData = useCallback(async () => {
     try {
       setJournalChartLoading(true);
       setJournalChartData([]);
       
-      // Clear chart refs
       if (journalChartRef.current) {
         try { journalChartRef.current.remove(); } catch (e) {}
       }
@@ -4971,94 +4970,152 @@ ${
       journalEma26SeriesRef.current = null;
       journalVolumeSeriesRef.current = null;
       
-      // Get token - use selectedInstrument or fall back to hardcoded mapping
       let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
       
       if (selectedInstrument) {
-        stockToken = { token: selectedInstrument.token, exchange: selectedInstrument.exchange, tradingSymbol: selectedInstrument.tradingSymbol };
+        stockToken = {
+          token: selectedInstrument.token,
+          exchange: selectedInstrument.exchange,
+          tradingSymbol: selectedInstrument.tradingSymbol
+        };
+        console.log('🔶 Using dynamically selected instrument:', selectedInstrument);
       } else {
         const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
         stockToken = journalAngelOneTokens[cleanSymbol];
+        console.log('🔶 Using hardcoded token mapping for:', cleanSymbol);
       }
       
       if (!stockToken) {
-        console.warn(`❌ No token for: ${selectedJournalSymbol}`);
+        console.warn(`🔶 No Angel One token found for symbol: ${selectedJournalSymbol}`);
         setJournalChartData([]);
         return;
       }
 
-      // SIMPLE: Load last 1 month like trading-master - NO complex exchange-specific logic
       const now = new Date();
       const today = now.toISOString().split('T')[0];
+      
       const oneMonthAgo = new Date();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
       const fromDateOnly = oneMonthAgo.toISOString().split('T')[0];
       
-      const fromDate = `${fromDateOnly} 09:15`;  // SIMPLE: Always 9:15 AM
-      const toDate = `${today} 15:30`;           // SIMPLE: Always 3:30 PM
+      let fromDate = fromDateOnly;
+      let toDate = today;
+      
+      const isDayOrHigher = selectedJournalInterval.endsWith('D') || selectedJournalInterval.endsWith('W') || selectedJournalInterval.endsWith('M');
+      
+      if (!isDayOrHigher) {
+        const exchange = stockToken.exchange.toUpperCase();
+        const isMCX = exchange === 'MCX' || exchange === '3';
+        const isNCDEX = exchange === 'NCDEX' || exchange === '5';
+        
+        if (isMCX) {
+          fromDate = `${fromDateOnly} 09:00`;
+          toDate = `${today} 23:55`;
+        } else if (isNCDEX) {
+          fromDate = `${fromDateOnly} 09:00`;
+          toDate = `${today} 20:00`;
+        } else {
+          fromDate = `${fromDateOnly} 09:15`;
+          toDate = `${today} 15:30`;
+        }
+        
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${stockToken.exchange} | LAST MONTH: ${fromDate} to ${toDate}`);
+      } else {
+        fromDate = `${fromDateOnly} 00:00`;
+        toDate = `${today} 23:59`;
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | LAST MONTH: ${fromDate} to ${toDate}`);
+      }
       
       const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
       
-      console.log(`✅ JOURNAL FETCH: "${getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label}" (${selectedJournalInterval}) -> ${angelInterval}`);
+      console.log(`✅ FETCHING CHART: button shows "${getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label}" | interval="${selectedJournalInterval}" | angelOne="${angelInterval}"`);
       
+      const requestBody = {
+        exchange: stockToken.exchange,
+        symbolToken: stockToken.token,
+        interval: angelInterval,
+        fromDate: fromDate,
+        toDate: toDate,
+      };
+
+      console.log(`✅ API REQUEST:`, requestBody);
+
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          exchange: stockToken.exchange,
-          symbolToken: stockToken.token,
-          interval: angelInterval,
-          fromDate: fromDate,
-          toDate: toDate,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error(`API Error ${response.status}`);
+        const errorText = await response.text();
+        console.error(`🔶 API Error ${response.status}:`, errorText);
+        throw new Error(`Failed to fetch chart data: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      if (!data.success || !data.candles) {
-        console.warn('❌ No candles returned', data);
-        setJournalChartData([]);
-        return;
+      console.log('🔶 API Response received:', { success: data.success, candlesLength: data.candles?.length, dataLength: data.data?.length });
+      
+      let candleData: any[] = [];
+      
+      if (data.success && data.data && Array.isArray(data.data)) {
+        candleData = data.data.map((candle: any[]) => ({
+          time: new Date(candle[0]).getTime() / 1000,
+          open: parseFloat(candle[1]),
+          high: parseFloat(candle[2]),
+          low: parseFloat(candle[3]),
+          close: parseFloat(candle[4]),
+          volume: parseInt(candle[5]) || 0,
+        }));
+      } else if (data.success && data.candles && Array.isArray(data.candles) && data.candles.length > 0) {
+        candleData = data.candles.map((candle: any) => {
+          let unixSeconds: number;
+          
+          if (typeof candle.timestamp === 'string') {
+            const [datePart, timePart] = candle.timestamp.split(' ');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hours, minutes] = timePart.split(':').map(Number);
+            
+            const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+            const istOffsetMs = 5.5 * 60 * 60 * 1000;
+            const actualUtcMs = utcDate.getTime() - istOffsetMs;
+            unixSeconds = Math.floor(actualUtcMs / 1000);
+          } else if (candle.timestamp > 10000000000) {
+            unixSeconds = Math.floor(candle.timestamp / 1000);
+          } else {
+            unixSeconds = candle.timestamp;
+          }
+          
+          return {
+            time: unixSeconds as any,
+            open: parseFloat(candle.open),
+            high: parseFloat(candle.high),
+            low: parseFloat(candle.low),
+            close: parseFloat(candle.close),
+            volume: parseInt(candle.volume) || 0,
+          };
+        });
       }
-
-      // SIMPLE TRANSFORM: Like trading-master
-      const candleData = data.candles.map((candle: any) => {
-        let unixSeconds: number;
-        if (typeof candle.timestamp === 'string') {
-          const [datePart, timePart] = candle.timestamp.split(' ');
-          const [year, month, day] = datePart.split('-').map(Number);
-          const [hours, minutes] = timePart.split(':').map(Number);
-          const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
-          const istOffsetMs = 5.5 * 60 * 60 * 1000;
-          unixSeconds = Math.floor((utcDate.getTime() - istOffsetMs) / 1000);
-        } else if (candle.timestamp > 10000000000) {
-          unixSeconds = Math.floor(candle.timestamp / 1000);
-        } else {
-          unixSeconds = candle.timestamp;
-        }
+      
+      if (candleData.length > 0) {
+        console.log(`✅ CHART DATA READY: ${candleData.length} candles for ${selectedJournalInterval}min interval`);
+        console.log(`✅ First candle:`, candleData[0]);
+        console.log(`✅ Last candle:`, candleData[candleData.length - 1]);
         
-        return {
-          time: unixSeconds,
-          open: parseFloat(candle.open),
-          high: parseFloat(candle.high),
-          low: parseFloat(candle.low),
-          close: parseFloat(candle.close),
-          volume: parseInt(candle.volume) || 0,
-        };
-      });
-
-      console.log(`✅ CHART: ${candleData.length} ${angelInterval} candles loaded`);
-      setJournalChartData(candleData);
+        setJournalChartData(candleData);
+        console.log(`✅ Chart data state updated - render should trigger now`);
+      } else {
+        console.warn('🔶 Angel One: No candle data returned', data);
+        setJournalChartData([]);
+      }
     } catch (error) {
-      console.error("❌ Fetch error:", error);
+      console.error("🔶 Error fetching Angel One journal chart data:", error);
       setJournalChartData([]);
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalInterval, selectedInstrument]);
+  }, [selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
 
   // Load initial chart data
   useEffect(() => {
