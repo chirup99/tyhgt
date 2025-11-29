@@ -7991,49 +7991,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const aggregated: Candle[] = [];
-    let currentGroup: Candle[] = [];
-    let groupStartDate: Date | null = null;
 
-    // Combine N consecutive 1-minute candles, BUT break at day boundaries (NSE: 9:15 AM - 3:30 PM IST)
-    for (let i = 0; i < oneMinCandles.length; i++) {
-      const candle = oneMinCandles[i];
-      const candleDate = new Date(candle.timestamp * 1000);
+    // 🔧 Aggregate with day boundary awareness: don't combine candles across different trading days
+    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
+      const group = oneMinCandles.slice(i, i + candleCount);
       
-      // Convert to IST (UTC+5:30) to properly detect day boundaries
-      const istDate = new Date(candleDate.getTime() + (330 * 60 * 1000));
-      const candleDateOnly = new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate());
-      
-      // Initialize group start date on first candle
-      if (groupStartDate === null) {
-        groupStartDate = candleDateOnly;
-        currentGroup.push(candle);
-      } else {
-        // Check if candle is on same day
-        if (candleDateOnly.getTime() === groupStartDate.getTime()) {
-          // Same day - add to group
-          currentGroup.push(candle);
-          
-          // If group is complete, aggregate and reset
-          if (currentGroup.length === candleCount) {
-            aggregated.push(aggregateGroup(currentGroup, currentGroup[0].timestamp));
-            currentGroup = [];
-          }
-        } else {
-          // Different day - complete current group (even if incomplete) and start new group
-          if (currentGroup.length > 0) {
-            aggregated.push(aggregateGroup(currentGroup, currentGroup[0].timestamp));
+      // Check if this group spans multiple days (IST timezone)
+      if (group.length > 1) {
+        const firstCandleDate = new Date(group[0].timestamp * 1000 + (330 * 60 * 1000));
+        const lastCandleDate = new Date(group[group.length - 1].timestamp * 1000 + (330 * 60 * 1000));
+        
+        const firstDateOnly = new Date(firstCandleDate.getFullYear(), firstCandleDate.getMonth(), firstCandleDate.getDate());
+        const lastDateOnly = new Date(lastCandleDate.getFullYear(), lastCandleDate.getMonth(), lastCandleDate.getDate());
+        
+        // If group spans days, split it into groups by day
+        if (firstDateOnly.getTime() !== lastDateOnly.getTime()) {
+          // Find the cutoff point where day changes
+          let dayIndex = 0;
+          for (let j = 0; j < group.length; j++) {
+            const candleDate = new Date(group[j].timestamp * 1000 + (330 * 60 * 1000));
+            const candleDateOnly = new Date(candleDate.getFullYear(), candleDate.getMonth(), candleDate.getDate());
+            
+            if (candleDateOnly.getTime() !== firstDateOnly.getTime()) {
+              dayIndex = j;
+              break;
+            }
           }
           
-          // Start new group on new day
-          currentGroup = [candle];
-          groupStartDate = candleDateOnly;
+          // Aggregate first day's candles (incomplete group)
+          if (dayIndex > 0) {
+            aggregated.push(aggregateGroup(group.slice(0, dayIndex), group[0].timestamp));
+          }
+          
+          // Recursively aggregate remaining candles
+          const remaining = group.slice(dayIndex);
+          const remainingAggregated = aggregateCandles(remaining, candleCount);
+          aggregated.push(...remainingAggregated);
+          
+          continue;
         }
       }
-    }
-
-    // Don't forget the last incomplete group
-    if (currentGroup.length > 0) {
-      aggregated.push(aggregateGroup(currentGroup, currentGroup[0].timestamp));
+      
+      // All candles in group are on same day - aggregate normally
+      if (group.length > 0) {
+        aggregated.push(aggregateGroup(group, group[0].timestamp));
+      }
     }
 
     return aggregated;
