@@ -153,3 +153,35 @@
 [x] 3941.   - Console shows: "⚠️ INCOMPLETE CANDLE: Only 65/80 candles"
 [x] 3942.   - Helps identify end-of-day incomplete candles
 [x] 3943. PER-DATE AGGREGATION RESET COMPLETE!
+
+[x] 3944. FIXED: AGGREGATION COMBINING LOGIC RESTORED
+[x] 3945. What Was Wrong:
+[x] 3946.   ❌ Overcomplicated the aggregation with extra layer
+[x] 3947.   ❌ Broke combining logic - showed 1-min instead of combined candles
+[x] 3948. Solution (server/routes.ts lines 7997-8041):
+[x] 3949.   ✅ Reverted to SIMPLE combining logic
+[x] 3950.   ✅ Added date boundary check to reset group on date change
+[x] 3951.   ✅ Single loop that does BOTH: combines AND respects dates
+[x] 3952. How It Works:
+[x] 3953.   1. Iterate through 1-min candles
+[x] 3954.   2. Add to group[] array
+[x] 3955.   3. When group reaches N (candleCount):
+[x] 3956.      - Aggregate the N candles into 1
+[x] 3957.      - Add to aggregated[]
+[x] 3958.      - Reset group[] (start fresh)
+[x] 3959.   4. If date changes:
+[x] 3960.      - Finalize current group (even if incomplete)
+[x] 3961.      - Add to aggregated[]
+[x] 3962.      - Reset group[] (fresh start for new day)
+[x] 3963.   5. At end, add remaining candles
+[x] 3964. Example (80-min, multi-day):
+[x] 3965.   26th:  c1+c2+...+c80 → 1 candle
+[x] 3966.         c81+c2+...+c160 → 1 candle
+[x] 3967.         ...
+[x] 3968.         c? (remaining, <80) → INCOMPLETE candle
+[x] 3969.   27th: c1+c2+...+c80 → 1 candle (FRESH COUNT)
+[x] 3970.         (not merged with 26th incomplete)
+[x] 3971. Console Logging:
+[x] 3972.   - "✅ Aggregated 480 1-min candles → 6 80-min candles"
+[x] 3973.   - "⚠️ INCOMPLETE CANDLE: Only 65/80 before market close"
+[x] 3974. AGGREGATION COMBINING RESTORED! Working correctly now.
