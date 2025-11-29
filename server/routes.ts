@@ -7985,45 +7985,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     volume: number;
   }
 
-  // Helper: Get IST date only (YYYY-MM-DD) from unix timestamp
-  const getISTDateOnly = (timestamp: number): string => {
-    const date = new Date(timestamp * 1000);
-    const istDate = new Date(date.getTime() + (330 * 60 * 1000)); // IST offset: +5:30
-    return istDate.toISOString().split('T')[0]; // YYYY-MM-DD
-  };
-
   const aggregateCandles = (oneMinCandles: Candle[], candleCount: number): Candle[] => {
     if (!oneMinCandles || oneMinCandles.length === 0) {
       return [];
     }
 
-    // ✅ FIXED: Group candles by date first, then aggregate each day independently
-    // This keeps incomplete candles on their trading day without crossing day boundaries
-    
-    // Step 1: Group candles by IST date
-    const candlesByDate = new Map<string, Candle[]>();
-    for (const candle of oneMinCandles) {
-      const date = getISTDateOnly(candle.timestamp);
-      if (!candlesByDate.has(date)) {
-        candlesByDate.set(date, []);
-      }
-      candlesByDate.get(date)!.push(candle);
-    }
-
-    // Step 2: Aggregate each day's candles independently
     const aggregated: Candle[] = [];
-    for (const [date, dailyCandles] of candlesByDate) {
-      // Aggregate this day's candles
-      for (let i = 0; i < dailyCandles.length; i += candleCount) {
-        const group = dailyCandles.slice(i, i + candleCount);
-        if (group.length > 0) {
-          aggregated.push(aggregateGroup(group, group[0].timestamp));
-        }
+
+    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
+    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
+      const group = oneMinCandles.slice(i, i + candleCount);
+      if (group.length > 0) {
+        aggregated.push(aggregateGroup(group, group[0].timestamp));
       }
     }
-
-    // Step 3: Sort by timestamp (important for proper ordering across days)
-    aggregated.sort((a, b) => a.timestamp - b.timestamp);
 
     return aggregated;
   };

@@ -5649,10 +5649,9 @@ ${
         }
       });
 
-      // Set data immediately - display all candles as-is, including incomplete ones
+      // Set data immediately
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
-      // Natural timestamp gaps between days will prevent visual merging without modification
       const chartData = sortedData.map((candle: any) => ({
         time: candle.time as any,
         open: candle.open,
