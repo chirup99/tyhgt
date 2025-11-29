@@ -4510,17 +4510,10 @@ ${
   const [tradingImages, setTradingImages] = useState<any[]>([]);
   const imageUploadRef = useRef<MultipleImageUploadRef>(null);
 
-  // Journal chart controls state
+  // Journal chart controls state - SIMPLIFIED FOR CORRECTNESS
   const [selectedJournalSymbol, setSelectedJournalSymbol] =
     useState("NSE:NIFTY50-INDEX");
-  const [selectedJournalInterval, setSelectedJournalInterval] = useState("1");
-  
-  // Custom timeframe state for Journal tab (same as Trading Master)
-  const [showJournalCustomTimeframe, setShowJournalCustomTimeframe] = useState(false);
-  const [journalCustomTimeframeType, setJournalCustomTimeframeType] = useState('minutes');
-  const [journalCustomTimeframeInterval, setJournalCustomTimeframeInterval] = useState('');
-  const [journalCustomTimeframes, setJournalCustomTimeframes] = useState<Array<{value: string, label: string, deletable: boolean}>>([]);
-  const [journalHiddenPresetTimeframes, setJournalHiddenPresetTimeframes] = useState<string[]>([]);
+  const [selectedJournalInterval, setSelectedJournalInterval] = useState("5");  // Default to 5min (not 1min)
   
   const [showStockSearch, setShowStockSearch] = useState(false);
   const [stockSearchQuery, setStockSearchQuery] = useState("");
@@ -4748,22 +4741,18 @@ ${
     return cleanSymbol;
   };
 
-  // 🔶 Convert timeframe to Angel One API interval format (SAME AS OHLC DATA WINDOW)
-  const getJournalAngelOneInterval = (interval: string = selectedJournalInterval): string => {
+  // 🔶 SIMPLE: Direct mapping from selected interval to Angel One API format
+  const getJournalAngelOneInterval = (): string => {
     const intervalMap: { [key: string]: string } = {
       '1': 'ONE_MINUTE',
-      '3': 'THREE_MINUTE',
       '5': 'FIVE_MINUTE',
-      '10': 'TEN_MINUTE',
       '15': 'FIFTEEN_MINUTE',
       '30': 'THIRTY_MINUTE',
       '60': 'ONE_HOUR',
       '1D': 'ONE_DAY',
-      '1W': 'ONE_WEEK',
-      '1M': 'ONE_MONTH'
     };
-    const result = intervalMap[interval] || 'ONE_MINUTE';
-    console.log(`🔶 INTERVAL MAPPING: "${interval}" -> "${result}"`);
+    const result = intervalMap[selectedJournalInterval] || 'ONE_MINUTE';
+    console.log(`✅ INTERVAL: selectedJournalInterval="${selectedJournalInterval}" -> angelOne="${result}"`);
     return result;
   };
 
@@ -4839,70 +4828,16 @@ ${
     return parseInt(value) || 0;
   };
 
-  const deleteJournalTimeframe = (valueToDelete: string) => {
-    const isCustom = journalCustomTimeframes.some(tf => tf.value === valueToDelete);
-    
-    if (isCustom) {
-      setJournalCustomTimeframes(prev => prev.filter(tf => tf.value !== valueToDelete));
-    } else {
-      setJournalHiddenPresetTimeframes(prev => [...prev, valueToDelete]);
-    }
-    
-    if (selectedJournalInterval === valueToDelete) {
-      setSelectedJournalInterval('1');
-    }
-  };
+  // SIMPLE: Standard timeframe options - NO custom/hidden complexity
+  const JOURNAL_TIMEFRAMES = [
+    { value: '1', label: '1min' },
+    { value: '5', label: '5min' },
+    { value: '15', label: '15min' },
+    { value: '30', label: '30min' },
+    { value: '60', label: '1hr' },
+    { value: '1D', label: '1D' },
+  ];
 
-  const getAllJournalTimeframes = () => {
-    const allPresetTimeframes = [
-      { value: '1', label: '1min', deletable: false },
-      { value: '5', label: '5min', deletable: false },
-      { value: '10', label: '10min', deletable: true },
-      { value: '15', label: '15min', deletable: true },
-      { value: '20', label: '20min', deletable: true },
-      { value: '30', label: '30min', deletable: true },
-      { value: '40', label: '40min', deletable: true },
-      { value: '60', label: '1hr', deletable: true },
-      { value: '80', label: '80min', deletable: true },
-      { value: '120', label: '2hr', deletable: true },
-      { value: '1D', label: '1D', deletable: true },
-    ];
-    
-    const visiblePresetTimeframes = allPresetTimeframes.filter(tf => 
-      !journalHiddenPresetTimeframes.includes(tf.value)
-    );
-    
-    const allTimeframes = [...visiblePresetTimeframes, ...journalCustomTimeframes];
-    
-    return allTimeframes.sort((a, b) => {
-      const minutesA = getJournalTimeframeMinutes(a.value);
-      const minutesB = getJournalTimeframeMinutes(b.value);
-      return minutesA - minutesB;
-    });
-  };
-
-  // Simple, working timeframe mapping (same as OHLC data window)
-  const calculateTimeRangeForTimeframe = (timeframe: string): [number, number] => {
-    switch (timeframe) {
-      case '1':
-      case '5':
-      case '15':
-      case '30':
-        // Intraday: 9:15 AM - 3:30 PM IST
-        return [555, 930]; // 555 min = 9:15, 930 min = 15:30
-      case '60':
-        // Hourly: 9:00 AM - 4:00 PM IST
-        return [540, 960]; // 540 min = 9:00, 960 min = 16:00
-      case '1D':
-      case '5D':
-      case '1W':
-      case '1M':
-        // Daily/Weekly/Monthly: 9:00 AM - 5:00 PM IST
-        return [540, 1020]; // 540 min = 9:00, 1020 min = 17:00
-      default:
-        return [555, 930];
-    }
-  };
 
   // Map journal search type to exchange segment for filtering (similar to paper trading)
   const getExchangeForJournalSearchType = (type: 'STOCK' | 'COMMODITY' | 'F&O'): string => {
@@ -5075,7 +5010,10 @@ ${
         console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | LAST MONTH: ${fromDate} to ${toDate}`);
       }
       
-      const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
+      const angelInterval = getJournalAngelOneInterval();
+      
+      console.log(`📊 JOURNAL FETCH: interval="${selectedJournalInterval}" -> "${angelInterval}"`);
+      
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
@@ -5084,9 +5022,7 @@ ${
         toDate: toDate,
       };
 
-      console.log(`🔶 FETCH REQUEST - RAW INTERVAL: "${selectedJournalInterval}" | MAPPED: "${angelInterval}"`, requestBody);
-      console.log(`🔶 FETCHING: Symbol="${selectedJournalSymbol}" Interval="${selectedJournalInterval}" (${angelInterval})`);
-      console.log(`🔶 DATE RANGE: ${fromDate} to ${toDate}`);
+      console.log(`📊 REQUEST:`, requestBody);
 
       console.log('🔶 Making request to /api/angelone/historical with body:', requestBody);
       
@@ -11032,49 +10968,29 @@ ${
                                       className="w-20 h-8 justify-between bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-xs px-2"
                                       data-testid="button-journal-timeframe"
                                     >
-                                      {getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label || selectedJournalInterval}
+                                      {JOURNAL_TIMEFRAMES.find(tf => tf.value === selectedJournalInterval)?.label || selectedJournalInterval}
                                       <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-40 p-1 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                                     <div className="grid gap-1">
-                                      {getAllJournalTimeframes().map((timeframe) => (
-                                        <div key={timeframe.value} className="flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                                          <button 
-                                            className="flex-1 text-left text-xs text-gray-900 dark:text-gray-300"
-                                            onClick={() => {
-                                              console.log(`📊 🔴 USER CLICKED TIMEFRAME: "${selectedJournalInterval}" -> "${timeframe.value}" (${timeframe.label})`);
-                                              setSelectedJournalInterval(timeframe.value);
-                                              console.log(`📊 🟢 STATE UPDATE TRIGGERED for interval: ${timeframe.value}`);
-                                            }}
-                                            data-testid={`button-timeframe-${timeframe.value}`}
-                                          >
-                                            {timeframe.label}
-                                          </button>
-                                          {timeframe.deletable && (
-                                            <button
-                                              className="ml-1 w-4 h-4 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-500 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteJournalTimeframe(timeframe.value);
-                                              }}
-                                              title="Delete timeframe"
-                                              data-testid={`button-delete-timeframe-${timeframe.value}`}
-                                            >
-                                              x
-                                            </button>
-                                          )}
-                                        </div>
-                                      ))}
-                                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1">
-                                        <button 
-                                          className="w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-xs text-gray-900 dark:text-gray-300"
-                                          onClick={() => setShowJournalCustomTimeframe(true)}
-                                          data-testid="button-add-custom-timeframe"
+                                      {JOURNAL_TIMEFRAMES.map((timeframe) => (
+                                        <button
+                                          key={timeframe.value}
+                                          onClick={() => {
+                                            console.log(`✅ USER SELECTED: "${timeframe.label}" (value="${timeframe.value}")`);
+                                            setSelectedJournalInterval(timeframe.value);
+                                          }}
+                                          className={`w-full text-left px-2 py-1 text-xs rounded transition-colors ${
+                                            selectedJournalInterval === timeframe.value
+                                              ? 'bg-blue-500 text-white'
+                                              : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                          }`}
+                                          data-testid={`button-timeframe-${timeframe.value}`}
                                         >
-                                          + Add Custom
+                                          {timeframe.label}
                                         </button>
-                                      </div>
+                                      ))}
                                     </div>
                                   </PopoverContent>
                                 </Popover>
