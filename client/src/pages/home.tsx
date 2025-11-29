@@ -5652,58 +5652,42 @@ ${
       // Set data immediately
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
-      // Filter out incomplete candles that cross trading day boundaries
-      const filteredData = sortedData.filter((candle: any, index: number) => {
-        const candleDate = new Date(candle.time * 1000);
+      // Display all candles including incomplete ones, but prevent merging across day boundaries
+      // by adding small time gaps between trading days
+      const chartData = sortedData.map((candle: any, index: number) => {
+        let candleTime = candle.time;
         
-        // NSE trading hours: 9:15 AM - 3:30 PM IST
-        const hours = candleDate.getUTCHours() + 5.5; // Convert UTC to IST (UTC+5:30)
-        const minutes = candleDate.getUTCMinutes() + (hours % 1) * 60;
-        const totalMinutes = Math.floor(hours) * 60 + minutes;
-        
-        // Market close is at 15:30 (930 minutes from midnight)
-        // Skip candles at/after 3:30 PM or crossing into next day
-        if (totalMinutes >= 930) {
-          return false; // Skip incomplete candles at market close
-        }
-        
-        // Also skip candles that appear to start on a new day (after previous candle)
+        // Check if this is a new trading day (gap from previous candle)
         if (index > 0) {
           const prevCandle = sortedData[index - 1];
           const prevDate = new Date(prevCandle.time * 1000);
-          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-          const currDateOnly = new Date(candleDate.getFullYear(), candleDate.getMonth(), candleDate.getDate());
+          const currDate = new Date(candle.time * 1000);
           
-          // If date changed, ensure previous candle wasn't incomplete
+          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
+          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
+          
+          // If date changed (new day - weekend/holiday gap), add small time offset to prevent visual merge
           if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
-            const prevHours = prevDate.getUTCHours() + 5.5;
-            const prevMinutes = prevDate.getUTCMinutes() + (prevHours % 1) * 60;
-            const prevTotalMinutes = Math.floor(prevHours) * 60 + prevMinutes;
-            
-            // Skip if previous day's candle was incomplete (too close to 3:30 PM)
-            if (prevTotalMinutes > 915) { // After 3:15 PM, likely incomplete
-              return false; // Skip this candle to prevent cross-day merge
-            }
+            // Add 1 minute gap in chart time to create visual separation (doesn't affect actual display)
+            candleTime = candle.time + 60;
           }
         }
         
-        return true;
+        return {
+          time: candleTime as any,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+        };
       });
-      
-      const chartData = filteredData.map((candle: any) => ({
-        time: candle.time as any,
-        open: candle.open,
-        high: candle.high,
-        low: candle.low,
-        close: candle.close,
-      }));
 
       candlestickSeries.setData(chartData);
 
       // Initialize hovered OHLC with latest candle data
-      if (filteredData.length > 0) {
-        const latestCandle = filteredData[filteredData.length - 1];
-        const prevCandle = filteredData.length > 1 ? filteredData[filteredData.length - 2] : null;
+      if (sortedData.length > 0) {
+        const latestCandle = sortedData[sortedData.length - 1];
+        const prevCandle = sortedData.length > 1 ? sortedData[sortedData.length - 2] : null;
         const prevClose = prevCandle?.close || latestCandle.open;
         const change = latestCandle.close - prevClose;
         const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
@@ -5719,26 +5703,80 @@ ${
       }
 
       // Volume data with color based on price movement
-      const volumeData = filteredData.map((candle: any) => ({
-        time: candle.time as any,
-        value: candle.volume || 0,
-        color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-      }));
+      const volumeData = sortedData.map((candle: any, index: number) => {
+        let candleTime = candle.time;
+        
+        // Apply same time offset as chart data for consistency
+        if (index > 0) {
+          const prevCandle = sortedData[index - 1];
+          const prevDate = new Date(prevCandle.time * 1000);
+          const currDate = new Date(candle.time * 1000);
+          
+          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
+          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
+          
+          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
+            candleTime = candle.time + 60;
+          }
+        }
+        
+        return {
+          time: candleTime as any,
+          value: candle.volume || 0,
+          color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+        };
+      });
       volumeSeries.setData(volumeData);
 
-      const closePrices = filteredData.map((c: any) => c.close);
+      const closePrices = sortedData.map((c: any) => c.close);
       const ema12 = calculateEMA(closePrices, 12);
       const ema26 = calculateEMA(closePrices, 26);
 
-      const ema12Data = ema12.map((value, index) => ({
-        time: filteredData[index + 11]?.time as any,
-        value: value,
-      })).filter(d => d.time);
+      const ema12Data = ema12.map((value, index) => {
+        const sourceIndex = index + 11;
+        if (sourceIndex >= sortedData.length) return null;
+        
+        let candleTime = sortedData[sourceIndex].time;
+        
+        // Apply time offset for new trading days
+        if (sourceIndex > 0) {
+          const prevCandle = sortedData[sourceIndex - 1];
+          const prevDate = new Date(prevCandle.time * 1000);
+          const currDate = new Date(candleTime * 1000);
+          
+          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
+          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
+          
+          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
+            candleTime = candleTime + 60;
+          }
+        }
+        
+        return { time: candleTime as any, value };
+      }).filter(d => d !== null);
 
-      const ema26Data = ema26.map((value, index) => ({
-        time: filteredData[index + 25]?.time as any,
-        value: value,
-      })).filter(d => d.time);
+      const ema26Data = ema26.map((value, index) => {
+        const sourceIndex = index + 25;
+        if (sourceIndex >= sortedData.length) return null;
+        
+        let candleTime = sortedData[sourceIndex].time;
+        
+        // Apply time offset for new trading days
+        if (sourceIndex > 0) {
+          const prevCandle = sortedData[sourceIndex - 1];
+          const prevDate = new Date(prevCandle.time * 1000);
+          const currDate = new Date(candleTime * 1000);
+          
+          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
+          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
+          
+          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
+            candleTime = candleTime + 60;
+          }
+        }
+        
+        return { time: candleTime as any, value };
+      }).filter(d => d !== null);
 
       if (ema12Data.length > 0) {
         ema12Series.setData(ema12Data);
