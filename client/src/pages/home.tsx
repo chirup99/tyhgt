@@ -4957,32 +4957,43 @@ ${
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       
-      const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-      const fromDateOnly = oneMonthAgo.toISOString().split('T')[0];
+      // 🔶 Fetch ONLY TODAY's data (real-time), not 1 month of history!
+      // Check if market is open (for today) - if not, fetch last trading day
+      const dayOfWeek = now.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const marketOpenHour = 9; // Market opens at 9:15 AM
+      const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
       
-      let fromDate = fromDateOnly;
-      let toDate = today;
-      
-          // 🔶 1-minute data: always use intraday hours
-      if (true) {
-        const exchange = stockToken.exchange.toUpperCase();
-        const isMCX = exchange === 'MCX' || exchange === '3';
-        const isNCDEX = exchange === 'NCDEX' || exchange === '5';
-        
-        if (isMCX) {
-          fromDate = `${fromDateOnly} 09:00`;
-          toDate = `${today} 23:55`;
-        } else if (isNCDEX) {
-          fromDate = `${fromDateOnly} 09:00`;
-          toDate = `${today} 20:00`;
-        } else {
-          fromDate = `${fromDateOnly} 09:15`;
-          toDate = `${today} 15:30`;
-        }
-        
-        console.log(`🔶 1-MIN DATA: Exchange: ${stockToken.exchange} | LAST MONTH: ${fromDate} to ${toDate}`);
+      let fetchDate = today;
+      if (isMarketClosed) {
+        // Get last trading day (skip weekends)
+        const lastDay = new Date(now);
+        lastDay.setDate(lastDay.getDate() - 1);
+        if (lastDay.getDay() === 5) lastDay.setDate(lastDay.getDate() - 1); // Skip Saturday
+        if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 2); // Skip Sunday
+        fetchDate = lastDay.toISOString().split('T')[0];
       }
+      
+      let fromDate = fetchDate;
+      let toDate = fetchDate;
+      
+      // 🔶 Today's trading hours only
+      const exchange = stockToken.exchange.toUpperCase();
+      const isMCX = exchange === 'MCX' || exchange === '3';
+      const isNCDEX = exchange === 'NCDEX' || exchange === '5';
+      
+      if (isMCX) {
+        fromDate = `${fetchDate} 09:00`;
+        toDate = `${fetchDate} 23:55`;
+      } else if (isNCDEX) {
+        fromDate = `${fetchDate} 09:00`;
+        toDate = `${fetchDate} 20:00`;
+      } else {
+        fromDate = `${fetchDate} 09:15`;
+        toDate = `${fetchDate} 15:30`;
+      }
+      
+      console.log(`🔶 REAL-TIME 1-MIN: Fetching ${fetchDate} (market ${isMarketClosed ? 'closed' : 'open'}): ${fromDate} to ${toDate}`);
       
       // 🔶 ALWAYS fetch 1-minute data
       const interval = "1";

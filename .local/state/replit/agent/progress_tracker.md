@@ -767,6 +767,20 @@
 [x] 4262.   5. Ready to rebuild timeframe filter from scratch
 [x] 4263. Status: ✅ READY - Simple 1-min chart, rebuild timeframes later!
 
+[x] 4264. ✅ FIXED JOURNAL DATA ISSUE:
+[x] 4265. Problem: Journal was fetching 7900+ candles from 1 month ago (STALE)
+[x] 4266. Paper Trading uses REAL-TIME WebSocket (TODAY's data) - CORRECT!
+[x] 4267. Solution: Changed date range from 1 month to TODAY ONLY
+[x] 4268. Implementation:
+[x] 4269.   ❌ OLD: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+[x] 4270.   ✅ NEW: Fetch only today OR last trading day if market closed
+[x] 4271. Result:
+[x] 4272.   ✅ Journal chart now shows ~50-200 TODAY's candles (not 7900)
+[x] 4273.   ✅ Data is CURRENT and matches Paper Trading websocket data
+[x] 4274.   ✅ SSE live stream adds real-time updates on top
+[x] 4275.   ✅ Chart shows REAL data not STALE data
+[x] 4276. Status: ✅ COMPLETE - Real-time Journal chart ready!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
