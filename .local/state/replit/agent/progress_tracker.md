@@ -297,3 +297,21 @@
 [x] 4079.   📊 [CHART LOGIC] Selected date has 5 trades - showing ONLY that date
 [x] 4080.   📊 [CHART LOGIC] No trades - showing last 10 trading days
 [x] 4081. SMART AUTO-SWITCHING COMPLETE!
+
+[x] 4082. BUG FOUND & FIXED: Chart Not Loading
+[x] 4083. ROOT CAUSE: useEffect dependency array was missing selectedJournalDate
+[x] 4084. Impact:
+[x] 4085.   - User clicks calendar date → selectedJournalDate updates
+[x] 4086.   - BUT fetchJournalChartData() useEffect never triggered!
+[x] 4087.   - Chart data fetched successfully (3750 candles confirmed)
+[x] 4088.   - But useEffect to render chart never ran
+[x] 4089. Solution:
+[x] 4090.   - Added selectedJournalDate to dependency array at line 5474
+[x] 4091.   - Before: [activeTab, selectedJournalSymbol, selectedJournalInterval]
+[x] 4092.   - After: [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]
+[x] 4093. Now:
+[x] 4094.   ✅ Click calendar date → selectedJournalDate changes
+[x] 4095.   ✅ fetchJournalChartData() triggers
+[x] 4096.   ✅ Smart logic: if tradeHistoryData.length > 0 → fetch ONLY that date
+[x] 4097.   ✅ Chart renders with selected date data
+[x] 4098. STATUS: CHART LOADING FIXED!
