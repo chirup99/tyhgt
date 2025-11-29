@@ -4746,20 +4746,18 @@ ${
     return cleanSymbol;
   };
 
-  // 🔶 DIRECT: Map selected interval to Angel One API format - NO STALE CLOSURE ISSUES
+  // 🔶 UNIVERSAL: Convert to minutes on frontend, send numeric value to backend
   const getJournalAngelOneInterval = (interval: string): string => {
-    const intervalMap: { [key: string]: string } = {
-      '1': 'ONE_MINUTE',
-      '5': 'FIVE_MINUTE',
-      '15': 'FIFTEEN_MINUTE',
-      '30': 'THIRTY_MINUTE',
-      '60': 'ONE_HOUR',
-      '80': 'ONE_HOUR', 
-      '120': 'ONE_HOUR',
-      '1D': 'ONE_DAY',
+    // Convert preset timeframes to minutes (1D/1W/1M -> numeric)
+    const presetToMinutes: { [key: string]: string } = {
+      '1D': '1440',
+      '1W': '10080',
+      '1M': '43200'
     };
-    const result = intervalMap[interval] || 'ONE_MINUTE';
-    console.log(`✅ INTERVAL MAPPING: input="${interval}" -> angelOne="${result}"`);
+    
+    // If preset, convert to minutes; otherwise pass as-is (numeric)
+    const result = presetToMinutes[interval] || interval;
+    console.log(`✅ JOURNAL INTERVAL: input="${interval}" -> minutes="${result}"`);
     return result;
   };
 

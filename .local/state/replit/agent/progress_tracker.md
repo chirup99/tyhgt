@@ -642,6 +642,20 @@
 [x] 4144.   ✅ No hardcoded limits, scales infinitely
 [x] 4145. Status: ✅ FINAL - Pure numeric universal candle aggregation (ZERO maps!)
 
+[x] 4146. JOURNAL TAB: Applied universal numeric system
+[x] 4147. Removed hardcoded intervalMap from journal (ONE_MINUTE, FIVE_MINUTE, etc.)
+[x] 4148. getJournalAngelOneInterval() now:
+[x] 4149.   - Converts 1D → 1440, 1W → 10080, 1M → 43200
+[x] 4150.   - Sends ONLY numeric minutes to backend
+[x] 4151.   - Works for ANY custom timeframe (35min, 45min, 90min, etc.)
+[x] 4152. COMPLETE SYSTEM NOW UNIFIED:
+[x] 4153.   ✅ Trading Master chart: Universal numeric (zero maps)
+[x] 4154.   ✅ Journal tab chart: Universal numeric (zero maps)  
+[x] 4155.   ✅ Backend: Pure parseInt() parsing (zero maps)
+[x] 4156.   ✅ Flow: Frontend converts presets → Backend just parses numeric
+[x] 4157.   ✅ Result: Infinite scalability, custom timeframes work instantly
+[x] 4158. Status: ✅ COMPLETE - Universal numeric system applied to ALL charts!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
