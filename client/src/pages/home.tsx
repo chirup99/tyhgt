@@ -4761,42 +4761,9 @@ ${
     return result;
   };
 
-  // Aggregate 1-minute candles to desired timeframe (TIME-ALIGNED)
-  const aggregateJournalCandles = (candles: any[], timeframeMinutes: number): any[] => {
-    if (timeframeMinutes <= 1) return candles; // No aggregation needed for 1-min
-    
-    const aggregated: any[] = [];
-    const timeframeSeconds = timeframeMinutes * 60;
-    
-    for (const candle of candles) {
-      // Align to timeframe boundaries: calculate which timeframe bucket this candle belongs to
-      const alignedTime = Math.floor(candle.time / timeframeSeconds) * timeframeSeconds;
-      
-      // Check if we already have an aggregated candle for this timeframe bucket
-      let existingCandle = aggregated.find(c => c.time === alignedTime);
-      
-      if (!existingCandle) {
-        // Create new aggregated candle for this timeframe bucket
-        existingCandle = {
-          time: alignedTime,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-          volume: candle.volume || 0,
-        };
-        aggregated.push(existingCandle);
-      } else {
-        // Update existing aggregated candle
-        existingCandle.high = Math.max(existingCandle.high, candle.high);
-        existingCandle.low = Math.min(existingCandle.low, candle.low);
-        existingCandle.close = candle.close;
-        existingCandle.volume += (candle.volume || 0);
-      }
-    }
-
-    return aggregated;
-  };
+  // 🔶 BACKEND HANDLES ALL AGGREGATION - Frontend only displays
+  // Backend ALWAYS fetches 1-minute candles and aggregates them to requested timeframe
+  // Frontend receives pre-aggregated data and displays as-is (NO frontend aggregation)
 
   // Custom timeframe helper functions for Journal tab (same as Trading Master)
   const convertJournalCustomTimeframe = (type: string, interval: string): string => {

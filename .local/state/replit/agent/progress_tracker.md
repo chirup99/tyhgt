@@ -656,6 +656,26 @@
 [x] 4157.   ✅ Result: Infinite scalability, custom timeframes work instantly
 [x] 4158. Status: ✅ COMPLETE - Universal numeric system applied to ALL charts!
 
+[x] 4159. FINAL CLEANUP & VERIFICATION:
+[x] 4160. ✅ Removed unused aggregateJournalCandles() from frontend
+[x] 4161. ✅ Backend ALWAYS: Fetch 1-min → parseInt(interval) → aggregate N minutes
+[x] 4162. ✅ Frontend ALWAYS: Send numeric interval → Display backend-aggregated data
+[x] 4163. COMPLETE UNIVERSAL ARCHITECTURE:
+[x] 4164.   FRONTEND (both Trading Master + Journal):
+[x] 4165.   - Converts presets to minutes (1D→1440, 1W→10080, 1M→43200)
+[x] 4166.   - Sends only numeric values to backend
+[x] 4167.   BACKEND (server/routes.ts):
+[x] 4168.   - Receives numeric minutes: parseInt(interval)
+[x] 4169.   - ALWAYS fetches 1-minute candles from Angel One API
+[x] 4170.   - Aggregates every N consecutive 1-min candles into 1 candle
+[x] 4171.   - Returns pre-aggregated data to frontend
+[x] 4172. SUPPORTED TIMEFRAMES:
+[x] 4173.   ✅ Numeric: 1, 3, 5, 10, 15, 20, 30, 35, 40, 45, 60, 80, 120, 150, 200, etc.
+[x] 4174.   ✅ Presets: 1D (1440), 1W (10080), 1M (43200)
+[x] 4175.   ✅ Custom: ANY numeric value instantly works (no code changes)
+[x] 4176.   ✅ Infinite scalability
+[x] 4177. Status: ✅ FINAL - Pure universal numeric candle aggregation (ZERO maps, ZERO frontend aggregation!)
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
