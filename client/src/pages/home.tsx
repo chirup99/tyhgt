@@ -4766,17 +4766,17 @@ ${
   // Backend ALWAYS fetches 1-minute candles and aggregates them to requested timeframe
   // Frontend receives pre-aggregated data and displays as-is (NO frontend aggregation)
 
-  // Custom timeframe helper functions for Journal tab (same as Trading Master)
+  // 🔶 PURE NUMERIC: Convert custom timeframe to minutes ONLY (no "2D", only "2880")
   const convertJournalCustomTimeframe = (type: string, interval: string): string => {
     const num = parseInt(interval);
     if (isNaN(num) || num <= 0) return '1';
     
     switch (type) {
-      case 'minutes': return num.toString();
-      case 'hr': return (num * 60).toString();
-      case 'd': return `${num}D`;
-      case 'm': return `${num}M`;
-      case 'w': return `${num}W`;
+      case 'minutes': return num.toString(); // 80 → "80"
+      case 'hr': return (num * 60).toString(); // 2hr → "120"
+      case 'd': return (num * 1440).toString(); // 2d → "2880" (numeric minutes!)
+      case 'm': return (num * 43200).toString(); // 1m → "43200" (30 days)
+      case 'w': return (num * 10080).toString(); // 2w → "20160" (numeric minutes!)
       default: return '1';
     }
   };

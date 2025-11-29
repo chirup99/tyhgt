@@ -731,6 +731,23 @@
 [x] 4228.   ✅ Chart displays 20-minute candles ✅
 [x] 4229. Status: ✅ Manual fetch working - NO hardcoded intervals!
 
+[x] 4230. ✅ CRITICAL CUSTOM TIMEFRAME BUG FIX:
+[x] 4231. Issue: convertJournalCustomTimeframe() returned "2D", "80min" strings
+[x] 4232.   ❌ User adds "2 days" → returned "2D" (string)
+[x] 4233.   ❌ selectedJournalInterval = "2D"
+[x] 4234.   ❌ Backend receives "2D" → fails (not numeric)
+[x] 4235. FIXED: Now returns PURE NUMERIC MINUTES:
+[x] 4236.   ✅ "2 days" → "2880" (2 * 1440)
+[x] 4237.   ✅ "80 minutes" → "80"
+[x] 4238.   ✅ "2 hours" → "120" (2 * 60)
+[x] 4239.   ✅ "2 weeks" → "20160" (2 * 10080)
+[x] 4240. RESULT:
+[x] 4241.   ✅ selectedJournalInterval is ALWAYS numeric
+[x] 4242.   ✅ Chart displays CORRECT timeframe
+[x] 4243.   ✅ Backend receives pure numeric → aggregates correctly
+[x] 4244.   ✅ NO string formats anywhere ("2D" is GONE)
+[x] 4245. Status: ✅ COMPLETE - Pure numeric system end-to-end!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
