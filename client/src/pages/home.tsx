@@ -10961,8 +10961,8 @@ ${
                                         <ChevronDown className="w-3 h-3 ml-1" />
                                       </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-32 p-1 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
-                                      <div className="grid gap-0.5">
+                                    <PopoverContent className="w-56 p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
+                                      <div className="grid gap-1">
                                         {journalTimeframeOptions.map((tf) => (
                                           <button 
                                             key={tf.value}
@@ -10981,6 +10981,65 @@ ${
                                             {tf.label}
                                           </button>
                                         ))}
+                                        
+                                        {/* Custom Timeframe Section */}
+                                        <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
+                                          <button
+                                            onClick={() => setShowJournalCustomTimeframe(!showJournalCustomTimeframe)}
+                                            className="w-full text-left px-2 py-1.5 rounded text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors flex items-center gap-1"
+                                            data-testid="button-add-custom-timeframe"
+                                          >
+                                            <span>+ Add Custom</span>
+                                          </button>
+                                          
+                                          {/* Custom Timeframe Input Form */}
+                                          {showJournalCustomTimeframe && (
+                                            <div className="p-2 bg-gray-50 dark:bg-gray-900 rounded mt-1 space-y-2">
+                                              <div className="flex gap-1">
+                                                <input
+                                                  type="number"
+                                                  min="1"
+                                                  max="1440"
+                                                  value={journalCustomTimeframeInterval}
+                                                  onChange={(e) => setJournalCustomTimeframeInterval(e.target.value)}
+                                                  placeholder="Enter value"
+                                                  className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                                  data-testid="input-custom-timeframe-value"
+                                                />
+                                              </div>
+                                              <div className="flex gap-1">
+                                                <select
+                                                  value={journalCustomTimeframeType}
+                                                  onChange={(e) => setJournalCustomTimeframeType(e.target.value)}
+                                                  className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                                  data-testid="select-custom-timeframe-type"
+                                                >
+                                                  <option value="minutes">Minutes</option>
+                                                  <option value="hr">Hours</option>
+                                                  <option value="d">Days</option>
+                                                </select>
+                                              </div>
+                                              <Button
+                                                size="sm"
+                                                onClick={() => {
+                                                  if (journalCustomTimeframeInterval) {
+                                                    const interval = convertJournalCustomTimeframe(journalCustomTimeframeType, journalCustomTimeframeInterval);
+                                                    const label = createJournalCustomTimeframeLabel(journalCustomTimeframeType, journalCustomTimeframeInterval);
+                                                    console.log(`✅ CUSTOM TIMEFRAME: ${label} (${interval} minutes)`);
+                                                    setJournalChartTimeframe(interval);
+                                                    setJournalCustomTimeframeInterval('');
+                                                    setShowJournalCustomTimeframe(false);
+                                                    setShowJournalTimeframeDropdown(false);
+                                                  }
+                                                }}
+                                                className="w-full h-7 bg-green-600 hover:bg-green-700 text-white text-xs"
+                                                data-testid="button-apply-custom-timeframe"
+                                              >
+                                                Apply
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
                                     </PopoverContent>
                                   </Popover>
