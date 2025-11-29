@@ -11113,9 +11113,15 @@ ${
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       {(() => {
-                                        // Helper functions for P&L color coding
+                                        // Helper functions for P&L color coding - SAME AS HEATMAP
                                         const getNetPnL = (d: any): number => {
+                                          // Try performanceMetrics first (like DemoHeatmap does)
+                                          if (d?.performanceMetrics?.netPnL !== undefined) {
+                                            return d.performanceMetrics.netPnL;
+                                          }
+                                          // Fallback to netPnL
                                           if (typeof d?.netPnL === 'number') return d.netPnL;
+                                          // Fallback to calculated P&L
                                           if (typeof d?.totalProfit === 'number' || typeof d?.totalLoss === 'number') {
                                             return (d?.totalProfit || 0) - Math.abs(d?.totalLoss || 0);
                                           }
@@ -11175,7 +11181,13 @@ ${
                                           .slice(0, 10)
                                           .map(([date, data]) => {
                                             const getNetPnL = (d: any): number => {
+                                              // Try performanceMetrics first (like DemoHeatmap does)
+                                              if (d?.performanceMetrics?.netPnL !== undefined) {
+                                                return d.performanceMetrics.netPnL;
+                                              }
+                                              // Fallback to netPnL
                                               if (typeof d?.netPnL === 'number') return d.netPnL;
+                                              // Fallback to calculated P&L
                                               if (typeof d?.totalProfit === 'number' || typeof d?.totalLoss === 'number') {
                                                 return (d?.totalProfit || 0) - Math.abs(d?.totalLoss || 0);
                                               }
