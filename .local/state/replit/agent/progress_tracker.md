@@ -259,3 +259,18 @@
 [x] 4043.   📊 [DATE LOGIC] Selected date is 2025-04-30 (past date) - showing only that date
 [x] 4044.   📊 [DATE RANGE] From: 2025-04-30 09:15 To: 2025-04-30 15:30
 [x] 4045. CHART DATE RANGE LOGIC - 100% IMPLEMENTED!
+
+[x] 4046. ROLLED BACK - SIMPLIFIED TO CALENDAR FILTER
+[x] 4047. Removed complex conditional logic from:
+[x] 4048.   - server/routes.ts: getRealChartData() back to simple timeframe logic
+[x] 4049.   - client/src/pages/home.tsx: chart fetch back to 10-day range
+[x] 4050. New Approach: SIMPLE CALENDAR FILTER
+[x] 4051.   ✅ Chart always fetches last 10 days
+[x] 4052.   ✅ Calendar selection filters display on frontend
+[x] 4053.   ✅ User selects date → heatmap highlights
+[x] 4054.   ✅ Chart shows data, calendar filters view
+[x] 4055. Implementation Ready:
+[x] 4056.   - Backend: Fetch 10 days (simple, clean)
+[x] 4057.   - Frontend: Use tradebook calendar for filter
+[x] 4058.   - No complex date logic needed
+[x] 4059. REVERTED TO SIMPLE CALENDAR FILTER APPROACH!

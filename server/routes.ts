@@ -3030,12 +3030,9 @@ async function fetchFyersChartDataForDate(symbol: string, dateStr: string, timef
 }
 
 // 🔶 Get real historical price data for charts (Angel One API)
-// 🔶 CONDITIONAL DATE RANGE:
-//   - If selectedDate is TODAY → show last 10 days
-//   - If selectedDate is SPECIFIC past date → show only that date
-async function getRealChartData(symbol: string, timeframe: string, selectedDateStr?: string) {
+async function getRealChartData(symbol: string, timeframe: string) {
   try {
-    console.log(`🔶 Fetching real chart data for ${symbol} (${timeframe})${selectedDateStr ? ` on ${selectedDateStr}` : ''} - Angel One API`);
+    console.log(`🔶 Fetching real chart data for ${symbol} (${timeframe}) - Angel One API`);
     
     // Get Angel One stock token
     const cleanSymbol = symbol.replace(/^\$+/, '').replace('NSE:', '').replace('-EQ', '').replace('-INDEX', '');
@@ -3046,80 +3043,52 @@ async function getRealChartData(symbol: string, timeframe: string, selectedDateS
       return await fetchFyersChartData(symbol, timeframe);
     }
     
-    // 🔶 DETERMINE DATE RANGE based on selectedDate
+    // Calculate date range based on timeframe
     const now = new Date();
     let fromDate = new Date();
-    let toDate = new Date(now);
     let days = 1;
     
-    // Check if selectedDate is today
-    let isSelectedDateToday = false;
-    if (selectedDateStr) {
-      const selectedDate = new Date(selectedDateStr);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      selectedDate.setHours(0, 0, 0, 0);
-      isSelectedDateToday = selectedDate.getTime() === today.getTime();
-      
-      if (isSelectedDateToday) {
-        console.log(`📊 [DATE LOGIC] Selected date is TODAY - showing last 10 days`);
-        days = 10;
-      } else {
-        console.log(`📊 [DATE LOGIC] Selected date is ${selectedDateStr} (past date) - showing only that date`);
-        // For specific past date: set toDate to that date, fromDate same day
-        fromDate = new Date(selectedDate);
-        toDate = new Date(selectedDate);
-        days = 0; // Flag that we're using specific date
-      }
-    } else {
-      // No selectedDate provided, use timeframe-based logic
-      switch (timeframe) {
-        case '5m':
-        case '15m':
-        case '1h':
-        case '1d':
-        case '1D':
-          days = 1;
-          break;
-        case '5d':
-        case '5D':
-          days = 5;
-          break;
-        case '1M':
-          days = 30;
-          break;
-        case '6M':
-          days = 180;
-          break;
-        case '1Y':
-          days = 365;
-          break;
-        case '5Y':
-          days = 1825;
-          break;
-      }
+    switch (timeframe) {
+      case '5m':
+      case '15m':
+      case '1h':
+      case '1d':
+      case '1D':
+        days = 1;
+        break;
+      case '5d':
+      case '5D':
+        days = 5;
+        break;
+      case '1M':
+        days = 30;
+        break;
+      case '6M':
+        days = 180;
+        break;
+      case '1Y':
+        days = 365;
+        break;
+      case '5Y':
+        days = 1825;
+        break;
     }
     
     // Handle weekends for intraday timeframes
-    const dayOfWeek = toDate.getDay();
+    const dayOfWeek = now.getDay();
     if (['5m', '15m', '1h', '1d', '1D'].includes(timeframe)) {
       if (dayOfWeek === 0) { // Sunday - use Friday
-        toDate.setDate(toDate.getDate() - 2);
+        now.setDate(now.getDate() - 2);
       } else if (dayOfWeek === 6) { // Saturday - use Friday
-        toDate.setDate(toDate.getDate() - 1);
+        now.setDate(now.getDate() - 1);
       }
     }
     
-    // Set fromDate based on days (if not using specific date)
-    if (days > 0) {
-      fromDate.setDate(toDate.getDate() - days);
-    }
+    fromDate.setDate(now.getDate() - days);
     
     // Format dates for Angel One API (YYYY-MM-DD HH:mm)
-    const toDateTime = `${toDate.toISOString().split('T')[0]} 15:30`;
+    const toDateTime = `${now.toISOString().split('T')[0]} 15:30`;
     const fromDateTime = `${fromDate.toISOString().split('T')[0]} 09:15`;
-    
-    console.log(`📊 [DATE RANGE] From: ${fromDateTime} To: ${toDateTime}`);
     
     const angelOneInterval = getAngelOneInterval(timeframe);
     
@@ -4562,12 +4531,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const symbol = req.params.symbol.toUpperCase();
       const timeframe = req.query.timeframe as string || '1D';
-      const selectedDateStr = req.query.selectedDate as string; // Optional: YYYY-MM-DD
       
-      console.log(`📊 Fetching real chart data for ${symbol} (${timeframe})${selectedDateStr ? ` on ${selectedDateStr}` : ''}...`);
+      console.log(`📊 Fetching real chart data for ${symbol} (${timeframe})...`);
 
-      // Get real chart data from financial APIs with optional selectedDate
-      const chartData = await getRealChartData(symbol, timeframe, selectedDateStr);
+      // Get real chart data from financial APIs
+      const chartData = await getRealChartData(symbol, timeframe);
       
       res.json(chartData);
     } catch (error) {
