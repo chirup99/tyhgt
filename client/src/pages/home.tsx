@@ -6688,6 +6688,10 @@ ${
   };
 
   const handleDateSelect = async (date: Date, firebaseData?: any, forceMode?: 'demo' | 'personal') => {
+    // 📅 [CHART CONTROL] When user selects date from heatmap, set it as chart's date filter
+    const dateString = date.toISOString().split('T')[0];
+    setJournalSelectedDate(dateString);
+    console.log(`📅 [HEATMAP-TO-CHART] User selected date from heatmap: ${dateString}`);
     // Update selected date IMMEDIATELY for instant visual feedback
     setSelectedDate(date);
     console.log(`📅 Selected date for heatmap:`, date);
