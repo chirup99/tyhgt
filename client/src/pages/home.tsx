@@ -11112,16 +11112,51 @@ ${
                                   {/* 📅 Heatmap Date Selector - Mini */}
                                   <Popover>
                                     <PopoverTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-8 px-2 text-xs flex items-center gap-1"
-                                        title="Click to select date from heatmap"
-                                        data-testid="button-open-heatmap-picker"
-                                      >
-                                        <Calendar className="w-3.5 h-3.5" />
-                                        <span>{journalSelectedDate ? journalSelectedDate : 'Last 10 days'}</span>
-                                      </Button>
+                                      {(() => {
+                                        // Helper functions for P&L color coding
+                                        const getNetPnL = (d: any): number => {
+                                          if (typeof d?.netPnL === 'number') return d.netPnL;
+                                          if (typeof d?.totalProfit === 'number' || typeof d?.totalLoss === 'number') {
+                                            return (d?.totalProfit || 0) - Math.abs(d?.totalLoss || 0);
+                                          }
+                                          return 0;
+                                        };
+                                        const getDatePnLColor = (netPnL: number) => {
+                                          if (netPnL === 0) return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
+                                          const absValue = Math.abs(netPnL);
+                                          if (netPnL > 0) {
+                                            if (absValue >= 5000) return "bg-green-800 dark:bg-green-700 text-white";
+                                            if (absValue >= 3000) return "bg-green-700 dark:bg-green-600 text-white";
+                                            if (absValue >= 1500) return "bg-green-600 dark:bg-green-500 text-white";
+                                            if (absValue >= 500) return "bg-green-500 dark:bg-green-400 text-white";
+                                            return "bg-green-400 dark:bg-green-300 text-gray-800 dark:text-gray-900";
+                                          } else {
+                                            if (absValue >= 5000) return "bg-red-800 dark:bg-red-700 text-white";
+                                            if (absValue >= 3000) return "bg-red-700 dark:bg-red-600 text-white";
+                                            if (absValue >= 1500) return "bg-red-600 dark:bg-red-500 text-white";
+                                            if (absValue >= 500) return "bg-red-500 dark:bg-red-400 text-white";
+                                            return "bg-red-400 dark:bg-red-300 text-gray-800 dark:text-gray-900";
+                                          }
+                                        };
+
+                                        // Get color for selected date if exists
+                                        const selectedDateData = journalSelectedDate ? tradingDataByDate[journalSelectedDate] : null;
+                                        const selectedDatePnL = selectedDateData ? getNetPnL(selectedDateData) : 0;
+                                        const dateButtonColor = journalSelectedDate ? getDatePnLColor(selectedDatePnL) : "";
+
+                                        return (
+                                          <Button
+                                            variant={journalSelectedDate ? "default" : "outline"}
+                                            size="sm"
+                                            className={`h-8 px-2 text-xs flex items-center gap-1 font-medium ${dateButtonColor}`}
+                                            title={journalSelectedDate ? `${journalSelectedDate}: P&L ₹${selectedDatePnL.toLocaleString('en-IN')}` : 'Click to select date from heatmap'}
+                                            data-testid="button-open-heatmap-picker"
+                                          >
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            <span>{journalSelectedDate ? journalSelectedDate : 'Last 10 days'}</span>
+                                          </Button>
+                                        );
+                                      })()}
                                     </PopoverTrigger>
                                     <PopoverContent className="w-96 p-2" align="start">
                                       <div className="text-xs font-semibold mb-2">Select Date from Heatmap</div>
