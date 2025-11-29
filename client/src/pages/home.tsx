@@ -4748,10 +4748,21 @@ ${
     return cleanSymbol;
   };
 
-  // Always fetch 1-minute data and aggregate to desired timeframe
+  // 🔶 Convert timeframe to Angel One API interval format (SAME AS OHLC DATA WINDOW)
   const getJournalAngelOneInterval = (): string => {
-    // Always fetch 1-minute candles for proper aggregation
-    return 'ONE_MINUTE';
+    const intervalMap: { [key: string]: string } = {
+      '1': 'ONE_MINUTE',
+      '3': 'THREE_MINUTE',
+      '5': 'FIVE_MINUTE',
+      '10': 'TEN_MINUTE',
+      '15': 'FIFTEEN_MINUTE',
+      '30': 'THIRTY_MINUTE',
+      '60': 'ONE_HOUR',
+      '1D': 'ONE_DAY',
+      '1W': 'ONE_WEEK',
+      '1M': 'ONE_MONTH'
+    };
+    return intervalMap[selectedJournalInterval] || 'ONE_MINUTE';
   };
 
   // Aggregate 1-minute candles to desired timeframe (TIME-ALIGNED)
@@ -5147,18 +5158,11 @@ ${
       }
       
       if (candleData.length > 0) {
-        console.log(`🔶 Angel One: Loaded ${candleData.length} 1-minute candles`);
+        console.log(`🔶 Angel One: Loaded ${candleData.length} ${selectedJournalInterval}-interval candles directly from API`);
         
-        // Aggregate 1-minute candles to the selected timeframe
-        const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval);
-        let finalCandles = candleData;
-        
-        if (timeframeMinutes > 1) {
-          finalCandles = aggregateJournalCandles(candleData, timeframeMinutes);
-          console.log(`🔶 Aggregated to ${timeframeMinutes}-minute candles: ${finalCandles.length} bars`);
-        }
-        
-        setJournalChartData(finalCandles);
+        // No client-side aggregation needed - Angel One API returns pre-aggregated candles
+        // This matches the working OHLC data window approach
+        setJournalChartData(candleData);
       } else {
         console.warn('🔶 Angel One: No candle data returned', data);
         setJournalChartData([]);

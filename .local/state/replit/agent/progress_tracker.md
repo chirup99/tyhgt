@@ -432,6 +432,35 @@
 [x] 3853. Status: ✅ PARTIAL - Mock data removed, now returns proper errors
 [x] 3854. CRITICAL MOCK DATA BUG FIX 50% COMPLETE! (Server fixed, frontend retry needed)
 
+[x] 3855. NOVEMBER 29, 2025 - JOURNAL CHART TIMEFRAME SYNC FIX
+[x] 3856. Task: Synchronize journal chart with working OHLC data window logic
+[x] 3857. User found that OHLC data window (trading-master.tsx) works correctly:
+[x] 3858.   - ✅ Fetches real Angel One data
+[x] 3859.   - ✅ Respects timeframe selection (1m, 5m, 15m, etc.)
+[x] 3860.   - ✅ No mock/fake data
+[x] 3861. Root cause in journal chart (home.tsx):
+[x] 3862.   - ❌ Always fetched 1-minute data regardless of timeframe
+[x] 3863.   - ❌ Attempted client-side aggregation (inefficient and buggy)
+[x] 3864.   - ❌ Different approach than working OHLC window
+[x] 3865. Fix applied to client/src/pages/home.tsx:
+[x] 3866.   - Changed `getJournalAngelOneInterval()` (line 4755-4769)
+[x] 3867.   - Now directly requests correct timeframe from Angel One API
+[x] 3868.   - Mapping: '1' → 'ONE_MINUTE', '5' → 'FIVE_MINUTE', '15' → 'FIFTEEN_MINUTE', etc.
+[x] 3869.   - Removed client-side aggregation logic (line 5164-5168)
+[x] 3870.   - Angel One API now returns pre-aggregated candles directly
+[x] 3871.   - Matches exact same logic as working OHLC data window
+[x] 3872. Both fixes combined:
+[x] 3873.   - ✅ Server no longer returns mock data (returns 503 when not authenticated)
+[x] 3874.   - ✅ Journal chart requests correct timeframe from Angel One API
+[x] 3875.   - ✅ No client-side aggregation (uses Angel One's server-side aggregation)
+[x] 3876.   - ✅ Journal chart synchronized with OHLC data window logic
+[x] 3877. Files modified:
+[x] 3878.   - server/routes.ts (lines 8033-8050) - removed mock data generation
+[x] 3879.   - client/src/pages/home.tsx (lines 4755-4769) - fixed interval mapping
+[x] 3880.   - client/src/pages/home.tsx (lines 5164-5168) - removed client-side aggregation
+[x] 3881. Status: ✅ COMPLETE - Journal chart now uses same logic as working OHLC window
+[x] 3882. JOURNAL CHART TIMEFRAME SYNCHRONIZATION 100% COMPLETE!
+
 [x] 3618. Fix: Journal Chart Candle OHLC Tracking & Interval Handling
   - Issue 1: OHL values were incorrect (showing day's OHL instead of current candle's OHL)
   - Issue 2: Hard-coded 15-minute interval caused wrong candle boundaries for 1m/5m intervals
