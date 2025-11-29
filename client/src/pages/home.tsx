@@ -5126,21 +5126,7 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 AUTO-FETCH when user selects a date from heatmap - loads SENSEX chart for that date
-  useEffect(() => {
-    if (!journalSelectedDate || activeTab !== 'journal') {
-      return; // Don't auto-fetch if no date selected or not on journal tab
-    }
-    
-    console.log(`📊 AUTO-LOADING SENSEX for selected date: ${journalSelectedDate}`);
-    
-    // Always ensure SENSEX is selected - main fetch effect will auto-trigger on date/symbol changes
-    if (selectedJournalSymbol !== 'NIFTY:SENSEX') {
-      console.log(`📊 Setting symbol to SENSEX for date: ${journalSelectedDate}`);
-      setSelectedJournalSymbol('NIFTY:SENSEX');
-    }
-    // Main fetch effect will trigger automatically because journalSelectedDate changed (it's in dependencies)
-  }, [journalSelectedDate, activeTab]);
+  // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
