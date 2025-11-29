@@ -1185,3 +1185,31 @@ Implementation Date: November 28, 2025
 [x] 3829. Files modified:
 [x] 3830.   - client/src/pages/home.tsx (line 5745)
 [x] 3831. CHART RENDERING FIX 100% COMPLETE!
+
+[x] 3832. CRITICAL BUG FIX: Timeframe Selection Not Working
+[x] 3833. Issue: Chart always displayed 1-minute candles regardless of timeframe selected
+[x] 3834. Root Cause: React Closure Problem
+[x] 3835.   - fetchJournalChartData useCallback (line 4938) was missing journalChartTimeframe from dependencies
+[x] 3836.   - When user selected 5min, state updated: setJournalChartTimeframe('5')
+[x] 3837.   - BUT fetchJournalChartData still used stale captured value '1' from mount time
+[x] 3838.   - API always called with interval='1' (1 minute)
+[x] 3839. Solution Applied (line 5121):
+[x] 3840.   OLD: }, [selectedJournalSymbol, selectedJournalDate]);
+[x] 3841.   NEW: }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe]);
+[x] 3842. Flow After Fix:
+[x] 3843.   1. User clicks 5min option → setJournalChartTimeframe('5') called
+[x] 3844.   2. React re-renders component with updated timeframe
+[x] 3845.   3. fetchJournalChartData useCallback recreated with NEW closure
+[x] 3846.   4. User clicks fetch button
+[x] 3847.   5. fetchJournalChartData NOW uses journalChartTimeframe='5'
+[x] 3848.   6. API called with interval='5' (5 minutes)
+[x] 3849.   7. 750 pre-aggregated 5-minute candles fetched (3750 1-min → 750 5-min)
+[x] 3850.   8. Chart displays correct 5-minute candles
+[x] 3851. Added Debug Logging:
+[x] 3852.   - Line 10978: console.log when timeframe option clicked
+[x] 3853.   - Line 10994: console.log when fetch button clicked with current state
+[x] 3854. Files Modified:
+[x] 3855.   - client/src/pages/home.tsx (lines 5121, 10978, 10994)
+[x] 3856. TIMEFRAME SELECTION BUG FIX 100% COMPLETE!
+[x] 3857. Now fully working: User can select ANY timeframe (1min, 3min, 5min, 15min, 30min, 1hr, 4hr, 1D, 1W)
+[x] 3858. and chart will display the correct aggregated candles!

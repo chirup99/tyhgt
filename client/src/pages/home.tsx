@@ -5115,7 +5115,7 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalDate]);
+  }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe]);
 
   // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
 
@@ -10972,6 +10972,7 @@ ${
                                                 : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             }`}
                                             onClick={() => {
+                                              console.log(`🎯 TIMEFRAME SELECTED: ${tf.label} (value=${tf.value})`);
                                               setJournalChartTimeframe(tf.value);
                                               setShowJournalTimeframeDropdown(false);
                                             }}
@@ -10987,7 +10988,7 @@ ${
                                   {/* Fetch Button with Icon */}
                                   <Button
                                     onClick={() => {
-                                      console.log(`🔶 FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA`);
+                                      console.log(`🔶 FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA with state:`, { journalChartTimeframe, currentState: journalChartTimeframe });
                                       fetchJournalChartData();
                                     }}
                                     disabled={journalChartLoading}
