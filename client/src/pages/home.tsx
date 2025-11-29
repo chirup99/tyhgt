@@ -4982,8 +4982,9 @@ ${
         // Get last trading day (skip weekends)
         const lastDay = new Date(now);
         lastDay.setDate(lastDay.getDate() - 1);
-        if (lastDay.getDay() === 5) lastDay.setDate(lastDay.getDate() - 1); // Skip Saturday
-        if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 2); // Skip Sunday
+        // If we landed on weekend, skip back one more day
+        if (lastDay.getDay() === 0) lastDay.setDate(lastDay.getDate() - 1); // Sunday → Friday
+        if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 1); // Saturday → Friday
         endDate = lastDay.toISOString().split('T')[0];
       }
       
