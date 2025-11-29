@@ -5175,8 +5175,12 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       '5': 'FIVE_MINUTE',
       '10': 'TEN_MINUTE',
       '15': 'FIFTEEN_MINUTE',
+      '20': 'TWENTY_MINUTE',      // 🔧 Backend aggregation (20min from 1min)
       '30': 'THIRTY_MINUTE',
+      '40': 'FORTY_MINUTE',       // 🔧 Backend aggregation (40min from 1min)
       '60': 'ONE_HOUR',
+      '80': 'EIGHTY_MINUTE',      // 🔧 Backend aggregation (80min from 1min)
+      '120': 'TWO_HOUR',          // 🔧 Backend aggregation (2hr from 1min)
       '1D': 'ONE_DAY',
       '1W': 'ONE_WEEK',
       '1M': 'ONE_MONTH'

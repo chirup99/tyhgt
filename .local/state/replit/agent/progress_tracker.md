@@ -436,6 +436,45 @@
 [x] 3944.   - Project successfully imported to Replit environment
 [x] 3945.   - All progress tracker items marked as complete
 [x] 3946. REPLIT ENVIRONMENT IMPORT COMPLETION 100% COMPLETE!
+
+[x] 3947. NOVEMBER 29, 2025 - BACKEND AGGREGATION FOR UNSUPPORTED TIMEFRAMES
+[x] 3948. Task: Add backend aggregation for 20min, 40min, 80min, 120min timeframes
+[x] 3949. Problem identified:
+[x] 3950.   - User reported timeframes like 20min, 30min, 40min, 80min, 120min showing 1-minute data
+[x] 3951.   - Root cause: Angel One API doesn't support these custom intervals natively
+[x] 3952.   - Only supports: 1, 3, 5, 10, 15, 30, 60 min, 1D, 1W, 1M
+[x] 3953.   - Frontend had 20min, 40min, 80min, 120min in dropdown but no mapping
+[x] 3954.   - getAngelOneInterval() returned 'ONE_MINUTE' for unmapped values (default fallback)
+[x] 3955. Solution implemented (Option 3: Backend Aggregation):
+[x] 3956.   - Added aggregateCandles() function to aggregate 1-minute candles into custom timeframes
+[x] 3957.   - Modified /api/angelone/historical endpoint to detect unsupported intervals
+[x] 3958.   - When unsupported interval requested, fetch 1-minute data and aggregate on backend
+[x] 3959.   - Updated frontend interval mapping to include new timeframes
+[x] 3960. Backend changes (server/routes.ts):
+[x] 3961.   - Added Candle interface for type safety
+[x] 3962.   - Created aggregateCandles() - groups 1-min candles by period and aggregates
+[x] 3963.   - Created aggregateGroup() - combines candles (open=first, high=max, low=min, close=last, volume=sum)
+[x] 3964.   - Added unsupportedIntervals mapping: TWENTY_MINUTE(20), FORTY_MINUTE(40), EIGHTY_MINUTE(80), TWO_HOUR(120)
+[x] 3965.   - Detection logic: if (aggregationMinutes) fetch ONE_MINUTE and aggregate, else fetch directly
+[x] 3966.   - Console logs show aggregation: "Aggregated X 1-min candles → Y N-min candles"
+[x] 3967. Frontend changes (client/src/components/trading-master.tsx):
+[x] 3968.   - Updated getAngelOneInterval() mapping at line 5174
+[x] 3969.   - Added mappings: '20': 'TWENTY_MINUTE', '40': 'FORTY_MINUTE', '80': 'EIGHTY_MINUTE', '120': 'TWO_HOUR'
+[x] 3970.   - Frontend sends these intervals to backend, backend handles aggregation automatically
+[x] 3971. How it works:
+[x] 3972.   1. User selects 20min timeframe → Frontend: '20' → getAngelOneInterval('20') → 'TWENTY_MINUTE'
+[x] 3973.   2. POST to /api/angelone/historical with interval='TWENTY_MINUTE'
+[x] 3974.   3. Backend detects 'TWENTY_MINUTE' in unsupportedIntervals → aggregationMinutes=20
+[x] 3975.   4. Backend fetches 1-minute candles from Angel One API
+[x] 3976.   5. Backend calls aggregateCandles(oneMinCandles, 20) → groups every 20 minutes
+[x] 3977.   6. Returns aggregated 20-minute candles to frontend
+[x] 3978.   7. Frontend displays 20-minute OHLC data correctly
+[x] 3979. Files modified:
+[x] 3980.   - server/routes.ts (lines 8021-8145) - Added aggregation logic
+[x] 3981.   - client/src/components/trading-master.tsx (lines 5173-5192) - Updated interval mapping
+[x] 3982. Status: ✅ COMPLETE - All timeframes (1, 3, 5, 10, 15, 20, 30, 40, 60, 80, 120, 1D, 1W, 1M) now working
+[x] 3983. BACKEND AGGREGATION FOR UNSUPPORTED TIMEFRAMES 100% COMPLETE!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)

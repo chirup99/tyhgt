@@ -8015,7 +8015,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return intervalMap[interval] || 900; // Default to 15 minutes
   };
 
-  // Angel One - Get historical candle data
+  // 🔧 Helper function to aggregate 1-minute candles into custom timeframes
+  interface Candle {
+    timestamp: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }
+
+  const aggregateCandles = (oneMinCandles: Candle[], aggregationMinutes: number): Candle[] => {
+    if (!oneMinCandles || oneMinCandles.length === 0) {
+      return [];
+    }
+
+    const aggregated: Candle[] = [];
+    const aggregationSeconds = aggregationMinutes * 60;
+
+    // Group candles by the aggregation period
+    let currentGroup: Candle[] = [];
+    let groupStartTime = 0;
+
+    for (const candle of oneMinCandles) {
+      // Calculate the start of the period this candle belongs to
+      const candleTime = candle.timestamp;
+      const periodStart = Math.floor(candleTime / aggregationSeconds) * aggregationSeconds;
+
+      // If this is the first candle or belongs to the same period, add to current group
+      if (groupStartTime === 0) {
+        groupStartTime = periodStart;
+      }
+
+      if (periodStart === groupStartTime) {
+        currentGroup.push(candle);
+      } else {
+        // New period started - aggregate the previous group
+        if (currentGroup.length > 0) {
+          aggregated.push(aggregateGroup(currentGroup, groupStartTime));
+        }
+        // Start new group
+        currentGroup = [candle];
+        groupStartTime = periodStart;
+      }
+    }
+
+    // Don't forget the last group
+    if (currentGroup.length > 0) {
+      aggregated.push(aggregateGroup(currentGroup, groupStartTime));
+    }
+
+    return aggregated;
+  };
+
+  const aggregateGroup = (candles: Candle[], timestamp: number): Candle => {
+    return {
+      timestamp,
+      open: candles[0].open,
+      high: Math.max(...candles.map(c => c.high)),
+      low: Math.min(...candles.map(c => c.low)),
+      close: candles[candles.length - 1].close,
+      volume: candles.reduce((sum, c) => sum + c.volume, 0)
+    };
+  };
+
+  // Angel One - Get historical candle data (with backend aggregation for unsupported timeframes)
   app.post("/api/angelone/historical", async (req, res) => {
     try {
       const { exchange, symbolToken, interval, fromDate, toDate } = req.body;
@@ -8027,14 +8091,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // 🔧 Check if this is an unsupported interval that needs aggregation
+      const unsupportedIntervals: { [key: string]: number } = {
+        'TWENTY_MINUTE': 20,
+        'FORTY_MINUTE': 40,
+        'EIGHTY_MINUTE': 80,
+        'TWO_HOUR': 120
+      };
+
+      const aggregationMinutes = unsupportedIntervals[interval];
+
       // Always try to fetch real historical data from Angel One API
       // even if not connected - the API can return historical data without active connection
       try {
-        const candles = await angelOneApi.getCandleData(exchange, symbolToken, interval, fromDate, toDate);
+        let candles;
+        let source = 'angel_one_api';
+
+        if (aggregationMinutes) {
+          // 🔧 BACKEND AGGREGATION: Fetch 1-minute data and aggregate
+          console.log(`🔧 Aggregating ${interval} (${aggregationMinutes} min) from 1-minute candles`);
+          const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
+          candles = aggregateCandles(oneMinCandles, aggregationMinutes);
+          source = `angel_one_api_aggregated_${aggregationMinutes}min`;
+          console.log(`✅ Aggregated ${oneMinCandles.length} 1-min candles → ${candles.length} ${aggregationMinutes}-min candles`);
+        } else {
+          // Standard supported interval - fetch directly
+          candles = await angelOneApi.getCandleData(exchange, symbolToken, interval, fromDate, toDate);
+        }
+
         res.json({ 
           success: true,
           candles,
-          source: 'angel_one_api'
+          source
         });
       } catch (error: any) {
         // If Angel One API fails, return error instead of mock data
