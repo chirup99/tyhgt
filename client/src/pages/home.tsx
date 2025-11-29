@@ -11172,7 +11172,7 @@ ${
                                             return pnl !== 0; // Only show dates with non-zero P&L
                                           })
                                           .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
-                                          .slice(0, 60)
+                                          .slice(0, 10)
                                           .map(([date, data]) => {
                                             const getNetPnL = (d: any): number => {
                                               if (typeof d?.netPnL === 'number') return d.netPnL;
