@@ -7997,38 +7997,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return [];
     }
 
-    const aggregated: Candle[] = [];
-    let i = 0;
-
-    // ✅ FIXED: Combine N consecutive 1-minute candles BUT check day boundaries
-    while (i < oneMinCandles.length) {
-      const firstCandle = oneMinCandles[i];
-      const firstCandleDate = getISTDateOnly(firstCandle.timestamp);
-      const group: Candle[] = [firstCandle];
-
-      // Add more candles to group, but STOP if we cross day boundary
-      for (let j = 1; j < candleCount && i + j < oneMinCandles.length; j++) {
-        const nextCandle = oneMinCandles[i + j];
-        const nextCandleDate = getISTDateOnly(nextCandle.timestamp);
-
-        // Check if next candle is on a different day (IST date)
-        if (nextCandleDate !== firstCandleDate) {
-          // Different day - don't include this candle in current group
-          // This keeps incomplete candles (market close at 3:30 PM) separate from next day
-          break;
-        }
-
-        group.push(nextCandle);
+    // ✅ FIXED: Group candles by date first, then aggregate each day independently
+    // This keeps incomplete candles on their trading day without crossing day boundaries
+    
+    // Step 1: Group candles by IST date
+    const candlesByDate = new Map<string, Candle[]>();
+    for (const candle of oneMinCandles) {
+      const date = getISTDateOnly(candle.timestamp);
+      if (!candlesByDate.has(date)) {
+        candlesByDate.set(date, []);
       }
-
-      // Create aggregated candle from the group (could be incomplete if day boundary hit)
-      if (group.length > 0) {
-        aggregated.push(aggregateGroup(group, group[0].timestamp));
-      }
-
-      // Move to next ungrouped candle
-      i += group.length;
+      candlesByDate.get(date)!.push(candle);
     }
+
+    // Step 2: Aggregate each day's candles independently
+    const aggregated: Candle[] = [];
+    for (const [date, dailyCandles] of candlesByDate) {
+      // Aggregate this day's candles
+      for (let i = 0; i < dailyCandles.length; i += candleCount) {
+        const group = dailyCandles.slice(i, i + candleCount);
+        if (group.length > 0) {
+          aggregated.push(aggregateGroup(group, group[0].timestamp));
+        }
+      }
+    }
+
+    // Step 3: Sort by timestamp (important for proper ordering across days)
+    aggregated.sort((a, b) => a.timestamp - b.timestamp);
 
     return aggregated;
   };
