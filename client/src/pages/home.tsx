@@ -4612,6 +4612,7 @@ ${
   };
   const [selectedInstrumentCategory, setSelectedInstrumentCategory] = useState("all");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
+  const [isHeatmapDateSelected, setIsHeatmapDateSelected] = useState(false); // ✅ Track if user explicitly selected a date on heatmap
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
@@ -4976,14 +4977,14 @@ ${
       let fromDate: string;
       let toDate: string;
       
-      // ✅ CHECK IF HEATMAP DATE IS SELECTED - Use that date instead of 10 days
-      if (selectedJournalDate && selectedJournalDate !== today) {
-        console.log(`📅 USING SELECTED HEATMAP DATE: ${selectedJournalDate}`);
+      // ✅ CHECK IF USER EXPLICITLY SELECTED A DATE ON HEATMAP
+      if (isHeatmapDateSelected && selectedJournalDate) {
+        console.log(`📅 USING USER-SELECTED HEATMAP DATE: ${selectedJournalDate}`);
         fromDate = selectedJournalDate;
         toDate = selectedJournalDate;
       } else {
-        // Fallback: Fetch 10 TRADING DAYS of data (real-time)
-        console.log(`📅 USING LAST 10 TRADING DAYS (no specific date selected)`);
+        // Default: Fetch 10 TRADING DAYS of data (when no date is explicitly selected)
+        console.log(`📅 USING LAST 10 TRADING DAYS (no date selected on heatmap)`);
         
         // Calculate 10 trading days back (skip weekends)
         const tenDaysAgo = new Date(now);
@@ -5466,7 +5467,7 @@ ${
     if (activeTab === 'journal') {
       fetchJournalChartData();
     }
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate, isHeatmapDateSelected]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -6746,6 +6747,7 @@ ${
 
         // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
         setSelectedJournalDate(dateKey);
+        setIsHeatmapDateSelected(true); // ✅ Mark that user explicitly selected a date
         console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
 
         console.log("✅ Successfully loaded all FRESH Firebase data for:", dateKey);
@@ -6856,6 +6858,7 @@ ${
 
           // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
           setSelectedJournalDate(dateKey);
+          setIsHeatmapDateSelected(true); // ✅ Mark that user explicitly selected a date
           console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
 
           // Show trading data windows automatically
