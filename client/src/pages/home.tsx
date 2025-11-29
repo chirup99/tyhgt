@@ -11115,9 +11115,23 @@ ${
                                       {(() => {
                                         // Helper functions for P&L color coding - SAME AS HEATMAP
                                         const getNetPnL = (d: any): number => {
+                                          if (!d) return 0;
                                           // Try performanceMetrics first (like DemoHeatmap does)
                                           if (d?.performanceMetrics?.netPnL !== undefined) {
                                             return d.performanceMetrics.netPnL;
+                                          }
+                                          // Calculate from tradeHistory if no performanceMetrics
+                                          if (d?.tradeHistory && Array.isArray(d.tradeHistory)) {
+                                            let totalPnL = 0;
+                                            d.tradeHistory.forEach((trade: any) => {
+                                              if (trade.pnl && typeof trade.pnl === 'string') {
+                                                const pnlValue = parseFloat(trade.pnl.replace(/[₹,]/g, ''));
+                                                if (!isNaN(pnlValue)) {
+                                                  totalPnL += pnlValue;
+                                                }
+                                              }
+                                            });
+                                            return totalPnL;
                                           }
                                           // Fallback to netPnL
                                           if (typeof d?.netPnL === 'number') return d.netPnL;
@@ -11181,9 +11195,23 @@ ${
                                           .slice(0, 10)
                                           .map(([date, data]) => {
                                             const getNetPnL = (d: any): number => {
+                                              if (!d) return 0;
                                               // Try performanceMetrics first (like DemoHeatmap does)
                                               if (d?.performanceMetrics?.netPnL !== undefined) {
                                                 return d.performanceMetrics.netPnL;
+                                              }
+                                              // Calculate from tradeHistory if no performanceMetrics
+                                              if (d?.tradeHistory && Array.isArray(d.tradeHistory)) {
+                                                let totalPnL = 0;
+                                                d.tradeHistory.forEach((trade: any) => {
+                                                  if (trade.pnl && typeof trade.pnl === 'string') {
+                                                    const pnlValue = parseFloat(trade.pnl.replace(/[₹,]/g, ''));
+                                                    if (!isNaN(pnlValue)) {
+                                                      totalPnL += pnlValue;
+                                                    }
+                                                  }
+                                                });
+                                                return totalPnL;
                                               }
                                               // Fallback to netPnL
                                               if (typeof d?.netPnL === 'number') return d.netPnL;
