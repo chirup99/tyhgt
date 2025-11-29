@@ -475,6 +475,42 @@
 [x] 3982. Status: ✅ COMPLETE - All timeframes (1, 3, 5, 10, 15, 20, 30, 40, 60, 80, 120, 1D, 1W, 1M) now working
 [x] 3983. BACKEND AGGREGATION FOR UNSUPPORTED TIMEFRAMES 100% COMPLETE!
 
+[x] 3984. NOVEMBER 29, 2025 - OPTION 2: CANDLE-COUNT BASED AGGREGATION
+[x] 3985. Task: Implement Option 2 - Combine every N consecutive 1-minute candles
+[x] 3986. Issue with previous approach:
+[x] 3987.   - Time-period based aggregation grouped by time intervals (e.g., 9:00-9:20)
+[x] 3988.   - User requested simpler approach: combine by NUMBER of candles
+[x] 3989. Solution implemented (OPTION 2):
+[x] 3990.   - Changed aggregation from time-based to candle-count based
+[x] 3991.   - Example: '20min' now means "combine every 20 consecutive 1-min candles"
+[x] 3992.   - '40min' combines every 40 consecutive 1-min candles, etc.
+[x] 3993. Backend changes (server/routes.ts):
+[x] 3994.   - Replaced aggregateCandles() function logic
+[x] 3995.   - Old: grouped candles by time periods (periodStart calculation)
+[x] 3996.   - New: groups consecutive candles using simple loop and slice
+[x] 3997.   - Code: for (let i = 0; i < oneMinCandles.length; i += candleCount)
+[x] 3998.   - Each group of candleCount candles becomes 1 aggregated candle
+[x] 3999. Updated logging:
+[x] 4000.   - Old: "Aggregating TWENTY_MINUTE (20 min) from 1-minute candles"
+[x] 4001.   - New: "Combining 20 consecutive 1-minute candles for TWENTY_MINUTE"
+[x] 4002.   - Result: "Combined X 1-min candles → Y aggregated candles (every 20 candles)"
+[x] 4003. How it works NOW (Option 2):
+[x] 4004.   1. User selects "20min" timeframe
+[x] 4005.   2. Frontend sends interval='TWENTY_MINUTE'
+[x] 4006.   3. Backend detects unsupported interval → aggregationMinutes=20
+[x] 4007.   4. Backend fetches 1-minute candles from Angel One API
+[x] 4008.   5. For every 20 consecutive candles, create 1 aggregated candle:
+[x] 4009.      - Candles 1-20 → Candle 1 (O=1st open, H=max of 20, L=min of 20, C=20th close, V=sum)
+[x] 4010.      - Candles 21-40 → Candle 2 (same aggregation pattern)
+[x] 4011.      - Candles 41-60 → Candle 3, etc.
+[x] 4012.   6. Returns aggregated candles to frontend
+[x] 4013.   7. Frontend displays combined OHLC data
+[x] 4014. Files modified:
+[x] 4015.   - server/routes.ts (lines 8031-8047) - Rewrote aggregateCandles() function
+[x] 4016.   - server/routes.ts (lines 8090-8094) - Updated logging messages
+[x] 4017. Status: ✅ COMPLETE - Implemented Option 2 candle-count aggregation
+[x] 4018. OPTION 2: CANDLE-COUNT BASED AGGREGATION 100% COMPLETE!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)

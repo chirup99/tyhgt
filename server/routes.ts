@@ -8025,44 +8025,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     volume: number;
   }
 
-  const aggregateCandles = (oneMinCandles: Candle[], aggregationMinutes: number): Candle[] => {
+  const aggregateCandles = (oneMinCandles: Candle[], candleCount: number): Candle[] => {
     if (!oneMinCandles || oneMinCandles.length === 0) {
       return [];
     }
 
     const aggregated: Candle[] = [];
-    const aggregationSeconds = aggregationMinutes * 60;
 
-    // Group candles by the aggregation period
-    let currentGroup: Candle[] = [];
-    let groupStartTime = 0;
-
-    for (const candle of oneMinCandles) {
-      // Calculate the start of the period this candle belongs to
-      const candleTime = candle.timestamp;
-      const periodStart = Math.floor(candleTime / aggregationSeconds) * aggregationSeconds;
-
-      // If this is the first candle or belongs to the same period, add to current group
-      if (groupStartTime === 0) {
-        groupStartTime = periodStart;
+    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
+    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
+      const group = oneMinCandles.slice(i, i + candleCount);
+      if (group.length > 0) {
+        aggregated.push(aggregateGroup(group, group[0].timestamp));
       }
-
-      if (periodStart === groupStartTime) {
-        currentGroup.push(candle);
-      } else {
-        // New period started - aggregate the previous group
-        if (currentGroup.length > 0) {
-          aggregated.push(aggregateGroup(currentGroup, groupStartTime));
-        }
-        // Start new group
-        currentGroup = [candle];
-        groupStartTime = periodStart;
-      }
-    }
-
-    // Don't forget the last group
-    if (currentGroup.length > 0) {
-      aggregated.push(aggregateGroup(currentGroup, groupStartTime));
     }
 
     return aggregated;
@@ -8108,12 +8083,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let source = 'angel_one_api';
 
         if (aggregationMinutes) {
-          // 🔧 BACKEND AGGREGATION: Fetch 1-minute data and aggregate
-          console.log(`🔧 Aggregating ${interval} (${aggregationMinutes} min) from 1-minute candles`);
+          // 🔧 BACKEND AGGREGATION: Fetch 1-minute data and aggregate by candle count
+          console.log(`🔧 Combining ${aggregationMinutes} consecutive 1-minute candles for ${interval}`);
           const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
           candles = aggregateCandles(oneMinCandles, aggregationMinutes);
-          source = `angel_one_api_aggregated_${aggregationMinutes}min`;
-          console.log(`✅ Aggregated ${oneMinCandles.length} 1-min candles → ${candles.length} ${aggregationMinutes}-min candles`);
+          source = `angel_one_api_aggregated_${aggregationMinutes}candles`;
+          console.log(`✅ Combined ${oneMinCandles.length} 1-min candles → ${candles.length} aggregated candles (every ${aggregationMinutes} candles)`);
         } else {
           // Standard supported interval - fetch directly
           candles = await angelOneApi.getCandleData(exchange, symbolToken, interval, fromDate, toDate);
