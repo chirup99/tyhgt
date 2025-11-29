@@ -5126,7 +5126,22 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
+  // 🔶 AUTO-FETCH when user selects a date from heatmap - loads SENSEX chart for that date
+  useEffect(() => {
+    if (!journalSelectedDate || activeTab !== 'journal') {
+      return; // Don't auto-fetch if no date selected or not on journal tab
+    }
+    
+    console.log(`📊 AUTO-FETCHING SENSEX data for selected date: ${journalSelectedDate}`);
+    
+    // Set SENSEX as the default symbol if not already set
+    if (!selectedJournalSymbol || selectedJournalSymbol !== 'NIFTY:SENSEX') {
+      setSelectedJournalSymbol('NIFTY:SENSEX');
+    }
+    
+    // Auto-trigger the chart fetch with current timeframe
+    fetchJournalChartData();
+  }, [journalSelectedDate, activeTab]);
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
