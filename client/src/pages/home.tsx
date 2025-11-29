@@ -4749,7 +4749,7 @@ ${
   };
 
   // 🔶 Convert timeframe to Angel One API interval format (SAME AS OHLC DATA WINDOW)
-  const getJournalAngelOneInterval = (): string => {
+  const getJournalAngelOneInterval = (interval: string = selectedJournalInterval): string => {
     const intervalMap: { [key: string]: string } = {
       '1': 'ONE_MINUTE',
       '3': 'THREE_MINUTE',
@@ -4762,7 +4762,9 @@ ${
       '1W': 'ONE_WEEK',
       '1M': 'ONE_MONTH'
     };
-    return intervalMap[selectedJournalInterval] || 'ONE_MINUTE';
+    const result = intervalMap[interval] || 'ONE_MINUTE';
+    console.log(`🔶 INTERVAL MAPPING: "${interval}" -> "${result}"`);
+    return result;
   };
 
   // Aggregate 1-minute candles to desired timeframe (TIME-ALIGNED)
@@ -5073,7 +5075,7 @@ ${
         console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | LAST MONTH: ${fromDate} to ${toDate}`);
       }
       
-      const angelInterval = getJournalAngelOneInterval();
+      const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
@@ -5082,7 +5084,9 @@ ${
         toDate: toDate,
       };
 
-      console.log(`🔶 FETCH INTERVAL: ${selectedJournalInterval} -> ${angelInterval}`, requestBody);
+      console.log(`🔶 FETCH REQUEST - RAW INTERVAL: "${selectedJournalInterval}" | MAPPED: "${angelInterval}"`, requestBody);
+      console.log(`🔶 FETCHING: Symbol="${selectedJournalSymbol}" Interval="${selectedJournalInterval}" (${angelInterval})`);
+      console.log(`🔶 DATE RANGE: ${fromDate} to ${toDate}`);
 
       console.log('🔶 Making request to /api/angelone/historical with body:', requestBody);
       
@@ -5158,11 +5162,14 @@ ${
       }
       
       if (candleData.length > 0) {
-        console.log(`🔶 Angel One: Loaded ${candleData.length} ${selectedJournalInterval}-interval candles directly from API`);
+        console.log(`✅ CHART DATA READY: ${candleData.length} candles for ${selectedJournalInterval}min interval`);
+        console.log(`✅ First candle:`, candleData[0]);
+        console.log(`✅ Last candle:`, candleData[candleData.length - 1]);
         
         // No client-side aggregation needed - Angel One API returns pre-aggregated candles
         // This matches the working OHLC data window approach
         setJournalChartData(candleData);
+        console.log(`✅ Chart data state updated - render should trigger now`);
       } else {
         console.warn('🔶 Angel One: No candle data returned', data);
         setJournalChartData([]);
@@ -11036,8 +11043,9 @@ ${
                                           <button 
                                             className="flex-1 text-left text-xs text-gray-900 dark:text-gray-300"
                                             onClick={() => {
-                                              console.log(`📊 TIMEFRAME CHANGE: ${selectedJournalInterval} -> ${timeframe.value}`);
+                                              console.log(`📊 🔴 USER CLICKED TIMEFRAME: "${selectedJournalInterval}" -> "${timeframe.value}" (${timeframe.label})`);
                                               setSelectedJournalInterval(timeframe.value);
+                                              console.log(`📊 🟢 STATE UPDATE TRIGGERED for interval: ${timeframe.value}`);
                                             }}
                                             data-testid={`button-timeframe-${timeframe.value}`}
                                           >
