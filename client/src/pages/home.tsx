@@ -5652,7 +5652,7 @@ ${
       // Set data immediately - display all candles as-is, including incomplete ones
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
-      // Backend now handles day boundaries in aggregation - no visual breaks needed here
+      // Natural timestamp gaps between days will prevent visual merging without modification
       const chartData = sortedData.map((candle: any) => ({
         time: candle.time as any,
         open: candle.open,

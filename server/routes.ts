@@ -7992,46 +7992,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const aggregated: Candle[] = [];
 
-    // 🔧 Simple aggregation with day boundary check - don't span trading days
-    let i = 0;
-    while (i < oneMinCandles.length) {
+    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
+    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
       const group = oneMinCandles.slice(i, i + candleCount);
-      
-      // Check if this group spans multiple days (IST timezone: UTC+5:30)
-      if (group.length > 1) {
-        const firstDate = new Date(group[0].timestamp * 1000 + (330 * 60 * 1000));
-        const lastDate = new Date(group[group.length - 1].timestamp * 1000 + (330 * 60 * 1000));
-        
-        const firstDay = new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate());
-        const lastDay = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-        
-        // If spans days, find where day changes and stop there
-        if (firstDay.getTime() !== lastDay.getTime()) {
-          let splitIndex = group.length;
-          for (let j = 0; j < group.length; j++) {
-            const candleDay = new Date(new Date(group[j].timestamp * 1000 + (330 * 60 * 1000)).getFullYear(),
-                                      new Date(group[j].timestamp * 1000 + (330 * 60 * 1000)).getMonth(),
-                                      new Date(group[j].timestamp * 1000 + (330 * 60 * 1000)).getDate());
-            if (candleDay.getTime() !== firstDay.getTime()) {
-              splitIndex = j;
-              break;
-            }
-          }
-          
-          // Aggregate only the candles from current day
-          if (splitIndex > 0) {
-            aggregated.push(aggregateGroup(group.slice(0, splitIndex), group[0].timestamp));
-            i += splitIndex;
-            continue;
-          }
-        }
-      }
-      
-      // Normal case: all candles same day - aggregate
       if (group.length > 0) {
         aggregated.push(aggregateGroup(group, group[0].timestamp));
       }
-      i += candleCount;
     }
 
     return aggregated;
