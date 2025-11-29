@@ -115,39 +115,8 @@ const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string
   'HDFCLIFE': { token: '467', exchange: 'NSE', tradingSymbol: 'HDFCLIFE-EQ' }
 };
 
-// 🔶 Convert timeframe to Angel One interval format
-function getAngelOneInterval(timeframe: string): string {
-  const intervalMap: { [key: string]: string } = {
-    '1': 'ONE_MINUTE',
-    '3': 'THREE_MINUTE',
-    '5': 'FIVE_MINUTE',
-    '5m': 'FIVE_MINUTE',
-    '10': 'TEN_MINUTE',
-    '15': 'FIFTEEN_MINUTE',
-    '15m': 'FIFTEEN_MINUTE',
-    '30': 'THIRTY_MINUTE',
-    '60': 'ONE_HOUR',
-    '1h': 'ONE_HOUR',
-    '1D': 'ONE_DAY',
-    '1d': 'ONE_DAY',
-    '5D': 'ONE_DAY',
-    '5d': 'ONE_DAY',
-    '1M': 'ONE_DAY',
-    '6M': 'ONE_DAY',
-    '1Y': 'ONE_DAY',
-    '5Y': 'ONE_DAY',
-    '1W': 'ONE_WEEK',
-    'ONE_MINUTE': 'ONE_MINUTE',
-    'FIVE_MINUTE': 'FIVE_MINUTE',
-    'FIFTEEN_MINUTE': 'FIFTEEN_MINUTE',
-    'THIRTY_MINUTE': 'THIRTY_MINUTE',
-    'ONE_HOUR': 'ONE_HOUR',
-    'ONE_DAY': 'ONE_DAY',
-    'ONE_WEEK': 'ONE_WEEK',
-    'ONE_MONTH': 'ONE_MONTH'
-  };
-  return intervalMap[timeframe] || 'ONE_MINUTE';
-}
+// 🔶 UNIVERSAL: REMOVED hardcoded interval map - use numeric minutes only
+// Backend ALWAYS fetches 1-minute candles and aggregates them
 
 const patternDetector = new IntradayPatternDetector(angelOneApi);
 const enhanced4CandleProcessor = new Enhanced4CandleProcessor(angelOneApi);
@@ -8000,19 +7969,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Convert Angel One interval format to seconds
-  const getIntervalInSeconds = (interval: string): number => {
-    const intervalMap: { [key: string]: number } = {
-      'ONE_MINUTE': 60,
-      'THREE_MINUTE': 180,
-      'FIVE_MINUTE': 300,
-      'TEN_MINUTE': 600,
-      'FIFTEEN_MINUTE': 900,
-      'THIRTY_MINUTE': 1800,
-      'ONE_HOUR': 3600,
-      'ONE_DAY': 86400,
-    };
-    return intervalMap[interval] || 900; // Default to 15 minutes
+  // 🔶 UNIVERSAL: REMOVED hardcoded interval map - use numeric minutes only
+  // Convert numeric minutes to seconds (e.g., 20 -> 1200)
+  const getIntervalInSeconds = (minutesInput: number): number => {
+    return minutesInput * 60; // Pure numeric: no maps, no strings
   };
 
   // 🔧 Helper function to aggregate 1-minute candles into custom timeframes
@@ -8091,7 +8051,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Aggregate: combine every N consecutive 1-minute candles
           const aggregatedCandles = aggregateCandles(oneMinCandles, minutesForInterval);
-          console.log(`✅ Aggregated ${oneMinCandles.length} 1-min candles → ${aggregatedCandles.length} candles (every ${minutesForInterval} minutes)`);
+          console.log(`✅ Aggregated ${oneMinCandles.length} 1-min candles → ${aggregatedCandles.length} ${minutesForInterval}-min candles`);
+          console.log(`📊 First aggregated candle:`, aggregatedCandles[0]);
+          console.log(`📊 Last aggregated candle:`, aggregatedCandles[aggregatedCandles.length - 1]);
           res.json({ 
             success: true,
             candles: aggregatedCandles,
@@ -15923,10 +15885,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Increment by resolution (default 1 minute)
-        const resolutionMinutes = resolution === 'ONE_MINUTE' || resolution === '1' ? 1 :
-                                  resolution === 'FIVE_MINUTE' || resolution === '5' ? 5 :
-                                  resolution === 'FIFTEEN_MINUTE' || resolution === '15' ? 15 : 1;
+        // Increment by resolution (numeric minutes only)
+        const resolutionMinutes = parseInt(resolution as string) || 1;
         currentTime.setMinutes(currentTime.getMinutes() + resolutionMinutes);
       }
 

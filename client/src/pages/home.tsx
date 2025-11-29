@@ -5087,26 +5087,20 @@ ${
     fetchJournalChartData();
   }, [fetchJournalChartData]);
 
-  // Reset OHLC display when chart data changes (e.g., timeframe changed)
+  // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
     if (journalChartData && journalChartData.length > 0) {
-      // Update OHLC display with latest candle from new data
-      const latestCandle = journalChartData[journalChartData.length - 1];
-      const prevCandle = journalChartData.length > 1 ? journalChartData[journalChartData.length - 2] : null;
-      const prevClose = prevCandle?.close || latestCandle.open;
-      const change = latestCandle.close - prevClose;
-      const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
-      
+      const latest = journalChartData[journalChartData.length - 1];
       setHoveredCandleOhlc({
-        open: latestCandle.open,
-        high: latestCandle.high,
-        low: latestCandle.low,
-        close: latestCandle.close,
-        change,
-        changePercent,
-        time: latestCandle.time,
+        open: latest.open,
+        high: latest.high,
+        low: latest.low,
+        close: latest.close,
+        change: latest.close - latest.open,
+        changePercent: latest.open > 0 ? ((latest.close - latest.open) / latest.open) * 100 : 0,
+        time: latest.time,
       });
-      console.log('📊 Chart data updated, OHLC reset for timeframe:', selectedJournalInterval);
+      console.log(`✅ JOURNAL OHLC: ${selectedJournalInterval}min candles loaded, showing latest candle`);
     } else {
       setHoveredCandleOhlc(null);
     }

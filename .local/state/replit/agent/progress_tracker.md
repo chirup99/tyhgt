@@ -676,6 +676,23 @@
 [x] 4176.   ✅ Infinite scalability
 [x] 4177. Status: ✅ FINAL - Pure universal numeric candle aggregation (ZERO maps, ZERO frontend aggregation!)
 
+[x] 4178. COMPLETE HARDCODED MAP REMOVAL:
+[x] 4179. Removed ALL hardcoded interval maps from backend:
+[x] 4180.   ❌ Deleted `getAngelOneInterval()` (lines 119-150)
+[x] 4181.   ❌ Deleted old 30-line intervalMap (ONE_MINUTE, FIVE_MINUTE, etc)
+[x] 4182.   ❌ Updated `getIntervalInSeconds()` → pure math: minutes * 60
+[x] 4183.   ❌ Fixed mock data resolution → parseInt() only
+[x] 4184. FINAL UNIVERSAL ARCHITECTURE:
+[x] 4185.   FRONTEND: Convert presets to numeric (1D→1440, 1W→10080)
+[x] 4186.   BACKEND: parseInt(interval) → multiply by 60 → fetch 1min → aggregate
+[x] 4187.   NO MAPS ANYWHERE: Pure numeric minutes flow end-to-end
+[x] 4188. VERIFIED WORKING:
+[x] 4189.   ✅ 1min → 1-minute candles (no aggregation)
+[x] 4190.   ✅ 5min → combine every 5 candles
+[x] 4191.   ✅ 20min → combine every 20 candles
+[x] 4192.   ✅ 1440min (1D) → combine every 1440 candles
+[x] 4193. Status: ✅ FINAL - ZERO hardcoded maps, pure numeric universal system!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
