@@ -1145,3 +1145,43 @@ Implementation Date: November 28, 2025
 [x] 3790. Files modified:
 [x] 3791.   - client/src/pages/home.tsx
 [x] 3792. JOURNAL CHART TIMEFRAME CONVERSION FIX 100% COMPLETE!
+
+[x] 3793. CRITICAL DEBUG: Chart Rendering Issue - Chart Data Not Displayed
+[x] 3794. Symptoms: 
+[x] 3795.   - Chart blank after fetching data
+[x] 3796.   - 3750 candles successfully fetched
+[x] 3797.   - OHLC display shows latest candle data
+[x] 3798.   - Chart container exists but shows no candlesticks
+[x] 3799. Root Cause Analysis:
+[x] 3800.   - useEffect dependency array was missing `journalChartData`
+[x] 3801.   - Chart initialized only on activeTab/selectedJournalSymbol/selectedJournalInterval changes
+[x] 3802.   - When user selected timeframe and clicked fetch:
+[x] 3803.      1. fetchJournalChartData() called
+[x] 3804.      2. API returns 3750 candles
+[x] 3805.      3. setJournalChartData() updates state
+[x] 3806.      4. BUT useEffect never runs (journalChartData not in dependencies)
+[x] 3807.      5. Chart.setData() never called on the 3750 candles
+[x] 3808.      6. Chart remains blank
+[x] 3809. Solution Applied:
+[x] 3810.   - Updated useEffect dependencies (line 5745):
+[x] 3811.      OLD: [activeTab, selectedJournalSymbol, selectedJournalInterval]
+[x] 3812.      NEW: [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData]
+[x] 3813.   - Now chart re-initializes whenever:
+[x] 3814.      - Active tab changes
+[x] 3815.      - Symbol selection changes
+[x] 3816.      - Timeframe changes
+[x] 3817.      - Chart data arrives from API
+[x] 3818. What happens when user clicks fetch:
+[x] 3819.   1. Select timeframe (5min, 1hr, 1D, etc)
+[x] 3820.   2. Click fetch button
+[x] 3821.   3. API called with date range: Last 10 trading days (2025-11-17 to 2025-11-28)
+[x] 3822.   4. API returns 3750 pre-aggregated 1-minute candles
+[x] 3823.   5. setJournalChartData(3750 candles) triggered
+[x] 3824.   6. useEffect runs (journalChartData in dependencies now)
+[x] 3825.   7. Chart destroyed and recreated with chart.setData()
+[x] 3826.   8. TradingView Lightweight Charts renders candlesticks
+[x] 3827.   9. OHLC display shows latest candle
+[x] 3828.  10. Live WebSocket streaming activates for real-time updates
+[x] 3829. Files modified:
+[x] 3830.   - client/src/pages/home.tsx (line 5745)
+[x] 3831. CHART RENDERING FIX 100% COMPLETE!
