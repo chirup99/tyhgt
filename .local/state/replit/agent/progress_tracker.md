@@ -235,3 +235,27 @@
 [x] 4020.   - Shows total days spanned by timeframe
 [x] 4021.   - Clear warnings on cross-day boundaries
 [x] 4022. MULTI-DAY AGGREGATION WITH DAILY RESET 100% COMPLETE!
+
+[x] 4023. CHART DATE RANGE LOGIC - COMPLETED!
+[x] 4024. Backend Implementation (server/routes.ts lines 3035-3125):
+[x] 4025.   ✅ /api/stock-chart-data endpoint accepts optional selectedDate parameter
+[x] 4026.   ✅ getRealChartData() function now detects if selectedDate is TODAY
+[x] 4027.   ✅ If TODAY → shows last 10 days (normal behavior)
+[x] 4028.   ✅ If PAST date → shows only that specific date
+[x] 4029. Frontend Implementation (client/src/pages/home.tsx lines 4979-5029):
+[x] 4030.   ✅ Chart fetch logic detects isSelectedDateToday
+[x] 4031.   ✅ If today: Sets date range to 10 trading days (existing behavior)
+[x] 4032.   ✅ If past date: Sets fromDate and toDate to SAME date
+[x] 4033.   ✅ API request sends appropriate date range based on selection
+[x] 4034. User Flow:
+[x] 4035.   1. User clicks date on heatmap calendar → handleDateSelect() called
+[x] 4036.   2. Sets selectedJournalDate to clicked date
+[x] 4037.   3. useEffect detects change in selectedJournalDate
+[x] 4038.   4. Chart fetch logic runs: Is it today?
+[x] 4039.   5. If TODAY: Fetch 10 days, display last 10 days chart
+[x] 4040.   6. If PAST: Fetch that date only, display ONLY that date chart
+[x] 4041. Console Logs:
+[x] 4042.   📊 [DATE LOGIC] Selected date is TODAY - showing last 10 days
+[x] 4043.   📊 [DATE LOGIC] Selected date is 2025-04-30 (past date) - showing only that date
+[x] 4044.   📊 [DATE RANGE] From: 2025-04-30 09:15 To: 2025-04-30 15:30
+[x] 4045. CHART DATE RANGE LOGIC - 100% IMPLEMENTED!
