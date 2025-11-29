@@ -5134,13 +5134,17 @@ ${
     
     console.log(`📊 AUTO-FETCHING SENSEX data for selected date: ${journalSelectedDate}`);
     
-    // Set SENSEX as the default symbol if not already set
-    if (!selectedJournalSymbol || selectedJournalSymbol !== 'NIFTY:SENSEX') {
+    // Set SENSEX as the default symbol - the main fetch effect will auto-trigger when symbol changes
+    if (selectedJournalSymbol !== 'NIFTY:SENSEX') {
+      console.log(`📊 Setting symbol to SENSEX for date: ${journalSelectedDate}`);
       setSelectedJournalSymbol('NIFTY:SENSEX');
+      console.log(`📊 Main fetch effect will auto-trigger when symbol updates`);
+    } else {
+      // If already SENSEX, manually trigger fetch for this specific date
+      console.log(`📊 Symbol already SENSEX for date ${journalSelectedDate}, triggering fetch`);
+      setJournalChartLoading(true);
+      fetchJournalChartData();
     }
-    
-    // Auto-trigger the chart fetch with current timeframe
-    fetchJournalChartData();
   }, [journalSelectedDate, activeTab]);
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
