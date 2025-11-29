@@ -4612,7 +4612,6 @@ ${
   };
   const [selectedInstrumentCategory, setSelectedInstrumentCategory] = useState("all");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
-  const [isHeatmapDateSelected, setIsHeatmapDateSelected] = useState(false); // ✅ Track if user explicitly selected a date on heatmap
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
@@ -4974,51 +4973,39 @@ ${
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       
-      let fromDate: string;
-      let toDate: string;
-      
-      // ✅ CHECK IF USER EXPLICITLY SELECTED A DATE ON HEATMAP
-      if (isHeatmapDateSelected && selectedJournalDate) {
-        console.log(`📅 USING USER-SELECTED HEATMAP DATE: ${selectedJournalDate}`);
-        fromDate = selectedJournalDate;
-        toDate = selectedJournalDate;
-      } else {
-        // Default: Fetch 10 TRADING DAYS of data (when no date is explicitly selected)
-        console.log(`📅 USING LAST 10 TRADING DAYS (no date selected on heatmap)`);
-        
-        // Calculate 10 trading days back (skip weekends)
-        const tenDaysAgo = new Date(now);
-        let tradingDaysCount = 0;
-        while (tradingDaysCount < 10) {
-          tenDaysAgo.setDate(tenDaysAgo.getDate() - 1);
-          const dayOfWeek = tenDaysAgo.getDay();
-          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
-            tradingDaysCount++;
-          }
+      // 🔶 Fetch 10 TRADING DAYS of data (real-time, not month-old history)
+      // Calculate 10 trading days back (skip weekends)
+      const tenDaysAgo = new Date(now);
+      let tradingDaysCount = 0;
+      while (tradingDaysCount < 10) {
+        tenDaysAgo.setDate(tenDaysAgo.getDate() - 1);
+        const dayOfWeek = tenDaysAgo.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
+          tradingDaysCount++;
         }
-        
-        const fromDateOnly = tenDaysAgo.toISOString().split('T')[0];
-        
-        // Check if today is market open (for toDate)
-        const dayOfWeek = now.getDay();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        const marketOpenHour = 9; // Market opens at 9:15 AM
-        const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
-        
-        let endDate = today;
-        if (isMarketClosed) {
-          // Get last trading day (skip weekends)
-          const lastDay = new Date(now);
-          lastDay.setDate(lastDay.getDate() - 1);
-          // If we landed on weekend, skip back one more day
-          if (lastDay.getDay() === 0) lastDay.setDate(lastDay.getDate() - 1); // Sunday → Friday
-          if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 1); // Saturday → Friday
-          endDate = lastDay.toISOString().split('T')[0];
-        }
-        
-        fromDate = fromDateOnly;
-        toDate = endDate;
       }
+      
+      const fromDateOnly = tenDaysAgo.toISOString().split('T')[0];
+      
+      // Check if today is market open (for toDate)
+      const dayOfWeek = now.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const marketOpenHour = 9; // Market opens at 9:15 AM
+      const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
+      
+      let endDate = today;
+      if (isMarketClosed) {
+        // Get last trading day (skip weekends)
+        const lastDay = new Date(now);
+        lastDay.setDate(lastDay.getDate() - 1);
+        // If we landed on weekend, skip back one more day
+        if (lastDay.getDay() === 0) lastDay.setDate(lastDay.getDate() - 1); // Sunday → Friday
+        if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 1); // Saturday → Friday
+        endDate = lastDay.toISOString().split('T')[0];
+      }
+      
+      let fromDate = fromDateOnly;
+      let toDate = endDate;
       
       // 🔶 Exchange-specific trading hours
       const exchange = stockToken.exchange.toUpperCase();
@@ -5462,12 +5449,12 @@ ${
     }
   }, [selectedJournalInterval, activeTab]);
 
-  // Auto-fetch chart data when symbol, interval, or date changes on journal tab
+  // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
     if (activeTab === 'journal') {
       fetchJournalChartData();
     }
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate, isHeatmapDateSelected]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -6745,11 +6732,6 @@ ${
           console.log("🖼️ Loaded images from Firebase:", images.length, "images");
         }
 
-        // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
-        setSelectedJournalDate(dateKey);
-        setIsHeatmapDateSelected(true); // ✅ Mark that user explicitly selected a date
-        console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
-
         console.log("✅ Successfully loaded all FRESH Firebase data for:", dateKey);
       } else {
         console.log(`📭 No Firebase data for: ${dateKey}`);
@@ -6855,11 +6837,6 @@ ${
               "images",
             );
           }
-
-          // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
-          setSelectedJournalDate(dateKey);
-          setIsHeatmapDateSelected(true); // ✅ Mark that user explicitly selected a date
-          console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
 
           // Show trading data windows automatically
           setShowTradingNotesWindow(true);
