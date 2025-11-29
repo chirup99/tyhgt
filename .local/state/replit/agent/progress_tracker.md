@@ -748,6 +748,25 @@
 [x] 4244.   ✅ NO string formats anywhere ("2D" is GONE)
 [x] 4245. Status: ✅ COMPLETE - Pure numeric system end-to-end!
 
+[x] 4246. ✅ COMPLETE TIMEFRAME SYSTEM REMOVAL:
+[x] 4247. Removed:
+[x] 4248.   ❌ Timeframe selector UI (Popover with all buttons)
+[x] 4249.   ❌ Custom timeframe dialog
+[x] 4250.   ❌ Manual fetch button (replaced with single "Load 1min" button)
+[x] 4251.   ❌ All timeframe dependencies from fetch logic
+[x] 4252. Now displays:
+[x] 4253.   ✅ Direct 1-minute data only
+[x] 4254.   ✅ Single "Load 1min" button to fetch data
+[x] 4255.   ✅ Pure direct Angel One API 1-minute candles
+[x] 4256.   ✅ NO timeframe logic, NO maps, NO conversions
+[x] 4257. Flow:
+[x] 4258.   1. Select symbol
+[x] 4259.   2. Click "Load 1min"
+[x] 4260.   3. Fetches 1-minute data
+[x] 4261.   4. Displays raw 1-minute candles
+[x] 4262.   5. Ready to rebuild timeframe filter from scratch
+[x] 4263. Status: ✅ READY - Simple 1-min chart, rebuild timeframes later!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)

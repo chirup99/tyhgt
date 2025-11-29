@@ -4964,11 +4964,8 @@ ${
       let fromDate = fromDateOnly;
       let toDate = today;
       
-      // 🔶 Check if timeframe is day or higher (numeric: 1440=1D, 10080=1W, 43200=1M)
-      const timeframeMinutes = parseInt(selectedJournalInterval);
-      const isDayOrHigher = timeframeMinutes >= 1440; // 1440 minutes = 1 day
-      
-      if (!isDayOrHigher) {
+          // 🔶 1-minute data: always use intraday hours
+      if (true) {
         const exchange = stockToken.exchange.toUpperCase();
         const isMCX = exchange === 'MCX' || exchange === '3';
         const isNCDEX = exchange === 'NCDEX' || exchange === '5';
@@ -4984,21 +4981,18 @@ ${
           toDate = `${today} 15:30`;
         }
         
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${stockToken.exchange} | LAST MONTH: ${fromDate} to ${toDate}`);
-      } else {
-        fromDate = `${fromDateOnly} 00:00`;
-        toDate = `${today} 23:59`;
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | LAST MONTH: ${fromDate} to ${toDate}`);
+        console.log(`🔶 1-MIN DATA: Exchange: ${stockToken.exchange} | LAST MONTH: ${fromDate} to ${toDate}`);
       }
       
-      const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
+      // 🔶 ALWAYS fetch 1-minute data
+      const interval = "1";
       
-      console.log(`✅ FETCHING CHART: button shows "${getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label}" | interval="${selectedJournalInterval}" | angelOne="${angelInterval}"`);
+      console.log(`✅ FETCHING 1-MINUTE DATA: interval="${interval}"`);
       
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
-        interval: angelInterval,
+        interval: interval,
         fromDate: fromDate,
         toDate: toDate,
       };
@@ -5064,7 +5058,7 @@ ${
       }
       
       if (candleData.length > 0) {
-        console.log(`✅ CHART DATA READY: ${candleData.length} candles for ${selectedJournalInterval}min interval`);
+        console.log(`✅ CHART DATA READY: ${candleData.length} 1-minute candles`);
         console.log(`✅ First candle:`, candleData[0]);
         console.log(`✅ Last candle:`, candleData[candleData.length - 1]);
         
@@ -5080,7 +5074,7 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
+  }, [selectedJournalSymbol, selectedJournalDate]);
 
   // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
 
@@ -5097,11 +5091,11 @@ ${
         changePercent: latest.open > 0 ? ((latest.close - latest.open) / latest.open) * 100 : 0,
         time: latest.time,
       });
-      console.log(`✅ JOURNAL OHLC: ${selectedJournalInterval}min candles loaded, showing latest candle`);
+      console.log(`✅ JOURNAL OHLC: 1-minute candles loaded, showing latest candle`);
     } else {
       setHoveredCandleOhlc(null);
     }
-  }, [journalChartData, selectedJournalInterval]);
+  }, [journalChartData]);
 
   // Live streaming SSE connection for Journal Chart
   useEffect(() => {
@@ -5153,9 +5147,8 @@ ${
     // Get the last candle from chart data for initial OHLC values
     const lastCandle = journalChartData[journalChartData.length - 1];
     
-    // Get interval in seconds for candle tracking - use timeframe conversion for all intervals
-    const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval);
-    const intervalSeconds = timeframeMinutes * 60;
+    // 🔶 1-minute interval = 60 seconds
+    const intervalSeconds = 60;
     
     // Start new WebSocket SSE connection with REAL Angel One market data
     let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}&interval=${intervalSeconds}`);
@@ -5200,9 +5193,8 @@ ${
         
         // Update chart candlestick - only if chart is initialized
         if (journalCandlestickSeriesRef.current && journalChartRef.current && liveCandle.close > 0) {
-          // Get the selected interval in seconds - use timeframe conversion for all intervals
-          const timeframeMinutes = getJournalTimeframeMinutes(selectedJournalInterval);
-          const intervalSeconds = timeframeMinutes * 60;
+          // 🔶 1-minute interval = 60 seconds
+          const intervalSeconds = 60;
           
           // Get the last candle from the chart (use ref to avoid triggering re-render)
           const chartData = journalChartDataRef.current;
@@ -10915,64 +10907,10 @@ ${
                                   </PopoverContent>
                                 </Popover>
 
-                                {/* Time Interval Selector - TradingView Style with Custom Timeframe Support */}
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-20 h-8 justify-between bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-xs px-2"
-                                      data-testid="button-journal-timeframe"
-                                    >
-                                      {getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label || selectedJournalInterval}
-                                      <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-40 p-1 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                                    <div className="grid gap-1">
-                                      {getAllJournalTimeframes().map((timeframe) => (
-                                        <div key={timeframe.value} className="flex items-center justify-between px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                                          <button 
-                                            className="flex-1 text-left text-xs text-gray-900 dark:text-gray-300"
-                                            onClick={() => {
-                                              console.log(`✅ CLICKED: "${timeframe.label}" (value="${timeframe.value}")`);
-                                              setSelectedJournalInterval(timeframe.value);
-                                            }}
-                                            data-testid={`button-timeframe-${timeframe.value}`}
-                                          >
-                                            {timeframe.label}
-                                          </button>
-                                          {timeframe.deletable && (
-                                            <button
-                                              className="ml-1 w-4 h-4 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-500 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteJournalTimeframe(timeframe.value);
-                                              }}
-                                              title="Delete timeframe"
-                                              data-testid={`button-delete-timeframe-${timeframe.value}`}
-                                            >
-                                              x
-                                            </button>
-                                          )}
-                                        </div>
-                                      ))}
-                                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1">
-                                        <button 
-                                          className="w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-xs text-gray-900 dark:text-gray-300"
-                                          onClick={() => setShowJournalCustomTimeframe(true)}
-                                          data-testid="button-add-custom-timeframe"
-                                        >
-                                          + Add Custom
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </PopoverContent>
-                                </Popover>
-
-                                {/* 🔶 Manual Fetch Button - Fetches using SELECTED timeframe */}
+                                {/* 🔶 Fetch 1-min Data Button */}
                                 <Button
                                   onClick={() => {
-                                    console.log(`🔶 MANUAL FETCH clicked - Using selected interval: ${selectedJournalInterval}min`);
+                                    console.log(`🔶 FETCHING 1-MINUTE DATA`);
                                     fetchJournalChartData();
                                   }}
                                   disabled={journalChartLoading}
@@ -10983,12 +10921,12 @@ ${
                                   {journalChartLoading ? (
                                     <>
                                       <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-1" />
-                                      Fetching...
+                                      Loading 1min...
                                     </>
                                   ) : (
                                     <>
                                       <BarChart3 className="w-3 h-3 mr-1" />
-                                      Fetch
+                                      Load 1min
                                     </>
                                   )}
                                 </Button>
@@ -15300,80 +15238,6 @@ ${
           </DialogContent>
         </Dialog>
 
-        {/* Custom Timeframe Dialog for Journal Chart */}
-        <Dialog open={showJournalCustomTimeframe} onOpenChange={setShowJournalCustomTimeframe}>
-          <DialogContent className="sm:max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <DialogHeader className="text-center">
-              <DialogTitle className="text-gray-900 dark:text-white text-center">Add custom interval</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4 px-2">
-              <div className="grid gap-2">
-                <Label htmlFor="journal-timeframe-type" className="text-gray-700 dark:text-gray-300 text-sm font-medium">Type</Label>
-                <Select value={journalCustomTimeframeType} onValueChange={setJournalCustomTimeframeType}>
-                  <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                    <SelectItem value="minutes">minutes</SelectItem>
-                    <SelectItem value="hr">hr</SelectItem>
-                    <SelectItem value="d">d</SelectItem>
-                    <SelectItem value="m">m</SelectItem>
-                    <SelectItem value="w">w</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="journal-timeframe-interval" className="text-gray-700 dark:text-gray-300 text-sm font-medium">Interval</Label>
-                <Input
-                  id="journal-timeframe-interval"
-                  placeholder="Enter number"
-                  value={journalCustomTimeframeInterval}
-                  onChange={(e) => setJournalCustomTimeframeInterval(e.target.value)}
-                  className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
-                  data-testid="input-custom-timeframe-interval"
-                />
-              </div>
-            </div>
-            <div className="flex justify-center gap-3 pt-2">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowJournalCustomTimeframe(false);
-                  setJournalCustomTimeframeInterval('');
-                }}
-                className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
-                data-testid="button-cancel-custom-timeframe"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  if (journalCustomTimeframeInterval && parseInt(journalCustomTimeframeInterval) > 0) {
-                    const convertedValue = convertJournalCustomTimeframe(journalCustomTimeframeType, journalCustomTimeframeInterval);
-                    const label = createJournalCustomTimeframeLabel(journalCustomTimeframeType, journalCustomTimeframeInterval);
-                    
-                    setJournalCustomTimeframes(prev => {
-                      const exists = prev.some(tf => tf.value === convertedValue);
-                      if (!exists) {
-                        return [...prev, { value: convertedValue, label, deletable: true }];
-                      }
-                      return prev;
-                    });
-                    
-                    setSelectedJournalInterval(convertedValue);
-                    setShowJournalCustomTimeframe(false);
-                    setJournalCustomTimeframeInterval('');
-                  }
-                }}
-                disabled={!journalCustomTimeframeInterval || parseInt(journalCustomTimeframeInterval) <= 0}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="button-add-custom-timeframe-confirm"
-              >
-                Add
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Minimalist Floating Pill Navigation - Mobile Only */}
         {activeTab === "journal" && (
