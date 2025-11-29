@@ -4529,6 +4529,10 @@ ${
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [journalSearchType, setJournalSearchType] = useState<'STOCK' | 'COMMODITY' | 'F&O'>('STOCK');
   
+  // Traded symbols tracking for Next button navigation
+  const [tradedSymbols, setTradedSymbols] = useState<string[]>([]);
+  const [currentSymbolIndex, setCurrentSymbolIndex] = useState(0);
+  
   // Option Chain state
   const [showOptionChain, setShowOptionChain] = useState(false);
   const [optionChainData, setOptionChainData] = useState<any>(null);
@@ -6687,6 +6691,20 @@ ${
     localStorage.setItem("calendarData", JSON.stringify(data));
   };
 
+  // Helper function to extract traded symbols from tradeHistory
+  const extractTradedSymbols = (tradeHistory: any[]): string[] => {
+    if (!Array.isArray(tradeHistory)) return [];
+    const symbolMap = new Map<string, number>();
+    tradeHistory.forEach((trade: any) => {
+      const symbol = trade.symbol || trade.tradingSymbol || 'UNKNOWN';
+      symbolMap.set(symbol, (symbolMap.get(symbol) || 0) + 1);
+    });
+    // Sort by trade count (descending) and return symbols
+    return Array.from(symbolMap.entries())
+      .sort(([, countA], [, countB]) => countB - countA)
+      .map(([symbol]) => symbol);
+  };
+
   const handleDateSelect = async (date: Date, firebaseData?: any, forceMode?: 'demo' | 'personal') => {
     // 📅 [CHART CONTROL] When user selects date from heatmap, set it as chart's date filter
     // Use formatDateKey (local date) instead of toISOString (UTC) to avoid timezone shifts
@@ -6703,6 +6721,8 @@ ${
     setSelectedTags([]);
     setTradeHistoryData([]);
     setTradingImages([]);
+    setTradedSymbols([]);
+    setCurrentSymbolIndex(0);
 
     // Use formatDateKey for consistency with save function
     const dateKey = formatDateKey(date);
@@ -6738,6 +6758,16 @@ ${
         if (journalData.tradeHistory && Array.isArray(journalData.tradeHistory)) {
           setTradeHistoryData(journalData.tradeHistory);
           console.log("📊 Loaded trade history from Firebase:", journalData.tradeHistory.length, "trades");
+          // Extract symbols with most trades
+          const symbols = extractTradedSymbols(journalData.tradeHistory);
+          if (symbols.length > 0) {
+            setTradedSymbols(symbols);
+            setCurrentSymbolIndex(0);
+            const topSymbol = `NSE:${symbols[0]}-INDEX`;
+            setSelectedJournalSymbol(topSymbol);
+            console.log(`📊 Extracted traded symbols (sorted by count):`, symbols);
+            console.log(`🎯 Setting default chart symbol to: ${topSymbol} (${symbols.length} unique symbols)`);
+          }
         }
 
         const images = journalData.images || journalData.tradingImages || [];
@@ -6837,6 +6867,16 @@ ${
               "trades",
             );
             console.log("📊 Trade data source: FIREBASE (no hardcoded data)");
+            // Extract symbols with most trades
+            const symbols = extractTradedSymbols(journalData.tradeHistory);
+            if (symbols.length > 0) {
+              setTradedSymbols(symbols);
+              setCurrentSymbolIndex(0);
+              const topSymbol = `NSE:${symbols[0]}-INDEX`;
+              setSelectedJournalSymbol(topSymbol);
+              console.log(`📊 Extracted traded symbols (sorted by count):`, symbols);
+              console.log(`🎯 Setting default chart symbol to: ${topSymbol} (${symbols.length} unique symbols)`);
+            }
           } else {
             // No trade history in Firebase - keep empty state, DO NOT construct fake data
             setTradeHistoryData([]);
@@ -10962,8 +11002,29 @@ ${
                                   </PopoverContent>
                                 </Popover>
 
-                                {/* 🔶 Timeframe Dropdown + Fetch Button (like Trading Master OHLC) */}
+                                {/* 🔶 Timeframe Dropdown + Next Symbol Button */}
                                 <div className="flex items-center gap-1">
+                                  {/* Next Symbol Button - Only show if >1 symbol */}
+                                  {tradedSymbols.length > 1 && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 px-2 text-xs"
+                                      onClick={() => {
+                                        const nextIndex = (currentSymbolIndex + 1) % tradedSymbols.length;
+                                        setCurrentSymbolIndex(nextIndex);
+                                        const nextSymbol = tradedSymbols[nextIndex];
+                                        const formattedSymbol = `NSE:${nextSymbol}-INDEX`;
+                                        setSelectedJournalSymbol(formattedSymbol);
+                                        console.log(`➡️ Next symbol: ${formattedSymbol} (${nextIndex + 1}/${tradedSymbols.length})`);
+                                      }}
+                                      data-testid="button-next-symbol"
+                                      title={`Next symbol (${currentSymbolIndex + 1}/${tradedSymbols.length})`}
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                  
                                   <Popover open={showJournalTimeframeDropdown} onOpenChange={setShowJournalTimeframeDropdown}>
                                     <PopoverTrigger asChild>
                                       <Button
