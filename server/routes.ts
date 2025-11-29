@@ -8081,15 +8081,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { exchange, symbolToken, interval, fromDate, toDate, date } = req.body;
       
-      // If single date provided, use it for both from/to
+      // If single date provided, format it with market hours
       let finalFromDate = fromDate;
       let finalToDate = toDate;
       
       if (date) {
-        // User selected a specific date
-        finalFromDate = date;
-        finalToDate = date;
-        console.log(`📅 [DATE FILTER] Fetching candles for specific date: ${date}`);
+        // User selected a specific date - format with proper market hours
+        console.log(`📅 [DATE FILTER] User selected specific date: ${date}`);
+        
+        const cleanExchange = exchange.toUpperCase();
+        const isMCX = cleanExchange === 'MCX' || cleanExchange === '3';
+        const isNCDEX = cleanExchange === 'NCDEX' || cleanExchange === '5';
+        
+        if (isMCX) {
+          finalFromDate = `${date} 09:00`;
+          finalToDate = `${date} 23:55`;
+          console.log(`📅 [MCX HOURS] From: ${finalFromDate}, To: ${finalToDate}`);
+        } else if (isNCDEX) {
+          finalFromDate = `${date} 09:00`;
+          finalToDate = `${date} 20:00`;
+          console.log(`📅 [NCDEX HOURS] From: ${finalFromDate}, To: ${finalToDate}`);
+        } else {
+          // NSE/Default: 09:15 to 15:30
+          finalFromDate = `${date} 09:15`;
+          finalToDate = `${date} 15:30`;
+          console.log(`📅 [NSE HOURS] From: ${finalFromDate}, To: ${finalToDate}`);
+        }
       } else if (!fromDate || !toDate) {
         return res.status(400).json({ 
           success: false,
