@@ -97,3 +97,31 @@
 [x] 3887.   - Added "+ Add Custom" button with toggle
 [x] 3888.   - Added Apply button to set custom timeframe
 [x] 3889. CUSTOM TIMEFRAME FEATURE 100% COMPLETE!
+
+[x] 3890. CUSTOM TIMEFRAME DROPDOWN WITH DELETE BUTTONS
+[x] 3891. Feature Implementation Complete:
+[x] 3892.   ✅ Custom timeframes now persist in dropdown
+[x] 3893.   ✅ Display with purple highlight when selected
+[x] 3894.   ✅ Small "X" delete icon on right corner
+[x] 3895.   ✅ X icon hidden until hover (opacity fade-in)
+[x] 3896.   ✅ Delete removes from dropdown & resets to 1min if active
+[x] 3897. User Workflow:
+[x] 3898.   1. Click timeframe dropdown
+[x] 3899.   2. Click "+ Add Custom"
+[x] 3900.   3. Enter value (e.g., 45) and select unit
+[x] 3901.   4. Click "Apply" → added to dropdown section
+[x] 3902.   5. Custom timeframe now appears in dropdown with X button
+[x] 3903.   6. Can select it immediately or delete via X icon
+[x] 3904.   7. Delete button appears on hover
+[x] 3905. Files Modified:
+[x] 3906.   - client/src/pages/home.tsx (lines 10967-11028)
+[x] 3907.   - Added custom timeframes section after presets
+[x] 3908.   - Modified Apply button to add to journalCustomTimeframes array
+[x] 3909.   - Added delete logic with stopPropagation
+[x] 3910.   - Added X icon import from lucide-react (line 42)
+[x] 3911. Design Details:
+[x] 3912.   - Purple background for custom timeframes (vs blue for presets)
+[x] 3913.   - Delete button opacity-0 group-hover:opacity-100
+[x] 3914.   - Red hover color on delete button for visibility
+[x] 3915.   - Separator line between preset and custom sections
+[x] 3916. CUSTOM TIMEFRAME PERSISTENCE FEATURE 100% COMPLETE!

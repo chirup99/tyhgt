@@ -10963,6 +10963,7 @@ ${
                                     </PopoverTrigger>
                                     <PopoverContent className="w-56 p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
                                       <div className="grid gap-1">
+                                        {/* Preset Timeframes */}
                                         {journalTimeframeOptions.map((tf) => (
                                           <button 
                                             key={tf.value}
@@ -10981,6 +10982,47 @@ ${
                                             {tf.label}
                                           </button>
                                         ))}
+                                        
+                                        {/* Custom Timeframes Section */}
+                                        {journalCustomTimeframes.length > 0 && (
+                                          <>
+                                            <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
+                                              {journalCustomTimeframes.map((tf) => (
+                                                <div 
+                                                  key={tf.value}
+                                                  className={`w-full px-2 py-1.5 rounded text-xs transition-colors flex items-center justify-between group cursor-pointer ${
+                                                    journalChartTimeframe === tf.value 
+                                                      ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium' 
+                                                      : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                  }`}
+                                                  onClick={() => {
+                                                    console.log(`🎯 CUSTOM TIMEFRAME SELECTED: ${tf.label} (value=${tf.value})`);
+                                                    setJournalChartTimeframe(tf.value);
+                                                    setShowJournalTimeframeDropdown(false);
+                                                  }}
+                                                  data-testid={`custom-timeframe-option-${tf.value}`}
+                                                >
+                                                  <span>{tf.label}</span>
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      console.log(`🗑️ DELETING CUSTOM TIMEFRAME: ${tf.label}`);
+                                                      setJournalCustomTimeframes(prev => prev.filter(ctf => ctf.value !== tf.value));
+                                                      if (journalChartTimeframe === tf.value) {
+                                                        setJournalChartTimeframe('1');
+                                                      }
+                                                    }}
+                                                    className="ml-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="Delete custom timeframe"
+                                                    data-testid={`delete-custom-timeframe-${tf.value}`}
+                                                  >
+                                                    <X className="w-3 h-3" />
+                                                  </button>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </>
+                                        )}
                                         
                                         {/* Custom Timeframe Section */}
                                         <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
@@ -11026,6 +11068,15 @@ ${
                                                     const interval = convertJournalCustomTimeframe(journalCustomTimeframeType, journalCustomTimeframeInterval);
                                                     const label = createJournalCustomTimeframeLabel(journalCustomTimeframeType, journalCustomTimeframeInterval);
                                                     console.log(`✅ CUSTOM TIMEFRAME: ${label} (${interval} minutes)`);
+                                                    
+                                                    // Check if this custom timeframe already exists
+                                                    const existingIndex = journalCustomTimeframes.findIndex(tf => tf.value === interval);
+                                                    if (existingIndex === -1) {
+                                                      // Add new custom timeframe
+                                                      setJournalCustomTimeframes(prev => [...prev, { value: interval, label: label, deletable: true }]);
+                                                      console.log(`📌 Added to dropdown: ${label}`);
+                                                    }
+                                                    
                                                     setJournalChartTimeframe(interval);
                                                     setJournalCustomTimeframeInterval('');
                                                     setShowJournalCustomTimeframe(false);
