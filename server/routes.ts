@@ -7985,19 +7985,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     volume: number;
   }
 
+  // Helper: Get IST date only (YYYY-MM-DD) from unix timestamp
+  const getISTDateOnly = (timestamp: number): string => {
+    const date = new Date(timestamp * 1000);
+    const istDate = new Date(date.getTime() + (330 * 60 * 1000)); // IST offset: +5:30
+    return istDate.toISOString().split('T')[0]; // YYYY-MM-DD
+  };
+
   const aggregateCandles = (oneMinCandles: Candle[], candleCount: number): Candle[] => {
     if (!oneMinCandles || oneMinCandles.length === 0) {
       return [];
     }
 
     const aggregated: Candle[] = [];
+    let i = 0;
 
-    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
-    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
-      const group = oneMinCandles.slice(i, i + candleCount);
+    // ✅ FIXED: Combine N consecutive 1-minute candles BUT check day boundaries
+    while (i < oneMinCandles.length) {
+      const firstCandle = oneMinCandles[i];
+      const firstCandleDate = getISTDateOnly(firstCandle.timestamp);
+      const group: Candle[] = [firstCandle];
+
+      // Add more candles to group, but STOP if we cross day boundary
+      for (let j = 1; j < candleCount && i + j < oneMinCandles.length; j++) {
+        const nextCandle = oneMinCandles[i + j];
+        const nextCandleDate = getISTDateOnly(nextCandle.timestamp);
+
+        // Check if next candle is on a different day (IST date)
+        if (nextCandleDate !== firstCandleDate) {
+          // Different day - don't include this candle in current group
+          // This keeps incomplete candles (market close at 3:30 PM) separate from next day
+          break;
+        }
+
+        group.push(nextCandle);
+      }
+
+      // Create aggregated candle from the group (could be incomplete if day boundary hit)
       if (group.length > 0) {
         aggregated.push(aggregateGroup(group, group[0].timestamp));
       }
+
+      // Move to next ungrouped candle
+      i += group.length;
     }
 
     return aggregated;
