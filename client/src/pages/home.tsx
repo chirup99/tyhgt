@@ -11162,6 +11162,15 @@ ${
                                       <div className="text-xs font-semibold mb-2">Select Date from Heatmap</div>
                                       <div className="grid grid-cols-7 gap-0.5 max-h-64 overflow-y-auto">
                                         {Object.entries(tradingDataByDate)
+                                          .filter(([_, data]) => {
+                                            // Only show dates with actual trade history or trading data
+                                            if (data?.tradeHistory && Array.isArray(data.tradeHistory) && data.tradeHistory.length > 0) {
+                                              return true;
+                                            }
+                                            // Also include dates with performance metrics (actual trades)
+                                            const pnl = (data?.netPnL || 0) || ((data?.totalProfit || 0) - Math.abs(data?.totalLoss || 0));
+                                            return pnl !== 0; // Only show dates with non-zero P&L
+                                          })
                                           .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
                                           .slice(0, 60)
                                           .map(([date, data]) => {
