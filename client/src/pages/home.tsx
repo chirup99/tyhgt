@@ -4955,20 +4955,15 @@ ${
     return ema;
   };
 
-  // Function to fetch journal chart data from Angel One API
+  // 🔶 SIMPLE FETCH - SAME LOGIC AS TRADING MASTER OHLC WINDOW
   const fetchJournalChartData = useCallback(async () => {
     try {
       setJournalChartLoading(true);
-      
-      // CRITICAL: Immediately clear all old data to prevent sync issues between timeframes
       setJournalChartData([]);
       
-      // CRITICAL: Clear chart refs when fetching new data (symbol/interval change)
-      // This ensures the chart will be recreated with new data
+      // Clear chart refs
       if (journalChartRef.current) {
-        try {
-          journalChartRef.current.remove();
-        } catch (e) {}
+        try { journalChartRef.current.remove(); } catch (e) {}
       }
       journalChartRef.current = null;
       journalCandlestickSeriesRef.current = null;
@@ -4976,181 +4971,94 @@ ${
       journalEma26SeriesRef.current = null;
       journalVolumeSeriesRef.current = null;
       
-      // Note: We don't check connection status anymore - API works with theoretical prices when not connected
-      // Get token data - use selectedInstrument if available (for dynamic search), otherwise use hardcoded mapping
+      // Get token - use selectedInstrument or fall back to hardcoded mapping
       let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
       
       if (selectedInstrument) {
-        // Use dynamically selected instrument from search
-        stockToken = {
-          token: selectedInstrument.token,
-          exchange: selectedInstrument.exchange,
-          tradingSymbol: selectedInstrument.tradingSymbol
-        };
-        console.log('🔶 Using dynamically selected instrument:', selectedInstrument);
+        stockToken = { token: selectedInstrument.token, exchange: selectedInstrument.exchange, tradingSymbol: selectedInstrument.tradingSymbol };
       } else {
-        // Fall back to hardcoded mapping for legacy symbols
         const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
         stockToken = journalAngelOneTokens[cleanSymbol];
-        console.log('🔶 Using hardcoded token mapping for:', cleanSymbol);
       }
       
       if (!stockToken) {
-        console.warn(`🔶 No Angel One token found for symbol: ${selectedJournalSymbol}`);
+        console.warn(`❌ No token for: ${selectedJournalSymbol}`);
         setJournalChartData([]);
         return;
       }
 
-      // For historical chart data: load last month to current date
+      // SIMPLE: Load last 1 month like trading-master - NO complex exchange-specific logic
       const now = new Date();
       const today = now.toISOString().split('T')[0];
-      
-      // Calculate date from 1 month ago
       const oneMonthAgo = new Date();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
       const fromDateOnly = oneMonthAgo.toISOString().split('T')[0];
       
-      let fromDate = fromDateOnly;
-      let toDate = today;
-      
-      // Check if this is a day+ interval
-      const isDayOrHigher = selectedJournalInterval.endsWith('D') || selectedJournalInterval.endsWith('W') || selectedJournalInterval.endsWith('M');
-      
-      if (!isDayOrHigher) {
-        // Intraday: Load last month with exchange-specific market hours
-        const exchange = stockToken.exchange.toUpperCase();
-        const isMCX = exchange === 'MCX' || exchange === '3';
-        const isNCDEX = exchange === 'NCDEX' || exchange === '5';
-        
-        if (isMCX) {
-          // MCX: 9:00 AM - 11:55 PM
-          fromDate = `${fromDateOnly} 09:00`;
-          toDate = `${today} 23:55`;
-        } else if (isNCDEX) {
-          // NCDEX: 9:00 AM - 8:00 PM
-          fromDate = `${fromDateOnly} 09:00`;
-          toDate = `${today} 20:00`;
-        } else {
-          // NSE/BSE/NFO/BFO: 9:15 AM - 3:30 PM
-          fromDate = `${fromDateOnly} 09:15`;
-          toDate = `${today} 15:30`;
-        }
-        
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${stockToken.exchange} | LAST MONTH: ${fromDate} to ${toDate}`);
-      } else {
-        // For daily and higher intervals, load last month to today
-        fromDate = `${fromDateOnly} 00:00`;
-        toDate = `${today} 23:59`;
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | LAST MONTH: ${fromDate} to ${toDate}`);
-      }
+      const fromDate = `${fromDateOnly} 09:15`;  // SIMPLE: Always 9:15 AM
+      const toDate = `${today} 15:30`;           // SIMPLE: Always 3:30 PM
       
       const angelInterval = getJournalAngelOneInterval(selectedJournalInterval);
       
-      console.log(`✅ FETCHING CHART: button shows "${getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label}" | interval="${selectedJournalInterval}" | angelOne="${angelInterval}"`);
-      
-      const requestBody = {
-        exchange: stockToken.exchange,
-        symbolToken: stockToken.token,
-        interval: angelInterval,
-        fromDate: fromDate,
-        toDate: toDate,
-      };
-
-      console.log(`✅ API REQUEST:`, requestBody);
-
-      console.log('🔶 Making request to /api/angelone/historical with body:', requestBody);
+      console.log(`✅ JOURNAL FETCH: "${getAllJournalTimeframes().find(tf => tf.value === selectedJournalInterval)?.label}" (${selectedJournalInterval}) -> ${angelInterval}`);
       
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exchange: stockToken.exchange,
+          symbolToken: stockToken.token,
+          interval: angelInterval,
+          fromDate: fromDate,
+          toDate: toDate,
+        }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`🔶 API Error ${response.status}:`, errorText);
-        throw new Error(`Failed to fetch chart data: ${response.status} - ${errorText}`);
+        throw new Error(`API Error ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('🔶 API Response received:', { success: data.success, candlesLength: data.candles?.length, dataLength: data.data?.length });
-      
-      // Transform Angel One candle data to chart format
-      // Angel One returns either:
-      // 1. data.data as array: [[timestamp, open, high, low, close, volume], ...]
-      // 2. data.candles as objects: [{timestamp, open, high, low, close, volume}, ...]
-      let candleData: any[] = [];
-      
-      if (data.success && data.data && Array.isArray(data.data)) {
-        // Format 1: Array of arrays
-        candleData = data.data.map((candle: any[]) => ({
-          time: new Date(candle[0]).getTime() / 1000,
-          open: parseFloat(candle[1]),
-          high: parseFloat(candle[2]),
-          low: parseFloat(candle[3]),
-          close: parseFloat(candle[4]),
-          volume: parseInt(candle[5]) || 0,
-        }));
-      } else if (data.success && data.candles && Array.isArray(data.candles) && data.candles.length > 0) {
-        // Format 2: Array of objects (current API response format)
-        candleData = data.candles.map((candle: any) => {
-          // Handle different timestamp formats from Angel One
-          let unixSeconds: number;
-          
-          if (typeof candle.timestamp === 'string') {
-            // If timestamp is a string (e.g., "2025-11-27 09:15"), parse it as IST time
-            // Parse as: YYYY-MM-DD HH:MM (in IST)
-            // IST = UTC+5:30, so to get UTC we subtract 5:30
-            const [datePart, timePart] = candle.timestamp.split(' ');
-            const [year, month, day] = datePart.split('-').map(Number);
-            const [hours, minutes] = timePart.split(':').map(Number);
-            
-            // Create UTC date (treating IST values as UTC, then subtract IST offset to get actual UTC)
-            const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
-            const istOffsetMs = 5.5 * 60 * 60 * 1000; // 5:30 in milliseconds
-            const actualUtcMs = utcDate.getTime() - istOffsetMs;
-            unixSeconds = Math.floor(actualUtcMs / 1000);
-          } else if (candle.timestamp > 10000000000) {
-            // Timestamp is in milliseconds (> 10 billion)
-            unixSeconds = Math.floor(candle.timestamp / 1000);
-          } else {
-            // Timestamp is already in seconds
-            unixSeconds = candle.timestamp;
-          }
-          
-          return {
-            time: unixSeconds as any,
-            open: parseFloat(candle.open),
-            high: parseFloat(candle.high),
-            low: parseFloat(candle.low),
-            close: parseFloat(candle.close),
-            volume: parseInt(candle.volume) || 0,
-          };
-        });
-      }
-      
-      if (candleData.length > 0) {
-        console.log(`✅ CHART DATA READY: ${candleData.length} candles for ${selectedJournalInterval}min interval`);
-        console.log(`✅ First candle:`, candleData[0]);
-        console.log(`✅ Last candle:`, candleData[candleData.length - 1]);
-        
-        // No client-side aggregation needed - Angel One API returns pre-aggregated candles
-        // This matches the working OHLC data window approach
-        setJournalChartData(candleData);
-        console.log(`✅ Chart data state updated - render should trigger now`);
-      } else {
-        console.warn('🔶 Angel One: No candle data returned', data);
+      if (!data.success || !data.candles) {
+        console.warn('❌ No candles returned', data);
         setJournalChartData([]);
+        return;
       }
+
+      // SIMPLE TRANSFORM: Like trading-master
+      const candleData = data.candles.map((candle: any) => {
+        let unixSeconds: number;
+        if (typeof candle.timestamp === 'string') {
+          const [datePart, timePart] = candle.timestamp.split(' ');
+          const [year, month, day] = datePart.split('-').map(Number);
+          const [hours, minutes] = timePart.split(':').map(Number);
+          const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+          const istOffsetMs = 5.5 * 60 * 60 * 1000;
+          unixSeconds = Math.floor((utcDate.getTime() - istOffsetMs) / 1000);
+        } else if (candle.timestamp > 10000000000) {
+          unixSeconds = Math.floor(candle.timestamp / 1000);
+        } else {
+          unixSeconds = candle.timestamp;
+        }
+        
+        return {
+          time: unixSeconds,
+          open: parseFloat(candle.open),
+          high: parseFloat(candle.high),
+          low: parseFloat(candle.low),
+          close: parseFloat(candle.close),
+          volume: parseInt(candle.volume) || 0,
+        };
+      });
+
+      console.log(`✅ CHART: ${candleData.length} ${angelInterval} candles loaded`);
+      setJournalChartData(candleData);
     } catch (error) {
-      console.error("🔶 Error fetching Angel One journal chart data:", error);
+      console.error("❌ Fetch error:", error);
       setJournalChartData([]);
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
+  }, [selectedJournalSymbol, selectedJournalInterval, selectedInstrument]);
 
   // Load initial chart data
   useEffect(() => {
