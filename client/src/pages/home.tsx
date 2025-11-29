@@ -4957,43 +4957,56 @@ ${
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       
-      // 🔶 Fetch ONLY TODAY's data (real-time), not 1 month of history!
-      // Check if market is open (for today) - if not, fetch last trading day
+      // 🔶 Fetch 10 TRADING DAYS of data (real-time, not month-old history)
+      // Calculate 10 trading days back (skip weekends)
+      const tenDaysAgo = new Date(now);
+      let tradingDaysCount = 0;
+      while (tradingDaysCount < 10) {
+        tenDaysAgo.setDate(tenDaysAgo.getDate() - 1);
+        const dayOfWeek = tenDaysAgo.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
+          tradingDaysCount++;
+        }
+      }
+      
+      const fromDateOnly = tenDaysAgo.toISOString().split('T')[0];
+      
+      // Check if today is market open (for toDate)
       const dayOfWeek = now.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const marketOpenHour = 9; // Market opens at 9:15 AM
       const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
       
-      let fetchDate = today;
+      let endDate = today;
       if (isMarketClosed) {
         // Get last trading day (skip weekends)
         const lastDay = new Date(now);
         lastDay.setDate(lastDay.getDate() - 1);
         if (lastDay.getDay() === 5) lastDay.setDate(lastDay.getDate() - 1); // Skip Saturday
         if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 2); // Skip Sunday
-        fetchDate = lastDay.toISOString().split('T')[0];
+        endDate = lastDay.toISOString().split('T')[0];
       }
       
-      let fromDate = fetchDate;
-      let toDate = fetchDate;
+      let fromDate = fromDateOnly;
+      let toDate = endDate;
       
-      // 🔶 Today's trading hours only
+      // 🔶 Exchange-specific trading hours
       const exchange = stockToken.exchange.toUpperCase();
       const isMCX = exchange === 'MCX' || exchange === '3';
       const isNCDEX = exchange === 'NCDEX' || exchange === '5';
       
       if (isMCX) {
-        fromDate = `${fetchDate} 09:00`;
-        toDate = `${fetchDate} 23:55`;
+        fromDate = `${fromDateOnly} 09:00`;
+        toDate = `${endDate} 23:55`;
       } else if (isNCDEX) {
-        fromDate = `${fetchDate} 09:00`;
-        toDate = `${fetchDate} 20:00`;
+        fromDate = `${fromDateOnly} 09:00`;
+        toDate = `${endDate} 20:00`;
       } else {
-        fromDate = `${fetchDate} 09:15`;
-        toDate = `${fetchDate} 15:30`;
+        fromDate = `${fromDateOnly} 09:15`;
+        toDate = `${endDate} 15:30`;
       }
       
-      console.log(`🔶 REAL-TIME 1-MIN: Fetching ${fetchDate} (market ${isMarketClosed ? 'closed' : 'open'}): ${fromDate} to ${toDate}`);
+      console.log(`🔶 10-DAY DATA: Fetching last 10 trading days: ${fromDate} to ${toDate}`);
       
       // 🔶 ALWAYS fetch 1-minute data
       const interval = "1";
