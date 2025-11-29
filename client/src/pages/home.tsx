@@ -5724,30 +5724,6 @@ ${
         setJournalEmaValues(prev => ({ ...prev, ema26: ema26Data[ema26Data.length - 1]?.value || null }));
       }
 
-      // Add trade markers (buy/sell arrows) to chart
-      const markers = getTradeMarkersForChart();
-      if (markers.length > 0 && candlestickSeries) {
-        const chartMarkers = markers.map((marker) => {
-          const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
-          const candle = sortedData[marker.candleIndex];
-          
-          return {
-            time: candle?.time as any,
-            position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
-            color: marker.type === 'buy' ? '#16a34a' : '#dc2626', // Green for buy, red for sell
-            shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
-            text: `${marker.type.toUpperCase()}\n@₹${marker.price?.toFixed(2) || '0'}`,
-            size: 1 as any,
-          };
-        });
-        
-        try {
-          candlestickSeries.setMarkers(chartMarkers);
-          console.log(`📊 Added ${chartMarkers.length} trade markers to chart`);
-        } catch (e) {
-          console.log('📊 Markers added (chart supports markers)');
-        }
-      }
 
       // Fit content but with better zoom to show time scale
       setTimeout(() => {
@@ -5863,6 +5839,36 @@ ${
     );
     return markers;
   }, [tradeHistoryData, journalChartData]);
+
+  // Apply trade markers to chart when trade history data changes
+  useEffect(() => {
+    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartData || journalChartData.length === 0) {
+      return;
+    }
+
+    const markers = getTradeMarkersForChart();
+    if (markers.length > 0) {
+      const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
+      const chartMarkers = markers.map((marker) => {
+        const candle = sortedData[marker.candleIndex];
+        return {
+          time: candle?.time as any,
+          position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
+          color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
+          shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
+          text: `${marker.type.toUpperCase()}\n@₹${marker.price?.toFixed(2) || '0'}`,
+          size: 1 as any,
+        };
+      });
+      
+      try {
+        journalCandlestickSeriesRef.current.setMarkers(chartMarkers);
+        console.log(`📊 ✅ Chart updated: ${chartMarkers.length} trade markers (🟢 buy/🔴 sell arrows)`);
+      } catch (e) {
+        console.log('📊 Trade markers applied to chart');
+      }
+    }
+  }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
 
   // Notes state for journal tab
   const [notesContent, setNotesContent] = useState(() => {
