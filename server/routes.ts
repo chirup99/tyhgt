@@ -8066,70 +8066,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // 🔧 Convert ANY interval to candle count (minutes)
-      const intervalToMinutes: { [key: string]: number } = {
-        'ONE_MINUTE': 1,
-        'THREE_MINUTE': 3,
-        'FIVE_MINUTE': 5,
-        'TEN_MINUTE': 10,
-        'FIFTEEN_MINUTE': 15,
-        'TWENTY_MINUTE': 20,
-        'THIRTY_MINUTE': 30,
-        'FORTY_MINUTE': 40,
-        'ONE_HOUR': 60,
-        'EIGHTY_MINUTE': 80,
-        'TWO_HOUR': 120,
-        'ONE_DAY': 1440,
-        'ONE_WEEK': 10080,
-        'ONE_MONTH': 43200
-      };
-
-      // Support custom numeric timeframes (e.g., '35' for 35 minutes)
-      let minutesForInterval = intervalToMinutes[interval];
-      
-      if (!minutesForInterval) {
-        // Try parsing as numeric custom timeframe
-        const numMinutes = parseInt(interval);
-        if (!isNaN(numMinutes) && numMinutes > 0) {
-          minutesForInterval = numMinutes;
-          console.log(`✅ Custom numeric timeframe recognized: ${interval} minutes`);
-        }
+      // 🔧 UNIVERSAL: Parse ANY timeframe as minutes (no hardcoded maps!)
+      const minutesForInterval = parseInt(interval);
+      if (isNaN(minutesForInterval) || minutesForInterval <= 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: `Invalid timeframe: ${interval}. Must be numeric minutes (1, 3, 5, 10, 15, 20, 30, 35, 45, 60, 80, 120, 1440, 10080, 43200, etc.)`
+        });
       }
 
-      // Always try to fetch real historical data from Angel One API
-      // even if not connected - the API can return historical data without active connection
+      // ✅ UNIVERSAL APPROACH: ALWAYS fetch 1-minute candles and aggregate by N minutes
       try {
-        let candles;
-        let source = 'angel_one_api';
-
-        if (interval === 'ONE_MINUTE') {
-          // ✅ FETCH DIRECTLY: Only 1-minute data from API
-          console.log(`📊 Fetching 1-minute candles directly from Angel One API`);
-          candles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
-          source = 'angel_one_api_one_minute';
-          console.log(`✅ Fetched ${candles.length} 1-minute candles`);
-        } else if (minutesForInterval) {
-          // 🔧 BACKEND AGGREGATION: Fetch 1-minute data and aggregate by candle count
-          console.log(`🔧 Combining ${minutesForInterval} consecutive 1-minute candles for ${interval}`);
-          const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
-          candles = aggregateCandles(oneMinCandles, minutesForInterval);
-          source = `angel_one_api_aggregated_${minutesForInterval}candles`;
-          console.log(`✅ Combined ${oneMinCandles.length} 1-min candles → ${candles.length} aggregated candles (every ${minutesForInterval} candles)`);
+        console.log(`📊 Fetching 1-minute candles (will aggregate to ${minutesForInterval} minutes)`);
+        const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
+        
+        // If already 1-minute, return as-is
+        if (minutesForInterval === 1) {
+          console.log(`✅ Fetched ${oneMinCandles.length} 1-minute candles (no aggregation needed)`);
+          res.json({ 
+            success: true,
+            candles: oneMinCandles,
+            source: 'angel_one_api_1minute'
+          });
         } else {
-          // Unknown interval
-          return res.status(400).json({ 
-            success: false,
-            message: `Unknown interval: ${interval}. Supported intervals: ${Object.keys(intervalToMinutes).join(', ')}`
+          // Aggregate: combine every N consecutive 1-minute candles
+          const aggregatedCandles = aggregateCandles(oneMinCandles, minutesForInterval);
+          console.log(`✅ Aggregated ${oneMinCandles.length} 1-min candles → ${aggregatedCandles.length} candles (every ${minutesForInterval} minutes)`);
+          res.json({ 
+            success: true,
+            candles: aggregatedCandles,
+            source: `aggregated_${minutesForInterval}min`
           });
         }
-
-        res.json({ 
-          success: true,
-          candles,
-          source
-        });
       } catch (error: any) {
-        // If Angel One API fails, return error instead of mock data
+        // If Angel One API fails, return error
         console.error('❌ Failed to fetch historical data from Angel One:', error.message);
         return res.status(503).json({ 
           success: false,

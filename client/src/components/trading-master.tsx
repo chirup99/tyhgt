@@ -5167,38 +5167,17 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     fetchOhlcData.mutate();
   }, []); // Run once on mount
 
-  // 🔶 Angel One timeframe mapping - Convert numeric timeframe to Angel One interval format (supports custom timeframes)
+  // 🔶 UNIVERSAL: Convert to minutes on frontend, send numeric value to backend
   const getAngelOneInterval = (timeframe: string): string => {
-    const intervalMap: { [key: string]: string } = {
-      '1': 'ONE_MINUTE',
-      '3': 'THREE_MINUTE',
-      '5': 'FIVE_MINUTE',
-      '10': 'TEN_MINUTE',
-      '15': 'FIFTEEN_MINUTE',
-      '20': 'TWENTY_MINUTE',      // 🔧 Backend aggregation (20min from 1min)
-      '30': 'THIRTY_MINUTE',
-      '40': 'FORTY_MINUTE',       // 🔧 Backend aggregation (40min from 1min)
-      '60': 'ONE_HOUR',
-      '80': 'EIGHTY_MINUTE',      // 🔧 Backend aggregation (80min from 1min)
-      '120': 'TWO_HOUR',          // 🔧 Backend aggregation (2hr from 1min)
-      '1D': 'ONE_DAY',
-      '1W': 'ONE_WEEK',
-      '1M': 'ONE_MONTH'
+    // Convert preset timeframes to minutes (1D/1W/1M -> numeric)
+    const presetToMinutes: { [key: string]: string } = {
+      '1D': '1440',
+      '1W': '10080',
+      '1M': '43200'
     };
     
-    // Check if it's in the hardcoded map
-    if (intervalMap[timeframe]) {
-      return intervalMap[timeframe];
-    }
-    
-    // 🔧 Handle custom numeric timeframes (e.g., '35' for 35 minutes)
-    const numMinutes = parseInt(timeframe);
-    if (!isNaN(numMinutes) && numMinutes > 0) {
-      console.log(`✅ Custom timeframe detected: ${timeframe} minutes`);
-      return timeframe; // Send numeric value to backend for aggregation
-    }
-    
-    return 'ONE_MINUTE'; // Default fallback
+    // If preset, convert to minutes; otherwise pass as-is
+    return presetToMinutes[timeframe] || timeframe;
   };
 
   // 🔶 Get Angel One stock token from symbol (e.g., 'NSE:ICICIBANK-EQ' -> token info)
