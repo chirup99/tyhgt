@@ -4612,6 +4612,7 @@ ${
   };
   const [selectedInstrumentCategory, setSelectedInstrumentCategory] = useState("all");
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
+  const [isHeatmapDateSelected, setIsHeatmapDateSelected] = useState(false); // ✅ Track if user explicitly selected a date on heatmap
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
@@ -4973,19 +4974,17 @@ ${
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       
-      // 🔶 SMART DATE RANGE: If selected date has trade history, show ONLY that date
-      // Otherwise show last 10 trading days
       let fromDate: string;
       let toDate: string;
       
-      if (tradeHistoryData && tradeHistoryData.length > 0) {
-        // Selected date has trade history! Show ONLY that date's chart
-        console.log(`📊 [CHART LOGIC] Selected date has ${tradeHistoryData.length} trades - showing ONLY that date`);
+      // ✅ CHECK IF USER EXPLICITLY SELECTED A DATE ON HEATMAP
+      if (isHeatmapDateSelected && selectedJournalDate) {
+        console.log(`📅 USING USER-SELECTED HEATMAP DATE: ${selectedJournalDate}`);
         fromDate = selectedJournalDate;
         toDate = selectedJournalDate;
       } else {
-        // No trades on selected date, show last 10 trading days
-        console.log(`📊 [CHART LOGIC] No trades on selected date - showing last 10 trading days`);
+        // Default: Fetch 10 TRADING DAYS of data (when no date is explicitly selected)
+        console.log(`📅 USING LAST 10 TRADING DAYS (no date selected on heatmap)`);
         
         // Calculate 10 trading days back (skip weekends)
         const tenDaysAgo = new Date(now);
@@ -5463,12 +5462,12 @@ ${
     }
   }, [selectedJournalInterval, activeTab]);
 
-  // Auto-fetch chart data when symbol, interval, OR DATE changes on journal tab
+  // Auto-fetch chart data when symbol, interval, or date changes on journal tab
   useEffect(() => {
     if (activeTab === 'journal') {
       fetchJournalChartData();
     }
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, selectedJournalDate, isHeatmapDateSelected]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -6746,6 +6745,11 @@ ${
           console.log("🖼️ Loaded images from Firebase:", images.length, "images");
         }
 
+        // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
+        setSelectedJournalDate(dateKey);
+        setIsHeatmapDateSelected(true); // ✅ Mark that user explicitly selected a date
+        console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
+
         console.log("✅ Successfully loaded all FRESH Firebase data for:", dateKey);
       } else {
         console.log(`📭 No Firebase data for: ${dateKey}`);
@@ -6851,6 +6855,11 @@ ${
               "images",
             );
           }
+
+          // ✅ UPDATE JOURNAL CHART DATE: Trigger chart fetch for selected date
+          setSelectedJournalDate(dateKey);
+          setIsHeatmapDateSelected(true); // ✅ Mark that user explicitly selected a date
+          console.log(`📈 Updated journal chart date to: ${dateKey} - chart will refresh with this date's data`);
 
           // Show trading data windows automatically
           setShowTradingNotesWindow(true);
