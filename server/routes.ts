@@ -7991,31 +7991,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return date.toISOString().split('T')[0];
   };
 
-  // 🔧 SIMPLE: Combine every N consecutive 1-min candles + respect date boundaries (no merge across dates)
+  // 🔧 MULTI-DAY AWARE: Combine N consecutive 1-min candles + reset count at EVERY date boundary
+  // Key: For any timeframe (5min, 80min, 2880min/2day, etc), count resets when date changes
+  // Example: 2-day (2880 min) timeframe with market holiday on day 2
+  //   - Day 1: 1440 candles → 0 complete 2-day candles, 1440 in incomplete group
+  //   - Date changes (market holiday/close) → finalize incomplete, reset count
+  //   - Day 2: New day starts fresh count, not merged with day 1 incomplete
   const aggregateCandles = (oneMinCandles: Candle[], candleCount: number): Candle[] => {
     if (!oneMinCandles || oneMinCandles.length === 0) {
       return [];
     }
 
-    console.log(`📊 [AGGREGATION] Starting to combine ${oneMinCandles.length} 1-min candles into ${candleCount}-min groups`);
+    const candleCountMinutes = candleCount;
+    const totalDays = Math.ceil(candleCount / 1440); // How many calendar days this timeframe spans
+    console.log(`📊 [AGGREGATION] Combining ${oneMinCandles.length} 1-min candles into ${candleCount}-min groups (${totalDays} trading day${totalDays > 1 ? 's' : ''})`);
+    console.log(`🔶 [DATE RESET] Count will RESET at EVERY date boundary - no cross-day merging`);
     
     const aggregated: Candle[] = [];
     let group: Candle[] = [];
     let lastDate = '';
+    let completeCandleCount = 0;
+    let incompleteCandleCount = 0;
 
     for (const candle of oneMinCandles) {
       const candleDate = getDateString(candle.timestamp);
 
-      // 🔶 If date changed, finalize current group (even if incomplete)
+      // 🔶 DATE BOUNDARY CHECK: If date changed, finalize current group (even if incomplete)
       if (lastDate !== '' && candleDate !== lastDate) {
         if (group.length > 0) {
-          console.log(`📊 [DATE BOUNDARY] ${lastDate} ending with incomplete group: ${group.length}/${candleCount}`);
           aggregated.push(aggregateGroup(group, group[0].timestamp));
+          console.log(`📊 [DATE BOUNDARY] ${lastDate} → ${candleDate}: Finalized group with ${group.length}/${candleCount} candles`);
           if (group.length < candleCount) {
-            console.log(`⚠️ INCOMPLETE: Only ${group.length}/${candleCount} candles before market close on ${lastDate}`);
+            console.log(`⚠️ [INCOMPLETE] Market close on ${lastDate}: Only ${group.length}/${candleCount} candles - NOT merged with next day`);
+            incompleteCandleCount++;
+          } else {
+            completeCandleCount++;
           }
         }
-        // Reset group for new date
+        // 🔶 RESET COUNT FOR NEW DATE: Start fresh with new date, don't carry over incomplete
+        console.log(`🔄 [COUNT RESET] New trading day ${candleDate}: Resetting candle count to 1`);
         group = [];
       }
 
@@ -8025,7 +8039,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 🔶 When group reaches required size, aggregate and start new group
       if (group.length === candleCount) {
         aggregated.push(aggregateGroup(group, group[0].timestamp));
-        console.log(`✅ [AGGREGATED] Created candle: open=${group[0].open}, high=${Math.max(...group.map(c => c.high))}, low=${Math.min(...group.map(c => c.low))}, close=${group[candleCount-1].close}`);
+        console.log(`✅ [COMPLETE] Created complete ${candleCount}-min candle: O=${group[0].open} H=${Math.max(...group.map(c => c.high))} L=${Math.min(...group.map(c => c.low))} C=${group[candleCount-1].close}`);
+        completeCandleCount++;
         group = [];
       }
     }
@@ -8033,13 +8048,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // 🔶 Add remaining candles if any (incomplete final group)
     if (group.length > 0) {
       aggregated.push(aggregateGroup(group, group[0].timestamp));
-      console.log(`📊 [FINAL] Group with ${group.length}/${candleCount} candles at end`);
+      console.log(`📊 [FINAL GROUP] ${group.length}/${candleCount} candles at end of data`);
       if (group.length < candleCount) {
-        console.log(`⚠️ INCOMPLETE: Only ${group.length}/${candleCount} candles in final group (end of data)`);
+        console.log(`⚠️ [INCOMPLETE END] Only ${group.length}/${candleCount} candles in final group - staying incomplete`);
+        incompleteCandleCount++;
+      } else {
+        completeCandleCount++;
       }
     }
 
-    console.log(`✅ [AGGREGATION COMPLETE] Input: ${oneMinCandles.length} 1-min candles → Output: ${aggregated.length} ${candleCount}-min candles`);
+    console.log(`✅ [AGGREGATION COMPLETE]`);
+    console.log(`  Input:  ${oneMinCandles.length} 1-minute candles`);
+    console.log(`  Output: ${aggregated.length} ${candleCount}-minute candles (${completeCandleCount} complete, ${incompleteCandleCount} incomplete)`);
+    console.log(`  Note: Every date boundary triggers count reset - no cross-day merging`);
     return aggregated;
   };
 

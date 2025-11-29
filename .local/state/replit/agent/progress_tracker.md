@@ -209,3 +209,29 @@
 [x] 3995.   - 80min custom: 80x 1-min candles = 1 combined candle  
 [x] 3996.   - Date boundary: Incomplete groups reset per day
 [x] 3997. TIMESTAMP BUG FIX COMPLETE!
+
+[x] 3998. MULTI-DAY AGGREGATION WITH RESET - IMPLEMENTED
+[x] 3999. Enhancement: Date boundary count reset for ANY timeframe
+[x] 4000. Key Logic (server/routes.ts lines 7997-8068):
+[x] 4001.   ✅ At EVERY date change: finalize current group (even incomplete)
+[x] 4002.   ✅ Then RESET count to 0 for new day
+[x] 4003.   ✅ Works for 5min, 80min, 2880min (2-day), etc.
+[x] 4004. Example: 2-day (2880 min) with market holiday on day 2
+[x] 4005.   Day 1: 1440 1-min candles → 0 complete 2-day candles
+[x] 4006.          1440 candles waiting in incomplete group
+[x] 4007.   [DATE BOUNDARY DETECTED] → Finalize group
+[x] 4008.          Add incomplete 1440-min group to results
+[x] 4009.   Day 2: Starts with COUNT=1 (fresh)
+[x] 4010.          New day's candles NOT merged with day 1
+[x] 4011. Console Output Now Shows:
+[x] 4012.   "📊 [AGGREGATION] Combining X 1-min candles into Y-min groups (Z trading days)"
+[x] 4013.   "🔶 [DATE RESET] Count will RESET at EVERY date boundary - no cross-day merging"
+[x] 4014.   "📊 [DATE BOUNDARY] 2025-01-26 → 2025-01-27: Finalized group with 1440/2880"
+[x] 4015.   "⚠️ [INCOMPLETE] Market close: Only 1440/2880 - NOT merged with next day"
+[x] 4016.   "🔄 [COUNT RESET] New trading day 2025-01-27: Resetting count to 1"
+[x] 4017.   "✅ [AGGREGATION COMPLETE] 6240 1-min → 3 2880-min (2 complete, 1 incomplete)"
+[x] 4018. Summary Stats:
+[x] 4019.   - Tracks complete vs incomplete candles
+[x] 4020.   - Shows total days spanned by timeframe
+[x] 4021.   - Clear warnings on cross-day boundaries
+[x] 4022. MULTI-DAY AGGREGATION WITH DAILY RESET 100% COMPLETE!
