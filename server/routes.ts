@@ -7991,13 +7991,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const aggregated: Candle[] = [];
+    let currentGroup: Candle[] = [];
+    let groupStartDate: Date | null = null;
 
-    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
-    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
-      const group = oneMinCandles.slice(i, i + candleCount);
-      if (group.length > 0) {
-        aggregated.push(aggregateGroup(group, group[0].timestamp));
+    // Combine N consecutive 1-minute candles, BUT break at day boundaries (NSE: 9:15 AM - 3:30 PM IST)
+    for (let i = 0; i < oneMinCandles.length; i++) {
+      const candle = oneMinCandles[i];
+      const candleDate = new Date(candle.timestamp * 1000);
+      
+      // Convert to IST (UTC+5:30) to properly detect day boundaries
+      const istDate = new Date(candleDate.getTime() + (330 * 60 * 1000));
+      const candleDateOnly = new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate());
+      
+      // Initialize group start date on first candle
+      if (groupStartDate === null) {
+        groupStartDate = candleDateOnly;
+        currentGroup.push(candle);
+      } else {
+        // Check if candle is on same day
+        if (candleDateOnly.getTime() === groupStartDate.getTime()) {
+          // Same day - add to group
+          currentGroup.push(candle);
+          
+          // If group is complete, aggregate and reset
+          if (currentGroup.length === candleCount) {
+            aggregated.push(aggregateGroup(currentGroup, currentGroup[0].timestamp));
+            currentGroup = [];
+          }
+        } else {
+          // Different day - complete current group (even if incomplete) and start new group
+          if (currentGroup.length > 0) {
+            aggregated.push(aggregateGroup(currentGroup, currentGroup[0].timestamp));
+          }
+          
+          // Start new group on new day
+          currentGroup = [candle];
+          groupStartDate = candleDateOnly;
+        }
       }
+    }
+
+    // Don't forget the last incomplete group
+    if (currentGroup.length > 0) {
+      aggregated.push(aggregateGroup(currentGroup, currentGroup[0].timestamp));
     }
 
     return aggregated;
