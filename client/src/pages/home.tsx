@@ -4636,6 +4636,19 @@ ${
     return tf ? tf.label : value;
   };
   
+  // Convert timeframe to Angel One API interval format (minutes)
+  const getJournalAngelOneInterval = (timeframe: string): string => {
+    // Convert preset timeframes to minutes (1D -> 1440 minutes)
+    const presetToMinutes: { [key: string]: string } = {
+      '1D': '1440',
+      '1W': '10080',
+      '1M': '43200'
+    };
+    
+    // If preset (1D/1W/1M), convert to minutes; otherwise pass as-is (already in minutes)
+    return presetToMinutes[timeframe] || timeframe;
+  };
+  
   // Default popular instruments for each category (pre-populated)
   // Note: Only stocks and indices have stable tokens. Commodity/F&O tokens change with contract expiry.
   const defaultInstruments = {
@@ -4768,25 +4781,6 @@ ${
       .replace("-COM", "");
     return cleanSymbol;
   };
-
-  // 🔶 UNIVERSAL: Convert to minutes on frontend, send numeric value to backend
-  const getJournalAngelOneInterval = (interval: string): string => {
-    // Convert preset timeframes to minutes (1D/1W/1M -> numeric)
-    const presetToMinutes: { [key: string]: string } = {
-      '1D': '1440',
-      '1W': '10080',
-      '1M': '43200'
-    };
-    
-    // If preset, convert to minutes; otherwise pass as-is (numeric)
-    const result = presetToMinutes[interval] || interval;
-    console.log(`✅ JOURNAL INTERVAL: input="${interval}" -> minutes="${result}"`);
-    return result;
-  };
-
-  // 🔶 BACKEND HANDLES ALL AGGREGATION - Frontend only displays
-  // Backend ALWAYS fetches 1-minute candles and aggregates them to requested timeframe
-  // Frontend receives pre-aggregated data and displays as-is (NO frontend aggregation)
 
   // 🔶 PURE NUMERIC: Convert custom timeframe to minutes ONLY (no "2D", only "2880")
   const convertJournalCustomTimeframe = (type: string, interval: string): string => {
@@ -5031,10 +5025,10 @@ ${
       
       console.log(`🔶 10-DAY DATA: Fetching last 10 trading days: ${fromDate} to ${toDate}`);
       
-      // 🔶 Use selected timeframe from dropdown
-      const interval = journalChartTimeframe;
+      // 🔶 Convert selected timeframe to Angel One API interval format (minutes)
+      const interval = getJournalAngelOneInterval(journalChartTimeframe);
       
-      console.log(`✅ FETCHING ${getJournalTimeframeLabel(interval)} DATA: interval="${interval}"`);
+      console.log(`✅ FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA: interval="${interval}" (${journalChartTimeframe})`);
       
       const requestBody = {
         exchange: stockToken.exchange,

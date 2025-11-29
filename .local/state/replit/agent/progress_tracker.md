@@ -1124,3 +1124,24 @@ Implementation Date: November 28, 2025
 [x] 3770.   - Loading indicator shows selected timeframe
 [x] 3771.   - Works with all exchanges (NSE, BSE, MCX, NCDEX, NFO, BFO)
 [x] 3772. JOURNAL CHART CUSTOM TIMEFRAME DROPDOWN 100% COMPLETE!
+
+[x] 3773. CRITICAL FIX: Journal Chart Timeframe Conversion
+[x] 3774. Issue: Chart not loading when selecting timeframes
+[x] 3775. Root cause: Missing timeframe to minutes conversion (like Trading Master)
+[x] 3776. Solution:
+[x] 3777.   1. Added getJournalAngelOneInterval() function (line 4643)
+[x] 3778.      - Converts '1D' → '1440' minutes
+[x] 3779.      - Converts '1W' → '10080' minutes
+[x] 3780.      - Converts '1M' → '43200' minutes
+[x] 3781.      - Passes numeric timeframes as-is (1, 3, 5, etc.)
+[x] 3782.   2. Updated fetchJournalChartData to use conversion
+[x] 3783.      - Line 5051: const interval = getJournalAngelOneInterval(journalChartTimeframe)
+[x] 3784.      - Sends converted interval to Angel One API
+[x] 3785.   3. Removed duplicate function declaration (line 4786)
+[x] 3786. How it works:
+[x] 3787.   - Angel One API accepts interval in minutes
+[x] 3788.   - API returns pre-aggregated candles for the requested timeframe
+[x] 3789.   - No client-side aggregation needed (API handles it)
+[x] 3790. Files modified:
+[x] 3791.   - client/src/pages/home.tsx
+[x] 3792. JOURNAL CHART TIMEFRAME CONVERSION FIX 100% COMPLETE!
