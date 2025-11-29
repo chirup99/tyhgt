@@ -5649,38 +5649,17 @@ ${
         }
       });
 
-      // Set data immediately
+      // Set data immediately - display all candles as-is, including incomplete ones
       const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
       
-      // Display all candles including incomplete ones, but prevent merging across day boundaries
-      // by adding large time gaps to create visual separation
-      const chartData = sortedData.map((candle: any, index: number) => {
-        let candleTime = candle.time;
-        
-        // Check if this is a new trading day (gap from previous candle)
-        if (index > 0) {
-          const prevCandle = sortedData[index - 1];
-          const prevDate = new Date(prevCandle.time * 1000);
-          const currDate = new Date(candle.time * 1000);
-          
-          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
-          
-          // If date changed (new day - weekend/holiday gap), add large time offset to break visual connection
-          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
-            // Add 18 hours (64800 seconds) gap to create visual separation and prevent candle merging
-            candleTime = candle.time + 64800;
-          }
-        }
-        
-        return {
-          time: candleTime as any,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
-        };
-      });
+      // Natural timestamp gaps between days will prevent visual merging without modification
+      const chartData = sortedData.map((candle: any) => ({
+        time: candle.time as any,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+      }));
 
       candlestickSeries.setData(chartData);
 
@@ -5703,80 +5682,26 @@ ${
       }
 
       // Volume data with color based on price movement
-      const volumeData = sortedData.map((candle: any, index: number) => {
-        let candleTime = candle.time;
-        
-        // Apply same large time offset as chart data for consistency
-        if (index > 0) {
-          const prevCandle = sortedData[index - 1];
-          const prevDate = new Date(prevCandle.time * 1000);
-          const currDate = new Date(candle.time * 1000);
-          
-          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
-          
-          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
-            candleTime = candle.time + 64800; // 18 hours gap
-          }
-        }
-        
-        return {
-          time: candleTime as any,
-          value: candle.volume || 0,
-          color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-        };
-      });
+      const volumeData = sortedData.map((candle: any) => ({
+        time: candle.time as any,
+        value: candle.volume || 0,
+        color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+      }));
       volumeSeries.setData(volumeData);
 
       const closePrices = sortedData.map((c: any) => c.close);
       const ema12 = calculateEMA(closePrices, 12);
       const ema26 = calculateEMA(closePrices, 26);
 
-      const ema12Data = ema12.map((value, index) => {
-        const sourceIndex = index + 11;
-        if (sourceIndex >= sortedData.length) return null;
-        
-        let candleTime = sortedData[sourceIndex].time;
-        
-        // Apply large time offset for new trading days
-        if (sourceIndex > 0) {
-          const prevCandle = sortedData[sourceIndex - 1];
-          const prevDate = new Date(prevCandle.time * 1000);
-          const currDate = new Date(candleTime * 1000);
-          
-          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
-          
-          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
-            candleTime = candleTime + 64800; // 18 hours gap
-          }
-        }
-        
-        return { time: candleTime as any, value };
-      }).filter(d => d !== null);
+      const ema12Data = ema12.map((value, index) => ({
+        time: sortedData[index + 11]?.time as any,
+        value: value,
+      })).filter(d => d.time);
 
-      const ema26Data = ema26.map((value, index) => {
-        const sourceIndex = index + 25;
-        if (sourceIndex >= sortedData.length) return null;
-        
-        let candleTime = sortedData[sourceIndex].time;
-        
-        // Apply large time offset for new trading days
-        if (sourceIndex > 0) {
-          const prevCandle = sortedData[sourceIndex - 1];
-          const prevDate = new Date(prevCandle.time * 1000);
-          const currDate = new Date(candleTime * 1000);
-          
-          const prevDateOnly = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate());
-          const currDateOnly = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate());
-          
-          if (prevDateOnly.getTime() !== currDateOnly.getTime()) {
-            candleTime = candleTime + 64800; // 18 hours gap
-          }
-        }
-        
-        return { time: candleTime as any, value };
-      }).filter(d => d !== null);
+      const ema26Data = ema26.map((value, index) => ({
+        time: sortedData[index + 25]?.time as any,
+        value: value,
+      })).filter(d => d.time);
 
       if (ema12Data.length > 0) {
         ema12Series.setData(ema12Data);

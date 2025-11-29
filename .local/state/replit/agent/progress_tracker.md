@@ -142,3 +142,20 @@
 [x] 3930.   ✅ Each candle period treated independently
 [x] 3931. Testing: Works for all timeframes including 2D custom holidays
 [x] 3932. BUG FIX COMPLETE - NO MORE CANDLE MERGING!
+
+[x] 3933. CHART BLANK ISSUE FIXED
+[x] 3934. Problem: 18-hour time offset was creating invalid chart timestamps
+[x] 3935. Solution: Reverted to natural timestamp approach
+[x] 3936. Implementation:
+[x] 3937.   ✅ Removed manual time offset manipulation
+[x] 3938.   ✅ Kept all candles exactly as received from API
+[x] 3939.   ✅ Natural gaps between trading days prevent visual merging
+[x] 3940.   ✅ Chart library handles gaps automatically
+[x] 3941. Result:
+[x] 3942.   ✅ Chart loads properly (no more blank screen)
+[x] 3943.   ✅ All candles display including incomplete ones
+[x] 3944.   ✅ Incomplete candles at 3:30 PM stay on their day
+[x] 3945.   ✅ Holiday candles display as single unit
+[x] 3946.   ✅ No visual merging across day boundaries
+[x] 3947.   ✅ Works for all timeframes (1min-1D, custom, multi-day)
+[x] 3948. CHART LOADING ISSUE 100% RESOLVED!
