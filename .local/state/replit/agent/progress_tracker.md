@@ -693,6 +693,28 @@
 [x] 4192.   ✅ 1440min (1D) → combine every 1440 candles
 [x] 4193. Status: ✅ FINAL - ZERO hardcoded maps, pure numeric universal system!
 
+[x] 4194. DEEP BUG FIXES - All Hardcoded Timeframe Issues Fixed:
+[x] 4195. Critical bugs found and fixed:
+[x] 4196.   BUG #1: `getJournalTimeframeMinutes()` still had `.endsWith('D'/'W'/'M')`
+[x] 4197.   ✅ FIXED: Now pure `parseInt(value)` - no string checks
+[x] 4198.   BUG #2: `isDayOrHigher` checked `.endsWith('D')` on numeric values
+[x] 4199.   ✅ FIXED: Now numeric comparison `>= 1440`
+[x] 4200.   BUG #3: SSE URLs had hardcoded interval=60
+[x] 4201.   ✅ VERIFIED: Correct - 60 seconds = 1 minute live stream
+[x] 4202. COMPLETE VERIFICATION:
+[x] 4203.   ✅ 0 remaining `.endsWith()` checks for timeframes
+[x] 4204.   ✅ 0 hardcoded interval maps
+[x] 4205.   ✅ 100% pure numeric flow: Frontend→Backend→Aggregation
+[x] 4206. FINAL WORKING FLOW:
+[x] 4207.   1. User selects 20min in Journal tab
+[x] 4208.   2. Frontend: 20 → sends "20" to backend
+[x] 4209.   3. Backend: parseInt("20") = 20 minutes
+[x] 4210.   4. Fetch 1-minute candles from Angel One API
+[x] 4211.   5. Combine every 20 consecutive candles → 1 aggregated candle
+[x] 4212.   6. Return pre-aggregated 20-minute chart to frontend
+[x] 4213.   7. Frontend displays 20-minute candles ✅
+[x] 4214. Status: ✅ ALL BUGS FIXED - Pure numeric universal aggregation system!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)

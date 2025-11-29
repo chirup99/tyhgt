@@ -3962,7 +3962,8 @@ ${
     setPaperTradePriceLoading(true);
     try {
       // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
-      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
+      // 🔶 Use 1-minute interval for live price stream (aggregation happens on display)
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`; // 60 seconds = 1 minute
       
       console.log(`📊 [PAPER-TRADE-PRICE] Subscribing to live price stream`);
       console.log(`  URL: ${sseUrl}`);
@@ -4219,8 +4220,8 @@ ${
       const symbolToken = (position as any).symbolToken || "0";
       const exchange = (position as any).exchange || "NSE";
       
-      // Create SSE connection for this symbol (same endpoint as journal chart)
-      const sseUrl = `/api/angelone/live-stream-ws?symbol=${position.symbol}&symbolToken=${symbolToken}&exchange=${exchange}&tradingSymbol=${position.symbol}&interval=60`;
+      // 🔶 Use 1-minute interval for live price stream (aggregation happens on display)
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${position.symbol}&symbolToken=${symbolToken}&exchange=${exchange}&tradingSymbol=${position.symbol}&interval=60`; // 60 seconds = 1 minute
       
       console.log(`📡 [PAPER-TRADING] Subscribing to ${position.symbol} live stream`);
       
@@ -4792,12 +4793,9 @@ ${
     }
   };
 
+  // 🔶 PURE NUMERIC: Just parse as integer (no more .endsWith checks!)
   const getJournalTimeframeMinutes = (value: string): number => {
-    if (value === '1D') return 1440;
-    if (value.endsWith('D')) return parseInt(value) * 1440;
-    if (value.endsWith('W')) return parseInt(value) * 10080;
-    if (value.endsWith('M')) return parseInt(value) * 43200;
-    return parseInt(value) || 0;
+    return parseInt(value) || 1; // Already converted by getJournalAngelOneInterval()
   };
 
   const deleteJournalTimeframe = (valueToDelete: string) => {
@@ -4966,7 +4964,9 @@ ${
       let fromDate = fromDateOnly;
       let toDate = today;
       
-      const isDayOrHigher = selectedJournalInterval.endsWith('D') || selectedJournalInterval.endsWith('W') || selectedJournalInterval.endsWith('M');
+      // 🔶 Check if timeframe is day or higher (numeric: 1440=1D, 10080=1W, 43200=1M)
+      const timeframeMinutes = parseInt(selectedJournalInterval);
+      const isDayOrHigher = timeframeMinutes >= 1440; // 1440 minutes = 1 day
       
       if (!isDayOrHigher) {
         const exchange = stockToken.exchange.toUpperCase();
