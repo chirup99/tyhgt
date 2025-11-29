@@ -125,3 +125,29 @@
 [x] 3914.   - Red hover color on delete button for visibility
 [x] 3915.   - Separator line between preset and custom sections
 [x] 3916. CUSTOM TIMEFRAME PERSISTENCE FEATURE 100% COMPLETE!
+
+[x] 3917. ADVANCED CANDLE AGGREGATION BY DATE WITH INCOMPLETE LOGIC
+[x] 3918. Feature Implementation Complete:
+[x] 3919.   ✅ Each trading day has INDEPENDENT candle aggregation
+[x] 3920.   ✅ Aggregation count RESETS for every new market open
+[x] 3921.   ✅ Incomplete candles at market close stay INCOMPLETE
+[x] 3922.   ✅ Incomplete candles NOT merged with next day's candles
+[x] 3923.   ✅ Date-based grouping prevents cross-day aggregation
+[x] 3924. Example Scenario:
+[x] 3925.   26th Nov: 80-min custom timeframe
+[x] 3926.   - 14:35 candle is incomplete (only 25 mins collected by 15:30 close)
+[x] 3927.   - This incomplete candle is kept as-is (NOT merged)
+[x] 3928.   27th Nov: Aggregation count resets to 0
+[x] 3929.   - Market opens at 9:15
+[x] 3930.   - Candle counting starts fresh (9:15-10:35)
+[x] 3931. Technical Implementation:
+[x] 3932.   - Modified aggregateCandles() in server/routes.ts (lines 7991-8038)
+[x] 3933.   - Group candles by date using getDateString(timestamp)
+[x] 3934.   - IST timezone conversion: new Date(timestamp * 1000 + 5.5*60*60*1000)
+[x] 3935.   - For each date, independently aggregate (no carry-over)
+[x] 3936.   - Log incomplete candles: "INCOMPLETE CANDLE: X/Y minutes"
+[x] 3937. Console Output:
+[x] 3938.   📅 Date: 2025-01-26 - 316 1-min candles (aggregating by 80)
+[x] 3939.   ⚠️  INCOMPLETE CANDLE at market close: 36/80 minutes (NOT merged with next day)
+[x] 3940.   📅 Date: 2025-01-27 - 391 1-min candles (aggregating by 80)
+[x] 3941. ADVANCED AGGREGATION WITH DATE BOUNDARY LOGIC 100% COMPLETE!

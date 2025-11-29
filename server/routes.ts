@@ -7991,12 +7991,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const aggregated: Candle[] = [];
+    
+    // 🔶 Helper to get date string from timestamp (IST timezone)
+    const getDateString = (timestamp: number): string => {
+      const date = new Date(timestamp * 1000);
+      // Convert to IST by adding 5.5 hours
+      const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+      return istDate.toISOString().split('T')[0]; // YYYY-MM-DD in IST
+    };
 
-    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
-    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
-      const group = oneMinCandles.slice(i, i + candleCount);
-      if (group.length > 0) {
-        aggregated.push(aggregateGroup(group, group[0].timestamp));
+    // 🔶 Group candles by trading date
+    const candlesByDate: { [date: string]: Candle[] } = {};
+    
+    for (const candle of oneMinCandles) {
+      const dateStr = getDateString(candle.timestamp);
+      if (!candlesByDate[dateStr]) {
+        candlesByDate[dateStr] = [];
+      }
+      candlesByDate[dateStr].push(candle);
+    }
+
+    // 🔶 For each DATE, independently aggregate candles (count resets per day)
+    for (const dateStr of Object.keys(candlesByDate).sort()) {
+      const dailyCandles = candlesByDate[dateStr];
+      console.log(`📅 Date: ${dateStr} - ${dailyCandles.length} 1-min candles (aggregating by ${candleCount})`);
+      
+      // Aggregate ONLY within this date (incomplete candles stay incomplete, no carry-over)
+      for (let i = 0; i < dailyCandles.length; i += candleCount) {
+        const group = dailyCandles.slice(i, i + candleCount);
+        if (group.length > 0) {
+          const isIncomplete = group.length < candleCount;
+          const aggregatedCandle = aggregateGroup(group, group[0].timestamp);
+          aggregated.push(aggregatedCandle);
+          
+          if (isIncomplete) {
+            console.log(`  ⚠️  INCOMPLETE CANDLE at market close: ${group.length}/${candleCount} minutes (NOT merged with next day)`);
+          }
+        }
       }
     }
 
