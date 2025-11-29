@@ -4973,39 +4973,51 @@ ${
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       
-      // 🔶 Fetch 10 TRADING DAYS of data (real-time, not month-old history)
-      // Calculate 10 trading days back (skip weekends)
-      const tenDaysAgo = new Date(now);
-      let tradingDaysCount = 0;
-      while (tradingDaysCount < 10) {
-        tenDaysAgo.setDate(tenDaysAgo.getDate() - 1);
-        const dayOfWeek = tenDaysAgo.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
-          tradingDaysCount++;
+      let fromDate: string;
+      let toDate: string;
+      
+      // ✅ CHECK IF HEATMAP DATE IS SELECTED - Use that date instead of 10 days
+      if (selectedJournalDate && selectedJournalDate !== today) {
+        console.log(`📅 USING SELECTED HEATMAP DATE: ${selectedJournalDate}`);
+        fromDate = selectedJournalDate;
+        toDate = selectedJournalDate;
+      } else {
+        // Fallback: Fetch 10 TRADING DAYS of data (real-time)
+        console.log(`📅 USING LAST 10 TRADING DAYS (no specific date selected)`);
+        
+        // Calculate 10 trading days back (skip weekends)
+        const tenDaysAgo = new Date(now);
+        let tradingDaysCount = 0;
+        while (tradingDaysCount < 10) {
+          tenDaysAgo.setDate(tenDaysAgo.getDate() - 1);
+          const dayOfWeek = tenDaysAgo.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
+            tradingDaysCount++;
+          }
         }
+        
+        const fromDateOnly = tenDaysAgo.toISOString().split('T')[0];
+        
+        // Check if today is market open (for toDate)
+        const dayOfWeek = now.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const marketOpenHour = 9; // Market opens at 9:15 AM
+        const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
+        
+        let endDate = today;
+        if (isMarketClosed) {
+          // Get last trading day (skip weekends)
+          const lastDay = new Date(now);
+          lastDay.setDate(lastDay.getDate() - 1);
+          // If we landed on weekend, skip back one more day
+          if (lastDay.getDay() === 0) lastDay.setDate(lastDay.getDate() - 1); // Sunday → Friday
+          if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 1); // Saturday → Friday
+          endDate = lastDay.toISOString().split('T')[0];
+        }
+        
+        fromDate = fromDateOnly;
+        toDate = endDate;
       }
-      
-      const fromDateOnly = tenDaysAgo.toISOString().split('T')[0];
-      
-      // Check if today is market open (for toDate)
-      const dayOfWeek = now.getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const marketOpenHour = 9; // Market opens at 9:15 AM
-      const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
-      
-      let endDate = today;
-      if (isMarketClosed) {
-        // Get last trading day (skip weekends)
-        const lastDay = new Date(now);
-        lastDay.setDate(lastDay.getDate() - 1);
-        // If we landed on weekend, skip back one more day
-        if (lastDay.getDay() === 0) lastDay.setDate(lastDay.getDate() - 1); // Sunday → Friday
-        if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 1); // Saturday → Friday
-        endDate = lastDay.toISOString().split('T')[0];
-      }
-      
-      let fromDate = fromDateOnly;
-      let toDate = endDate;
       
       // 🔶 Exchange-specific trading hours
       const exchange = stockToken.exchange.toUpperCase();
