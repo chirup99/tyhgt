@@ -175,6 +175,7 @@ import {
   Radar,
   Loader2,
   RefreshCcw,
+  RefreshCw,
   MoreVertical,
   ChevronsUpDown,
 } from "lucide-react";
@@ -4613,6 +4614,27 @@ ${
   const [selectedJournalDate, setSelectedJournalDate] = useState("2025-09-12");
   const [journalChartData, setJournalChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   const [journalChartLoading, setJournalChartLoading] = useState(false);
+  const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
+  const [showJournalTimeframeDropdown, setShowJournalTimeframeDropdown] = useState(false);
+  
+  // Journal chart timeframe options (same as Trading Master OHLC window)
+  const journalTimeframeOptions = [
+    { value: '1', label: '1min' },
+    { value: '3', label: '3min' },
+    { value: '5', label: '5min' },
+    { value: '10', label: '10min' },
+    { value: '15', label: '15min' },
+    { value: '30', label: '30min' },
+    { value: '60', label: '1hr' },
+    { value: '120', label: '2hr' },
+    { value: '1D', label: '1D' },
+  ];
+  
+  // Get label for current timeframe
+  const getJournalTimeframeLabel = (value: string) => {
+    const tf = journalTimeframeOptions.find(t => t.value === value);
+    return tf ? tf.label : value;
+  };
   
   // Default popular instruments for each category (pre-populated)
   // Note: Only stocks and indices have stable tokens. Commodity/F&O tokens change with contract expiry.
@@ -5009,10 +5031,10 @@ ${
       
       console.log(`🔶 10-DAY DATA: Fetching last 10 trading days: ${fromDate} to ${toDate}`);
       
-      // 🔶 ALWAYS fetch 1-minute data
-      const interval = "1";
+      // 🔶 Use selected timeframe from dropdown
+      const interval = journalChartTimeframe;
       
-      console.log(`✅ FETCHING 1-MINUTE DATA: interval="${interval}"`);
+      console.log(`✅ FETCHING ${getJournalTimeframeLabel(interval)} DATA: interval="${interval}"`);
       
       const requestBody = {
         exchange: stockToken.exchange,
@@ -10932,29 +10954,62 @@ ${
                                   </PopoverContent>
                                 </Popover>
 
-                                {/* 🔶 Fetch 1-min Data Button */}
-                                <Button
-                                  onClick={() => {
-                                    console.log(`🔶 FETCHING 1-MINUTE DATA`);
-                                    fetchJournalChartData();
-                                  }}
-                                  disabled={journalChartLoading}
-                                  variant="outline"
-                                  className="h-8 px-3 text-xs"
-                                  data-testid="button-fetch-journal-chart"
-                                >
-                                  {journalChartLoading ? (
-                                    <>
-                                      <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-1" />
-                                      Loading 1min...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <BarChart3 className="w-3 h-3 mr-1" />
-                                      Load 1min
-                                    </>
-                                  )}
-                                </Button>
+                                {/* 🔶 Timeframe Dropdown + Fetch Button (like Trading Master OHLC) */}
+                                <div className="flex items-center gap-1">
+                                  <Popover open={showJournalTimeframeDropdown} onOpenChange={setShowJournalTimeframeDropdown}>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className="h-8 px-2 text-xs min-w-[60px] justify-between"
+                                        data-testid="button-journal-timeframe-dropdown"
+                                      >
+                                        <span>{getJournalTimeframeLabel(journalChartTimeframe)}</span>
+                                        <ChevronDown className="w-3 h-3 ml-1" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-32 p-1 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
+                                      <div className="grid gap-0.5">
+                                        {journalTimeframeOptions.map((tf) => (
+                                          <button 
+                                            key={tf.value}
+                                            className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                                              journalChartTimeframe === tf.value 
+                                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium' 
+                                                : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                            }`}
+                                            onClick={() => {
+                                              setJournalChartTimeframe(tf.value);
+                                              setShowJournalTimeframeDropdown(false);
+                                            }}
+                                            data-testid={`timeframe-option-${tf.value}`}
+                                          >
+                                            {tf.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                  
+                                  {/* Fetch Button with Icon */}
+                                  <Button
+                                    onClick={() => {
+                                      console.log(`🔶 FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA`);
+                                      fetchJournalChartData();
+                                    }}
+                                    disabled={journalChartLoading}
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    title={`Fetch ${getJournalTimeframeLabel(journalChartTimeframe)} chart data`}
+                                    data-testid="button-fetch-journal-chart"
+                                  >
+                                    {journalChartLoading ? (
+                                      <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <RefreshCw className="w-3.5 h-3.5" />
+                                    )}
+                                  </Button>
+                                </div>
                               </div>
                             </div>
 
@@ -10968,7 +11023,7 @@ ${
                                       <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-orange-500 border-r-orange-500 rounded-full animate-spin" />
                                     </div>
                                     <div className="text-center">
-                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Loading chart data...</p>
+                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Loading {getJournalTimeframeLabel(journalChartTimeframe)} chart...</p>
                                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching candles from Angel One API</p>
                                     </div>
                                   </div>

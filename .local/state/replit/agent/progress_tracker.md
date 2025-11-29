@@ -1095,3 +1095,32 @@ Implementation Date: November 28, 2025
 [x] 3742.   - All progress tracker items marked as complete [x]
 [x] 3743.   - Import marked as complete using complete_project_import tool
 [x] 3744. FINAL REPLIT ENVIRONMENT IMPORT 100% COMPLETE!
+
+[x] 3745. NOVEMBER 29, 2025 - JOURNAL CHART CUSTOM TIMEFRAME DROPDOWN
+[x] 3746. Task: Add custom timeframe dropdown to Journal chart (like Trading Master OHLC window)
+[x] 3747. User request:
+[x] 3748.   - Remove "Load 1min" auto-fetch button
+[x] 3749.   - Add custom timeframe dropdown with fetch icon (like Trading Master OHLC window)
+[x] 3750.   - Use same code pattern from working Trading Master implementation
+[x] 3751. Solution implemented:
+[x] 3752.   1. Added new state variables:
+[x] 3753.      - journalChartTimeframe: Current selected timeframe (default: '1')
+[x] 3754.      - showJournalTimeframeDropdown: Popover open state
+[x] 3755.   2. Added journalTimeframeOptions array with 9 timeframes:
+[x] 3756.      - 1min, 3min, 5min, 10min, 15min, 30min, 1hr, 2hr, 1D
+[x] 3757.   3. Created getJournalTimeframeLabel helper function
+[x] 3758.   4. Updated fetchJournalChartData to use selected timeframe
+[x] 3759.   5. Replaced "Load 1min" button with:
+[x] 3760.      - Timeframe dropdown (Popover with selectable options)
+[x] 3761.      - Fetch button with RefreshCw icon
+[x] 3762.   6. Updated loading indicator to show selected timeframe
+[x] 3763.   7. Added RefreshCw to lucide-react imports
+[x] 3764. Files modified:
+[x] 3765.   - client/src/pages/home.tsx
+[x] 3766. Features:
+[x] 3767.   - Dropdown shows all 9 timeframe options
+[x] 3768.   - Selected timeframe highlighted in blue
+[x] 3769.   - Fetch button with refresh icon to load data
+[x] 3770.   - Loading indicator shows selected timeframe
+[x] 3771.   - Works with all exchanges (NSE, BSE, MCX, NCDEX, NFO, BFO)
+[x] 3772. JOURNAL CHART CUSTOM TIMEFRAME DROPDOWN 100% COMPLETE!
