@@ -7991,43 +7991,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const aggregated: Candle[] = [];
-    
-    // 🔶 Helper to extract DATE from timestamp (get just YYYY-MM-DD)
-    const getDateString = (timestamp: number): string => {
-      // timestamp is in Unix seconds
-      const date = new Date(timestamp * 1000); // Convert to milliseconds
-      // Use UTC date (Angel One uses UTC internally)
-      return date.toISOString().split('T')[0]; // YYYY-MM-DD
-    };
 
-    // 🔶 Group candles by trading date first
-    const candlesByDate: { [date: string]: Candle[] } = {};
-    
-    for (const candle of oneMinCandles) {
-      const dateStr = getDateString(candle.timestamp);
-      if (!candlesByDate[dateStr]) {
-        candlesByDate[dateStr] = [];
-      }
-      candlesByDate[dateStr].push(candle);
-    }
-
-    // 🔶 For EACH DATE, reset aggregation count and combine N candles
-    for (const dateStr of Object.keys(candlesByDate).sort()) {
-      const dailyCandles = candlesByDate[dateStr];
-      console.log(`📅 Date: ${dateStr} - ${dailyCandles.length} 1-min candles (aggregating by ${candleCount})`);
-      
-      // 🔶 EXISTING COMBINING LOGIC: Keep the N-candle combining loop per date
-      for (let i = 0; i < dailyCandles.length; i += candleCount) {
-        const group = dailyCandles.slice(i, i + candleCount);
-        if (group.length > 0) {
-          const isIncomplete = group.length < candleCount;
-          const aggregatedCandle = aggregateGroup(group, group[0].timestamp);
-          aggregated.push(aggregatedCandle);
-          
-          if (isIncomplete) {
-            console.log(`  ⚠️  INCOMPLETE: ${group.length}/${candleCount}min (market close - NOT merged to next day)`);
-          }
-        }
+    // 🔧 Option 2: Combine every N consecutive 1-minute candles into 1 aggregated candle
+    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
+      const group = oneMinCandles.slice(i, i + candleCount);
+      if (group.length > 0) {
+        aggregated.push(aggregateGroup(group, group[0].timestamp));
       }
     }
 
