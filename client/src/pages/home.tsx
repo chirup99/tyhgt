@@ -5082,10 +5082,7 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalInterval, selectedJournalDate]);
 
-  // Load initial chart data
-  useEffect(() => {
-    fetchJournalChartData();
-  }, [fetchJournalChartData]);
+  // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
@@ -10971,6 +10968,30 @@ ${
                                     </div>
                                   </PopoverContent>
                                 </Popover>
+
+                                {/* 🔶 Manual Fetch Button - Fetches using SELECTED timeframe */}
+                                <Button
+                                  onClick={() => {
+                                    console.log(`🔶 MANUAL FETCH clicked - Using selected interval: ${selectedJournalInterval}min`);
+                                    fetchJournalChartData();
+                                  }}
+                                  disabled={journalChartLoading}
+                                  variant="outline"
+                                  className="h-8 px-3 text-xs"
+                                  data-testid="button-fetch-journal-chart"
+                                >
+                                  {journalChartLoading ? (
+                                    <>
+                                      <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-1" />
+                                      Fetching...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <BarChart3 className="w-3 h-3 mr-1" />
+                                      Fetch
+                                    </>
+                                  )}
+                                </Button>
                               </div>
                             </div>
 

@@ -715,6 +715,22 @@
 [x] 4213.   7. Frontend displays 20-minute candles ✅
 [x] 4214. Status: ✅ ALL BUGS FIXED - Pure numeric universal aggregation system!
 
+[x] 4215. ✅ MANUAL FETCH BUTTON IMPLEMENTATION:
+[x] 4216. Changes made:
+[x] 4217.   ✅ REMOVED auto-fetch useEffect (lines 5085-5088)
+[x] 4218.   ✅ ADDED manual "Fetch" button next to timeframe selector
+[x] 4219.   ✅ Button USES selectedJournalInterval (pure numeric)
+[x] 4220.   ✅ Disabled during loading with spinner
+[x] 4221.   ✅ Shows "Fetching..." state
+[x] 4222.   ✅ Added data-testid for testing
+[x] 4223. VERIFY FIX:
+[x] 4224.   ✅ User selects timeframe (e.g., 20min)
+[x] 4225.   ✅ User clicks "Fetch" button
+[x] 4226.   ✅ fetchJournalChartData() uses selectedJournalInterval
+[x] 4227.   ✅ Backend receives "20" → fetches 1-min → aggregates every 20
+[x] 4228.   ✅ Chart displays 20-minute candles ✅
+[x] 4229. Status: ✅ Manual fetch working - NO hardcoded intervals!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
