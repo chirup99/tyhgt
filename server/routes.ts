@@ -7992,50 +7992,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const aggregated: Candle[] = [];
 
-    // 🔧 Aggregate with day boundary awareness: don't combine candles across different trading days
-    for (let i = 0; i < oneMinCandles.length; i += candleCount) {
+    // 🔧 Simple aggregation with day boundary check - don't span trading days
+    let i = 0;
+    while (i < oneMinCandles.length) {
       const group = oneMinCandles.slice(i, i + candleCount);
       
-      // Check if this group spans multiple days (IST timezone)
+      // Check if this group spans multiple days (IST timezone: UTC+5:30)
       if (group.length > 1) {
-        const firstCandleDate = new Date(group[0].timestamp * 1000 + (330 * 60 * 1000));
-        const lastCandleDate = new Date(group[group.length - 1].timestamp * 1000 + (330 * 60 * 1000));
+        const firstDate = new Date(group[0].timestamp * 1000 + (330 * 60 * 1000));
+        const lastDate = new Date(group[group.length - 1].timestamp * 1000 + (330 * 60 * 1000));
         
-        const firstDateOnly = new Date(firstCandleDate.getFullYear(), firstCandleDate.getMonth(), firstCandleDate.getDate());
-        const lastDateOnly = new Date(lastCandleDate.getFullYear(), lastCandleDate.getMonth(), lastCandleDate.getDate());
+        const firstDay = new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate());
+        const lastDay = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
         
-        // If group spans days, split it into groups by day
-        if (firstDateOnly.getTime() !== lastDateOnly.getTime()) {
-          // Find the cutoff point where day changes
-          let dayIndex = 0;
+        // If spans days, find where day changes and stop there
+        if (firstDay.getTime() !== lastDay.getTime()) {
+          let splitIndex = group.length;
           for (let j = 0; j < group.length; j++) {
-            const candleDate = new Date(group[j].timestamp * 1000 + (330 * 60 * 1000));
-            const candleDateOnly = new Date(candleDate.getFullYear(), candleDate.getMonth(), candleDate.getDate());
-            
-            if (candleDateOnly.getTime() !== firstDateOnly.getTime()) {
-              dayIndex = j;
+            const candleDay = new Date(new Date(group[j].timestamp * 1000 + (330 * 60 * 1000)).getFullYear(),
+                                      new Date(group[j].timestamp * 1000 + (330 * 60 * 1000)).getMonth(),
+                                      new Date(group[j].timestamp * 1000 + (330 * 60 * 1000)).getDate());
+            if (candleDay.getTime() !== firstDay.getTime()) {
+              splitIndex = j;
               break;
             }
           }
           
-          // Aggregate first day's candles (incomplete group)
-          if (dayIndex > 0) {
-            aggregated.push(aggregateGroup(group.slice(0, dayIndex), group[0].timestamp));
+          // Aggregate only the candles from current day
+          if (splitIndex > 0) {
+            aggregated.push(aggregateGroup(group.slice(0, splitIndex), group[0].timestamp));
+            i += splitIndex;
+            continue;
           }
-          
-          // Recursively aggregate remaining candles
-          const remaining = group.slice(dayIndex);
-          const remainingAggregated = aggregateCandles(remaining, candleCount);
-          aggregated.push(...remainingAggregated);
-          
-          continue;
         }
       }
       
-      // All candles in group are on same day - aggregate normally
+      // Normal case: all candles same day - aggregate
       if (group.length > 0) {
         aggregated.push(aggregateGroup(group, group[0].timestamp));
       }
+      i += candleCount;
     }
 
     return aggregated;
