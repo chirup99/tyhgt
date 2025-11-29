@@ -8076,14 +8076,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Angel One - Get historical candle data (with backend aggregation for unsupported timeframes)
+  // Optional: if 'date' is provided, fetch only that date; otherwise use fromDate/toDate for last 10 days
   app.post("/api/angelone/historical", async (req, res) => {
     try {
-      const { exchange, symbolToken, interval, fromDate, toDate } = req.body;
+      const { exchange, symbolToken, interval, fromDate, toDate, date } = req.body;
       
-      if (!exchange || !symbolToken || !interval || !fromDate || !toDate) {
+      // If single date provided, use it for both from/to
+      let finalFromDate = fromDate;
+      let finalToDate = toDate;
+      
+      if (date) {
+        // User selected a specific date
+        finalFromDate = date;
+        finalToDate = date;
+        console.log(`📅 [DATE FILTER] Fetching candles for specific date: ${date}`);
+      } else if (!fromDate || !toDate) {
         return res.status(400).json({ 
           success: false,
-          message: "exchange, symbolToken, interval, fromDate, and toDate are required" 
+          message: "Either 'date' or both 'fromDate' and 'toDate' are required" 
+        });
+      }
+      
+      if (!exchange || !symbolToken || !interval) {
+        return res.status(400).json({ 
+          success: false,
+          message: "exchange, symbolToken, and interval are required" 
         });
       }
 
@@ -8098,8 +8115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ✅ UNIVERSAL APPROACH: ALWAYS fetch 1-minute candles and aggregate by N minutes
       try {
-        console.log(`📊 Fetching 1-minute candles (will aggregate to ${minutesForInterval} minutes)`);
-        const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
+        console.log(`📊 Fetching 1-minute candles from ${finalFromDate} to ${finalToDate} (will aggregate to ${minutesForInterval} minutes)`);
+        const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', finalFromDate, finalToDate);
         
         // If already 1-minute, return as-is
         if (minutesForInterval === 1) {

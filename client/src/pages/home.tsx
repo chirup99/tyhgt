@@ -1889,6 +1889,9 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState("");
   const [isSearchLoading, setIsSearchLoading] = useState(false);
 
+  // 📅 Journal chart date selection state
+  const [journalSelectedDate, setJournalSelectedDate] = useState<string>("");
+
   // Trending podcasts state
   const [selectedSector, setSelectedSector] = useState<string>("FINANCE");
   const [trendingPodcasts, setTrendingPodcasts] = useState<any[]>([]);
@@ -5030,13 +5033,19 @@ ${
       
       console.log(`✅ FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA: interval="${interval}" (${journalChartTimeframe})`);
       
-      const requestBody = {
+      const requestBody: any = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
         fromDate: fromDate,
         toDate: toDate,
       };
+
+      // 📅 If user selected a specific date, add it to the request (backend will use it instead of fromDate/toDate)
+      if (journalSelectedDate) {
+        requestBody.date = journalSelectedDate;
+        console.log(`📅 [DATE FILTER] Fetching candles for specific date: ${journalSelectedDate}`);
+      }
 
       console.log(`✅ API REQUEST:`, requestBody);
 
@@ -11095,17 +11104,42 @@ ${
                                     </PopoverContent>
                                   </Popover>
                                   
+                                  {/* 📅 Date Picker */}
+                                  <input
+                                    type="date"
+                                    value={journalSelectedDate}
+                                    onChange={(e) => setJournalSelectedDate(e.target.value)}
+                                    className="h-8 px-2 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                    title={journalSelectedDate ? `Fetch candles for ${journalSelectedDate}` : 'Select date or leave empty for last 10 days'}
+                                    data-testid="input-journal-date-picker"
+                                  />
+
+                                  {/* Clear Date Button */}
+                                  {journalSelectedDate && (
+                                    <Button
+                                      onClick={() => setJournalSelectedDate("")}
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      title="Clear date filter (show last 10 days)"
+                                      data-testid="button-clear-journal-date"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+
                                   {/* Fetch Button with Icon */}
                                   <Button
                                     onClick={() => {
-                                      console.log(`🔶 FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA with state:`, { journalChartTimeframe, currentState: journalChartTimeframe });
+                                      const dateLabel = journalSelectedDate ? journalSelectedDate : "last 10 days";
+                                      console.log(`🔶 FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA for ${dateLabel}`, { journalChartTimeframe, journalSelectedDate });
                                       fetchJournalChartData();
                                     }}
                                     disabled={journalChartLoading}
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    title={`Fetch ${getJournalTimeframeLabel(journalChartTimeframe)} chart data`}
+                                    title={`Fetch ${getJournalTimeframeLabel(journalChartTimeframe)} chart data${journalSelectedDate ? ` for ${journalSelectedDate}` : ' (last 10 days)'}`}
                                     data-testid="button-fetch-journal-chart"
                                   >
                                     {journalChartLoading ? (
