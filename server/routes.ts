@@ -8066,15 +8066,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // 🔧 Check if this is an unsupported interval that needs aggregation
-      const unsupportedIntervals: { [key: string]: number } = {
+      // 🔧 Convert ANY interval to candle count (minutes)
+      const intervalToMinutes: { [key: string]: number } = {
+        'ONE_MINUTE': 1,
+        'THREE_MINUTE': 3,
+        'FIVE_MINUTE': 5,
+        'TEN_MINUTE': 10,
+        'FIFTEEN_MINUTE': 15,
         'TWENTY_MINUTE': 20,
+        'THIRTY_MINUTE': 30,
         'FORTY_MINUTE': 40,
+        'ONE_HOUR': 60,
         'EIGHTY_MINUTE': 80,
-        'TWO_HOUR': 120
+        'TWO_HOUR': 120,
+        'ONE_DAY': 1440,
+        'ONE_WEEK': 10080,
+        'ONE_MONTH': 43200
       };
 
-      const aggregationMinutes = unsupportedIntervals[interval];
+      const minutesForInterval = intervalToMinutes[interval];
 
       // Always try to fetch real historical data from Angel One API
       // even if not connected - the API can return historical data without active connection
@@ -8082,16 +8092,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let candles;
         let source = 'angel_one_api';
 
-        if (aggregationMinutes) {
+        if (interval === 'ONE_MINUTE') {
+          // ✅ FETCH DIRECTLY: Only 1-minute data from API
+          console.log(`📊 Fetching 1-minute candles directly from Angel One API`);
+          candles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
+          source = 'angel_one_api_one_minute';
+          console.log(`✅ Fetched ${candles.length} 1-minute candles`);
+        } else if (minutesForInterval) {
           // 🔧 BACKEND AGGREGATION: Fetch 1-minute data and aggregate by candle count
-          console.log(`🔧 Combining ${aggregationMinutes} consecutive 1-minute candles for ${interval}`);
+          console.log(`🔧 Combining ${minutesForInterval} consecutive 1-minute candles for ${interval}`);
           const oneMinCandles = await angelOneApi.getCandleData(exchange, symbolToken, 'ONE_MINUTE', fromDate, toDate);
-          candles = aggregateCandles(oneMinCandles, aggregationMinutes);
-          source = `angel_one_api_aggregated_${aggregationMinutes}candles`;
-          console.log(`✅ Combined ${oneMinCandles.length} 1-min candles → ${candles.length} aggregated candles (every ${aggregationMinutes} candles)`);
+          candles = aggregateCandles(oneMinCandles, minutesForInterval);
+          source = `angel_one_api_aggregated_${minutesForInterval}candles`;
+          console.log(`✅ Combined ${oneMinCandles.length} 1-min candles → ${candles.length} aggregated candles (every ${minutesForInterval} candles)`);
         } else {
-          // Standard supported interval - fetch directly
-          candles = await angelOneApi.getCandleData(exchange, symbolToken, interval, fromDate, toDate);
+          // Unknown interval
+          return res.status(400).json({ 
+            success: false,
+            message: `Unknown interval: ${interval}. Supported intervals: ${Object.keys(intervalToMinutes).join(', ')}`
+          });
         }
 
         res.json({ 
