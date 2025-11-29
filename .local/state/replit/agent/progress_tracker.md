@@ -125,3 +125,31 @@
 [x] 3914.   - Red hover color on delete button for visibility
 [x] 3915.   - Separator line between preset and custom sections
 [x] 3916. CUSTOM TIMEFRAME PERSISTENCE FEATURE 100% COMPLETE!
+
+[x] 3917. CRITICAL FIX: PER-DATE CANDLE AGGREGATION RESET
+[x] 3918. Issue Identified:
+[x] 3919.   ❌ Aggregation was NOT resetting count at market close
+[x] 3920.   ❌ If 80-min timeframe: incomplete candle from day 26 (14:35-15:30)
+[x] 3921.   ❌ Was merging with day 27 candles (continuing count)
+[x] 3922. Solution Implemented (server/routes.ts):
+[x] 3923.   ✅ New aggregateCandles() function groups by DATE first
+[x] 3924.   ✅ Added aggregateCandlesByDate() - resets count for each day
+[x] 3925.   ✅ Incomplete candles stay incomplete (not merged to next day)
+[x] 3926.   ✅ Added getDateString() helper to extract date from timestamp
+[x] 3927. Logic Flow:
+[x] 3928.   1. Get 1-min candles from API (multi-day data)
+[x] 3929.   2. Group by date (e.g., 2025-01-26, 2025-01-27)
+[x] 3930.   3. For each date:
+[x] 3931.      - Reset count to 1 (market open)
+[x] 3932.      - Group N consecutive 1-min candles
+[x] 3933.      - At market close: incomplete group stays incomplete
+[x] 3934.   4. Next date starts fresh (count=1 again)
+[x] 3935. Example (80-min timeframe):
+[x] 3936.   26th: 9:15 - creates 80-min candle
+[x] 3937.        14:35 - incomplete candle (only ~75 min before close)
+[x] 3938.        ⚠️ STAYS INCOMPLETE (not merged)
+[x] 3939.   27th: 9:15 - NEW count resets, starts fresh 80-min grouping
+[x] 3940. Incomplete Marker:
+[x] 3941.   - Console shows: "⚠️ INCOMPLETE CANDLE: Only 65/80 candles"
+[x] 3942.   - Helps identify end-of-day incomplete candles
+[x] 3943. PER-DATE AGGREGATION RESET COMPLETE!
