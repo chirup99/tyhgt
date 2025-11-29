@@ -403,6 +403,35 @@
 [x] 3825. Status: ✅ COMPLETE - Journal chart now loads last month of historical data
 [x] 3826. JOURNAL CHART HISTORICAL DATA FEATURE 100% COMPLETE!
 
+[x] 3827. NOVEMBER 29, 2025 - CRITICAL BUG FIX: JOURNAL CHART SHOWING MOCK DATA
+[x] 3828. Task: Fix journal chart displaying fake data instead of real historical data
+[x] 3829. Problem identified by user:
+[x] 3830.   - Chart was NOT fetching last month data
+[x] 3831.   - Showing old data with today's date (market is closed)
+[x] 3832.   - Only displaying 50 fake candles
+[x] 3833. Root cause found in server logs:
+[x] 3834.   - Frontend requests historical data from 2025-10-29 to 2025-11-29 (correct!)
+[x] 3835.   - Server detects Angel One not yet authenticated
+[x] 3836.   - Server returns 50 mock/theoretical candles instead of real data
+[x] 3837.   - User sees fake data with timestamps relative to "now"
+[x] 3838. Fix applied to server/routes.ts (line 8033-8050):
+[x] 3839.   - Removed mock data generation logic
+[x] 3840.   - Always try to fetch real historical data from Angel One API
+[x] 3841.   - Return HTTP 503 error when Angel One not authenticated
+[x] 3842.   - Error message: "Angel One API error: Not authenticated"
+[x] 3843. Current behavior after fix:
+[x] 3844.   - ✅ No more fake/mock data returned
+[x] 3845.   - ✅ Proper error when not authenticated (503 status)
+[x] 3846.   - ⚠️ Frontend needs to handle error and retry after authentication
+[x] 3847. Next steps needed:
+[x] 3848.   - Frontend should retry fetching when Angel One connects
+[x] 3849.   - OR show loading state until authentication completes
+[x] 3850.   - OR trigger refetch when Angel One status changes to connected
+[x] 3851. Files modified:
+[x] 3852.   - server/routes.ts (lines 8033-8050) - removed mock data, return proper errors
+[x] 3853. Status: ✅ PARTIAL - Mock data removed, now returns proper errors
+[x] 3854. CRITICAL MOCK DATA BUG FIX 50% COMPLETE! (Server fixed, frontend retry needed)
+
 [x] 3618. Fix: Journal Chart Candle OHLC Tracking & Interval Handling
   - Issue 1: OHL values were incorrect (showing day's OHL instead of current candle's OHL)
   - Issue 2: Hard-coded 15-minute interval caused wrong candle boundaries for 1m/5m intervals

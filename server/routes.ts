@@ -8027,44 +8027,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (angelOneApi.isConnected()) {
+      // Always try to fetch real historical data from Angel One API
+      // even if not connected - the API can return historical data without active connection
+      try {
         const candles = await angelOneApi.getCandleData(exchange, symbolToken, interval, fromDate, toDate);
         res.json({ 
           success: true,
-          candles
+          candles,
+          source: 'angel_one_api'
         });
-      } else {
-        // Return mock/theoretical candles when not connected (for UI testing)
-        console.log('📊 Angel One not connected - returning theoretical candle data for chart preview');
-        console.log(`📊 Generating mock candles with interval: ${interval}`);
-        
-        const mockCandles = [];
-        const now = Math.floor(Date.now() / 1000);
-        const intervalSeconds = getIntervalInSeconds(interval); // Use actual interval, not hardcoded 900
-        let price = 75000; // Starting price
-        
-        // Generate more candles for daily/weekly intervals to show meaningful data
-        const candleCount = interval === 'ONE_DAY' ? 100 : (interval === 'ONE_HOUR' ? 72 : 50);
-        
-        for (let i = candleCount; i > 0; i--) {
-          const time = now - (i * intervalSeconds); // Use actual interval
-          const open = price;
-          const close = price + (Math.random() - 0.5) * 200;
-          mockCandles.push({
-            timestamp: time,
-            open: parseFloat(open.toFixed(2)),
-            high: parseFloat(Math.max(open, close, open + Math.random() * 150).toFixed(2)),
-            low: parseFloat(Math.min(open, close, open - Math.random() * 150).toFixed(2)),
-            close: parseFloat(close.toFixed(2)),
-            volume: Math.floor(Math.random() * 1000000) + 100000
-          });
-          price = close;
-        }
-        
-        console.log(`📊 Generated ${mockCandles.length} mock candles with ${intervalSeconds}s interval`);
-        res.json({ 
-          success: true,
-          candles: mockCandles
+      } catch (error: any) {
+        // If Angel One API fails, return error instead of mock data
+        console.error('❌ Failed to fetch historical data from Angel One:', error.message);
+        return res.status(503).json({ 
+          success: false,
+          message: `Angel One API error: ${error.message}`,
+          error: 'ANGEL_ONE_UNAVAILABLE'
         });
       }
     } catch (error: any) {
