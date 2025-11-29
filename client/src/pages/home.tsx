@@ -5124,7 +5124,7 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe]);
+  }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
   // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
 
