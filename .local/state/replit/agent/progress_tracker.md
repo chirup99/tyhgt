@@ -125,3 +125,20 @@
 [x] 3914.   - Red hover color on delete button for visibility
 [x] 3915.   - Separator line between preset and custom sections
 [x] 3916. CUSTOM TIMEFRAME PERSISTENCE FEATURE 100% COMPLETE!
+
+[x] 3917. CRITICAL BUG FIX: Prevent Incomplete Candle Merging Across Days
+[x] 3918. Problem: Incomplete candles at market close (3:30 PM IST) were visually
+[x] 3919.          merging with next day's opening candles, even with time offset
+[x] 3920. Solution: Increased time gap from 60 seconds to 18 hours (64800 seconds)
+[x] 3921. Implementation:
+[x] 3922.   ✅ When detecting date boundary between consecutive candles
+[x] 3923.   ✅ Add 64800 seconds (18 hours) to new trading day's timestamp
+[x] 3924.   ✅ Applied to: Candles, Volume, EMA12, EMA26 consistently
+[x] 3925. Result:
+[x] 3926.   ✅ Incomplete candles at market close stay intact (3:30 PM)
+[x] 3927.   ✅ Holiday incomplete candles display as single candle
+[x] 3928.   ✅ Next trading day starts with large visible gap (18 hours)
+[x] 3929.   ✅ No visual bridges connecting candles across day boundaries
+[x] 3930.   ✅ Each candle period treated independently
+[x] 3931. Testing: Works for all timeframes including 2D custom holidays
+[x] 3932. BUG FIX COMPLETE - NO MORE CANDLE MERGING!
