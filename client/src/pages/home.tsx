@@ -6696,8 +6696,17 @@ ${
     if (!Array.isArray(tradeHistory)) return [];
     const symbolMap = new Map<string, number>();
     
-    // List of valid index symbols (no expiry)
-    const validIndices = ['NIFTY50', 'NIFTY', 'BANKNIFTY', 'SENSEX', 'NIFTYIT', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYINFRA'];
+    // Mapping from contract names to proper index symbols
+    const contractToIndex: Record<string, string> = {
+      'NIFTY': 'NIFTY50',
+      'BANKNIFTY': 'BANKNIFTY',
+      'SENSEX': 'SENSEX',
+      'NIFTYIT': 'NIFTYIT',
+      'FINNIFTY': 'FINNIFTY',
+      'MIDCPNIFTY': 'MIDCPNIFTY',
+      'NIFTYINFRA': 'NIFTYINFRA',
+      'NIFTY50': 'NIFTY50'
+    };
     
     tradeHistory.forEach((trade: any) => {
       let symbol = trade.symbol || trade.tradingSymbol || '';
@@ -6706,28 +6715,30 @@ ${
       if (!symbol) return;
       
       // Remove exchange prefix if present
-      symbol = symbol.replace('NSE:', '').replace('NFO:', '').replace('MCX:', '').replace('NCDEX:', '');
+      symbol = symbol.replace('NSE:', '').replace('NFO:', '').replace('MCX:', '').replace('NCDEX:', '').trim();
       
-      // Skip if it contains option/future identifiers (dates, CE, PE, etc.)
-      const hasExpiry = /\d|CE|PE|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|FUT/i.test(symbol);
+      // Extract base symbol - get first word or continuous letters before space/number
+      const baseSymbol = symbol.match(/^([A-Z]+)/)?.[1] || '';
       
-      // Only include if it's a known index symbol OR doesn't have expiry indicators
-      const isValidIndex = validIndices.some(idx => symbol.toUpperCase().includes(idx)) || !hasExpiry;
+      if (!baseSymbol) return;
       
-      if (isValidIndex && symbol.toUpperCase() !== 'UNKNOWN') {
-        // Use base symbol only (remove any trailing indicators)
-        const baseSymbol = symbol.split('-')[0].split('M')[0].split('C')[0].split('P')[0].trim();
-        if (baseSymbol) {
-          symbolMap.set(baseSymbol, (symbolMap.get(baseSymbol) || 0) + 1);
-        }
+      // Map to proper index symbol
+      const indexSymbol = contractToIndex[baseSymbol.toUpperCase()] || baseSymbol.toUpperCase();
+      
+      // Only add if it's a known index
+      if (Object.values(contractToIndex).includes(indexSymbol)) {
+        symbolMap.set(indexSymbol, (symbolMap.get(indexSymbol) || 0) + 1);
+        console.log(`📊 Mapped "${symbol}" → "${indexSymbol}"`);
       }
     });
     
     // Sort by trade count (descending) and return symbols
-    return Array.from(symbolMap.entries())
+    const result = Array.from(symbolMap.entries())
       .sort(([, countA], [, countB]) => countB - countA)
-      .map(([symbol]) => symbol)
-      .filter(s => s); // Remove empty strings
+      .map(([symbol]) => symbol);
+    
+    console.log(`📊 Final extracted symbols:`, result);
+    return result;
   };
 
   const handleDateSelect = async (date: Date, firebaseData?: any, forceMode?: 'demo' | 'personal') => {
