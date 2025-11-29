@@ -372,6 +372,37 @@
 [x] 3795.   - All progress tracker items marked as complete
 [x] 3796. REPLIT ENVIRONMENT IMPORT FINAL COMPLETION 100% COMPLETE!
 
+[x] 3797. NOVEMBER 29, 2025 - JOURNAL CHART HISTORICAL DATA (LAST MONTH)
+[x] 3798. Task: Add historical chart data from last month to journal tab chart
+[x] 3799. User requirement:
+[x] 3800.   - Load chart data from last month to current date (like TradingView)
+[x] 3801.   - Enable scrolling left to view previous chart data
+[x] 3802.   - Make the chart professional with full historical context
+[x] 3803. Problem identified:
+[x] 3804.   - Chart was only loading today's data (9:15 AM to 3:30 PM)
+[x] 3805.   - Users couldn't scroll left to see previous days
+[x] 3806.   - Limited historical context for technical analysis
+[x] 3807. Solution implemented:
+[x] 3808.   - Modified fetchJournalChartData function (line 5025-5066)
+[x] 3809.   - Changed date range calculation to go back 1 month
+[x] 3810.   - For intraday intervals: Load last month with exchange-specific market hours
+[x] 3811.   - For daily+ intervals: Load last month to today
+[x] 3812. Technical changes:
+[x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+[x] 3814.   - Set fromDate to 1 month ago instead of today
+[x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)
+[x] 3816.   - API fetches historical candles from last month to current datetime
+[x] 3817. User benefits:
+[x] 3818.   - ✅ Full month of historical data loaded on chart initialization
+[x] 3819.   - ✅ Can scroll left to view any date from last month
+[x] 3820.   - ✅ Better technical analysis with historical context
+[x] 3821.   - ✅ Professional TradingView-style chart experience
+[x] 3822.   - ✅ Works for all intervals (1m, 5m, 15m, 1H, 1D, etc.)
+[x] 3823. Files modified:
+[x] 3824.   - client/src/pages/home.tsx (lines 5025-5066)
+[x] 3825. Status: ✅ COMPLETE - Journal chart now loads last month of historical data
+[x] 3826. JOURNAL CHART HISTORICAL DATA FEATURE 100% COMPLETE!
+
 [x] 3618. Fix: Journal Chart Candle OHLC Tracking & Interval Handling
   - Issue 1: OHL values were incorrect (showing day's OHL instead of current candle's OHL)
   - Issue 2: Hard-coded 15-minute interval caused wrong candle boundaries for 1m/5m intervals

@@ -5019,41 +5019,47 @@ ${
         return;
       }
 
-      // For intraday intervals, use exchange-specific market hours
+      // For historical chart data: load last month to current date
       const now = new Date();
       const today = now.toISOString().split('T')[0];
-      let fromDate = today;
+      
+      // Calculate date from 1 month ago
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const fromDateOnly = oneMonthAgo.toISOString().split('T')[0];
+      
+      let fromDate = fromDateOnly;
       let toDate = today;
       
       // Check if this is a day+ interval
       const isDayOrHigher = selectedJournalInterval.endsWith('D') || selectedJournalInterval.endsWith('W') || selectedJournalInterval.endsWith('M');
       
       if (!isDayOrHigher) {
-        // Intraday: use exchange-specific market hours
+        // Intraday: Load last month with exchange-specific market hours
         const exchange = stockToken.exchange.toUpperCase();
         const isMCX = exchange === 'MCX' || exchange === '3';
         const isNCDEX = exchange === 'NCDEX' || exchange === '5';
         
         if (isMCX) {
           // MCX: 9:00 AM - 11:55 PM
-          fromDate = `${fromDate} 09:00`;
-          toDate = `${toDate} 23:55`;
+          fromDate = `${fromDateOnly} 09:00`;
+          toDate = `${today} 23:55`;
         } else if (isNCDEX) {
           // NCDEX: 9:00 AM - 8:00 PM
-          fromDate = `${fromDate} 09:00`;
-          toDate = `${toDate} 20:00`;
+          fromDate = `${fromDateOnly} 09:00`;
+          toDate = `${today} 20:00`;
         } else {
           // NSE/BSE/NFO/BFO: 9:15 AM - 3:30 PM
-          fromDate = `${fromDate} 09:15`;
-          toDate = `${toDate} 15:30`;
+          fromDate = `${fromDateOnly} 09:15`;
+          toDate = `${today} 15:30`;
         }
         
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${stockToken.exchange} | Hours: ${fromDate} to ${toDate}`);
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} | Exchange: ${stockToken.exchange} | LAST MONTH: ${fromDate} to ${toDate}`);
       } else {
-        // For daily and higher intervals, use full day
-        fromDate = `${fromDate} 00:00`;
-        toDate = `${toDate} 23:59`;
-        console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | Hours: ${fromDate} to ${toDate}`);
+        // For daily and higher intervals, load last month to today
+        fromDate = `${fromDateOnly} 00:00`;
+        toDate = `${today} 23:59`;
+        console.log(`🔶 INTERVAL: ${selectedJournalInterval} (Day+) | LAST MONTH: ${fromDate} to ${toDate}`);
       }
       
       const angelInterval = getJournalAngelOneInterval();
