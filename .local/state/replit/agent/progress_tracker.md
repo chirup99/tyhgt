@@ -274,3 +274,26 @@
 [x] 4057.   - Frontend: Use tradebook calendar for filter
 [x] 4058.   - No complex date logic needed
 [x] 4059. REVERTED TO SIMPLE CALENDAR FILTER APPROACH!
+
+[x] 4060. IMPLEMENTED - SMART CHART DATE LOGIC
+[x] 4061. User Plan: Trade history summary + Chart
+[x] 4062. Feature: If date has trade history → show ONLY that date chart
+[x] 4063. Implementation (client/src/pages/home.tsx lines 4979-5025):
+[x] 4064.   ✅ Check if tradeHistoryData.length > 0
+[x] 4065.   ✅ If YES (has trades):
+[x] 4066.       - fromDate = selectedJournalDate
+[x] 4067.       - toDate = selectedJournalDate
+[x] 4068.       - Chart shows ONLY that day (can see mistakes made that day)
+[x] 4069.   ✅ If NO (no trades):
+[x] 4070.       - Show last 10 trading days (normal behavior)
+[x] 4071. User Flow:
+[x] 4072.   1. User clicks calendar date with trades
+[x] 4073.   2. handleDateSelect() loads trade history for that date
+[x] 4074.   3. tradeHistoryData now has data
+[x] 4075.   4. Chart fetch detects: "hey, this date has trades!"
+[x] 4076.   5. Automatically fetches chart for ONLY that date
+[x] 4077.   6. User sees: trades + chart for same day (can identify mistakes)
+[x] 4078. Console Logs:
+[x] 4079.   📊 [CHART LOGIC] Selected date has 5 trades - showing ONLY that date
+[x] 4080.   📊 [CHART LOGIC] No trades - showing last 10 trading days
+[x] 4081. SMART AUTO-SWITCHING COMPLETE!
