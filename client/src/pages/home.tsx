@@ -6691,18 +6691,43 @@ ${
     localStorage.setItem("calendarData", JSON.stringify(data));
   };
 
-  // Helper function to extract traded symbols from tradeHistory
+  // Helper function to extract traded symbols from tradeHistory - ONLY INDEX SYMBOLS
   const extractTradedSymbols = (tradeHistory: any[]): string[] => {
     if (!Array.isArray(tradeHistory)) return [];
     const symbolMap = new Map<string, number>();
+    
+    // List of valid index symbols (no expiry)
+    const validIndices = ['NIFTY50', 'NIFTY', 'BANKNIFTY', 'SENSEX', 'NIFTYIT', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYINFRA'];
+    
     tradeHistory.forEach((trade: any) => {
-      const symbol = trade.symbol || trade.tradingSymbol || 'UNKNOWN';
-      symbolMap.set(symbol, (symbolMap.get(symbol) || 0) + 1);
+      let symbol = trade.symbol || trade.tradingSymbol || '';
+      
+      // Skip if empty
+      if (!symbol) return;
+      
+      // Remove exchange prefix if present
+      symbol = symbol.replace('NSE:', '').replace('NFO:', '').replace('MCX:', '').replace('NCDEX:', '');
+      
+      // Skip if it contains option/future identifiers (dates, CE, PE, etc.)
+      const hasExpiry = /\d|CE|PE|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|FUT/i.test(symbol);
+      
+      // Only include if it's a known index symbol OR doesn't have expiry indicators
+      const isValidIndex = validIndices.some(idx => symbol.toUpperCase().includes(idx)) || !hasExpiry;
+      
+      if (isValidIndex && symbol.toUpperCase() !== 'UNKNOWN') {
+        // Use base symbol only (remove any trailing indicators)
+        const baseSymbol = symbol.split('-')[0].split('M')[0].split('C')[0].split('P')[0].trim();
+        if (baseSymbol) {
+          symbolMap.set(baseSymbol, (symbolMap.get(baseSymbol) || 0) + 1);
+        }
+      }
     });
+    
     // Sort by trade count (descending) and return symbols
     return Array.from(symbolMap.entries())
       .sort(([, countA], [, countB]) => countB - countA)
-      .map(([symbol]) => symbol);
+      .map(([symbol]) => symbol)
+      .filter(s => s); // Remove empty strings
   };
 
   const handleDateSelect = async (date: Date, firebaseData?: any, forceMode?: 'demo' | 'personal') => {
