@@ -11104,15 +11104,70 @@ ${
                                     </PopoverContent>
                                   </Popover>
                                   
-                                  {/* 📅 Date Picker */}
-                                  <input
-                                    type="date"
-                                    value={journalSelectedDate}
-                                    onChange={(e) => setJournalSelectedDate(e.target.value)}
-                                    className="h-8 px-2 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                                    title={journalSelectedDate ? `Fetch candles for ${journalSelectedDate}` : 'Select date or leave empty for last 10 days'}
-                                    data-testid="input-journal-date-picker"
-                                  />
+                                  {/* 📅 Heatmap Date Selector - Mini */}
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2 text-xs flex items-center gap-1"
+                                        title="Click to select date from heatmap"
+                                        data-testid="button-open-heatmap-picker"
+                                      >
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        <span>{journalSelectedDate ? journalSelectedDate : 'Last 10 days'}</span>
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-96 p-2" align="start">
+                                      <div className="text-xs font-semibold mb-2">Select Date from Heatmap</div>
+                                      <div className="grid grid-cols-7 gap-0.5 max-h-64 overflow-y-auto">
+                                        {Object.entries(tradingDataByDate)
+                                          .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+                                          .slice(0, 60)
+                                          .map(([date, data]) => {
+                                            const getNetPnL = (d: any): number => {
+                                              if (typeof d?.netPnL === 'number') return d.netPnL;
+                                              if (typeof d?.totalProfit === 'number' || typeof d?.totalLoss === 'number') {
+                                                return (d?.totalProfit || 0) - Math.abs(d?.totalLoss || 0);
+                                              }
+                                              return 0;
+                                            };
+                                            const getHeatmapColor = (netPnL: number) => {
+                                              if (netPnL === 0) return "bg-gray-100 dark:bg-gray-700";
+                                              const absValue = Math.abs(netPnL);
+                                              if (netPnL > 0) {
+                                                if (absValue >= 5000) return "bg-green-800 dark:bg-green-700";
+                                                if (absValue >= 3000) return "bg-green-700 dark:bg-green-600";
+                                                if (absValue >= 1500) return "bg-green-600 dark:bg-green-500";
+                                                if (absValue >= 500) return "bg-green-500 dark:bg-green-400";
+                                                return "bg-green-300 dark:bg-green-300";
+                                              } else {
+                                                if (absValue >= 5000) return "bg-red-800 dark:bg-red-700";
+                                                if (absValue >= 3000) return "bg-red-700 dark:bg-red-600";
+                                                if (absValue >= 1500) return "bg-red-600 dark:bg-red-500";
+                                                if (absValue >= 500) return "bg-red-500 dark:bg-red-400";
+                                                return "bg-red-300 dark:bg-red-300";
+                                              }
+                                            };
+                                            const pnl = getNetPnL(data);
+                                            const color = getHeatmapColor(pnl);
+                                            const isSelected = journalSelectedDate === date;
+                                            
+                                            return (
+                                              <button
+                                                key={date}
+                                                onClick={() => setJournalSelectedDate(date)}
+                                                className={`h-6 text-xs font-medium rounded border ${color} ${isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : 'border-gray-300 dark:border-gray-600'} hover:opacity-80 transition`}
+                                                title={`${date}: P&L ₹${pnl.toLocaleString('en-IN')}`}
+                                                data-testid={`button-heatmap-date-${date}`}
+                                              >
+                                                {new Date(date).getDate()}
+                                              </button>
+                                            );
+                                          })}
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
 
                                   {/* Clear Date Button */}
                                   {journalSelectedDate && (
