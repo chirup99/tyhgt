@@ -556,6 +556,40 @@
 [x] 4061.   ✅ Scalable system for unlimited custom timeframes
 [x] 4062. Status: ✅ COMPLETE - FULLY DYNAMIC CANDLE-COUNT AGGREGATION IMPLEMENTED!
 
+[x] 4063. NOVEMBER 29, 2025 - CUSTOM TIMEFRAME SUPPORT (35MIN, 45MIN, ETC)
+[x] 4064. User Issue: Custom timeframe "35 mins" not being aggregated
+[x] 4065. Root Cause: Frontend getAngelOneInterval had hardcoded map, ignored custom numeric values
+[x] 4066. Solution Implemented:
+[x] 4067.   FRONTEND (client/src/components/trading-master.tsx):
+[x] 4068.   - Updated getAngelOneInterval() function (lines 5173-5205)
+[x] 4069.   - Kept hardcoded map for preset timeframes (1, 3, 5, 10, 15, 20, 30, 40, 60, 80, 120, 1D, 1W, 1M)
+[x] 4070.   - Added logic to detect custom numeric timeframes (e.g., "35", "45", "90")
+[x] 4071.   - If not in hardcoded map + is numeric → send number directly to backend
+[x] 4072.   - Example: "35" passes through as "35" to backend
+[x] 4073.   BACKEND (server/routes.ts):
+[x] 4074.   - Updated /api/angelone/historical endpoint (lines 8090-8100)
+[x] 4075.   - After checking intervalToMinutes map for named intervals
+[x] 4076.   - Try parsing interval as numeric custom timeframe
+[x] 4077.   - If valid number > 0 → use it as minute count for aggregation
+[x] 4078.   - Example: interval="35" → minutesForInterval=35 → combine every 35 candles
+[x] 4079. Flow for Custom Timeframe "35":
+[x] 4080.   1. User selects custom "35min" timeframe
+[x] 4081.   2. Frontend converts to "35"
+[x] 4082.   3. Frontend calls getAngelOneInterval("35")
+[x] 4083.   4. Not in hardcoded map → parseInt("35")=35, valid → return "35"
+[x] 4084.   5. Frontend sends interval="35" to backend via API
+[x] 4085.   6. Backend receives interval="35"
+[x] 4086.   7. Not in intervalToMinutes map → parseInt("35")=35, valid → minutesForInterval=35
+[x] 4087.   8. Backend fetches 1-minute candles
+[x] 4088.   9. Combines every 35 consecutive candles into 1 aggregated candle
+[x] 4089.   10. Returns aggregated data with source="angel_one_api_aggregated_35candles"
+[x] 4090. Benefits:
+[x] 4091.   ✅ Works for ANY custom timeframe (35, 45, 90, 150, etc)
+[x] 4092.   ✅ Existing preset timeframes still work (1, 3, 5, 10, 15, 20, 30, etc)
+[x] 4093.   ✅ No hardcoded "supported/unsupported" list needed
+[x] 4094.   ✅ Fully backwards compatible
+[x] 4095. Status: ✅ COMPLETE - Custom timeframes (35, 45, etc) now fully supported!
+
 [x] 3813.   - Calculate oneMonthAgo date: oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 [x] 3814.   - Set fromDate to 1 month ago instead of today
 [x] 3815.   - Maintain exchange-specific market hours (NSE/BSE: 9:15-15:30, MCX: 9:00-23:55, NCDEX: 9:00-20:00)

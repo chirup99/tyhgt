@@ -8084,7 +8084,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'ONE_MONTH': 43200
       };
 
-      const minutesForInterval = intervalToMinutes[interval];
+      // Support custom numeric timeframes (e.g., '35' for 35 minutes)
+      let minutesForInterval = intervalToMinutes[interval];
+      
+      if (!minutesForInterval) {
+        // Try parsing as numeric custom timeframe
+        const numMinutes = parseInt(interval);
+        if (!isNaN(numMinutes) && numMinutes > 0) {
+          minutesForInterval = numMinutes;
+          console.log(`✅ Custom numeric timeframe recognized: ${interval} minutes`);
+        }
+      }
 
       // Always try to fetch real historical data from Angel One API
       // even if not connected - the API can return historical data without active connection

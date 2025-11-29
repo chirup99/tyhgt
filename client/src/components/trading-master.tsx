@@ -5167,7 +5167,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
     fetchOhlcData.mutate();
   }, []); // Run once on mount
 
-  // 🔶 Angel One timeframe mapping - Convert numeric timeframe to Angel One interval format
+  // 🔶 Angel One timeframe mapping - Convert numeric timeframe to Angel One interval format (supports custom timeframes)
   const getAngelOneInterval = (timeframe: string): string => {
     const intervalMap: { [key: string]: string } = {
       '1': 'ONE_MINUTE',
@@ -5185,7 +5185,20 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       '1W': 'ONE_WEEK',
       '1M': 'ONE_MONTH'
     };
-    return intervalMap[timeframe] || 'ONE_MINUTE';
+    
+    // Check if it's in the hardcoded map
+    if (intervalMap[timeframe]) {
+      return intervalMap[timeframe];
+    }
+    
+    // 🔧 Handle custom numeric timeframes (e.g., '35' for 35 minutes)
+    const numMinutes = parseInt(timeframe);
+    if (!isNaN(numMinutes) && numMinutes > 0) {
+      console.log(`✅ Custom timeframe detected: ${timeframe} minutes`);
+      return timeframe; // Send numeric value to backend for aggregation
+    }
+    
+    return 'ONE_MINUTE'; // Default fallback
   };
 
   // 🔶 Get Angel One stock token from symbol (e.g., 'NSE:ICICIBANK-EQ' -> token info)
