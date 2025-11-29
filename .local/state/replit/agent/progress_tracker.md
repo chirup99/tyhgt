@@ -185,3 +185,27 @@
 [x] 3972.   - "✅ Aggregated 480 1-min candles → 6 80-min candles"
 [x] 3973.   - "⚠️ INCOMPLETE CANDLE: Only 65/80 before market close"
 [x] 3974. AGGREGATION COMBINING RESTORED! Working correctly now.
+
+[x] 3975. CRITICAL TIMESTAMP BUG FIXED!
+[x] 3976. Root Cause Identified:
+[x] 3977.   ❌ Angel One API returns timestamps as milliseconds (via .getTime())
+[x] 3978.   ❌ getDateString() was multiplying by 1000 again → wrong dates
+[x] 3979.   ❌ Date grouping failed → aggregation couldn't detect date boundaries
+[x] 3980. The Fix (server/routes.ts line 7991-7995):
+[x] 3981.   OLD: const date = new Date(timestamp * 1000)  ❌ (double multiply)
+[x] 3982.   NEW: const date = new Date(timestamp)        ✅ (use as-is)
+[x] 3983. Debug Logging Added (lines 8003-8045):
+[x] 3984.   ✅ "Starting to combine 480 1-min candles into 5-min groups"
+[x] 3985.   ✅ "[AGGREGATED] Created candle: open=... high=... low=... close=..."
+[x] 3986.   ✅ "[DATE BOUNDARY] 2025-01-26 ending with incomplete group"
+[x] 3987.   ✅ "[AGGREGATION COMPLETE] Input: 480 → Output: 96 candles"
+[x] 3988. Why This Fixes The Issue:
+[x] 3989.   1. Wrong dates → date boundaries not detected
+[x] 3990.   2. → group never reset across days
+[x] 3991.   3. → candles weren't being combined properly
+[x] 3992.   4. Now: Correct dates → boundaries work → aggregation works
+[x] 3993. Expected Behavior Now:
+[x] 3994.   - 5min timeframe: 5x 1-min candles = 1 combined candle
+[x] 3995.   - 80min custom: 80x 1-min candles = 1 combined candle  
+[x] 3996.   - Date boundary: Incomplete groups reset per day
+[x] 3997. TIMESTAMP BUG FIX COMPLETE!

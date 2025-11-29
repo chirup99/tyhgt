@@ -7985,9 +7985,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     volume: number;
   }
 
-  // 🔧 Helper to get date string from timestamp (YYYY-MM-DD)
+  // 🔧 Helper to get date string from timestamp (milliseconds since epoch)
   const getDateString = (timestamp: number): string => {
-    const date = new Date(timestamp * 1000);
+    const date = new Date(timestamp); // Already in milliseconds from Angel One API
     return date.toISOString().split('T')[0];
   };
 
@@ -7997,6 +7997,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return [];
     }
 
+    console.log(`📊 [AGGREGATION] Starting to combine ${oneMinCandles.length} 1-min candles into ${candleCount}-min groups`);
+    
     const aggregated: Candle[] = [];
     let group: Candle[] = [];
     let lastDate = '';
@@ -8007,9 +8009,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 🔶 If date changed, finalize current group (even if incomplete)
       if (lastDate !== '' && candleDate !== lastDate) {
         if (group.length > 0) {
+          console.log(`📊 [DATE BOUNDARY] ${lastDate} ending with incomplete group: ${group.length}/${candleCount}`);
           aggregated.push(aggregateGroup(group, group[0].timestamp));
           if (group.length < candleCount) {
-            console.log(`⚠️ INCOMPLETE CANDLE: Only ${group.length}/${candleCount} candles before market close on ${lastDate}`);
+            console.log(`⚠️ INCOMPLETE: Only ${group.length}/${candleCount} candles before market close on ${lastDate}`);
           }
         }
         // Reset group for new date
@@ -8022,6 +8025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 🔶 When group reaches required size, aggregate and start new group
       if (group.length === candleCount) {
         aggregated.push(aggregateGroup(group, group[0].timestamp));
+        console.log(`✅ [AGGREGATED] Created candle: open=${group[0].open}, high=${Math.max(...group.map(c => c.high))}, low=${Math.min(...group.map(c => c.low))}, close=${group[candleCount-1].close}`);
         group = [];
       }
     }
@@ -8029,11 +8033,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // 🔶 Add remaining candles if any (incomplete final group)
     if (group.length > 0) {
       aggregated.push(aggregateGroup(group, group[0].timestamp));
+      console.log(`📊 [FINAL] Group with ${group.length}/${candleCount} candles at end`);
       if (group.length < candleCount) {
-        console.log(`⚠️ INCOMPLETE CANDLE: Only ${group.length}/${candleCount} candles in final group (end of data)`);
+        console.log(`⚠️ INCOMPLETE: Only ${group.length}/${candleCount} candles in final group (end of data)`);
       }
     }
 
+    console.log(`✅ [AGGREGATION COMPLETE] Input: ${oneMinCandles.length} 1-min candles → Output: ${aggregated.length} ${candleCount}-min candles`);
     return aggregated;
   };
 
