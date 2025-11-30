@@ -11366,7 +11366,7 @@ ${
                                     </PopoverContent>
                                   </Popover>
 
-                                  {/* Next Symbol Button - Only show if >1 symbol */}
+                                  {/* Next Symbol Button - SIMPLE: Just update symbol, AUTO-FETCH handles chart */}
                                   {tradedSymbols.length > 1 && (
                                     <Button
                                       variant="outline"
@@ -11379,33 +11379,6 @@ ${
                                         const formattedSymbol = `NSE:${nextSymbol}-INDEX`;
                                         setSelectedJournalSymbol(formattedSymbol);
                                         console.log(`➡️ Next symbol: ${formattedSymbol} (${nextIndex + 1}/${tradedSymbols.length})`);
-                                        
-                                        // Get token for the new symbol and update selectedInstrument
-                                        const cleanSymbol = nextSymbol.replace(/-INDEX$/, '').replace(/^(NSE|BSE):/, '');
-                                        const tokenInfo = journalAngelOneTokens[cleanSymbol];
-                                        if (tokenInfo) {
-                                          const newInstrument = {
-                                            token: tokenInfo.token,
-                                            symbol: formattedSymbol,
-                                            tradingSymbol: tokenInfo.tradingSymbol,
-                                            exchange: tokenInfo.exchange,
-                                            name: cleanSymbol,
-                                            instrumentType: 'INDEX',
-                                            lotSize: 1
-                                          };
-                                          setSelectedInstrument(newInstrument);
-                                          console.log(`➡️ Updated selectedInstrument:`, newInstrument);
-                                          
-                                          // Fetch chart data after a brief delay to allow state to update
-                                          setTimeout(() => {
-                                            console.log(`➡️ Auto-fetching chart for ${formattedSymbol}`);
-                                            fetchJournalChartData();
-                                          }, 100);
-                                        } else {
-                                          console.warn(`➡️ No token found for ${cleanSymbol}, clearing selectedInstrument`);
-                                          setSelectedInstrument(null);
-                                          setTimeout(() => fetchJournalChartData(), 100);
-                                        }
                                       }}
                                       data-testid="button-next-symbol"
                                       title={`Next symbol (${currentSymbolIndex + 1}/${tradedSymbols.length})`}
