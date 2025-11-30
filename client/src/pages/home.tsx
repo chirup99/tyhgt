@@ -4624,6 +4624,9 @@ ${
   const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
   const [showJournalTimeframeDropdown, setShowJournalTimeframeDropdown] = useState(false);
   const [showTradeMarkers, setShowTradeMarkers] = useState(true); // Toggle for trade markers visibility
+  const [showJournalTimeRangeFilter, setShowJournalTimeRangeFilter] = useState(false);
+  const [journalChartFromTime, setJournalChartFromTime] = useState('09:15'); // Market open (IST)
+  const [journalChartToTime, setJournalChartToTime] = useState('15:30'); // Market close (IST)
   
   // Journal chart timeframe options (same as Trading Master OHLC window)
   const journalTimeframeOptions = [
@@ -11180,8 +11183,61 @@ ${
                                   </PopoverContent>
                                 </Popover>
 
-                                {/* 🔶 Timeframe Dropdown + Next Symbol Button */}
+                                {/* 🔶 Timeframe Dropdown + Time Range Filter + Next Symbol Button */}
                                 <div className="flex items-center gap-1">
+                                  {/* Time Range Filter Button */}
+                                  <Popover open={showJournalTimeRangeFilter} onOpenChange={setShowJournalTimeRangeFilter}>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-2 text-xs"
+                                        title="Filter by time range"
+                                        data-testid="button-journal-time-range-filter"
+                                      >
+                                        <Clock className="w-3 h-3" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
+                                      <div className="space-y-3">
+                                        <div className="text-sm font-medium">Time Range Filter</div>
+                                        <div className="space-y-2">
+                                          <div>
+                                            <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">From (IST)</label>
+                                            <input
+                                              type="time"
+                                              value={journalChartFromTime}
+                                              onChange={(e) => setJournalChartFromTime(e.target.value)}
+                                              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                              data-testid="input-from-time"
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">To (IST)</label>
+                                            <input
+                                              type="time"
+                                              value={journalChartToTime}
+                                              onChange={(e) => setJournalChartToTime(e.target.value)}
+                                              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                              data-testid="input-to-time"
+                                            />
+                                          </div>
+                                          <Button
+                                            size="sm"
+                                            className="w-full text-xs"
+                                            onClick={() => {
+                                              setShowJournalTimeRangeFilter(false);
+                                              console.log(`⏰ Chart time filter: ${journalChartFromTime} to ${journalChartToTime}`);
+                                            }}
+                                            data-testid="button-apply-time-filter"
+                                          >
+                                            Apply Filter
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+
                                   {/* Next Symbol Button - Only show if >1 symbol */}
                                   {tradedSymbols.length > 1 && (
                                     <Button
