@@ -5144,6 +5144,30 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
+  // 🔶 SYNC SYMBOL when date is selected from heatmap
+  // When user clicks a date on the heatmap, load the symbol that was actually traded on that date
+  useEffect(() => {
+    if (journalSelectedDate && journalSelectedDate.length > 0) {
+      const dateData = tradingDataByDate[journalSelectedDate];
+      if (dateData && dateData.symbol) {
+        const symbolForDate = dateData.symbol;
+        console.log(`📅 [HEATMAP SYNC] Date selected: ${journalSelectedDate}`);
+        console.log(`📅 [HEATMAP SYNC] Symbol traded on this date: ${symbolForDate}`);
+        console.log(`📅 [HEATMAP SYNC] Current selectedJournalSymbol: ${selectedJournalSymbol}`);
+        
+        // Only update if the symbol is different
+        if (selectedJournalSymbol !== symbolForDate) {
+          setSelectedJournalSymbol(symbolForDate);
+          console.log(`✅ [HEATMAP SYNC] Updated symbol from "${selectedJournalSymbol}" to "${symbolForDate}"`);
+        } else {
+          console.log(`ℹ️ [HEATMAP SYNC] Symbol already correct, no change needed`);
+        }
+      } else {
+        console.warn(`⚠️ [HEATMAP SYNC] No trading data found for date: ${journalSelectedDate}`);
+      }
+    }
+  }, [journalSelectedDate, tradingDataByDate]); // Sync whenever date or trading data changes
+
   // 🔶 AUTO-FETCH when date is selected from heatmap
   useEffect(() => {
     // Only auto-fetch when a date is explicitly selected (not on initial mount or clear)
