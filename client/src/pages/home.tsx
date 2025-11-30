@@ -1890,8 +1890,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState("");
   const [isSearchLoading, setIsSearchLoading] = useState(false);
 
-  // 📅 Journal chart date selection state
-  const [journalSelectedDate, setJournalSelectedDate] = useState<string>("");
+  // ❌ REMOVED: journalSelectedDate - manual search chart is now completely standalone
 
   // Trending podcasts state
   const [selectedSector, setSelectedSector] = useState<string>("FINANCE");
@@ -4987,11 +4986,11 @@ ${
     return ema;
   };
 
-  // ✅ SIMPLE: Fetch chart for current selected symbol (like search bar)
+  // ✅ MANUAL SEARCH CHART: Standalone - NO dependency on heatmap date selection
   const fetchJournalChartData = useCallback(async () => {
     try {
       // STEP 1: Destroy old chart IMMEDIATELY
-      console.log(`🔄 [FETCH] Destroying old chart...`);
+      console.log(`🔄 [SEARCH CHART] Destroying old chart...`);
       if (journalChartRef.current) {
         try { journalChartRef.current.remove(); } catch (e) {}
         journalChartRef.current = null;
@@ -5001,20 +5000,14 @@ ${
         journalVolumeSeriesRef.current = null;
       }
 
-      // STEP 2: Validate inputs (use CURRENT state values, not stale closures)
+      // STEP 2: Validate inputs - ONLY need symbol (for manual search)
       if (!selectedJournalSymbol) {
-        console.warn('❌ [FETCH] No symbol selected');
-        setJournalChartLoading(false);
-        return;
-      }
-      
-      if (!journalSelectedDate) {
-        console.warn('❌ [FETCH] No date selected');
+        console.warn('❌ [SEARCH CHART] No symbol selected');
         setJournalChartLoading(false);
         return;
       }
 
-      console.log(`📊 [FETCH] Fetching ${selectedJournalSymbol} for ${journalSelectedDate}`);
+      console.log(`📊 [SEARCH CHART] Fetching ${selectedJournalSymbol} (manual search)`);
       setJournalChartLoading(true);
       setJournalChartData([]);
 
@@ -5025,26 +5018,26 @@ ${
         .replace(/-EQ$/, '');
       
       const stockToken = journalAngelOneTokens[cleanSymbol];
-      console.log(`📊 [FETCH] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
+      console.log(`📊 [SEARCH CHART] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
       
       if (!stockToken) {
-        console.warn(`❌ [FETCH] No token for: ${cleanSymbol}`);
+        console.warn(`❌ [SEARCH CHART] No token for: ${cleanSymbol}`);
         setJournalChartLoading(false);
         return;
       }
 
-      // STEP 3: Build API request
+      // STEP 4: Build API request - NO DATE required for search chart
       const interval = getJournalAngelOneInterval(journalChartTimeframe);
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        date: journalSelectedDate, // Backend will fetch candles for this specific date
+        date: '', // Empty = fetch last 10 days (or user's search context)
       };
       
-      console.log(`📊 [FETCH] API Request:`, requestBody);
+      console.log(`📊 [SEARCH CHART] API Request:`, requestBody);
 
-      // STEP 4: Fetch chart data
+      // STEP 5: Fetch chart data
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -5053,11 +5046,11 @@ ${
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`❌ [FETCH] API Error ${response.status}: ${errorText}`);
+        console.error(`❌ [SEARCH CHART] API Error ${response.status}: ${errorText}`);
         throw new Error(`Failed to fetch chart data: ${response.status}`);
       }
 
-      // STEP 5: Parse and map candle data
+      // STEP 6: Parse and map candle data
       const data = await response.json();
       let candleData: any[] = [];
       
@@ -5087,16 +5080,19 @@ ${
         });
       }
       
-      console.log(`✅ [FETCH] Chart ready: ${candleData.length} candles for ${cleanSymbol}`);
+      console.log(`✅ [SEARCH CHART] Chart ready: ${candleData.length} candles for ${cleanSymbol}`);
       setJournalChartData(candleData);
       
+      // Switch to search mode
+      setJournalChartMode('search');
+      
     } catch (error) {
-      console.error("❌ [FETCH] Error:", error);
+      console.error("❌ [SEARCH CHART] Error:", error);
       setJournalChartData([]);
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, journalChartTimeframe, journalSelectedDate]);
+  }, [selectedJournalSymbol, journalChartTimeframe]);
 
   // ========== HEATMAP CHART FETCH FUNCTION (Completely Separate) ==========
   const fetchHeatmapChartData = useCallback(async (symbol: string, date: string) => {
@@ -5548,19 +5544,8 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // ✅ SIMPLE: When symbol OR date changes → fetch its chart data
-  // Watch both so it fetches when date changes even if symbol stays same
-  useEffect(() => {
-    if (activeTab !== 'journal') return;
-    if (!selectedJournalSymbol) return;
-    if (!journalSelectedDate) return;
-
-    console.log(`🔍 Fetching: Symbol=${selectedJournalSymbol}, Date=${journalSelectedDate}`);
-    
-    // Fetch chart for this symbol on this date
-    fetchJournalChartData();
-
-  }, [activeTab, selectedJournalSymbol, journalSelectedDate]);
+  // ❌ REMOVED: useEffect that fetched based on journalSelectedDate
+  // Manual search chart is now standalone - only fetches on explicit button click
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -6188,8 +6173,7 @@ ${
     console.log('🟢 MARKER START: Processing', tradeHistoryData.length, 'trades against', journalChartData.length, 'candles');
     const markers: TradeMarker[] = [];
 
-    // Get the selected date for the chart (to match candles correctly)
-    const chartDate = journalSelectedDate || new Date().toISOString().split('T')[0];
+    // Use heatmap selected date for chart markers (independent from search chart)
 
     tradeHistoryData.forEach((trade, index) => {
       try {
@@ -6272,7 +6256,7 @@ ${
       "trades (TIME-BASED matching)",
     );
     return markers;
-  }, [tradeHistoryData, journalChartData, journalSelectedDate, journalChartTimeframe]);
+  }, [tradeHistoryData, journalChartData, journalChartTimeframe]);
 
   // Check if symbol is an INDEX (NIFTY50, BANKNIFTY, etc) - marks only for indices
   const isIndexChart = () => {
@@ -6298,8 +6282,7 @@ ${
     }
 
     const markers = getTradeMarkersForChart();
-    console.log('📊 MARKER DEBUG (TIME-BASED) - Date:', journalSelectedDate);
-    console.log('  - Trades:', tradeHistoryData.length, 'Chart candles:', journalChartData.length);
+    console.log('📊 MARKER DEBUG (TIME-BASED) - Trades:', tradeHistoryData.length, 'Chart candles:', journalChartData.length);
     console.log('  - Generated markers:', markers.length, 'Visible:', showTradeMarkers);
     
     markers.forEach((m, idx) => {
@@ -6344,7 +6327,7 @@ ${
     } catch (e) {
       console.error('📊 ❌ Marker Error:', e);
     }
-  }, [activeTab, journalSelectedDate, journalChartData, tradeHistoryData, getTradeMarkersForChart, showTradeMarkers, selectedJournalSymbol]);
+  }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart, showTradeMarkers, selectedJournalSymbol]);
 
   // Notes state for journal tab
   const [notesContent, setNotesContent] = useState(() => {
@@ -7265,10 +7248,9 @@ ${
       journalEma26SeriesRef.current = null;
     }
     
-    // Clear all data immediately
-    setJournalSelectedDate(dateString);
+    // Clear all data immediately - HEATMAP ONLY (manual search chart unaffected)
     setSelectedDate(date);
-    setJournalChartData([]);
+    setJournalChartData([]); // Clear manual search chart
     setLiveOhlc(null);
     setNotesContent("");
     setTempNotesContent("");
@@ -11745,21 +11727,21 @@ ${
                                           }
                                         };
 
-                                        // Get color for selected date if exists
-                                        const selectedDateData = journalSelectedDate ? tradingDataByDate[journalSelectedDate] : null;
+                                        // Get color for HEATMAP selected date
+                                        const selectedDateData = heatmapSelectedDate ? tradingDataByDate[heatmapSelectedDate] : null;
                                         const selectedDatePnL = selectedDateData ? getNetPnL(selectedDateData) : 0;
-                                        const dateButtonColor = journalSelectedDate ? getDatePnLColor(selectedDatePnL) : "";
+                                        const dateButtonColor = heatmapSelectedDate ? getDatePnLColor(selectedDatePnL) : "";
 
                                         return (
                                           <Button
-                                            variant={journalSelectedDate ? "default" : "outline"}
+                                            variant={heatmapSelectedDate ? "default" : "outline"}
                                             size="sm"
                                             className={`h-8 px-2 text-xs flex items-center gap-1 font-medium ${dateButtonColor}`}
-                                            title={journalSelectedDate ? `${journalSelectedDate}: P&L ₹${selectedDatePnL.toLocaleString('en-IN')}` : 'Click to select date from heatmap'}
+                                            title={heatmapSelectedDate ? `${heatmapSelectedDate}: P&L ₹${selectedDatePnL.toLocaleString('en-IN')}` : 'Click to select date from heatmap'}
                                             data-testid="button-open-heatmap-picker"
                                           >
                                             <Calendar className="w-3.5 h-3.5" />
-                                            <span>{journalSelectedDate ? journalSelectedDate : 'Last 10 days'}</span>
+                                            <span>{heatmapSelectedDate ? heatmapSelectedDate : 'No date selected'}</span>
                                           </Button>
                                         );
                                       })()}
@@ -11826,7 +11808,7 @@ ${
                                             };
                                             const pnl = getNetPnL(data);
                                             const color = getHeatmapColor(pnl);
-                                            const isSelected = journalSelectedDate === date;
+                                            const isSelected = heatmapSelectedDate === date;
                                             
                                             return (
                                               <button
@@ -11862,36 +11844,19 @@ ${
                                     </PopoverContent>
                                   </Popover>
 
-                                  {/* Clear Date Button */}
-                                  {journalSelectedDate && (
-                                    <Button
-                                      onClick={() => {
-                                        console.log(`📅 [CLEAR DATE] Clearing date filter and auto-fetching last 10 days`);
-                                        setJournalSelectedDate("");
-                                        // useEffect watches journalSelectedDate and fetches last 10 days automatically
-                                      }}
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-8 w-8"
-                                      title="Clear date filter (show last 10 days)"
-                                      data-testid="button-clear-journal-date"
-                                    >
-                                      <X className="w-3.5 h-3.5" />
-                                    </Button>
-                                  )}
+                                  {/* Clear button removed - search chart is independent */}
 
-                                  {/* Fetch Button with Icon */}
+                                  {/* Search Chart Fetch Button - Only fetches selected symbol (last 10 days) */}
                                   <Button
                                     onClick={() => {
-                                      const dateLabel = journalSelectedDate ? journalSelectedDate : "last 10 days";
-                                      console.log(`🔶 FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA for ${dateLabel}`, { journalChartTimeframe, journalSelectedDate });
+                                      console.log(`🔶 SEARCH CHART: Fetching ${getJournalTimeframeLabel(journalChartTimeframe)} data for manual search`);
                                       fetchJournalChartData();
                                     }}
                                     disabled={journalChartLoading}
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    title={`Fetch ${getJournalTimeframeLabel(journalChartTimeframe)} chart data${journalSelectedDate ? ` for ${journalSelectedDate}` : ' (last 10 days)'}`}
+                                    title={`Fetch ${getJournalTimeframeLabel(journalChartTimeframe)} chart data (standalone search - last 10 days)`}
                                     data-testid="button-fetch-journal-chart"
                                   >
                                     {journalChartLoading ? (
