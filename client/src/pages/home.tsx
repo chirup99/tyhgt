@@ -11278,7 +11278,7 @@ ${
                                     </PopoverContent>
                                   </Popover>
 
-                                  {/* Next Symbol Button - SIMPLE: Just update symbol, AUTO-FETCH handles chart */}
+                                  {/* Next Symbol Button - REBUILT CLEAN: Cycle symbol → AUTO-FETCH handles chart */}
                                   {tradedSymbols.length > 1 && (
                                     <Button
                                       variant="outline"
@@ -11287,13 +11287,9 @@ ${
                                       onClick={() => {
                                         const nextIndex = (currentSymbolIndex + 1) % tradedSymbols.length;
                                         setCurrentSymbolIndex(nextIndex);
-                                        const nextSymbol = tradedSymbols[nextIndex];
-                                        const formattedSymbol = `NSE:${nextSymbol}-INDEX`;
-                                        setSelectedJournalSymbol(formattedSymbol);
-                                        console.log(`➡️ Next symbol: ${formattedSymbol} (${nextIndex + 1}/${tradedSymbols.length})`);
+                                        setSelectedJournalSymbol(`NSE:${tradedSymbols[nextIndex]}-INDEX`);
                                       }}
                                       data-testid="button-next-symbol"
-                                      title={`Next symbol (${currentSymbolIndex + 1}/${tradedSymbols.length})`}
                                     >
                                       <ChevronRight className="w-3 h-3" />
                                     </Button>
@@ -11312,7 +11308,6 @@ ${
                                     </PopoverTrigger>
                                     <PopoverContent className="w-56 p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
                                       <div className="grid gap-1">
-                                        {/* Preset Timeframes */}
                                         {journalTimeframeOptions.map((tf) => (
                                           <button 
                                             key={tf.value}
@@ -11322,7 +11317,6 @@ ${
                                                 : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             }`}
                                             onClick={() => {
-                                              console.log(`🎯 TIMEFRAME SELECTED: ${tf.label} (value=${tf.value})`);
                                               setJournalChartTimeframe(tf.value);
                                               setShowJournalTimeframeDropdown(false);
                                             }}
@@ -11331,115 +11325,6 @@ ${
                                             {tf.label}
                                           </button>
                                         ))}
-                                        
-                                        {/* Custom Timeframes Section */}
-                                        {journalCustomTimeframes.length > 0 && (
-                                          <>
-                                            <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
-                                              {journalCustomTimeframes.map((tf) => (
-                                                <div 
-                                                  key={tf.value}
-                                                  className={`w-full px-2 py-1.5 rounded text-xs transition-colors flex items-center justify-between group cursor-pointer ${
-                                                    journalChartTimeframe === tf.value 
-                                                      ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium' 
-                                                      : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                                  }`}
-                                                  onClick={() => {
-                                                    console.log(`🎯 CUSTOM TIMEFRAME SELECTED: ${tf.label} (value=${tf.value})`);
-                                                    setJournalChartTimeframe(tf.value);
-                                                    setShowJournalTimeframeDropdown(false);
-                                                  }}
-                                                  data-testid={`custom-timeframe-option-${tf.value}`}
-                                                >
-                                                  <span>{tf.label}</span>
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      console.log(`🗑️ DELETING CUSTOM TIMEFRAME: ${tf.label}`);
-                                                      setJournalCustomTimeframes(prev => prev.filter(ctf => ctf.value !== tf.value));
-                                                      if (journalChartTimeframe === tf.value) {
-                                                        setJournalChartTimeframe('1');
-                                                      }
-                                                    }}
-                                                    className="ml-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    title="Delete custom timeframe"
-                                                    data-testid={`delete-custom-timeframe-${tf.value}`}
-                                                  >
-                                                    <X className="w-3 h-3" />
-                                                  </button>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </>
-                                        )}
-                                        
-                                        {/* Custom Timeframe Section */}
-                                        <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
-                                          <button
-                                            onClick={() => setShowJournalCustomTimeframe(!showJournalCustomTimeframe)}
-                                            className="w-full text-left px-2 py-1.5 rounded text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors flex items-center gap-1"
-                                            data-testid="button-add-custom-timeframe"
-                                          >
-                                            <span>+ Add Custom</span>
-                                          </button>
-                                          
-                                          {/* Custom Timeframe Input Form */}
-                                          {showJournalCustomTimeframe && (
-                                            <div className="p-2 bg-gray-50 dark:bg-gray-900 rounded mt-1 space-y-2">
-                                              <div className="flex gap-1">
-                                                <input
-                                                  type="number"
-                                                  min="1"
-                                                  max="1440"
-                                                  value={journalCustomTimeframeInterval}
-                                                  onChange={(e) => setJournalCustomTimeframeInterval(e.target.value)}
-                                                  placeholder="Enter value"
-                                                  className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                                                  data-testid="input-custom-timeframe-value"
-                                                />
-                                              </div>
-                                              <div className="flex gap-1">
-                                                <select
-                                                  value={journalCustomTimeframeType}
-                                                  onChange={(e) => setJournalCustomTimeframeType(e.target.value)}
-                                                  className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                                                  data-testid="select-custom-timeframe-type"
-                                                >
-                                                  <option value="minutes">Minutes</option>
-                                                  <option value="hr">Hours</option>
-                                                  <option value="d">Days</option>
-                                                </select>
-                                              </div>
-                                              <Button
-                                                size="sm"
-                                                onClick={() => {
-                                                  if (journalCustomTimeframeInterval) {
-                                                    const interval = convertJournalCustomTimeframe(journalCustomTimeframeType, journalCustomTimeframeInterval);
-                                                    const label = createJournalCustomTimeframeLabel(journalCustomTimeframeType, journalCustomTimeframeInterval);
-                                                    console.log(`✅ CUSTOM TIMEFRAME: ${label} (${interval} minutes)`);
-                                                    
-                                                    // Check if this custom timeframe already exists
-                                                    const existingIndex = journalCustomTimeframes.findIndex(tf => tf.value === interval);
-                                                    if (existingIndex === -1) {
-                                                      // Add new custom timeframe
-                                                      setJournalCustomTimeframes(prev => [...prev, { value: interval, label: label, deletable: true }]);
-                                                      console.log(`📌 Added to dropdown: ${label}`);
-                                                    }
-                                                    
-                                                    setJournalChartTimeframe(interval);
-                                                    setJournalCustomTimeframeInterval('');
-                                                    setShowJournalCustomTimeframe(false);
-                                                    setShowJournalTimeframeDropdown(false);
-                                                  }
-                                                }}
-                                                className="w-full h-7 bg-green-600 hover:bg-green-700 text-white text-xs"
-                                                data-testid="button-apply-custom-timeframe"
-                                              >
-                                                Apply
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </div>
                                       </div>
                                     </PopoverContent>
                                   </Popover>
