@@ -5252,18 +5252,38 @@ ${
       
       // STEP 7: Also fetch journal data for trade history markers
       try {
-        const journalResponse = await fetch(getFullApiUrl(`/api/journal/${formattedDate}`));
-        if (journalResponse.ok) {
-          const journalData = await journalResponse.json();
-          if (journalData.tradeHistory && Array.isArray(journalData.tradeHistory)) {
-            console.log(`✅ [HEATMAP FETCH] Loaded ${journalData.tradeHistory.length} trades for markers`);
-            setHeatmapTradeHistory(journalData.tradeHistory);
-          } else {
-            console.warn('⚠️ [HEATMAP FETCH] No trade history in journal data');
-            setHeatmapTradeHistory([]);
+        const userId = getUserId();
+        let journalResponse;
+        let journalData = null;
+        
+        // Try user-specific data first (if authenticated)
+        if (userId) {
+          journalResponse = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${formattedDate}`));
+          if (journalResponse.ok) {
+            const userData = await journalResponse.json();
+            if (userData.tradeHistory && Array.isArray(userData.tradeHistory)) {
+              journalData = userData;
+              console.log(`✅ [HEATMAP FETCH] Loaded ${userData.tradeHistory.length} trades from user data for markers`);
+            }
           }
+        }
+        
+        // If no user data, try demo/shared data
+        if (!journalData) {
+          journalResponse = await fetch(getFullApiUrl(`/api/journal/${formattedDate}`));
+          if (journalResponse.ok) {
+            const demoData = await journalResponse.json();
+            if (demoData.tradeHistory && Array.isArray(demoData.tradeHistory)) {
+              journalData = demoData;
+              console.log(`✅ [HEATMAP FETCH] Loaded ${demoData.tradeHistory.length} trades from demo data for markers`);
+            }
+          }
+        }
+        
+        if (journalData?.tradeHistory && Array.isArray(journalData.tradeHistory)) {
+          setHeatmapTradeHistory(journalData.tradeHistory);
         } else {
-          console.warn(`⚠️ [HEATMAP FETCH] Journal fetch returned ${journalResponse.status}`);
+          console.warn('⚠️ [HEATMAP FETCH] No trade history found');
           setHeatmapTradeHistory([]);
         }
       } catch (journalError) {
