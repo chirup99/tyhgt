@@ -299,3 +299,17 @@
 [x] 4080.   - Firebase Admin SDK init warning (non-blocking)
 [x] 4081. Application Status: ✅ FULLY FUNCTIONAL AND READY FOR USE
 [x] 4082. REPLIT MIGRATION 100% COMPLETE!
+
+[x] 4083. TIME-BASED CHART MARKERS FEATURE - COMPLETED
+[x] 4084. Date: November 30, 2025
+[x] 4085. Feature: Display BUY/SELL markers on chart candles based on trade time
+[x] 4086. Implementation Details:
+[x] 4087.   - Modified getTradeMarkersForChart() to use TIME-ONLY matching
+[x] 4088.   - Removed symbol matching restriction - markers show for ALL trades regardless of symbol
+[x] 4089.   - Removed isIndexChart() restriction - markers show on ALL chart types
+[x] 4090.   - Proper IST timezone conversion for trade time to candle time matching
+[x] 4091.   - Uses timeframe-based tolerance (1 min for 1-min candles, 5 min for 5-min, etc.)
+[x] 4092. Marker Display:
+[x] 4093.   - BUY: Green arrow (↑) below bar with "BUY {time}" text
+[x] 4094.   - SELL: Red arrow (↓) above bar with "SELL {time}" text
+[x] 4095. TIME-BASED CHART MARKERS FEATURE 100% COMPLETE!

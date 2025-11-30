@@ -5791,7 +5791,7 @@ ${
     return matches;
   };
 
-  // Convert trade history to chart markers
+  // Convert trade history to chart markers (TIME-BASED ONLY - ignores symbol matching)
   const getTradeMarkersForChart = useCallback(() => {
     if (
       !tradeHistoryData ||
@@ -5803,75 +5803,76 @@ ${
     }
 
     const markers: TradeMarker[] = [];
-    const chartCleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+
+    // Get the selected date for the chart (to match candles correctly)
+    const chartDate = journalSelectedDate || new Date().toISOString().split('T')[0];
 
     tradeHistoryData.forEach((trade, index) => {
       try {
-        // 🔍 Check if trade matches chart underlying symbol (handles options/futures on index)
-        if (!doesTradeMatchChart(trade.symbol, chartCleanSymbol)) {
-          console.log(`⏭️ Skipping trade ${trade.symbol} - doesn't match chart ${chartCleanSymbol}`);
-          return;
-        }
-
-        console.log(`✅ Trade ${trade.symbol} matches chart ${chartCleanSymbol}`);
-
+        // 🔶 TIME-BASED MATCHING ONLY - ignore symbol, use only trade time
         // Parse trade time (e.g., "1:16:33 PM" or "11:23:56 AM")
         const tradeTime = trade.time;
         if (!tradeTime) return;
+
+        console.log(`🕐 Processing trade #${index + 1}: ${trade.order} @ ${tradeTime}`);
 
         // Convert 12-hour format to 24-hour format
         const [time, period] = tradeTime.split(" ");
         const [hours, minutes, seconds] = time.split(":").map(Number);
         let hour24 = hours;
 
-        if (period === "PM" && hours !== 12) {
+        if (period?.toUpperCase() === "PM" && hours !== 12) {
           hour24 = hours + 12;
-        } else if (period === "AM" && hours === 12) {
+        } else if (period?.toUpperCase() === "AM" && hours === 12) {
           hour24 = 0;
         }
 
-        // Create target time in minutes from 9:15 AM (market start)
-        const marketStartMinutes = 9 * 60 + 15; // 9:15 AM
-        const tradeMinutes = hour24 * 60 + minutes;
-        const minutesFromMarketStart = tradeMinutes - marketStartMinutes;
+        // Create target time in minutes from midnight for comparison
+        const tradeMinutesFromMidnight = hour24 * 60 + minutes;
+        
+        console.log(`  📍 Trade time: ${hour24}:${minutes} (${tradeMinutesFromMidnight} mins from midnight)`);
 
-        // Find closest candle in chart data
+        // Find closest candle in chart data by matching time
         let closestCandleIndex = -1;
         let minTimeDiff = Infinity;
 
         journalChartData.forEach((candle, candleIndex) => {
-          // Convert candle timestamp to minutes from market start
-          const candleTime = new Date(candle.time * 1000);
-          const candleMinutes =
-            candleTime.getHours() * 60 + candleTime.getMinutes();
-          const candleMinutesFromStart = candleMinutes - marketStartMinutes;
+          // Candle timestamps are Unix epoch (UTC), convert to IST for matching
+          // Add IST offset (5 hours 30 minutes = 330 minutes) to UTC time
+          const candleDate = new Date(candle.time * 1000);
+          const candleUtcMinutes = candleDate.getUTCHours() * 60 + candleDate.getUTCMinutes();
+          const candleMinutesFromMidnight = (candleUtcMinutes + 330) % 1440; // +5:30 IST offset, wrap at midnight
 
-          const timeDiff = Math.abs(
-            candleMinutesFromStart - minutesFromMarketStart,
-          );
+          const timeDiff = Math.abs(candleMinutesFromMidnight - tradeMinutesFromMidnight);
+          
           if (timeDiff < minTimeDiff) {
             minTimeDiff = timeDiff;
             closestCandleIndex = candleIndex;
           }
         });
 
-        if (closestCandleIndex !== -1 && minTimeDiff <= 15) {
-          // Within 15 minutes tolerance
+        // Use timeframe interval to determine matching tolerance
+        // For 1-min candles, use 1-min tolerance; for 5-min candles, use 3-min tolerance, etc.
+        const timeframeMinutes = parseInt(journalChartTimeframe) || 1;
+        const timeframeTolerance = Math.max(Math.ceil(timeframeMinutes / 2), 1);
+        
+        if (closestCandleIndex !== -1 && minTimeDiff <= timeframeTolerance) {
           const candle = journalChartData[closestCandleIndex];
-          const price = trade.order === "BUY" ? candle.low : candle.high; // Low for BUY, High for SELL
+          // Use candle high/low for marker position (BUY below bar, SELL above bar)
+          const price = trade.order === "BUY" ? candle.low : candle.high;
 
           markers.push({
             candleIndex: closestCandleIndex,
             price: trade.price || price,
-            type: trade.order.toLowerCase() as "buy" | "sell", // 'buy' or 'sell'
+            type: trade.order.toLowerCase() as "buy" | "sell",
             symbol: trade.symbol,
             quantity: trade.qty,
             time: trade.time,
             pnl: trade.pnl,
           });
-          console.log(`📍 Marker added: ${trade.symbol} ${trade.order} @ ${trade.time}`);
+          console.log(`✅ Marker added: ${trade.order} @ ${trade.time} → Candle #${closestCandleIndex} (diff: ${minTimeDiff}min)`);
         } else {
-          console.log(`⚠️ No matching candle for ${trade.symbol} @ ${trade.time} (diff: ${minTimeDiff}min)`);
+          console.log(`⚠️ No matching candle for trade @ ${trade.time} (closest diff: ${minTimeDiff}min, tolerance: ${timeframeTolerance}min)`);
         }
       } catch (error) {
         console.error("Error parsing trade for markers:", trade, error);
@@ -5883,10 +5884,10 @@ ${
       markers.length,
       "markers from",
       tradeHistoryData.length,
-      "trades",
+      "trades (TIME-BASED matching)",
     );
     return markers;
-  }, [tradeHistoryData, journalChartData, selectedJournalSymbol]);
+  }, [tradeHistoryData, journalChartData, journalSelectedDate, journalChartTimeframe]);
 
   // Check if symbol is an INDEX (NIFTY50, BANKNIFTY, etc) - marks only for indices
   const isIndexChart = () => {
@@ -5895,7 +5896,7 @@ ${
     return indexSymbols.some(idx => cleanSymbol.toUpperCase().includes(idx));
   };
 
-  // Apply custom SVG trade marks (TradingView-style) to chart overlay - ONLY on INDEX charts
+  // Apply trade marks to chart (TIME-BASED - matches trade history times to candles)
   useEffect(() => {
     if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current) {
       if (journalCandlestickSeriesRef.current) {
@@ -5904,17 +5905,6 @@ ${
         } catch (e) {
           console.error('Error clearing marks:', e);
         }
-      }
-      return;
-    }
-
-    // ⚠️ ONLY DISPLAY MARKS ON INDEX CHARTS (not options/futures)
-    if (!isIndexChart()) {
-      console.log('📊 Marks disabled - only for INDEX charts (NIFTY50, BANKNIFTY, etc)');
-      try {
-        (journalCandlestickSeriesRef.current as any).setMarkers([]);
-      } catch (e) {
-        console.error('Error clearing marks:', e);
       }
       return;
     }
@@ -5940,10 +5930,9 @@ ${
     }
 
     const markers = getTradeMarkersForChart();
-    console.log('📊 MARKER DEBUG - Generating markers for date:', journalSelectedDate);
+    console.log('📊 MARKER DEBUG (TIME-BASED) - Date:', journalSelectedDate);
     console.log('  - Trades:', tradeHistoryData.length, 'Chart candles:', journalChartData.length);
     console.log('  - Generated markers:', markers.length, 'Visible:', showTradeMarkers);
-    console.log('  - Series ref valid:', !!journalCandlestickSeriesRef.current);
     
     markers.forEach((m, idx) => {
       console.log(`  📍 [${idx}] Candle#${m.candleIndex} TIME: ${m.time} - ${m.type.toUpperCase()} @ ₹${m.price}`);
@@ -5951,7 +5940,7 @@ ${
     
     try {
       if (markers.length > 0) {
-        // Use built-in setMarkers with proper configuration for TradingView-style marks
+        // Use built-in setMarkers with TradingView-style arrows
         const chartMarkers = markers.map((marker, idx) => {
           const candle = journalChartData[marker.candleIndex];
           const markTime = candle?.time;
@@ -5961,10 +5950,10 @@ ${
             position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
             color: marker.type === 'buy' ? '#22c55e' : '#ef4444', // Bright green/red
             shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
-            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @₹${marker.price.toFixed(2)}`,
+            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} ${marker.time}`,
           };
           
-          console.log(`  🔄 [${idx}] time:${markTime} ${mObj.shape} pos:${mObj.position} color:${mObj.color}`);
+          console.log(`  🔄 [${idx}] time:${markTime} ${mObj.shape} pos:${mObj.position} text:${mObj.text}`);
           return mObj;
         }).filter((m, idx) => {
           const hasTime = m.time !== undefined;
@@ -5976,13 +5965,10 @@ ${
         chartMarkers.sort((a: any, b: any) => a.time - b.time);
         
         console.log(`  🎯 Final markers to apply: ${chartMarkers.length}`);
-        chartMarkers.forEach((m, i) => {
-          console.log(`    [${i}] time=${m.time} ${m.position} ${m.shape} color=${m.color}`);
-        });
         
         // Apply markers using built-in lightweight-charts API
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ Markers applied: ${chartMarkers.length} arrows`);
+        console.log(`📊 ✅ Trade markers applied: ${chartMarkers.length} arrows (TIME-BASED)`);
       } else {
         console.log('📊 No markers to apply - clearing');
         (journalCandlestickSeriesRef.current as any).setMarkers([]);
