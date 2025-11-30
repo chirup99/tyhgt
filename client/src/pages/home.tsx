@@ -11677,7 +11677,8 @@ ${
                                     </PopoverContent>
                                   </Popover>
                                   
-                                  {/* 📅 Heatmap Date Selector - Mini */}
+                                  {/* 📅 Heatmap Date Selector - ONLY in Heatmap Mode */}
+                                  {journalChartMode === 'heatmap' && (
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       {(() => {
@@ -11843,10 +11844,10 @@ ${
                                       </div>
                                     </PopoverContent>
                                   </Popover>
+                                  )}
 
-                                  {/* Clear button removed - search chart is independent */}
-
-                                  {/* Search Chart Fetch Button - Only fetches selected symbol (last 10 days) */}
+                                  {/* Search Chart Fetch Button - ONLY in Search Mode */}
+                                  {journalChartMode === 'search' && (
                                   <Button
                                     onClick={() => {
                                       console.log(`🔶 SEARCH CHART: Fetching ${getJournalTimeframeLabel(journalChartTimeframe)} data for manual search`);
@@ -11865,6 +11866,7 @@ ${
                                       <RefreshCw className="w-3.5 h-3.5" />
                                     )}
                                   </Button>
+                                  )}
                                 </div>
                               </div>
                             </div>
