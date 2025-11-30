@@ -6938,18 +6938,14 @@ ${
             setTradedSymbols(symbols);
             setCurrentSymbolIndex(0);
             
-            // Always fetch chart for the first/primary symbol from trades on this date
+            // Set chart symbol to first traded symbol
             const firstSymbol = symbols[0];
             const chartSymbol = `NSE:${firstSymbol}-INDEX`;
             setSelectedJournalSymbol(chartSymbol);
             
             console.log(`📊 Extracted traded symbols:`, symbols);
             console.log(`📊 Setting chart symbol to first trade: ${chartSymbol}`);
-            
-            // ✅ FETCH CHART DATA DIRECTLY (not via useEffect)
-            setTimeout(() => {
-              fetchJournalChartData();
-            }, 100);
+            // useEffect watches selectedJournalSymbol + journalSelectedDate and fetches automatically
           }
         }
 
@@ -11275,9 +11271,8 @@ ${
                                         setJournalChartData([]);
                                         setLiveOhlc(null);
                                         
-                                        // Fetch new data (AUTO-FETCH will handle it, but we force it here)
                                         console.log(`⏭️  Fetching ${nextSymbol} data...`);
-                                        setTimeout(() => fetchJournalChartData(), 50);
+                                        // useEffect watches selectedJournalSymbol + journalSelectedDate and fetches automatically
                                       }}
                                       data-testid="button-next-symbol"
                                     >
@@ -11474,8 +11469,7 @@ ${
                                       onClick={() => {
                                         console.log(`📅 [CLEAR DATE] Clearing date filter and auto-fetching last 10 days`);
                                         setJournalSelectedDate("");
-                                        // Trigger fetch for last 10 days after clearing date
-                                        setTimeout(() => fetchJournalChartData(), 100);
+                                        // useEffect watches journalSelectedDate and fetches last 10 days automatically
                                       }}
                                       variant="outline"
                                       size="icon"
