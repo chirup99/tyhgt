@@ -37,7 +37,7 @@ import { PersonalHeatmap } from "@/components/PersonalHeatmap";
 import { useTheme } from "@/components/theme-provider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { auth } from "@/firebase";
-import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, LineSeries, HistogramSeries, IPriceLine } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, LineSeries, HistogramSeries, IPriceLine, createSeriesMarkers } from 'lightweight-charts';
 import { signOut } from "firebase/auth";
 import { LogOut, ArrowLeft, Save } from "lucide-react";
 import { parseBrokerTrades, ParseError } from "@/utils/trade-parser";
@@ -4789,6 +4789,7 @@ ${
   const heatmapEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const heatmapEma26SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const heatmapVolumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const heatmapSeriesMarkersRef = useRef<any>(null); // Stores createSeriesMarkers wrapper
   const heatmapChartDataRef = useRef<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
   
   // Heatmap OHLC display (separate from search chart)
@@ -6180,15 +6181,23 @@ ${
         if (tradeHistoryData && tradeHistoryData.length > 0) {
           const markers: any[] = [];
           
+          console.log(`🔍 [HEATMAP MARKERS] Processing ${tradeHistoryData.length} trades from trade history...`);
+          
           tradeHistoryData.forEach((trade) => {
             // Parse trade time (format: "HH:MM:SS AM/PM")
             const timeStr = trade.time || '';
-            if (!timeStr) return;
+            if (!timeStr) {
+              console.warn(`⚠️ [HEATMAP MARKERS] Trade has no time: ${JSON.stringify(trade)}`);
+              return;
+            }
             
             try {
               // Extract hours, minutes, seconds from time string
               const match = timeStr.match(/(\d+):(\d+):(\d+)\s*(AM|PM)/i);
-              if (!match) return;
+              if (!match) {
+                console.warn(`⚠️ [HEATMAP MARKERS] Could not parse time: "${timeStr}"`);
+                return;
+              }
               
               let hours = parseInt(match[1]);
               const minutes = parseInt(match[2]);
@@ -6199,8 +6208,9 @@ ${
               if (period === 'PM' && hours !== 12) hours += 12;
               if (period === 'AM' && hours === 12) hours = 0;
               
+              console.log(`⏱️  [HEATMAP MARKERS] Trade "${trade.order}" at ${timeStr} -> ${hours}:${minutes} IST`);
+              
               // Find matching candle by time of day (IST)
-              // The heatmap chart is for a specific date, so we match by time of day
               const matchingCandle = sortedData.find((candle) => {
                 const candleDate = new Date(candle.time * 1000);
                 const istCandleDate = new Date(candleDate.getTime() + (330 * 60 * 1000));
@@ -6220,17 +6230,27 @@ ${
                   color: isGreen ? '#16a34a' : '#dc2626',
                   shape: isGreen ? 'arrowUp' : 'arrowDown',
                   text: `${trade.order}`,
-                  id: `${trade.time}-${trade.order}`,
                 });
+                
+                console.log(`✅ [HEATMAP MARKERS] Matched "${trade.order}" at ${timeStr} to candle time ${matchingCandle.time}`);
+              } else {
+                console.warn(`❌ [HEATMAP MARKERS] No matching candle found for time ${timeStr} (${hours}:${minutes})`);
               }
             } catch (e) {
-              console.error(`⚠️ Could not parse trade time: ${timeStr}`);
+              console.error(`❌ [HEATMAP MARKERS] Parse error for "${timeStr}":`, e);
             }
           });
           
           if (markers.length > 0) {
-            candlestickSeries.setMarkers(markers);
-            console.log(`📍 [HEATMAP] Added ${markers.length} trade markers (${tradeHistoryData.filter(t => t.order === 'BUY').length} BUY, ${tradeHistoryData.filter(t => t.order === 'SELL').length} SELL)`);
+            // Use createSeriesMarkers wrapper for proper API support
+            heatmapSeriesMarkersRef.current = createSeriesMarkers(candlestickSeries);
+            heatmapSeriesMarkersRef.current.setMarkers(markers);
+            
+            const buyCount = tradeHistoryData.filter(t => t.order === 'BUY').length;
+            const sellCount = tradeHistoryData.filter(t => t.order === 'SELL').length;
+            console.log(`📍 [HEATMAP] Successfully added ${markers.length} trade markers (${buyCount} BUY, ${sellCount} SELL)`);
+          } else {
+            console.warn(`⚠️ [HEATMAP] No markers created despite ${tradeHistoryData.length} trades`);
           }
         }
 
