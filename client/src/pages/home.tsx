@@ -4623,6 +4623,7 @@ ${
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
   const [showJournalTimeframeDropdown, setShowJournalTimeframeDropdown] = useState(false);
+  const [showTradeMarkers, setShowTradeMarkers] = useState(true); // Toggle for trade markers visibility
   
   // Journal chart timeframe options (same as Trading Master OHLC window)
   const journalTimeframeOptions = [
@@ -5849,17 +5850,7 @@ ${
 
   // Apply custom SVG trade marks (TradingView-style) to chart overlay - ONLY for currently loaded date
   useEffect(() => {
-    console.log('📊 TradingView marks useEffect triggered:', {
-      activeTab,
-      journalSelectedDate,
-      hasSeriesRef: !!journalCandlestickSeriesRef.current,
-      hasChartRef: !!journalChartRef.current,
-      chartDataLength: journalChartData?.length || 0,
-      tradeHistoryLength: tradeHistoryData?.length || 0
-    });
-
-    if (activeTab !== 'journal') {
-      console.log('📊 TradingView marks: Not on journal tab, clearing marks');
+    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current) {
       if (journalCandlestickSeriesRef.current) {
         try {
           (journalCandlestickSeriesRef.current as any).setMarkers([]);
@@ -5870,19 +5861,18 @@ ${
       return;
     }
 
-    if (!journalCandlestickSeriesRef.current) {
-      console.log('📊 TradingView marks: No candlestick series ref');
-      return;
-    }
-
-    if (!journalChartRef.current) {
-      console.log('📊 TradingView marks: No chart ref');
+    // If markers are hidden, clear them
+    if (!showTradeMarkers) {
+      try {
+        (journalCandlestickSeriesRef.current as any).setMarkers([]);
+      } catch (e) {
+        console.error('Error clearing marks:', e);
+      }
       return;
     }
 
     // Only display marks if there's chart data AND trade data for current date
-    if (!journalChartData || journalChartData.length === 0) {
-      console.log('📊 TradingView marks: No chart data');
+    if (!journalChartData || journalChartData.length === 0 || !tradeHistoryData || tradeHistoryData.length === 0) {
       try {
         (journalCandlestickSeriesRef.current as any).setMarkers([]);
       } catch (e) {
@@ -5891,21 +5881,10 @@ ${
       return;
     }
 
-    if (!tradeHistoryData || tradeHistoryData.length === 0) {
-      console.log('📊 TradingView marks: No trade history data');
-      try {
-        (journalCandlestickSeriesRef.current as any).setMarkers([]);
-      } catch (e) {
-        console.error('Error clearing marks:', e);
-      }
-      return;
-    }
-
-    console.log('📊 About to generate markers for date:', journalSelectedDate);
     const markers = getTradeMarkersForChart();
-    console.log('📊 Generated markers for date:', journalSelectedDate, 'Count:', markers.length);
+    console.log('📊 Generating markers for date:', journalSelectedDate, 'Count:', markers.length, 'Visible:', showTradeMarkers);
     markers.forEach(m => {
-      console.log(`  📍 TRADE MARK: ${m.time} - ${m.type.toUpperCase()} @ ₹${m.price} (${m.quantity} qty) - P&L: ${m.pnl}`);
+      console.log(`  📍 TRADE: ${m.time} - ${m.type.toUpperCase()} @ ₹${m.price} (${m.quantity} qty)`);
     });
     
     try {
@@ -5914,7 +5893,6 @@ ${
         const chartMarkers = markers.map((marker) => {
           const candle = journalChartData[marker.candleIndex];
           const markTime = candle?.time;
-          console.log(`📍 Trade at ${marker.time}: ${marker.type.toUpperCase()} @ ${marker.price}, Candle time: ${markTime}`);
           return {
             time: markTime,
             position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
@@ -5925,23 +5903,20 @@ ${
           };
         }).filter(m => m.time !== undefined);
         
-        console.log('📊 Final chart markers to display:', chartMarkers.length);
-        
         // Sort markers by time (required by lightweight-charts)
         chartMarkers.sort((a: any, b: any) => a.time - b.time);
         
         // Apply markers using built-in lightweight-charts API
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ TradingView Marks Added: ${chartMarkers.length} arrows on chart for date: ${journalSelectedDate}`);
+        console.log(`📊 ✅ Markers applied: ${chartMarkers.length} arrows`);
       } else {
         // Clear marks if no trades for this date
         (journalCandlestickSeriesRef.current as any).setMarkers([]);
-        console.log('📊 ℹ️ No trades matched - marks cleared');
       }
     } catch (e) {
-      console.error('📊 ❌ TradingView Marks Error:', e);
+      console.error('📊 ❌ Marker Error:', e);
     }
-  }, [activeTab, journalSelectedDate, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
+  }, [activeTab, journalSelectedDate, journalChartData, tradeHistoryData, getTradeMarkersForChart, showTradeMarkers]);
 
   // Notes state for journal tab
   const [notesContent, setNotesContent] = useState(() => {
@@ -11477,6 +11452,22 @@ ${
                                       <X className="w-3.5 h-3.5" />
                                     </Button>
                                   )}
+
+                                  {/* Toggle Trade Markers Visibility */}
+                                  <Button
+                                    onClick={() => setShowTradeMarkers(!showTradeMarkers)}
+                                    variant={showTradeMarkers ? "default" : "outline"}
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    title={showTradeMarkers ? "Hide trade entry/exit markers" : "Show trade entry/exit markers"}
+                                    data-testid="button-toggle-trade-markers"
+                                  >
+                                    {showTradeMarkers ? (
+                                      <Eye className="w-3.5 h-3.5" />
+                                    ) : (
+                                      <Eye className="w-3.5 h-3.5 opacity-50" />
+                                    )}
+                                  </Button>
 
                                   {/* Fetch Button with Icon */}
                                   <Button
