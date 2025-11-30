@@ -5740,7 +5740,7 @@ ${
       const addTimeRangeIndicators = () => {
         if (!journalChartRef.current || !candlestickSeries) return;
         
-        // Convert IST time string (HH:MM) to candle reference
+        // Convert IST time string (HH:MM) to seconds for comparison
         const timeToSeconds = (timeStr: string) => {
           const [hours, mins] = timeStr.split(':').map(Number);
           return hours * 3600 + mins * 60;
@@ -5749,49 +5749,55 @@ ${
         const fromSeconds = timeToSeconds(journalChartFromTime);
         const toSeconds = timeToSeconds(journalChartToTime);
         
-        // Find first and last candles within time range
-        const candlesInRange = sortedData.filter(candle => {
+        // Find first candle at/after from time and last candle at/before to time
+        let fromCandle = null;
+        let toCandle = null;
+        
+        for (const candle of sortedData) {
           const candleDate = new Date(candle.time * 1000);
           const candleHours = candleDate.getUTCHours();
           const candleMinutes = candleDate.getUTCMinutes();
           const candleSeconds = candleHours * 3600 + candleMinutes * 60;
           
-          return candleSeconds >= fromSeconds && candleSeconds <= toSeconds;
-        });
+          if (!fromCandle && candleSeconds >= fromSeconds) {
+            fromCandle = candle;
+          }
+          if (candleSeconds <= toSeconds) {
+            toCandle = candle;
+          }
+        }
         
-        if (candlesInRange.length > 0) {
-          const firstInRange = candlesInRange[0];
-          const lastInRange = candlesInRange[candlesInRange.length - 1];
+        if (fromCandle && toCandle) {
+          console.log(`⏰ Time range: ${journalChartFromTime} to ${journalChartToTime}`);
+          console.log(`📍 FROM candle: ${new Date(fromCandle.time * 1000).toLocaleTimeString('en-IN')} (price: ${fromCandle.close})`);
+          console.log(`📍 TO candle: ${new Date(toCandle.time * 1000).toLocaleTimeString('en-IN')} (price: ${toCandle.close})`);
           
-          console.log(`⏰ Time range visualization: ${journalChartFromTime} to ${journalChartToTime}`);
-          console.log(`📍 Candles in range: ${candlesInRange.length} (from ${new Date(firstInRange.time * 1000).toLocaleTimeString('en-IN')} to ${new Date(lastInRange.time * 1000).toLocaleTimeString('en-IN')})`);
-          
-          // Add visual marker at start of time range
+          // Add vertical line at FROM candle
           try {
-            const startMarker = candlestickSeries.createPriceLine({
-              price: firstInRange.high,
+            candlestickSeries.createPriceLine({
+              price: fromCandle.high,
               color: '#3b82f6',
-              lineWidth: 2,
-              lineStyle: 1,
+              lineWidth: 3,
+              lineStyle: 2, // Dashed
               axisLabelVisible: true,
-              title: `FROM: ${journalChartFromTime}`,
+              title: `FROM ${journalChartFromTime}`,
             });
           } catch (e) {
-            console.log('Start marker note:', e);
+            console.log('FROM marker error:', e);
           }
           
-          // Add visual marker at end of time range
+          // Add vertical line at TO candle
           try {
-            const endMarker = candlestickSeries.createPriceLine({
-              price: lastInRange.low,
+            candlestickSeries.createPriceLine({
+              price: toCandle.low,
               color: '#ef4444',
-              lineWidth: 2,
-              lineStyle: 1,
+              lineWidth: 3,
+              lineStyle: 2, // Dashed
               axisLabelVisible: true,
-              title: `TO: ${journalChartToTime}`,
+              title: `TO ${journalChartToTime}`,
             });
           } catch (e) {
-            console.log('End marker note:', e);
+            console.log('TO marker error:', e);
           }
         }
       };
