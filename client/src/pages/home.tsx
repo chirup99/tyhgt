@@ -5849,31 +5849,55 @@ ${
 
   // Apply trade markers to chart when trade history data changes
   useEffect(() => {
+    console.log('📊 Trade markers useEffect triggered:', {
+      activeTab,
+      hasSeriesRef: !!journalCandlestickSeriesRef.current,
+      chartDataLength: journalChartData?.length || 0,
+      tradeHistoryLength: tradeHistoryData?.length || 0
+    });
+
     if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartData || journalChartData.length === 0) {
+      console.log('📊 Trade markers: Skipping - conditions not met');
       return;
     }
 
     const markers = getTradeMarkersForChart();
+    console.log('📊 Markers generated:', markers);
+    
     if (markers.length > 0) {
-      const sortedData = [...journalChartData].sort((a: any, b: any) => a.time - b.time);
+      // Use the ORIGINAL journalChartData order (not sorted) since candleIndex matches original array
       const chartMarkers = markers.map((marker) => {
-        const candle = sortedData[marker.candleIndex];
+        const candle = journalChartData[marker.candleIndex];
+        console.log(`📊 Marker at candle index ${marker.candleIndex}:`, {
+          candleTime: candle?.time,
+          tradeTime: marker.time,
+          type: marker.type,
+          price: marker.price
+        });
         return {
           time: candle?.time as any,
           position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
           color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
           shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
-          text: `${marker.type.toUpperCase()}\n@₹${marker.price?.toFixed(2) || '0'}`,
-          size: 1 as any,
+          text: `${marker.type.toUpperCase()}\n₹${marker.price?.toFixed(2) || '0'}`,
+          size: 2,
         };
-      });
+      }).filter(m => m.time !== undefined); // Filter out any markers without valid time
+      
+      // Sort markers by time (required by lightweight-charts)
+      chartMarkers.sort((a: any, b: any) => a.time - b.time);
+      
+      console.log('📊 Final chart markers to apply:', chartMarkers);
       
       try {
-        journalCandlestickSeriesRef.current.setMarkers(chartMarkers);
+        // Cast to any to access setMarkers method (exists at runtime but not in TS types)
+        (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
         console.log(`📊 ✅ Chart updated: ${chartMarkers.length} trade markers (🟢 buy/🔴 sell arrows)`);
       } catch (e) {
-        console.log('📊 Trade markers applied to chart');
+        console.error('📊 Error applying trade markers:', e);
       }
+    } else {
+      console.log('📊 No markers to apply');
     }
   }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
 
