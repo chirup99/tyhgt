@@ -5736,56 +5736,61 @@ ${
       }
 
 
-      // Add visual indicators for time range (if set)
+      // Add vertical line markers using same param.time logic as crosshair
       const addTimeRangeIndicators = () => {
-        if (!journalChartRef.current || !candlestickSeries) return;
+        if (!journalChartRef.current || !candlestickSeries || sortedData.length === 0) return;
         
-        console.log(`🔍 Starting time range search for: ${journalChartFromTime} to ${journalChartToTime}`);
-        console.log(`📊 Searching ${sortedData.length} candles...`);
+        console.log(`🎯 Using param.time logic for time range: ${journalChartFromTime} to ${journalChartToTime}`);
         
-        // Convert IST time string (HH:MM) to seconds for comparison
-        const timeToSeconds = (timeStr: string) => {
+        // Helper: Convert IST time string (HH:MM) to minutes since midnight
+        const parseIST = (timeStr: string) => {
           const [hours, mins] = timeStr.split(':').map(Number);
-          return hours * 3600 + mins * 60;
+          return hours * 60 + mins;
         };
         
-        const fromSeconds = timeToSeconds(journalChartFromTime);
-        const toSeconds = timeToSeconds(journalChartToTime);
+        const fromMins = parseIST(journalChartFromTime);
+        const toMins = parseIST(journalChartToTime);
         
-        console.log(`⏰ FROM: ${journalChartFromTime} = ${fromSeconds}s, TO: ${journalChartToTime} = ${toSeconds}s`);
+        console.log(`⏰ Looking for candles at: ${journalChartFromTime} (${fromMins}m) to ${journalChartToTime} (${toMins}m)`);
         
-        // Find first candle at/after from time and last candle at/before to time
+        // Scan all candles to find FROM and TO using exact param.time matching
         let fromCandle = null;
         let toCandle = null;
         
         for (const candle of sortedData) {
-          const candleDate = new Date(candle.time * 1000);
-          // Convert UTC to IST by adding 5:30 hours
-          const istDate = new Date(candleDate.getTime() + (330 * 60 * 1000));
-          const candleHours = istDate.getUTCHours();
-          const candleMinutes = istDate.getUTCMinutes();
-          const candleSeconds = candleHours * 3600 + candleMinutes * 60;
+          // candle.time is Unix seconds (same as param.time from crosshair)
+          const candleDate = new Date(candle.time * 1000); // Convert to milliseconds
           
-          // Debug first few candles
-          if (sortedData.indexOf(candle) < 3) {
-            console.log(`📍 Candle ${sortedData.indexOf(candle)}: UTC=${candleDate.toLocaleTimeString()} IST=${istDate.toLocaleTimeString()} seconds=${candleSeconds}`);
+          // Add IST offset: IST = UTC + 5:30 hours = +330 minutes
+          const istTime = new Date(candleDate.getTime() + (330 * 60 * 1000));
+          
+          // Extract IST hours and minutes
+          const istHours = istTime.getUTCHours();
+          const istMins = istTime.getUTCMinutes();
+          const candleIST_Mins = istHours * 60 + istMins;
+          
+          // Debug: Show first few candles to verify IST conversion
+          if (sortedData.indexOf(candle) < 2) {
+            console.log(`📍 Candle[${sortedData.indexOf(candle)}]: param.time=${candle.time}, IST=${istHours}:${istMins.toString().padStart(2, '0')} (${candleIST_Mins}m)`);
           }
           
-          if (!fromCandle && candleSeconds >= fromSeconds) {
+          // Match FROM candle (find first candle >= FROM time)
+          if (!fromCandle && candleIST_Mins >= fromMins) {
             fromCandle = candle;
-            console.log(`✅ FOUND FROM candle at IST ${candleHours}:${candleMinutes.toString().padStart(2, '0')}`);
+            console.log(`✅ FROM candle found: param.time=${fromCandle.time} at IST ${istHours}:${istMins.toString().padStart(2, '0')}`);
           }
-          if (candleSeconds <= toSeconds) {
+          
+          // Track TO candle (find last candle <= TO time)
+          if (candleIST_Mins <= toMins) {
             toCandle = candle;
           }
         }
         
+        // Draw vertical lines at FROM and TO candle positions using setMarkers
         if (fromCandle && toCandle) {
-          console.log(`⏰ Time range: ${journalChartFromTime} to ${journalChartToTime}`);
-          console.log(`📍 FROM candle: ${new Date(fromCandle.time * 1000).toLocaleTimeString('en-IN')} (price: ${fromCandle.close})`);
-          console.log(`📍 TO candle: ${new Date(toCandle.time * 1000).toLocaleTimeString('en-IN')} (price: ${toCandle.close})`);
+          console.log(`✅ BOTH candles found! Drawing vertical lines...`);
+          console.log(`   FROM: param.time=${fromCandle.time}, TO: param.time=${toCandle.time}`);
           
-          // Add markers with vertical line appearance at FROM and TO candles
           const markers = [
             {
               time: fromCandle.time as any,
@@ -5803,14 +5808,11 @@ ${
             },
           ];
           
-          try {
-            candlestickSeries.setMarkers(markers);
-            console.log('✅ Time range markers applied');
-          } catch (e) {
-            console.log('Marker error:', e);
-          }
+          candlestickSeries.setMarkers(markers);
+          console.log('🟢 Vertical line markers drawn using param.time positions');
         } else {
-          console.log(`❌ Could not find candles in range. fromCandle=${!!fromCandle}, toCandle=${!!toCandle}`);
+          console.log(`❌ Missing candles: fromCandle=${!!fromCandle}, toCandle=${!!toCandle}`);
+          console.log(`   FROM=${journalChartFromTime} (${fromMins}m), TO=${journalChartToTime} (${toMins}m)`);
         }
       };
       
