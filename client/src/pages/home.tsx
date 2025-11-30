@@ -5847,9 +5847,12 @@ ${
     return markers;
   }, [tradeHistoryData, journalChartData]);
 
-  // Apply trade markers to chart when trade history data changes
+  // Ref to store trade line references
+  const tradeLinesRef = useRef<any[]>([]);
+
+  // Apply trade lines to chart when trade history data changes
   useEffect(() => {
-    console.log('📊 Trade markers useEffect triggered:', {
+    console.log('📊 Trade lines useEffect triggered:', {
       activeTab,
       hasSeriesRef: !!journalCandlestickSeriesRef.current,
       chartDataLength: journalChartData?.length || 0,
@@ -5857,37 +5860,42 @@ ${
     });
 
     if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartData || journalChartData.length === 0) {
-      console.log('📊 Trade markers: Skipping - conditions not met');
+      console.log('📊 Trade lines: Skipping - conditions not met');
       return;
     }
 
+    // Remove old lines
+    tradeLinesRef.current.forEach(line => {
+      try {
+        journalCandlestickSeriesRef.current?.removePriceLine(line);
+      } catch (e) {
+        console.error('Error removing price line:', e);
+      }
+    });
+    tradeLinesRef.current = [];
+
     const markers = getTradeMarkersForChart();
-    console.log('📊 Markers generated:', markers);
+    console.log('📊 Trade lines to display:', markers.length);
     
     if (markers.length > 0) {
-      // Use the ORIGINAL journalChartData order (not sorted) since candleIndex matches original array
-      const chartMarkers = markers.map((marker) => {
-        const candle = journalChartData[marker.candleIndex];
-        return {
-          time: candle?.time,
-          position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
-          color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
-          shape: 'circle',
-          text: `${marker.type === 'buy' ? '🟢 BUY' : '🔴 SELL'}\n₹${marker.price?.toFixed(2) || '0'}`,
-          size: 'large' as any,
-        };
-      }).filter(m => m.time !== undefined);
-      
-      // Sort markers by time (required by lightweight-charts)
-      chartMarkers.sort((a: any, b: any) => a.time - b.time);
-      
-      try {
-        // Cast to any to access setMarkers method (exists at runtime but not in TS types)
-        (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ Trade Markers Added: ${chartMarkers.length} visible markers on chart`);
-      } catch (e) {
-        console.error('📊 ❌ Marker Error:', e);
-      }
+      markers.forEach((marker, idx) => {
+        try {
+          const line = journalCandlestickSeriesRef.current?.createPriceLine({
+            price: marker.price,
+            color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
+            lineWidth: 4, // Thick line
+            lineStyle: 0, // Solid line
+            axisLabelVisible: true,
+            title: `${marker.type.toUpperCase()} @${marker.price} (${marker.time})`,
+          });
+          if (line) {
+            tradeLinesRef.current.push(line);
+          }
+        } catch (e) {
+          console.error(`Error adding trade line ${idx}:`, e);
+        }
+      });
+      console.log(`📊 ✅ Trade Lines Added: ${tradeLinesRef.current.length} lines on chart (thick horizontal lines)`);
     }
   }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
 
