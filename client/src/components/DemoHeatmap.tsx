@@ -21,6 +21,7 @@ interface DemoHeatmapProps {
     dates: string[];
   } | null;
   isPublicView?: boolean;
+  onSelectDateForHeatmap?: (symbol: string, date: string) => void;
 }
 
 // Simple function to calculate P&L from trade data
@@ -75,7 +76,7 @@ function getPnLColor(pnl: number): string {
   }
 }
 
-export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates, isPublicView, tradingDataByDate }: DemoHeatmapProps) {
+export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeChange, highlightedDates, isPublicView, tradingDataByDate, onSelectDateForHeatmap }: DemoHeatmapProps) {
   const { currentUser } = useCurrentUser();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedRange, setSelectedRange] = useState<{ from: Date; to: Date } | null>(null);
@@ -677,6 +678,23 @@ export function DemoHeatmap({ onDateSelect, selectedDate, onDataUpdate, onRangeC
     // Normal mode - load the date
     setCurrentDate(date);
     onDateSelect(date);
+    
+    // Auto-switch to heatmap mode in Trading Journal and fetch chart data
+    if (onSelectDateForHeatmap && tradingDataByDate) {
+      const tradingData = tradingDataByDate[dateKey];
+      let symbolForDate = 'NSE:NIFTY50-INDEX'; // Default
+      
+      if (tradingData?.tradeHistory && tradingData.tradeHistory.length > 0) {
+        const firstTrade = tradingData.tradeHistory[0];
+        if (firstTrade.symbol) {
+          const cleanSym = firstTrade.symbol.replace(/NSE:|BSE:|-INDEX|-EQ/g, '');
+          symbolForDate = `NSE:${cleanSym}-INDEX`;
+        }
+      }
+      
+      console.log(`📅 [DEMOHEATMAP] Selected date: ${dateKey}, Symbol: ${symbolForDate}`);
+      onSelectDateForHeatmap(symbolForDate, dateKey);
+    }
   };
 
   // Handle "Move date" menu item click

@@ -12966,6 +12966,11 @@ ${
                               }}
                               onRangeChange={handleDateRangeChange}
                               highlightedDates={activeTagHighlight}
+                              onSelectDateForHeatmap={(symbol, date) => {
+                                console.log(`📊 [HOME] Switching to heatmap mode - Symbol: ${symbol}, Date: ${date}`);
+                                setJournalChartMode('heatmap');
+                                fetchHeatmapChartData(symbol, date);
+                              }}
                             />
                           ) : (
                             <PersonalHeatmap
@@ -16510,6 +16515,11 @@ ${
                     selectedDate={null}
                     onDataUpdate={() => {}}
                     isPublicView={true}
+                    onSelectDateForHeatmap={(symbol, date) => {
+                      console.log(`📊 [REPORT] Switching to heatmap mode - Symbol: ${symbol}, Date: ${date}`);
+                      setJournalChartMode('heatmap');
+                      fetchHeatmapChartData(symbol, date);
+                    }}
                   />
                 </div>
                 
