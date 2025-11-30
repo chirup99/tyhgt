@@ -5312,7 +5312,7 @@ ${
       console.log(`⏱️ [HEATMAP TIMEFRAME] Changed to ${getJournalTimeframeLabel(heatmapChartTimeframe)} - re-fetching chart for ${heatmapSelectedDate}`);
       fetchHeatmapChartData(heatmapSelectedSymbol, heatmapSelectedDate);
     }
-  }, [heatmapChartTimeframe, journalChartMode, heatmapSelectedSymbol, fetchHeatmapChartData]);
+  }, [heatmapChartTimeframe, journalChartMode, fetchHeatmapChartData]);
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
