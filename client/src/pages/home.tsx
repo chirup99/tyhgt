@@ -5987,6 +5987,9 @@ ${
           heatmapChartRef.current = null;
           heatmapCandlestickSeriesRef.current = null;
         }
+        
+        // Clear container
+        heatmapChartContainerRef.current.innerHTML = '';
 
         const containerWidth = heatmapChartContainerRef.current.clientWidth || 800;
         const containerHeight = heatmapChartContainerRef.current.clientHeight || 400;
