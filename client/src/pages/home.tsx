@@ -5741,6 +5741,7 @@ ${
         if (!journalChartRef.current || !candlestickSeries || sortedData.length === 0) return;
         
         console.log(`\n🎯 === TIME RANGE FILTER MATCHING START ===`);
+        console.log(`📊 Symbol: ${selectedJournalSymbol}`);
         console.log(`📍 User selected: FROM=${journalChartFromTime}, TO=${journalChartToTime}`);
         console.log(`📊 Total candles available: ${sortedData.length}`);
         
