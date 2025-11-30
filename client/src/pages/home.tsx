@@ -6176,6 +6176,64 @@ ${
         candlestickSeries.setData(chartData);
         volumeSeries.setData(volumeData);
 
+        // ========== ADD BUY/SELL TRADE MARKERS ==========
+        if (tradeHistoryData && tradeHistoryData.length > 0) {
+          const markers: any[] = [];
+          
+          tradeHistoryData.forEach((trade) => {
+            // Parse trade time (format: "HH:MM:SS AM/PM")
+            const timeStr = trade.time || '';
+            if (!timeStr) return;
+            
+            try {
+              // Extract hours, minutes, seconds from time string
+              const match = timeStr.match(/(\d+):(\d+):(\d+)\s*(AM|PM)/i);
+              if (!match) return;
+              
+              let hours = parseInt(match[1]);
+              const minutes = parseInt(match[2]);
+              const seconds = parseInt(match[3]);
+              const period = match[4].toUpperCase();
+              
+              // Convert to 24-hour format
+              if (period === 'PM' && hours !== 12) hours += 12;
+              if (period === 'AM' && hours === 12) hours = 0;
+              
+              // Find matching candle by time of day (IST)
+              // The heatmap chart is for a specific date, so we match by time of day
+              const matchingCandle = sortedData.find((candle) => {
+                const candleDate = new Date(candle.time * 1000);
+                const istCandleDate = new Date(candleDate.getTime() + (330 * 60 * 1000));
+                const candleHours = istCandleDate.getUTCHours();
+                const candleMinutes = istCandleDate.getUTCMinutes();
+                
+                // Match within the same minute
+                return candleHours === hours && candleMinutes === minutes;
+              });
+              
+              if (matchingCandle) {
+                const isGreen = trade.order === 'BUY';
+                
+                markers.push({
+                  time: matchingCandle.time as any,
+                  position: isGreen ? 'belowBar' : 'aboveBar',
+                  color: isGreen ? '#16a34a' : '#dc2626',
+                  shape: isGreen ? 'arrowUp' : 'arrowDown',
+                  text: `${trade.order}`,
+                  id: `${trade.time}-${trade.order}`,
+                });
+              }
+            } catch (e) {
+              console.error(`⚠️ Could not parse trade time: ${timeStr}`);
+            }
+          });
+          
+          if (markers.length > 0) {
+            candlestickSeries.setMarkers(markers);
+            console.log(`📍 [HEATMAP] Added ${markers.length} trade markers (${tradeHistoryData.filter(t => t.order === 'BUY').length} BUY, ${tradeHistoryData.filter(t => t.order === 'SELL').length} SELL)`);
+          }
+        }
+
         // Fit content
         setTimeout(() => {
           if (heatmapChartRef.current) {
