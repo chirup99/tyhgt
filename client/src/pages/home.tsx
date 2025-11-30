@@ -7011,17 +7011,13 @@ ${
     return result;
   };
 
-  const handleDateSelect = async (date: Date, firebaseData?: any, forceMode?: 'demo' | 'personal') => {
-    // 📅 [CHART CONTROL] When user selects date from heatmap, set it as chart's date filter
-    // Use formatDateKey (local date) instead of toISOString (UTC) to avoid timezone shifts
+  const handleDateSelect = async (date: Date, firebaseData?: any) => {
+    // 📅 User selected date from heatmap
     const dateString = formatDateKey(date);
     setJournalSelectedDate(dateString);
-    console.log(`📅 [HEATMAP-TO-CHART] User selected date from heatmap: ${dateString}`);
-    // Update selected date IMMEDIATELY for instant visual feedback
     setSelectedDate(date);
-    console.log(`📅 Selected date for heatmap:`, date);
-
-    // IMMEDIATELY clear all data - NO DELAYS, NO LOADING STATES
+    
+    // Clear all data immediately
     setNotesContent("");
     setTempNotesContent("");
     setSelectedTags([]);
@@ -7030,7 +7026,6 @@ ${
     setTradedSymbols([]);
     setCurrentSymbolIndex(0);
 
-    // Use formatDateKey for consistency with save function
     const dateKey = formatDateKey(date);
     
     // If firebaseData is provided (from PersonalHeatmap), use it directly - NO API FETCH
@@ -7095,32 +7090,17 @@ ${
       return; // Exit early - we used fresh Firebase data
     }
 
-    // Otherwise, continue with normal API fetch logic
-    console.log(
-      `🔍 Loading journal data for date: ${dateKey} (original: ${date.toDateString()}) [Mode: ${forceMode || (isDemoMode ? 'demo' : 'personal')}]`,
-    );
-
-    // Load trading data from appropriate source based on demo mode
-    // Use forceMode if provided (to avoid state closure issues), otherwise use isDemoMode state
-    const effectiveMode = forceMode !== undefined ? forceMode : (isDemoMode ? 'demo' : 'personal');
-
+    // Load journal data from API
     try {
-      // Choose endpoint based on demo mode
       let response;
-      if (effectiveMode === 'demo') {
-        // Demo mode: Load from shared Google Cloud journal database
-        console.log("📊 Loading from demo data (shared)");
-        response = await fetch(getFullApiUrl(`/api/journal/${dateKey}`));
-      } else {
-        // Personal mode: Load from Firebase (user-specific)
-        const userId = getUserId();
-        if (!userId) {
-          console.error("❌ Cannot load personal data - no Firebase user logged in");
-          // Data already cleared at start of handleDateSelect - just return
-          return;
-        }
-        console.log(`👤 Loading from user-specific data (userId: ${userId})`);
+      const userId = getUserId();
+      
+      if (userId) {
+        // Load user-specific data
         response = await fetch(getFullApiUrl(`/api/user-journal/${userId}/${dateKey}`));
+      } else {
+        // Load shared demo data
+        response = await fetch(getFullApiUrl(`/api/journal/${dateKey}`));
       }
       console.log(`📡 Load response status: ${response.status}`, response);
 
