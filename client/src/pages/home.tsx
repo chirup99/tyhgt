@@ -4955,161 +4955,78 @@ ${
     return ema;
   };
 
-  // Function to fetch journal chart data from Angel One API
+  // ✅ CLEAN REBUILD: Simple fetch logic - extract symbol → get token → fetch → render
   const fetchJournalChartData = useCallback(async () => {
     try {
       setJournalChartLoading(true);
       setJournalChartData([]);
       
+      // Clear chart refs
       if (journalChartRef.current) {
         try { journalChartRef.current.remove(); } catch (e) {}
+        journalChartRef.current = null;
+        journalCandlestickSeriesRef.current = null;
+        journalEma12SeriesRef.current = null;
+        journalEma26SeriesRef.current = null;
+        journalVolumeSeriesRef.current = null;
       }
-      journalChartRef.current = null;
-      journalCandlestickSeriesRef.current = null;
-      journalEma12SeriesRef.current = null;
-      journalEma26SeriesRef.current = null;
-      journalVolumeSeriesRef.current = null;
+
+      // STEP 1: Validate inputs
+      console.log(`📊 [FETCH] selectedJournalSymbol: ${selectedJournalSymbol}, date: ${journalSelectedDate}, timeframe: ${journalChartTimeframe}`);
       
-      let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
-      
-      // 🔶 SIMPLE: Use ONLY the symbol from trade history (tradedSymbols)
-      // Always fetch using the FIRST symbol from the trades on this date
-      console.log('🔶 [FETCH START] =====================================');
-      console.log('🔶 [FETCH] tradedSymbols (from trade history):', tradedSymbols);
-      
-      if (tradedSymbols.length === 0) {
-        console.warn('🔶 [FETCH] No traded symbols - cannot fetch chart');
-        setJournalChartData([]);
-        return;
-      }
-      
-      // 🔥 CRITICAL FIX: Get symbol from selectedJournalSymbol (UI source of truth), not from index!
-      // selectedJournalSymbol is what's currently displayed and what user selected
       if (!selectedJournalSymbol) {
-        console.warn('🔶 [FETCH] selectedJournalSymbol is empty - cannot fetch chart');
-        setJournalChartData([]);
+        console.warn('❌ [FETCH] No symbol selected - cannot fetch');
         return;
       }
       
-      // Extract clean symbol from selectedJournalSymbol (format: NSE:NIFTY-INDEX)
-      const cleanSymbol = selectedJournalSymbol.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '').replace(/-EQ$/, '');
-      stockToken = journalAngelOneTokens[cleanSymbol];
-      
-      console.log(`🔶 [FETCH] Using selectedJournalSymbol: ${selectedJournalSymbol}`);
-      console.log(`🔶 [FETCH] Extracted clean symbol: ${cleanSymbol}`);
-      console.log(`🔶 [FETCH] Token resolved:`, stockToken);
-      
-      if (!stockToken) {
-        console.warn(`🔶 [FETCH] No Angel One token found for symbol: ${cleanSymbol}`);
-        setJournalChartData([]);
+      if (!journalSelectedDate) {
+        console.warn('❌ [FETCH] No date selected - cannot fetch');
         return;
       }
 
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
+      // STEP 2: Extract clean symbol from selectedJournalSymbol (e.g., NSE:NIFTY-INDEX → NIFTY)
+      const cleanSymbol = selectedJournalSymbol
+        .replace(/^(NSE|BSE):/, '')
+        .replace(/-INDEX$/, '')
+        .replace(/-EQ$/, '');
       
-      // 🔶 Fetch 10 TRADING DAYS of data (real-time, not month-old history)
-      // Calculate 10 trading days back (skip weekends)
-      const tenDaysAgo = new Date(now);
-      let tradingDaysCount = 0;
-      while (tradingDaysCount < 10) {
-        tenDaysAgo.setDate(tenDaysAgo.getDate() - 1);
-        const dayOfWeek = tenDaysAgo.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
-          tradingDaysCount++;
-        }
+      const stockToken = journalAngelOneTokens[cleanSymbol];
+      console.log(`📊 [FETCH] Clean symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
+      
+      if (!stockToken) {
+        console.warn(`❌ [FETCH] No token found for symbol: ${cleanSymbol}`);
+        return;
       }
-      
-      const fromDateOnly = tenDaysAgo.toISOString().split('T')[0];
-      
-      // Check if today is market open (for toDate)
-      const dayOfWeek = now.getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const marketOpenHour = 9; // Market opens at 9:15 AM
-      const isMarketClosed = now.getHours() < marketOpenHour || isWeekend;
-      
-      let endDate = today;
-      if (isMarketClosed) {
-        // Get last trading day (skip weekends)
-        const lastDay = new Date(now);
-        lastDay.setDate(lastDay.getDate() - 1);
-        // If we landed on weekend, skip back one more day
-        if (lastDay.getDay() === 0) lastDay.setDate(lastDay.getDate() - 1); // Sunday → Friday
-        if (lastDay.getDay() === 6) lastDay.setDate(lastDay.getDate() - 1); // Saturday → Friday
-        endDate = lastDay.toISOString().split('T')[0];
-      }
-      
-      let fromDate = fromDateOnly;
-      let toDate = endDate;
-      
-      // 🔶 Exchange-specific trading hours
-      const exchange = stockToken.exchange.toUpperCase();
-      const isMCX = exchange === 'MCX' || exchange === '3';
-      const isNCDEX = exchange === 'NCDEX' || exchange === '5';
-      
-      if (isMCX) {
-        fromDate = `${fromDateOnly} 09:00`;
-        toDate = `${endDate} 23:55`;
-      } else if (isNCDEX) {
-        fromDate = `${fromDateOnly} 09:00`;
-        toDate = `${endDate} 20:00`;
-      } else {
-        fromDate = `${fromDateOnly} 09:15`;
-        toDate = `${endDate} 15:30`;
-      }
-      
-      console.log(`🔶 10-DAY DATA: Fetching last 10 trading days: ${fromDate} to ${toDate}`);
-      
-      // 🔶 Convert selected timeframe to Angel One API interval format (minutes)
+
+      // STEP 3: Build API request
       const interval = getJournalAngelOneInterval(journalChartTimeframe);
-      
-      console.log(`✅ FETCHING ${getJournalTimeframeLabel(journalChartTimeframe)} DATA: interval="${interval}" (${journalChartTimeframe})`);
-      
-      const requestBody: any = {
+      const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        fromDate: fromDate,
-        toDate: toDate,
+        date: journalSelectedDate, // Backend will fetch candles for this specific date
       };
+      
+      console.log(`📊 [FETCH] API Request:`, requestBody);
 
-      // 📅 If user selected a specific date, add it to the request (backend will use it instead of fromDate/toDate)
-      if (journalSelectedDate) {
-        requestBody.date = journalSelectedDate;
-        console.log(`📅 [DATE FILTER] Fetching candles for specific date: ${journalSelectedDate}`);
-      }
-
-      console.log(`✅ API REQUEST:`, requestBody);
-
+      // STEP 4: Fetch chart data
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`🔶 API Error ${response.status}:`, errorText);
-        throw new Error(`Failed to fetch chart data: ${response.status} - ${errorText}`);
+        console.error(`❌ [FETCH] API Error ${response.status}: ${errorText}`);
+        throw new Error(`Failed to fetch chart data: ${response.status}`);
       }
 
+      // STEP 5: Parse and map candle data
       const data = await response.json();
-      console.log('🔶 API Response received:', { success: data.success, candlesLength: data.candles?.length, dataLength: data.data?.length });
-      
       let candleData: any[] = [];
       
-      if (data.success && data.data && Array.isArray(data.data)) {
-        candleData = data.data.map((candle: any[]) => ({
-          time: new Date(candle[0]).getTime() / 1000,
-          open: parseFloat(candle[1]),
-          high: parseFloat(candle[2]),
-          low: parseFloat(candle[3]),
-          close: parseFloat(candle[4]),
-          volume: parseInt(candle[5]) || 0,
-        }));
-      } else if (data.success && data.candles && Array.isArray(data.candles) && data.candles.length > 0) {
+      if (data.success && data.candles && Array.isArray(data.candles)) {
         candleData = data.candles.map((candle: any) => {
           let unixSeconds: number;
           
@@ -5117,15 +5034,11 @@ ${
             const [datePart, timePart] = candle.timestamp.split(' ');
             const [year, month, day] = datePart.split('-').map(Number);
             const [hours, minutes] = timePart.split(':').map(Number);
-            
             const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
             const istOffsetMs = 5.5 * 60 * 60 * 1000;
-            const actualUtcMs = utcDate.getTime() - istOffsetMs;
-            unixSeconds = Math.floor(actualUtcMs / 1000);
-          } else if (candle.timestamp > 10000000000) {
-            unixSeconds = Math.floor(candle.timestamp / 1000);
+            unixSeconds = Math.floor((utcDate.getTime() - istOffsetMs) / 1000);
           } else {
-            unixSeconds = candle.timestamp;
+            unixSeconds = candle.timestamp > 10000000000 ? Math.floor(candle.timestamp / 1000) : candle.timestamp;
           }
           
           return {
@@ -5139,19 +5052,11 @@ ${
         });
       }
       
-      if (candleData.length > 0) {
-        console.log(`✅ CHART DATA READY: ${candleData.length} 1-minute candles`);
-        console.log(`✅ First candle:`, candleData[0]);
-        console.log(`✅ Last candle:`, candleData[candleData.length - 1]);
-        
-        setJournalChartData(candleData);
-        console.log(`✅ Chart data state updated - render should trigger now`);
-      } else {
-        console.warn('🔶 Angel One: No candle data returned', data);
-        setJournalChartData([]);
-      }
+      console.log(`✅ [FETCH] Chart ready: ${candleData.length} candles for ${cleanSymbol}`);
+      setJournalChartData(candleData);
+      
     } catch (error) {
-      console.error("🔶 Error fetching Angel One journal chart data:", error);
+      console.error("❌ [FETCH] Error:", error);
       setJournalChartData([]);
     } finally {
       setJournalChartLoading(false);
