@@ -5309,6 +5309,14 @@ ${
     heatmapChartDataRef.current = heatmapChartData;
   }, [heatmapChartData]);
 
+  // Auto-update heatmap chart when timeframe changes (without needing to re-select date)
+  useEffect(() => {
+    if (journalChartMode === 'heatmap' && heatmapSelectedDate && heatmapSelectedSymbol) {
+      console.log(`⏱️ [HEATMAP TIMEFRAME] Changed to ${getJournalTimeframeLabel(heatmapChartTimeframe)} - re-fetching chart for ${heatmapSelectedDate}`);
+      fetchHeatmapChartData(heatmapSelectedSymbol, heatmapSelectedDate);
+    }
+  }, [heatmapChartTimeframe, journalChartMode, heatmapSelectedDate, heatmapSelectedSymbol, fetchHeatmapChartData]);
+
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
     if (journalChartData && journalChartData.length > 0) {
