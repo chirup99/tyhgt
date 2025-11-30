@@ -6216,8 +6216,9 @@ ${
             console.log(`📝 [HEATMAP MARKERS] Processing trade: ${JSON.stringify(trade)}`);  
             
             try {
-              // Extract hours, minutes, seconds from time string
-              const match = timeStr.match(/(\d+):(\d+):(\d+)\s*(AM|PM)/i);
+              // Extract hours, minutes, seconds (seconds optional) from time string
+              // Supports both "HH:MM:SS AM/PM" and "HH:MM AM/PM" formats
+              const match = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
               if (!match) {
                 console.warn(`⚠️ [HEATMAP MARKERS] Could not parse time: "${timeStr}"`);
                 return;
@@ -6225,7 +6226,7 @@ ${
               
               let hours = parseInt(match[1]);
               const minutes = parseInt(match[2]);
-              const seconds = parseInt(match[3]);
+              const seconds = match[3] ? parseInt(match[3]) : 0; // Default to 0 if not provided
               const period = match[4].toUpperCase();
               
               // Convert to 24-hour format
