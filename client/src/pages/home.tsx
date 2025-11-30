@@ -4625,9 +4625,6 @@ ${
   const [showJournalTimeframeDropdown, setShowJournalTimeframeDropdown] = useState(false);
   const [showHeatmapTimeframeDropdown, setShowHeatmapTimeframeDropdown] = useState(false);
   const [showTradeMarkers, setShowTradeMarkers] = useState(true); // Toggle for trade markers visibility
-  const [showJournalTimeRangeFilter, setShowJournalTimeRangeFilter] = useState(false);
-  const [journalChartFromTime, setJournalChartFromTime] = useState('09:15'); // Market open (IST)
-  const [journalChartToTime, setJournalChartToTime] = useState('15:30'); // Market close (IST)
   
   // Journal chart timeframe options (same as Trading Master OHLC window)
   const journalTimeframeOptions = [
@@ -5883,110 +5880,6 @@ ${
       }
 
 
-      // Add vertical line markers using param.time matching (IST-based)
-      const addTimeRangeIndicators = () => {
-        if (!journalChartRef.current || !candlestickSeries || sortedData.length === 0) return;
-        
-        console.log(`\n🎯 === TIME RANGE FILTER MATCHING START ===`);
-        console.log(`📊 Symbol: ${selectedJournalSymbol}`);
-        console.log(`📍 User selected: FROM=${journalChartFromTime}, TO=${journalChartToTime}`);
-        console.log(`📊 Total candles available: ${sortedData.length}`);
-        
-        // Convert IST time strings directly to match with candle param.time
-        // Both are in IST format, so just extract hours:minutes
-        let fromCandle = null;
-        let toCandle = null;
-        let fromIndex = -1;
-        let toIndex = -1;
-        
-        for (let idx = 0; idx < sortedData.length; idx++) {
-          const candle = sortedData[idx];
-          // candle.time is param.time in Unix seconds (IST-based)
-          const candleDate = new Date(candle.time * 1000);
-          const candleYear = candleDate.getFullYear();
-          const candleMonth = String(candleDate.getMonth() + 1).padStart(2, '0');
-          const candleDay = String(candleDate.getDate()).padStart(2, '0');
-          const candleHours = candleDate.getHours();
-          const candleMins = candleDate.getMinutes();
-          const candleDateTime = `${candleYear}-${candleMonth}-${candleDay} ${candleHours.toString().padStart(2, '0')}:${candleMins.toString().padStart(2, '0')}`;
-          const candleTime = `${candleHours.toString().padStart(2, '0')}:${candleMins.toString().padStart(2, '0')}`;
-          
-          // Debug: Show sample candles
-          if (idx < 3 || idx === sortedData.length - 1) {
-            console.log(`  Candle[${idx}]: ${candleDateTime} | param.time=${candle.time} | O=${candle.open} H=${candle.high} L=${candle.low} C=${candle.close}`);
-          }
-          
-          // Match FROM: find first candle >= FROM time
-          if (!fromCandle && candleTime >= journalChartFromTime) {
-            fromCandle = candle;
-            fromIndex = idx;
-            console.log(`\n✅ FROM CANDLE MATCHED:`);
-            console.log(`  Index: ${fromIndex}`);
-            console.log(`  param.time: ${fromCandle.time}`);
-            console.log(`  Date & Time: ${candleDateTime}`);
-            console.log(`  OHLC: O=${fromCandle.open} H=${fromCandle.high} L=${fromCandle.low} C=${fromCandle.close}`);
-            console.log(`  Volume: ${fromCandle.volume}`);
-          }
-          
-          // Match TO: track all candles <= TO time (last one wins)
-          if (candleTime <= journalChartToTime) {
-            toCandle = candle;
-            toIndex = idx;
-          }
-        }
-        
-        // Show TO candle details
-        if (toCandle) {
-          const toDate = new Date(toCandle.time * 1000);
-          const toYear = toDate.getFullYear();
-          const toMonth = String(toDate.getMonth() + 1).padStart(2, '0');
-          const toDay = String(toDate.getDate()).padStart(2, '0');
-          const toHours = toDate.getHours();
-          const toMins = toDate.getMinutes();
-          const toDateTime = `${toYear}-${toMonth}-${toDay} ${toHours.toString().padStart(2, '0')}:${toMins.toString().padStart(2, '0')}`;
-          console.log(`\n✅ TO CANDLE MATCHED:`);
-          console.log(`  Index: ${toIndex}`);
-          console.log(`  param.time: ${toCandle.time}`);
-          console.log(`  Date & Time: ${toDateTime}`);
-          console.log(`  OHLC: O=${toCandle.open} H=${toCandle.high} L=${toCandle.low} C=${toCandle.close}`);
-          console.log(`  Volume: ${toCandle.volume}`);
-        }
-        
-        // Draw vertical lines at exact param.time positions
-        if (fromCandle && toCandle) {
-          console.log(`\n🟢 BOTH CANDLES FOUND - Drawing vertical lines...`);
-          console.log(`  FROM marker at param.time=${fromCandle.time}`);
-          console.log(`  TO marker at param.time=${toCandle.time}`);
-          
-          const markers = [
-            {
-              time: fromCandle.time as any,
-              position: 'top' as const,
-              color: '#3b82f6',
-              shape: 'arrowDown' as const,
-              text: `FROM ${journalChartFromTime}`,
-            },
-            {
-              time: toCandle.time as any,
-              position: 'bottom' as const,
-              color: '#ef4444',
-              shape: 'arrowUp' as const,
-              text: `TO ${journalChartToTime}`,
-            },
-          ];
-          
-          // candlestickSeries.setMarkers(markers); // ❌ Removed - not supported in LightweightCharts
-          console.log(`✅ Markers skipped (not supported)`);
-          console.log(`🎯 === TIME RANGE FILTER MATCHING COMPLETE ===\n`);
-        } else {
-          console.log(`\n❌ MATCHING FAILED:`);
-          console.log(`  FROM candle found: ${!!fromCandle}`);
-          console.log(`  TO candle found: ${!!toCandle}`);
-          console.log(`🎯 === TIME RANGE FILTER MATCHING COMPLETE ===\n`);
-        }
-      };
-      
-      addTimeRangeIndicators();
 
       // Fit content but with better zoom to show time scale
       setTimeout(() => {
@@ -6025,7 +5918,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData, journalChartFromTime, journalChartToTime]);
+  }, [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData]);
 
   // ========== HEATMAP CHART INITIALIZATION ==========
   // Separate chart for heatmap date selection - completely independent from search chart
@@ -11775,60 +11668,6 @@ ${
                                     </span>
                                   )}
 
-                                  {/* Time Range Filter Button */}
-                                  <Popover open={showJournalTimeRangeFilter} onOpenChange={setShowJournalTimeRangeFilter}>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-8 px-2 text-xs"
-                                        title="Filter by time range"
-                                        data-testid="button-journal-time-range-filter"
-                                      >
-                                        <Clock className="w-3 h-3" />
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-64 p-3 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
-                                      <div className="space-y-3">
-                                        <div className="text-sm font-medium">Time Range Filter</div>
-                                        <div className="space-y-2">
-                                          <div>
-                                            <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">From (IST)</label>
-                                            <input
-                                              type="time"
-                                              value={journalChartFromTime}
-                                              onChange={(e) => setJournalChartFromTime(e.target.value)}
-                                              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                                              data-testid="input-from-time"
-                                            />
-                                          </div>
-                                          <div>
-                                            <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">To (IST)</label>
-                                            <input
-                                              type="time"
-                                              value={journalChartToTime}
-                                              onChange={(e) => setJournalChartToTime(e.target.value)}
-                                              className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                                              data-testid="input-to-time"
-                                            />
-                                          </div>
-                                          <Button
-                                            size="sm"
-                                            className="w-full text-xs"
-                                            onClick={() => {
-                                              setShowJournalTimeRangeFilter(false);
-                                              console.log(`⏰ Chart time filter: ${journalChartFromTime} to ${journalChartToTime}`);
-                                              // Force chart re-render by triggering state update
-                                              setJournalChartData([...journalChartData]);
-                                            }}
-                                            data-testid="button-apply-time-filter"
-                                          >
-                                            Apply Filter
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </PopoverContent>
-                                  </Popover>
 
                                   {/* Next Symbol Button - ONLY in Heatmap Mode */}
                                   {journalChartMode === 'heatmap' && tradedSymbols.length > 1 && (
