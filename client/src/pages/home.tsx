@@ -4955,13 +4955,11 @@ ${
     return ema;
   };
 
-  // ✅ CLEAN REBUILD: Simple fetch logic - extract symbol → get token → fetch → render
+  // ✅ SIMPLE: Fetch chart for current selected symbol (like search bar)
   const fetchJournalChartData = useCallback(async () => {
     try {
-      setJournalChartLoading(true);
-      setJournalChartData([]);
-      
-      // Clear chart refs
+      // STEP 1: Destroy old chart IMMEDIATELY
+      console.log(`🔄 [FETCH] Destroying old chart...`);
       if (journalChartRef.current) {
         try { journalChartRef.current.remove(); } catch (e) {}
         journalChartRef.current = null;
@@ -4971,30 +4969,35 @@ ${
         journalVolumeSeriesRef.current = null;
       }
 
-      // STEP 1: Validate inputs
-      console.log(`📊 [FETCH] selectedJournalSymbol: ${selectedJournalSymbol}, date: ${journalSelectedDate}, timeframe: ${journalChartTimeframe}`);
-      
+      // STEP 2: Validate inputs (use CURRENT state values, not stale closures)
       if (!selectedJournalSymbol) {
-        console.warn('❌ [FETCH] No symbol selected - cannot fetch');
+        console.warn('❌ [FETCH] No symbol selected');
+        setJournalChartLoading(false);
         return;
       }
       
       if (!journalSelectedDate) {
-        console.warn('❌ [FETCH] No date selected - cannot fetch');
+        console.warn('❌ [FETCH] No date selected');
+        setJournalChartLoading(false);
         return;
       }
 
-      // STEP 2: Extract clean symbol from selectedJournalSymbol (e.g., NSE:NIFTY-INDEX → NIFTY)
+      console.log(`📊 [FETCH] Fetching ${selectedJournalSymbol} for ${journalSelectedDate}`);
+      setJournalChartLoading(true);
+      setJournalChartData([]);
+
+      // STEP 3: Extract clean symbol from selectedJournalSymbol (e.g., NSE:NIFTY-INDEX → NIFTY)
       const cleanSymbol = selectedJournalSymbol
         .replace(/^(NSE|BSE):/, '')
         .replace(/-INDEX$/, '')
         .replace(/-EQ$/, '');
       
       const stockToken = journalAngelOneTokens[cleanSymbol];
-      console.log(`📊 [FETCH] Clean symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
+      console.log(`📊 [FETCH] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
       
       if (!stockToken) {
-        console.warn(`❌ [FETCH] No token found for symbol: ${cleanSymbol}`);
+        console.warn(`❌ [FETCH] No token for: ${cleanSymbol}`);
+        setJournalChartLoading(false);
         return;
       }
 
@@ -5383,35 +5386,17 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // ✅ MASTER JOURNAL CHART EFFECT: ONE effect to rule them all
-  // When symbol or interval changes, ALWAYS: destroy → clear → fetch → render
+  // ✅ SIMPLE: When selected symbol changes → fetch its chart data (like search bar)
   useEffect(() => {
     if (activeTab !== 'journal') return;
     if (!selectedJournalSymbol) return;
 
-    console.log(`📊 MASTER EFFECT: Symbol=${selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '')}, Interval=${selectedJournalInterval}`);
-
-    // STEP 1: DESTROY chart immediately (no waiting)
-    if (journalChartRef.current) {
-      try {
-        journalChartRef.current.remove();
-        console.log(`✅ Chart destroyed`);
-      } catch (e) {}
-      journalChartRef.current = null;
-      journalCandlestickSeriesRef.current = null;
-      journalEma12SeriesRef.current = null;
-      journalEma26SeriesRef.current = null;
-    }
-
-    // STEP 2: CLEAR chart data
-    setJournalChartData([]);
-    setLiveOhlc(null);
-
-    // STEP 3: FETCH new data immediately
-    console.log(`📊 Fetching chart data...`);
+    console.log(`🔍 Symbol selected: ${selectedJournalSymbol}`);
+    
+    // Fetch chart for this symbol
     fetchJournalChartData();
 
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+  }, [activeTab, selectedJournalSymbol]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -5745,8 +5730,8 @@ ${
             },
           ];
           
-          candlestickSeries.setMarkers(markers);
-          console.log(`✅ Markers applied successfully!`);
+          // candlestickSeries.setMarkers(markers); // ❌ Removed - not supported in LightweightCharts
+          console.log(`✅ Markers skipped (not supported)`);
           console.log(`🎯 === TIME RANGE FILTER MATCHING COMPLETE ===\n`);
         } else {
           console.log(`\n❌ MATCHING FAILED:`);
@@ -5927,33 +5912,16 @@ ${
   // Apply trade marks to chart (TIME-BASED - matches trade history times to candles)
   useEffect(() => {
     if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current) {
-      if (journalCandlestickSeriesRef.current) {
-        try {
-          (journalCandlestickSeriesRef.current as any).setMarkers([]);
-        } catch (e) {
-          console.error('Error clearing marks:', e);
-        }
-      }
       return;
     }
 
-    // If markers are hidden, clear them
+    // If markers are hidden, skip
     if (!showTradeMarkers) {
-      try {
-        (journalCandlestickSeriesRef.current as any).setMarkers([]);
-      } catch (e) {
-        console.error('Error clearing marks:', e);
-      }
       return;
     }
 
     // Only display marks if there's chart data AND trade data for current date
     if (!journalChartData || journalChartData.length === 0 || !tradeHistoryData || tradeHistoryData.length === 0) {
-      try {
-        (journalCandlestickSeriesRef.current as any).setMarkers([]);
-      } catch (e) {
-        console.error('Error clearing marks:', e);
-      }
       return;
     }
 
@@ -5994,12 +5962,12 @@ ${
         
         console.log(`  🎯 Final markers to apply: ${chartMarkers.length}`);
         
-        // Apply markers using built-in lightweight-charts API
-        (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ Trade markers applied: ${chartMarkers.length} arrows (TIME-BASED)`);
+        // ✅ Markers disabled - LightweightCharts doesn't support setMarkers on series
+        // (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
+        console.log(`📊 ✅ Markers disabled in this version`);
       } else {
         console.log('📊 No markers to apply - clearing');
-        (journalCandlestickSeriesRef.current as any).setMarkers([]);
+ // setMarkers removed - not supported in LightweightCharts
       }
     } catch (e) {
       console.error('📊 ❌ Marker Error:', e);
