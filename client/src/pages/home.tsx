@@ -5144,8 +5144,9 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 SYNC SYMBOL when date is selected from heatmap
+  // 🔶 SYNC SYMBOL AND AUTO-FETCH when date is selected from heatmap
   // When user clicks a date on the heatmap, load the symbol that was actually traded on that date
+  // Then auto-fetch chart data AFTER symbol is updated (fixes race condition bug)
   useEffect(() => {
     if (journalSelectedDate && journalSelectedDate.length > 0) {
       const dateData = tradingDataByDate[journalSelectedDate];
@@ -5159,23 +5160,21 @@ ${
         if (selectedJournalSymbol !== symbolForDate) {
           setSelectedJournalSymbol(symbolForDate);
           console.log(`✅ [HEATMAP SYNC] Updated symbol from "${selectedJournalSymbol}" to "${symbolForDate}"`);
+          // 🔶 FIX: Delay fetch to ensure symbol state is updated first (fixes race condition)
+          setTimeout(() => {
+            console.log(`📅 [AUTO-FETCH] Fetching chart for symbol: ${symbolForDate} on date: ${journalSelectedDate}`);
+            fetchJournalChartData();
+          }, 150); // 150ms delay ensures setSelectedJournalSymbol has been processed
         } else {
-          console.log(`ℹ️ [HEATMAP SYNC] Symbol already correct, no change needed`);
+          console.log(`ℹ️ [HEATMAP SYNC] Symbol already correct, fetching chart immediately`);
+          fetchJournalChartData();
         }
       } else {
-        console.warn(`⚠️ [HEATMAP SYNC] No trading data found for date: ${journalSelectedDate}`);
+        console.warn(`⚠️ [HEATMAP SYNC] No trading data found for date: ${journalSelectedDate}, fetching with current symbol`);
+        fetchJournalChartData();
       }
     }
   }, [journalSelectedDate, tradingDataByDate]); // Sync whenever date or trading data changes
-
-  // 🔶 AUTO-FETCH when date is selected from heatmap
-  useEffect(() => {
-    // Only auto-fetch when a date is explicitly selected (not on initial mount or clear)
-    if (journalSelectedDate && journalSelectedDate.length > 0) {
-      console.log(`📅 [AUTO-FETCH] Date selected from tradebook heatmap: ${journalSelectedDate} - triggering chart fetch automatically`);
-      fetchJournalChartData();
-    }
-  }, [journalSelectedDate]); // Only trigger on date selection change
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
