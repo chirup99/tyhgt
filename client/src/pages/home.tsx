@@ -5026,10 +5026,9 @@ ${
         return;
       }
 
-      // STEP 4: Build API request - fetch last 10 days for search chart
+      // STEP 4: Build API request - fetch today's data for search chart
       const interval = getJournalAngelOneInterval(journalChartTimeframe);
       const today = new Date();
-      const tenDaysAgo = new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000);
       const formatDateString = (d: Date) => {
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -5037,12 +5036,12 @@ ${
         return `${year}-${month}-${day}`;
       };
       
+      const todayStr = formatDateString(today);
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        fromDate: formatDateString(tenDaysAgo),
-        toDate: formatDateString(today),
+        date: todayStr, // Use today's date for current day data
       };
       
       console.log(`📊 [SEARCH CHART] API Request:`, requestBody);
@@ -5574,7 +5573,17 @@ ${
     }
 
     if (!journalChartContainerRef.current) return;
-    if (!journalChartData || journalChartData.length === 0) return;
+    
+    // Show message if no data but show something to the user
+    if (!journalChartData || journalChartData.length === 0) {
+      console.log('⚠️ [SEARCH CHART] No data available, showing placeholder');
+      journalChartContainerRef.current.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 14px; color: #999;">
+          No chart data available. Try selecting a different symbol or date range.
+        </div>
+      `;
+      return;
+    }
 
     // ✅ ALWAYS recreate chart when data changes (master effect already destroyed old one)
     console.log(`📊 Rendering chart with ${journalChartData.length} candles`);
