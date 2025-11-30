@@ -11298,17 +11298,42 @@ ${
                                     </PopoverContent>
                                   </Popover>
 
-                                  {/* Next Symbol Button - Extract base symbol from contract */}
+                                  {/* Next Symbol Button - SUPER SIMPLE: Direct destruction + fetch */}
                                   {tradedSymbols.length > 1 && (
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       className="h-8 px-2 text-xs"
                                       onClick={() => {
-                                        const nextIndex = (currentSymbolIndex + 1) % tradedSymbols.length;
-                                        setCurrentSymbolIndex(nextIndex);
-                                        const baseSymbol = tradedSymbols[nextIndex].split(' ')[0];
-                                        setSelectedJournalSymbol(`NSE:${baseSymbol}-INDEX`);
+                                        console.log(`⏭️  NEXT CLICKED | Index: ${currentSymbolIndex}/${tradedSymbols.length}`);
+                                        
+                                        // Calculate next
+                                        const nextIdx = (currentSymbolIndex + 1) % tradedSymbols.length;
+                                        const nextSymbol = tradedSymbols[nextIdx];
+                                        
+                                        console.log(`⏭️  Switching: ${tradedSymbols[currentSymbolIndex]} → ${nextSymbol}`);
+                                        
+                                        // DESTROY CHART IMMEDIATELY - Don't wait for useEffect
+                                        if (journalChartRef.current) {
+                                          try {
+                                            journalChartRef.current.remove();
+                                            console.log(`⏭️  Chart destroyed`);
+                                          } catch (e) {}
+                                          journalChartRef.current = null;
+                                          journalCandlestickSeriesRef.current = null;
+                                          journalEma12SeriesRef.current = null;
+                                          journalEma26SeriesRef.current = null;
+                                        }
+                                        
+                                        // Update state
+                                        setCurrentSymbolIndex(nextIdx);
+                                        setSelectedJournalSymbol(`NSE:${nextSymbol}-INDEX`);
+                                        setJournalChartData([]);
+                                        setLiveOhlc(null);
+                                        
+                                        // Fetch new data (AUTO-FETCH will handle it, but we force it here)
+                                        console.log(`⏭️  Fetching ${nextSymbol} data...`);
+                                        setTimeout(() => fetchJournalChartData(), 50);
                                       }}
                                       data-testid="button-next-symbol"
                                     >
