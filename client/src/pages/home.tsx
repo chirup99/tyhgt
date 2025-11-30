@@ -178,6 +178,7 @@ import {
   RefreshCw,
   MoreVertical,
   ChevronsUpDown,
+  CalendarDays,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -4770,6 +4771,37 @@ ${
     time: number;
   } | null>(null);
 
+  // ========== CHART MODE SYSTEM ==========
+  // Two separate charts: Search Chart (manual symbol search) vs Heatmap Chart (date selection)
+  const [journalChartMode, setJournalChartMode] = useState<'search' | 'heatmap'>('search');
+  
+  // ========== HEATMAP CHART STATE (Separate from Search Chart) ==========
+  const [heatmapChartData, setHeatmapChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
+  const [heatmapChartLoading, setHeatmapChartLoading] = useState(false);
+  const [heatmapChartTimeframe, setHeatmapChartTimeframe] = useState('1'); // Default 1 minute
+  const [heatmapSelectedSymbol, setHeatmapSelectedSymbol] = useState(''); // Symbol from heatmap date
+  const [heatmapSelectedDate, setHeatmapSelectedDate] = useState(''); // Date from heatmap calendar
+  
+  // Heatmap Chart refs (completely separate from Search Chart)
+  const heatmapChartContainerRef = useRef<HTMLDivElement>(null);
+  const heatmapChartRef = useRef<IChartApi | null>(null);
+  const heatmapCandlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const heatmapEma12SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const heatmapEma26SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const heatmapVolumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const heatmapChartDataRef = useRef<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
+  
+  // Heatmap OHLC display (separate from search chart)
+  const [heatmapHoveredOhlc, setHeatmapHoveredOhlc] = useState<{
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    change: number;
+    changePercent: number;
+    time: number;
+  } | null>(null);
+
   // Angel One Stock Token Mapping for Journal Chart
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
     'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
@@ -5065,6 +5097,146 @@ ${
       setJournalChartLoading(false);
     }
   }, [selectedJournalSymbol, journalChartTimeframe, journalSelectedDate]);
+
+  // ========== HEATMAP CHART FETCH FUNCTION (Completely Separate) ==========
+  const fetchHeatmapChartData = useCallback(async (symbol: string, date: string) => {
+    try {
+      console.log(`🗓️ [HEATMAP FETCH] Starting fetch for ${symbol} on ${date}`);
+      
+      // STEP 1: Destroy old heatmap chart
+      if (heatmapChartRef.current) {
+        try { heatmapChartRef.current.remove(); } catch (e) {}
+        heatmapChartRef.current = null;
+        heatmapCandlestickSeriesRef.current = null;
+        heatmapEma12SeriesRef.current = null;
+        heatmapEma26SeriesRef.current = null;
+        heatmapVolumeSeriesRef.current = null;
+      }
+
+      // STEP 2: Validate inputs
+      if (!symbol) {
+        console.warn('❌ [HEATMAP FETCH] No symbol provided');
+        setHeatmapChartLoading(false);
+        return;
+      }
+      
+      if (!date) {
+        console.warn('❌ [HEATMAP FETCH] No date provided');
+        setHeatmapChartLoading(false);
+        return;
+      }
+
+      setHeatmapChartLoading(true);
+      setHeatmapChartData([]);
+      setHeatmapSelectedSymbol(symbol);
+      setHeatmapSelectedDate(date);
+
+      // STEP 3: Extract clean symbol
+      const cleanSymbol = symbol
+        .replace(/^(NSE|BSE):/, '')
+        .replace(/-INDEX$/, '')
+        .replace(/-EQ$/, '');
+      
+      const stockToken = journalAngelOneTokens[cleanSymbol];
+      console.log(`🗓️ [HEATMAP FETCH] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
+      
+      if (!stockToken) {
+        console.warn(`❌ [HEATMAP FETCH] No token for: ${cleanSymbol}`);
+        setHeatmapChartLoading(false);
+        return;
+      }
+
+      // STEP 4: Build API request
+      const interval = getJournalAngelOneInterval(heatmapChartTimeframe);
+      const requestBody = {
+        exchange: stockToken.exchange,
+        symbolToken: stockToken.token,
+        interval: interval,
+        date: date,
+      };
+      
+      console.log(`🗓️ [HEATMAP FETCH] API Request:`, requestBody);
+
+      // STEP 5: Fetch chart data
+      const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ [HEATMAP FETCH] API Error ${response.status}: ${errorText}`);
+        throw new Error(`Failed to fetch heatmap chart data: ${response.status}`);
+      }
+
+      // STEP 6: Parse and map candle data
+      const data = await response.json();
+      let candleData: any[] = [];
+      
+      if (data.success && data.candles && Array.isArray(data.candles)) {
+        candleData = data.candles.map((candle: any) => {
+          let unixSeconds: number;
+          
+          if (typeof candle.timestamp === 'string') {
+            const [datePart, timePart] = candle.timestamp.split(' ');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hours, minutes] = timePart.split(':').map(Number);
+            const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+            const istOffsetMs = 5.5 * 60 * 60 * 1000;
+            unixSeconds = Math.floor((utcDate.getTime() - istOffsetMs) / 1000);
+          } else {
+            unixSeconds = candle.timestamp > 10000000000 ? Math.floor(candle.timestamp / 1000) : candle.timestamp;
+          }
+          
+          return {
+            time: unixSeconds as any,
+            open: parseFloat(candle.open),
+            high: parseFloat(candle.high),
+            low: parseFloat(candle.low),
+            close: parseFloat(candle.close),
+            volume: parseInt(candle.volume) || 0,
+          };
+        });
+      }
+      
+      console.log(`✅ [HEATMAP FETCH] Chart ready: ${candleData.length} candles for ${cleanSymbol} on ${date}`);
+      setHeatmapChartData(candleData);
+      
+      // Auto-switch to heatmap mode when data loads
+      setJournalChartMode('heatmap');
+      
+    } catch (error) {
+      console.error("❌ [HEATMAP FETCH] Error:", error);
+      setHeatmapChartData([]);
+    } finally {
+      setHeatmapChartLoading(false);
+    }
+  }, [heatmapChartTimeframe]);
+
+  // Reset Heatmap OHLC display when heatmap chart data changes
+  useEffect(() => {
+    if (heatmapChartData && heatmapChartData.length > 0) {
+      const latest = heatmapChartData[heatmapChartData.length - 1];
+      setHeatmapHoveredOhlc({
+        open: latest.open,
+        high: latest.high,
+        low: latest.low,
+        close: latest.close,
+        change: latest.close - latest.open,
+        changePercent: latest.open > 0 ? ((latest.close - latest.open) / latest.open) * 100 : 0,
+        time: latest.time,
+      });
+      console.log(`✅ [HEATMAP] OHLC loaded, showing latest candle`);
+    } else {
+      setHeatmapHoveredOhlc(null);
+    }
+  }, [heatmapChartData]);
+
+  // Keep heatmap chart data ref updated
+  useEffect(() => {
+    heatmapChartDataRef.current = heatmapChartData;
+  }, [heatmapChartData]);
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
@@ -5764,6 +5936,214 @@ ${
       }
     };
   }, [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData, journalChartFromTime, journalChartToTime]);
+
+  // ========== HEATMAP CHART INITIALIZATION ==========
+  // Separate chart for heatmap date selection - completely independent from search chart
+  useEffect(() => {
+    if (activeTab !== 'journal') {
+      if (heatmapChartRef.current) {
+        try {
+          heatmapChartRef.current.remove();
+        } catch (e) {}
+        heatmapChartRef.current = null;
+        heatmapCandlestickSeriesRef.current = null;
+      }
+      return;
+    }
+
+    if (!heatmapChartContainerRef.current) return;
+    if (!heatmapChartData || heatmapChartData.length === 0) return;
+
+    console.log(`🗓️ [HEATMAP CHART] Rendering with ${heatmapChartData.length} candles for date: ${heatmapSelectedDate}`);
+
+    // Defer chart creation until layout is ready
+    requestAnimationFrame(() => {
+      if (!heatmapChartContainerRef.current) return;
+      
+      try {
+        // Clean up existing chart first
+        if (heatmapChartRef.current) {
+          try {
+            heatmapChartRef.current.remove();
+          } catch (e) {}
+          heatmapChartRef.current = null;
+          heatmapCandlestickSeriesRef.current = null;
+        }
+
+        const containerWidth = heatmapChartContainerRef.current.clientWidth || 800;
+        const containerHeight = heatmapChartContainerRef.current.clientHeight || 400;
+        
+        console.log('🗓️ [HEATMAP CHART] Container dimensions:', { containerWidth, containerHeight });
+        
+        const chart = createChart(heatmapChartContainerRef.current, {
+          layout: {
+            background: { type: ColorType.Solid, color: '#ffffff' },
+            textColor: '#1f2937',
+          },
+          grid: {
+            vertLines: { color: '#f3f4f6', style: 1 },
+            horzLines: { color: '#f3f4f6', style: 1 },
+          },
+          crosshair: {
+            mode: 1,
+            vertLine: { color: '#9ca3af', width: 1, style: 2, labelBackgroundColor: '#f3f4f6' },
+            horzLine: { color: '#9ca3af', width: 1, style: 2, labelBackgroundColor: '#f3f4f6' },
+          },
+          rightPriceScale: {
+            visible: true,
+            borderVisible: true,
+            borderColor: '#e5e7eb',
+            scaleMargins: { top: 0.1, bottom: 0.25 },
+            autoScale: true,
+          },
+          timeScale: {
+            visible: true,
+            borderVisible: true,
+            borderColor: '#e5e7eb',
+            timeVisible: true,
+            secondsVisible: false,
+            barSpacing: 12,
+            minBarSpacing: 4,
+            fixLeftEdge: false,
+            fixRightEdge: false,
+            lockVisibleTimeRangeOnResize: false,
+            tickMarkFormatter: (time: number) => {
+              const date = new Date(time * 1000);
+              const istDate = new Date(date.getTime() + (330 * 60 * 1000));
+              const hours = istDate.getUTCHours().toString().padStart(2, '0');
+              const minutes = istDate.getUTCMinutes().toString().padStart(2, '0');
+              return `${hours}:${minutes}`;
+            },
+          },
+          localization: {
+            timeFormatter: (time: number) => {
+              const date = new Date(time * 1000);
+              const istDate = new Date(date.getTime() + (330 * 60 * 1000));
+              const hours = istDate.getUTCHours().toString().padStart(2, '0');
+              const minutes = istDate.getUTCMinutes().toString().padStart(2, '0');
+              const day = istDate.getUTCDate().toString().padStart(2, '0');
+              const month = (istDate.getUTCMonth() + 1).toString().padStart(2, '0');
+              return `${day}/${month} ${hours}:${minutes} IST`;
+            },
+          },
+          width: containerWidth,
+          height: containerHeight,
+        });
+
+        const candlestickSeries = chart.addSeries(CandlestickSeries, {
+          upColor: '#16a34a',
+          downColor: '#dc2626',
+          borderUpColor: '#15803d',
+          borderDownColor: '#b91c1c',
+          wickUpColor: '#15803d',
+          wickDownColor: '#b91c1c',
+        });
+
+        const volumeSeries = chart.addSeries(HistogramSeries, {
+          priceFormat: { type: 'volume' },
+          priceScaleId: '',
+          color: 'rgba(147, 51, 234, 0.3)', // Purple for heatmap chart
+        });
+        volumeSeries.priceScale().applyOptions({
+          scaleMargins: { top: 0.85, bottom: 0 },
+        });
+
+        heatmapChartRef.current = chart;
+        heatmapCandlestickSeriesRef.current = candlestickSeries;
+
+        // Subscribe to crosshair move for OHLC display
+        chart.subscribeCrosshairMove((param) => {
+          if (!param.time || !param.point) {
+            const latestData = heatmapChartData[heatmapChartData.length - 1];
+            if (latestData) {
+              const prevCandle = heatmapChartData[heatmapChartData.length - 2];
+              const prevClose = prevCandle?.close || latestData.open;
+              const change = latestData.close - prevClose;
+              const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+              setHeatmapHoveredOhlc({
+                open: latestData.open,
+                high: latestData.high,
+                low: latestData.low,
+                close: latestData.close,
+                change,
+                changePercent,
+                time: latestData.time,
+              });
+            }
+            return;
+          }
+
+          const candleData = param.seriesData.get(candlestickSeries);
+          if (candleData && 'open' in candleData) {
+            const sortedData = [...heatmapChartData].sort((a, b) => a.time - b.time);
+            const currentIndex = sortedData.findIndex((c) => c.time === param.time);
+            const prevCandle = currentIndex > 0 ? sortedData[currentIndex - 1] : null;
+            const prevClose = prevCandle?.close || candleData.open;
+            const change = candleData.close - prevClose;
+            const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+
+            setHeatmapHoveredOhlc({
+              open: candleData.open,
+              high: candleData.high,
+              low: candleData.low,
+              close: candleData.close,
+              change,
+              changePercent,
+              time: param.time as number,
+            });
+          }
+        });
+
+        // Set data
+        const sortedData = [...heatmapChartData].sort((a: any, b: any) => a.time - b.time);
+        
+        const chartData = sortedData.map((candle: any) => ({
+          time: candle.time as any,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+        }));
+        
+        const volumeData = sortedData.map((candle: any) => ({
+          time: candle.time as any,
+          value: candle.volume || 0,
+          color: candle.close >= candle.open ? 'rgba(147, 51, 234, 0.4)' : 'rgba(220, 38, 38, 0.4)',
+        }));
+
+        candlestickSeries.setData(chartData);
+        volumeSeries.setData(volumeData);
+
+        // Fit content
+        setTimeout(() => {
+          if (heatmapChartRef.current) {
+            heatmapChartRef.current.timeScale().fitContent();
+            heatmapChartRef.current.timeScale().applyOptions({ rightOffset: 10 });
+          }
+        }, 100);
+
+        const handleResize = () => {
+          if (heatmapChartContainerRef.current && heatmapChartRef.current) {
+            heatmapChartRef.current.applyOptions({
+              width: heatmapChartContainerRef.current.clientWidth,
+            });
+          }
+        };
+
+        window.addEventListener('resize', handleResize);
+        
+        console.log('🗓️ [HEATMAP CHART] Successfully rendered');
+      } catch (error) {
+        console.error('🗓️ [HEATMAP CHART] Error rendering:', error instanceof Error ? error.message : String(error));
+      }
+    });
+    
+    return () => {
+      if (heatmapChartContainerRef.current && heatmapChartRef.current) {
+        window.removeEventListener('resize', () => {});
+      }
+    };
+  }, [activeTab, heatmapChartData, heatmapSelectedDate]);
 
   // Extract underlying symbol from option/futures trade symbol
   const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
@@ -11451,8 +11831,26 @@ ${
                                             return (
                                               <button
                                                 key={date}
-                                                onClick={() => setJournalSelectedDate(date)}
-                                                className={`h-6 text-xs font-medium rounded border ${color} ${isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : 'border-gray-300 dark:border-gray-600'} hover:opacity-80 transition`}
+                                                onClick={() => {
+                                                  // Get symbol from trading data for this date
+                                                  const tradingData = tradingDataByDate[date];
+                                                  let symbolForDate = 'NSE:NIFTY50-INDEX'; // Default to NIFTY
+                                                  
+                                                  if (tradingData?.tradeHistory && tradingData.tradeHistory.length > 0) {
+                                                    const firstTrade = tradingData.tradeHistory[0];
+                                                    if (firstTrade.symbol) {
+                                                      // Format symbol for API (e.g., SENSEX -> NSE:SENSEX-INDEX)
+                                                      const cleanSym = firstTrade.symbol.replace(/NSE:|BSE:|-INDEX|-EQ/g, '');
+                                                      symbolForDate = `NSE:${cleanSym}-INDEX`;
+                                                    }
+                                                  }
+                                                  
+                                                  console.log(`🗓️ [HEATMAP CLICK] Date: ${date}, Symbol: ${symbolForDate}`);
+                                                  
+                                                  // Use separate heatmap chart - no conflict with search chart!
+                                                  fetchHeatmapChartData(symbolForDate, date);
+                                                }}
+                                                className={`h-6 text-xs font-medium rounded border ${color} ${heatmapSelectedDate === date ? 'ring-2 ring-purple-500 ring-offset-1' : 'border-gray-300 dark:border-gray-600'} hover:opacity-80 transition`}
                                                 title={`${date}: P&L ₹${pnl.toLocaleString('en-IN')}`}
                                                 data-testid={`button-heatmap-date-${date}`}
                                               >
@@ -11506,69 +11904,175 @@ ${
                               </div>
                             </div>
 
-                            {/* TradingView Light Theme Chart Container - Clean */}
+                            {/* Chart Mode Toggle + Chart Container */}
                             <div className="flex-1 relative flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
-                              {journalChartLoading && (
-                                <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
-                                  <div className="flex flex-col items-center gap-4">
-                                    <div className="relative">
-                                      <div className="w-14 h-14 border-4 border-orange-500/20 rounded-full" />
-                                      <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-orange-500 border-r-orange-500 rounded-full animate-spin" />
-                                    </div>
-                                    <div className="text-center">
-                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Loading {getJournalTimeframeLabel(journalChartTimeframe)} chart...</p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching candles from Angel One API</p>
+                              
+                              {/* Mode Toggle Buttons */}
+                              <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => setJournalChartMode('search')}
+                                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                                      journalChartMode === 'search'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                    }`}
+                                    data-testid="button-chart-mode-search"
+                                  >
+                                    <Search className="w-3 h-3 inline mr-1" />
+                                    Search
+                                  </button>
+                                  <button
+                                    onClick={() => setJournalChartMode('heatmap')}
+                                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                                      journalChartMode === 'heatmap'
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                    }`}
+                                    data-testid="button-chart-mode-heatmap"
+                                  >
+                                    <CalendarDays className="w-3 h-3 inline mr-1" />
+                                    Heatmap
+                                  </button>
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {journalChartMode === 'search' ? (
+                                    <span>Manual: {selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '') || 'Select symbol'}</span>
+                                  ) : (
+                                    <span>Date: {heatmapSelectedDate || 'Select date'} | {heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '') || 'No symbol'}</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* ========== SEARCH CHART (Manual Symbol Search) ========== */}
+                              <div className={`flex-1 relative ${journalChartMode === 'search' ? 'block' : 'hidden'}`}>
+                                {journalChartLoading && (
+                                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
+                                    <div className="flex flex-col items-center gap-4">
+                                      <div className="relative">
+                                        <div className="w-14 h-14 border-4 border-blue-500/20 rounded-full" />
+                                        <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-blue-500 border-r-blue-500 rounded-full animate-spin" />
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Loading {getJournalTimeframeLabel(journalChartTimeframe)} chart...</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching candles from Angel One API</p>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              )}
-                              
-                              {/* TradingView-style OHLC Display - Crosshair Position */}
-                              {hoveredCandleOhlc && journalChartData && journalChartData.length > 0 && (
+                                )}
+                                
+                                {/* Search Chart OHLC Display */}
+                                {hoveredCandleOhlc && journalChartData && journalChartData.length > 0 && (
+                                  <div 
+                                    className="absolute top-1 left-2 z-40 flex items-center gap-1 text-xs font-mono pointer-events-none"
+                                    data-testid="search-chart-ohlc-display"
+                                  >
+                                    <span className="text-green-600 dark:text-green-400 font-medium">
+                                      O{hoveredCandleOhlc.open.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                      H{hoveredCandleOhlc.high.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                      L{hoveredCandleOhlc.low.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className={`font-medium ${hoveredCandleOhlc.close >= hoveredCandleOhlc.open ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      C{hoveredCandleOhlc.close.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className={`font-medium ${hoveredCandleOhlc.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      {hoveredCandleOhlc.change >= 0 ? '+' : ''}{hoveredCandleOhlc.change.toFixed(2)}
+                                    </span>
+                                    <span className={`font-medium ${hoveredCandleOhlc.changePercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      ({hoveredCandleOhlc.changePercent >= 0 ? '+' : ''}{hoveredCandleOhlc.changePercent.toFixed(2)}%)
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Search Chart Container */}
                                 <div 
-                                  className="absolute top-1 left-2 z-40 flex items-center gap-1 text-xs font-mono pointer-events-none"
-                                  data-testid="chart-ohlc-display"
-                                >
-                                  <span className="text-green-600 dark:text-green-400 font-medium">
-                                    O{hoveredCandleOhlc.open.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </span>
-                                  <span className="text-gray-700 dark:text-gray-300 font-medium">
-                                    H{hoveredCandleOhlc.high.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </span>
-                                  <span className="text-gray-700 dark:text-gray-300 font-medium">
-                                    L{hoveredCandleOhlc.low.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </span>
-                                  <span className={`font-medium ${hoveredCandleOhlc.close >= hoveredCandleOhlc.open ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    C{hoveredCandleOhlc.close.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </span>
-                                  <span className={`font-medium ${hoveredCandleOhlc.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    {hoveredCandleOhlc.change >= 0 ? '+' : ''}{hoveredCandleOhlc.change.toFixed(2)}
-                                  </span>
-                                  <span className={`font-medium ${hoveredCandleOhlc.changePercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    ({hoveredCandleOhlc.changePercent >= 0 ? '+' : ''}{hoveredCandleOhlc.changePercent.toFixed(2)}%)
-                                  </span>
-                                </div>
-                              )}
-                              
-                              {/* Chart Container - Uses built-in price scale display */}
-                              <div 
-                                ref={journalChartContainerRef}
-                                className="w-full h-full relative bg-white dark:bg-gray-800"
-                                data-testid="journal-tradingview-chart"
-                              />
-                              
-                              {/* No Data Message */}
-                              {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                  <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                      <BarChart3 className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                  ref={journalChartContainerRef}
+                                  className="w-full h-full relative bg-white dark:bg-gray-800"
+                                  data-testid="search-chart-container"
+                                />
+                                
+                                {/* Search Chart - No Data Message */}
+                                {(!journalChartData || journalChartData.length === 0) && !journalChartLoading && (
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="text-center">
+                                      <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                        <Search className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                                      </div>
+                                      <div className="text-gray-900 dark:text-gray-100 font-medium mb-1">Search Mode</div>
+                                      <div className="text-gray-500 dark:text-gray-400 text-sm">Select a symbol and fetch to view chart</div>
                                     </div>
-                                    <div className="text-gray-900 dark:text-gray-100 font-medium mb-1">No chart data loaded</div>
-                                    <div className="text-gray-500 dark:text-gray-400 text-sm">Select a symbol and click the Fetch button to load data</div>
                                   </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
+
+                              {/* ========== HEATMAP CHART (Date Selection from Calendar) ========== */}
+                              <div className={`flex-1 relative ${journalChartMode === 'heatmap' ? 'block' : 'hidden'}`}>
+                                {heatmapChartLoading && (
+                                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
+                                    <div className="flex flex-col items-center gap-4">
+                                      <div className="relative">
+                                        <div className="w-14 h-14 border-4 border-purple-500/20 rounded-full" />
+                                        <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-purple-500 border-r-purple-500 rounded-full animate-spin" />
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Loading heatmap chart...</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching {heatmapSelectedDate} data</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Heatmap Chart OHLC Display */}
+                                {heatmapHoveredOhlc && heatmapChartData && heatmapChartData.length > 0 && (
+                                  <div 
+                                    className="absolute top-1 left-2 z-40 flex items-center gap-1 text-xs font-mono pointer-events-none"
+                                    data-testid="heatmap-chart-ohlc-display"
+                                  >
+                                    <span className="text-green-600 dark:text-green-400 font-medium">
+                                      O{heatmapHoveredOhlc.open.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                      H{heatmapHoveredOhlc.high.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                      L{heatmapHoveredOhlc.low.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className={`font-medium ${heatmapHoveredOhlc.close >= heatmapHoveredOhlc.open ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      C{heatmapHoveredOhlc.close.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                    <span className={`font-medium ${heatmapHoveredOhlc.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      {heatmapHoveredOhlc.change >= 0 ? '+' : ''}{heatmapHoveredOhlc.change.toFixed(2)}
+                                    </span>
+                                    <span className={`font-medium ${heatmapHoveredOhlc.changePercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                      ({heatmapHoveredOhlc.changePercent >= 0 ? '+' : ''}{heatmapHoveredOhlc.changePercent.toFixed(2)}%)
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Heatmap Chart Container */}
+                                <div 
+                                  ref={heatmapChartContainerRef}
+                                  className="w-full h-full relative bg-white dark:bg-gray-800"
+                                  data-testid="heatmap-chart-container"
+                                />
+                                
+                                {/* Heatmap Chart - No Data Message */}
+                                {(!heatmapChartData || heatmapChartData.length === 0) && !heatmapChartLoading && (
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="text-center">
+                                      <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                        <CalendarDays className="h-8 w-8 text-purple-500 dark:text-purple-400" />
+                                      </div>
+                                      <div className="text-gray-900 dark:text-gray-100 font-medium mb-1">Heatmap Mode</div>
+                                      <div className="text-gray-500 dark:text-gray-400 text-sm">Select a date from the heatmap calendar</div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

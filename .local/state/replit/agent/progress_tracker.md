@@ -400,6 +400,56 @@
 [x] 4427.   - Console logs show exactly which symbol/token is being fetched
 [x] 4428. STALE CLOSURE BUG FIX 100% COMPLETE!
 
+[x] 4465. CRITICAL FIX: Dual Chart System Implementation (Search vs Heatmap)
+[x] 4466. Date: November 30, 2025
+[x] 4467. Issue Reported:
+[x] 4468.   ❌ Manual symbol search chart interfering with heatmap date selection chart
+[x] 4469.   ❌ Race conditions causing chart overloading and failures
+[x] 4470.   ❌ Heatmap date selection would fetch wrong symbol or fail to render
+[x] 4471. Solution: TWO INDEPENDENT CHART SYSTEMS
+[x] 4472.   ✅ SEARCH CHART: For manual symbol search (blue accent)
+[x] 4473.   ✅ HEATMAP CHART: For calendar date selection (purple accent)
+[x] 4474. Implementation Details (client/src/pages/home.tsx):
+[x] 4475.   1. New State Variables (lines 4787-4795):
+[x] 4476.      - journalChartMode: 'search' | 'heatmap' (toggle between views)
+[x] 4477.      - heatmapSelectedDate, heatmapSelectedSymbol (heatmap context)
+[x] 4478.      - heatmapChartTimeframe (default '1' for 1-min)
+[x] 4479.      - heatmapChartData, heatmapChartLoading (loading state)
+[x] 4480.      - heatmapHoveredOhlc (OHLC display for heatmap chart)
+[x] 4481.   2. New Refs (lines 4847-4852):
+[x] 4482.      - heatmapChartContainerRef, heatmapChartRef
+[x] 4483.      - heatmapCandlestickSeriesRef, heatmapVolumeSeriesRef
+[x] 4484.      - heatmapEma12SeriesRef, heatmapEma26SeriesRef
+[x] 4485.      - heatmapChartDataRef (for closures)
+[x] 4486.   3. New fetchHeatmapChartData Function (lines 5102-5215):
+[x] 4487.      - Completely independent from fetchJournalChartData
+[x] 4488.      - Destroys old heatmap chart before fetching
+[x] 4489.      - Sets heatmapSelectedSymbol and heatmapSelectedDate
+[x] 4490.      - Auto-switches to heatmap mode when data loads
+[x] 4491.   4. New Heatmap Chart useEffect (lines 5943-6149):
+[x] 4492.      - Initializes TradingView chart with purple volume bars
+[x] 4493.      - Subscribes to crosshair for OHLC display
+[x] 4494.      - Cleanup on unmount
+[x] 4495.   5. UI Changes (lines 11683-11853):
+[x] 4496.      - Mode toggle buttons: Search (blue) | Heatmap (purple)
+[x] 4497.      - Two separate chart containers (hidden/shown based on mode)
+[x] 4498.      - Separate OHLC displays for each chart
+[x] 4499.      - Different loading spinners and empty states
+[x] 4500.   6. Heatmap Date Click Handler Updated (lines 11626-11654):
+[x] 4501.      - Extracts symbol from trading data for that date
+[x] 4502.      - Calls fetchHeatmapChartData(symbol, date)
+[x] 4503.      - No longer conflicts with search chart
+[x] 4504. How It Works Now:
+[x] 4505.   - User searches symbol manually → loads in SEARCH chart
+[x] 4506.   - User clicks heatmap date → loads in HEATMAP chart
+[x] 4507.   - Charts are COMPLETELY INDEPENDENT (no race conditions)
+[x] 4508.   - Mode toggle lets user switch between views
+[x] 4509.   - Each chart maintains its own state and refs
+[x] 4510. Files Modified:
+[x] 4511.   - client/src/pages/home.tsx
+[x] 4512.   - Added CalendarDays icon import from lucide-react
+[x] 4513. DUAL CHART SYSTEM IMPLEMENTATION 100% COMPLETE!
+
 [x] 4032. TRADEBOOK DATE AUTO-FETCH FEATURE IMPLEMENTED
 [x] 4033. User Request: When date is selected in tradebook, auto-fetch chart data
 [x] 4034. Solution: Added useEffect in client/src/pages/home.tsx (lines 5136-5143)
