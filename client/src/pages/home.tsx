@@ -11741,6 +11741,8 @@ ${
                                     </Button>
                                   )}
                                   
+                                  {/* Timeframe Selector - ONLY in Search Mode */}
+                                  {journalChartMode === 'search' && (
                                   <Popover open={showJournalTimeframeDropdown} onOpenChange={setShowJournalTimeframeDropdown}>
                                     <PopoverTrigger asChild>
                                       <Button
@@ -11774,6 +11776,15 @@ ${
                                       </div>
                                     </PopoverContent>
                                   </Popover>
+                                  )}
+                                  
+                                  {/* Heatmap Timeframe Indicator - ONLY in Heatmap Mode */}
+                                  {journalChartMode === 'heatmap' && (
+                                  <div className="h-8 px-2 text-xs font-medium flex items-center gap-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>{getJournalTimeframeLabel(heatmapChartTimeframe)}</span>
+                                  </div>
+                                  )}
                                   
                                   {/* 📅 Heatmap Date Selector - ONLY in Heatmap Mode */}
                                   {journalChartMode === 'heatmap' && (
