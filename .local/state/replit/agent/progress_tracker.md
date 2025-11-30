@@ -245,3 +245,16 @@
 [x] 4029. Features confirmed: Technical Analysis, Social Feed, Market News, Trading Journal, Fundamentals
 [x] 4030. Server running on port 5000 with live WebSocket streaming
 [x] 4031. Mark import as complete using complete_project_import tool
+
+[x] 4032. TRADEBOOK DATE AUTO-FETCH FEATURE IMPLEMENTED
+[x] 4033. User Request: When date is selected in tradebook, auto-fetch chart data
+[x] 4034. Solution: Added useEffect in client/src/pages/home.tsx (lines 5136-5143)
+[x] 4035. Behavior:
+[x] 4036.   - User clicks date in heatmap dropdown
+[x] 4037.   - setJournalSelectedDate(date) is called
+[x] 4038.   - useEffect detects journalSelectedDate change
+[x] 4039.   - fetchJournalChartData() is automatically triggered
+[x] 4040.   - Chart loads candle data for selected date
+[x] 4041. Console Log: "📅 [AUTO-FETCH] Date selected from tradebook heatmap: {date}"
+[x] 4042. No manual fetch button click required anymore!
+[x] 4043. TRADEBOOK AUTO-FETCH FEATURE 100% COMPLETE!

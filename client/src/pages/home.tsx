@@ -5130,7 +5130,14 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 MANUAL FETCH ONLY - No auto-fetch (user clicks button)
+  // 🔶 AUTO-FETCH when date is selected from heatmap
+  useEffect(() => {
+    // Only auto-fetch when a date is explicitly selected (not on initial mount or clear)
+    if (journalSelectedDate && journalSelectedDate.length > 0) {
+      console.log(`📅 [AUTO-FETCH] Date selected from tradebook heatmap: ${journalSelectedDate} - triggering chart fetch automatically`);
+      fetchJournalChartData();
+    }
+  }, [journalSelectedDate]); // Only trigger on date selection change
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
