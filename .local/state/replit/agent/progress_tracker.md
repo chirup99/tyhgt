@@ -311,6 +311,32 @@
 [x] 4377.   7. Chart displays correct SENSEX candles
 [x] 4378. HEATMAP DATE SELECTION BUG FIX 100% COMPLETE!
 
+[x] 4379. FIX REFINED: Chart Always Fetches According to Search Bar Symbol
+[x] 4380. Date: November 30, 2025
+[x] 4381. User Clarification:
+[x] 4382.   - Some dates have MULTIPLE symbols traded (e.g., July 15 has both SENSEX and NIFTY)
+[x] 4383.   - Chart should ALWAYS fetch based on symbol in SEARCH BAR
+[x] 4384.   - Should NOT automatically switch symbols when selecting a date
+[x] 4385. Previous Behavior (Wrong):
+[x] 4386.   ❌ Date selected → automatically changed symbol to first traded symbol
+[x] 4387.   ❌ User selected SENSEX in search bar, picked date with NIFTY trades
+[x] 4388.   ❌ System auto-switched to NIFTY → fetched wrong chart
+[x] 4389. New Behavior (Fixed):
+[x] 4390.   ✅ Symbol in search bar is ALWAYS respected
+[x] 4391.   ✅ Date selection only changes the date filter
+[x] 4392.   ✅ User manually controls which symbol to view
+[x] 4393.   ✅ If SENSEX is in search bar → always fetch SENSEX chart
+[x] 4394. Code Changes (client/src/pages/home.tsx lines 5150-5162):
+[x] 4395.   - Removed symbol sync logic from heatmap date selection
+[x] 4396.   - useEffect now only triggers fetchJournalChartData()
+[x] 4397.   - Uses current selectedJournalSymbol (from search bar)
+[x] 4398. User Workflow After Fix:
+[x] 4399.   1. Select SENSEX from symbol search bar
+[x] 4400.   2. Pick any date from heatmap (even if has NIFTY trades)
+[x] 4401.   3. Chart fetches SENSEX data for that date (~80,000+ prices)
+[x] 4402.   4. To view NIFTY → manually change symbol in search bar
+[x] 4403. SEARCH BAR SYMBOL PRIORITY FIX 100% COMPLETE!
+
 [x] 4032. TRADEBOOK DATE AUTO-FETCH FEATURE IMPLEMENTED
 [x] 4033. User Request: When date is selected in tradebook, auto-fetch chart data
 [x] 4034. Solution: Added useEffect in client/src/pages/home.tsx (lines 5136-5143)

@@ -5144,37 +5144,19 @@ ${
     }
   }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 SYNC SYMBOL AND AUTO-FETCH when date is selected from heatmap
-  // When user clicks a date on the heatmap, load the symbol that was actually traded on that date
-  // Then auto-fetch chart data AFTER symbol is updated (fixes race condition bug)
+  // 🔶 AUTO-FETCH when date is selected from heatmap
+  // IMPORTANT: Always fetch chart based on the symbol in the SEARCH BAR (selectedJournalSymbol)
+  // Do NOT automatically change the symbol when a date is selected
+  // This is because some dates have multiple symbols (e.g., July 15 has both SENSEX and NIFTY trades)
+  // User should manually select the symbol they want to view in the search bar
   useEffect(() => {
     if (journalSelectedDate && journalSelectedDate.length > 0) {
-      const dateData = tradingDataByDate[journalSelectedDate];
-      if (dateData && dateData.symbol) {
-        const symbolForDate = dateData.symbol;
-        console.log(`📅 [HEATMAP SYNC] Date selected: ${journalSelectedDate}`);
-        console.log(`📅 [HEATMAP SYNC] Symbol traded on this date: ${symbolForDate}`);
-        console.log(`📅 [HEATMAP SYNC] Current selectedJournalSymbol: ${selectedJournalSymbol}`);
-        
-        // Only update if the symbol is different
-        if (selectedJournalSymbol !== symbolForDate) {
-          setSelectedJournalSymbol(symbolForDate);
-          console.log(`✅ [HEATMAP SYNC] Updated symbol from "${selectedJournalSymbol}" to "${symbolForDate}"`);
-          // 🔶 FIX: Delay fetch to ensure symbol state is updated first (fixes race condition)
-          setTimeout(() => {
-            console.log(`📅 [AUTO-FETCH] Fetching chart for symbol: ${symbolForDate} on date: ${journalSelectedDate}`);
-            fetchJournalChartData();
-          }, 150); // 150ms delay ensures setSelectedJournalSymbol has been processed
-        } else {
-          console.log(`ℹ️ [HEATMAP SYNC] Symbol already correct, fetching chart immediately`);
-          fetchJournalChartData();
-        }
-      } else {
-        console.warn(`⚠️ [HEATMAP SYNC] No trading data found for date: ${journalSelectedDate}, fetching with current symbol`);
-        fetchJournalChartData();
-      }
+      console.log(`📅 [AUTO-FETCH] Date selected from heatmap: ${journalSelectedDate}`);
+      console.log(`📅 [AUTO-FETCH] Fetching chart for symbol from search bar: ${selectedJournalSymbol}`);
+      // Always fetch using the current symbol in the search bar
+      fetchJournalChartData();
     }
-  }, [journalSelectedDate, tradingDataByDate]); // Sync whenever date or trading data changes
+  }, [journalSelectedDate]); // Only trigger on date selection change
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
