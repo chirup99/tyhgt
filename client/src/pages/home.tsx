@@ -5952,23 +5952,23 @@ ${
     try {
       if (markers.length > 0) {
         // Use built-in setMarkers with proper configuration for TradingView-style marks
-        const chartMarkers = markers.map((marker) => {
+        const chartMarkers = markers.map((marker, idx) => {
           const candle = journalChartData[marker.candleIndex];
           const markTime = candle?.time;
           
-          console.log(`  🔄 Converting marker: candle[${marker.candleIndex}].time = ${markTime}, type=${marker.type}`);
-          
-          return {
+          const mObj: any = {
             time: markTime,
             position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
             color: marker.type === 'buy' ? '#22c55e' : '#ef4444', // Bright green/red
             shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
-            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @${marker.price.toFixed(2)}`,
-            size: 'large' as any,
+            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @₹${marker.price.toFixed(2)}`,
           };
+          
+          console.log(`  🔄 [${idx}] time:${markTime} ${mObj.shape} pos:${mObj.position} color:${mObj.color}`);
+          return mObj;
         }).filter((m, idx) => {
           const hasTime = m.time !== undefined;
-          if (!hasTime) console.log(`  ❌ Filtered out marker ${idx} - no time`);
+          if (!hasTime) console.log(`  ❌ Filtered marker ${idx} - undefined time`);
           return hasTime;
         });
         
