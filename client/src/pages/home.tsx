@@ -5137,9 +5137,14 @@ ${
       setHeatmapChartData([]);
       
       // ✅ ENSURE DATE FORMAT IS YYYY-MM-DD STRING
-      let formattedDate = date as string;
-      if (date instanceof Date) {
-        formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      let formattedDate = '';
+      if (typeof date === 'string') {
+        formattedDate = date;
+      } else if (date && typeof (date as any).getFullYear === 'function') {
+        const d = date as any;
+        formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      } else {
+        formattedDate = String(date);
       }
       
       setHeatmapSelectedSymbol(symbol);
@@ -11658,14 +11663,14 @@ ${
                                     </PopoverContent>
                                   </Popover>
 
-                                  {/* Next Symbol Button - SUPER SIMPLE: Direct destruction + fetch */}
+                                  {/* Next Symbol Button - Context-aware for SEARCH or HEATMAP mode */}
                                   {tradedSymbols.length > 1 && (
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       className="h-8 px-2 text-xs"
                                       onClick={() => {
-                                        console.log(`⏭️  NEXT CLICKED | Index: ${currentSymbolIndex}/${tradedSymbols.length}`);
+                                        console.log(`⏭️  NEXT CLICKED | Mode: ${journalChartMode} | Index: ${currentSymbolIndex}/${tradedSymbols.length}`);
                                         
                                         // Calculate next
                                         const nextIdx = (currentSymbolIndex + 1) % tradedSymbols.length;
@@ -11673,26 +11678,49 @@ ${
                                         
                                         console.log(`⏭️  Switching: ${tradedSymbols[currentSymbolIndex]} → ${nextSymbol}`);
                                         
-                                        // DESTROY CHART IMMEDIATELY - Don't wait for useEffect
-                                        if (journalChartRef.current) {
-                                          try {
-                                            journalChartRef.current.remove();
-                                            console.log(`⏭️  Chart destroyed`);
-                                          } catch (e) {}
-                                          journalChartRef.current = null;
-                                          journalCandlestickSeriesRef.current = null;
-                                          journalEma12SeriesRef.current = null;
-                                          journalEma26SeriesRef.current = null;
+                                        if (journalChartMode === 'search') {
+                                          // SEARCH MODE: Update search chart
+                                          if (journalChartRef.current) {
+                                            try {
+                                              journalChartRef.current.remove();
+                                              console.log(`⏭️  Chart destroyed`);
+                                            } catch (e) {}
+                                            journalChartRef.current = null;
+                                            journalCandlestickSeriesRef.current = null;
+                                            journalEma12SeriesRef.current = null;
+                                            journalEma26SeriesRef.current = null;
+                                          }
+                                          
+                                          setCurrentSymbolIndex(nextIdx);
+                                          setSelectedJournalSymbol(`NSE:${nextSymbol}-INDEX`);
+                                          setJournalChartData([]);
+                                          setLiveOhlc(null);
+                                          console.log(`⏭️  [SEARCH] Fetching ${nextSymbol} data...`);
+                                        } else if (journalChartMode === 'heatmap') {
+                                          // HEATMAP MODE: Update heatmap chart + header
+                                          if (heatmapChartRef.current) {
+                                            try {
+                                              heatmapChartRef.current.remove();
+                                              console.log(`⏭️  Heatmap chart destroyed`);
+                                            } catch (e) {}
+                                            heatmapChartRef.current = null;
+                                            heatmapCandlestickSeriesRef.current = null;
+                                            heatmapEma12SeriesRef.current = null;
+                                            heatmapEma26SeriesRef.current = null;
+                                          }
+                                          
+                                          setCurrentSymbolIndex(nextIdx);
+                                          const newSymbol = `NSE:${nextSymbol}-INDEX`;
+                                          setHeatmapSelectedSymbol(newSymbol);
+                                          setHeatmapChartData([]);
+                                          setHeatmapHoveredOhlc(null);
+                                          console.log(`⏭️  [HEATMAP] Symbol updated to ${nextSymbol}, refetching chart...`);
+                                          
+                                          // Fetch heatmap data with new symbol and current date
+                                          if (heatmapSelectedDate) {
+                                            fetchHeatmapChartData(newSymbol, heatmapSelectedDate);
+                                          }
                                         }
-                                        
-                                        // Update state
-                                        setCurrentSymbolIndex(nextIdx);
-                                        setSelectedJournalSymbol(`NSE:${nextSymbol}-INDEX`);
-                                        setJournalChartData([]);
-                                        setLiveOhlc(null);
-                                        
-                                        console.log(`⏭️  Fetching ${nextSymbol} data...`);
-                                        // useEffect watches selectedJournalSymbol + journalSelectedDate and fetches automatically
                                       }}
                                       data-testid="button-next-symbol"
                                     >
