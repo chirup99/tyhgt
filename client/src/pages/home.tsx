@@ -4781,6 +4781,7 @@ ${
   const [heatmapChartTimeframe, setHeatmapChartTimeframe] = useState('1'); // Default 1 minute
   const [heatmapSelectedSymbol, setHeatmapSelectedSymbol] = useState(''); // Symbol from heatmap date
   const [heatmapSelectedDate, setHeatmapSelectedDate] = useState(''); // Date from heatmap calendar
+  const [heatmapTradeHistory, setHeatmapTradeHistory] = useState<any[]>([]); // Trade history for heatmap date
   
   // Heatmap Chart refs (completely separate from Search Chart)
   const heatmapChartContainerRef = useRef<HTMLDivElement>(null);
@@ -5251,6 +5252,27 @@ ${
       
       console.log(`✅ [HEATMAP FETCH] Chart ready: ${candleData.length} candles for ${cleanSymbol} on ${date}`);
       setHeatmapChartData(candleData);
+      
+      // STEP 7: Also fetch journal data for trade history markers
+      try {
+        const journalResponse = await fetch(getFullApiUrl(`/api/journal/${formattedDate}`));
+        if (journalResponse.ok) {
+          const journalData = await journalResponse.json();
+          if (journalData.tradeHistory && Array.isArray(journalData.tradeHistory)) {
+            console.log(`✅ [HEATMAP FETCH] Loaded ${journalData.tradeHistory.length} trades for markers`);
+            setHeatmapTradeHistory(journalData.tradeHistory);
+          } else {
+            console.warn('⚠️ [HEATMAP FETCH] No trade history in journal data');
+            setHeatmapTradeHistory([]);
+          }
+        } else {
+          console.warn(`⚠️ [HEATMAP FETCH] Journal fetch returned ${journalResponse.status}`);
+          setHeatmapTradeHistory([]);
+        }
+      } catch (journalError) {
+        console.warn('⚠️ [HEATMAP FETCH] Could not fetch journal data for markers:', journalError);
+        setHeatmapTradeHistory([]);
+      }
       
       // Auto-switch to heatmap mode when data loads
       setJournalChartMode('heatmap');
@@ -6178,18 +6200,20 @@ ${
         volumeSeries.setData(volumeData);
 
         // ========== ADD BUY/SELL TRADE MARKERS ==========
-        if (tradeHistoryData && tradeHistoryData.length > 0) {
+        if (heatmapTradeHistory && heatmapTradeHistory.length > 0) {
           const markers: any[] = [];
           
-          console.log(`🔍 [HEATMAP MARKERS] Processing ${tradeHistoryData.length} trades from trade history...`);
+          console.log(`🔍 [HEATMAP MARKERS] Processing ${heatmapTradeHistory.length} trades from trade history...`);
           
-          tradeHistoryData.forEach((trade) => {
+          heatmapTradeHistory.forEach((trade) => {
             // Parse trade time (format: "HH:MM:SS AM/PM")
             const timeStr = trade.time || '';
             if (!timeStr) {
               console.warn(`⚠️ [HEATMAP MARKERS] Trade has no time: ${JSON.stringify(trade)}`);
               return;
             }
+            
+            console.log(`📝 [HEATMAP MARKERS] Processing trade: ${JSON.stringify(trade)}`);  
             
             try {
               // Extract hours, minutes, seconds from time string
@@ -6246,11 +6270,11 @@ ${
             heatmapSeriesMarkersRef.current = createSeriesMarkers(candlestickSeries);
             heatmapSeriesMarkersRef.current.setMarkers(markers);
             
-            const buyCount = tradeHistoryData.filter(t => t.order === 'BUY').length;
-            const sellCount = tradeHistoryData.filter(t => t.order === 'SELL').length;
+            const buyCount = heatmapTradeHistory.filter(t => t.order === 'BUY').length;
+            const sellCount = heatmapTradeHistory.filter(t => t.order === 'SELL').length;
             console.log(`📍 [HEATMAP] Successfully added ${markers.length} trade markers (${buyCount} BUY, ${sellCount} SELL)`);
           } else {
-            console.warn(`⚠️ [HEATMAP] No markers created despite ${tradeHistoryData.length} trades`);
+            console.warn(`⚠️ [HEATMAP] No markers created despite ${heatmapTradeHistory.length} trades`);
           }
         }
 
@@ -6283,7 +6307,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, heatmapChartData, heatmapSelectedDate, heatmapChartTimeframe]);
+  }, [activeTab, heatmapChartData, heatmapTradeHistory, heatmapSelectedDate, heatmapChartTimeframe]);
 
   // Extract underlying symbol from option/futures trade symbol
   const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
