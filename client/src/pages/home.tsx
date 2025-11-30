@@ -5765,23 +5765,30 @@ ${
 
   // Extract underlying symbol from option/futures trade symbol
   const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
-    // For options/futures like "NIFTY 22nd w MAR PE", "BANKNIFTY 15 AUG CE", extract the underlying
+    // For options/futures like "NIFTY 22nd w MAR PE", "BANKNIFTY 15 AUG CE", "SENSEX FEB PE", extract the underlying
     const indexSymbols = ['NIFTY50', 'NIFTY', 'BANKNIFTY', 'SENSEX', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYIT'];
     const cleanSymbol = tradeSymbol.toUpperCase().trim();
     
-    for (const idx of indexSymbols) {
+    // Try to match longest symbols first to avoid partial matches
+    const sorted = [...indexSymbols].sort((a, b) => b.length - a.length);
+    
+    for (const idx of sorted) {
       if (cleanSymbol.includes(idx)) {
-        return idx === 'NIFTY' ? 'NIFTY50' : idx; // Map NIFTY to NIFTY50
+        const result = idx === 'NIFTY' ? 'NIFTY50' : idx; // Map NIFTY to NIFTY50
+        return result;
       }
     }
-    return tradeSymbol; // Return as-is if no match
+    return cleanSymbol; // Return clean symbol if no index match
   };
 
   // Check if trade symbol matches chart symbol (including option/futures on underlying)
   const doesTradeMatchChart = (tradeSymbol: string, chartSymbol: string): boolean => {
     const tradeUnderlying = getTradeUnderlyingSymbol(tradeSymbol);
     const chartUnderlying = getTradeUnderlyingSymbol(chartSymbol);
-    return tradeUnderlying === chartUnderlying;
+    const matches = tradeUnderlying === chartUnderlying;
+    
+    console.log(`🔍 Symbol Match Check: Trade="${tradeSymbol}" (underlying="${tradeUnderlying}") vs Chart="${chartSymbol}" (underlying="${chartUnderlying}") = ${matches}`);
+    return matches;
   };
 
   // Convert trade history to chart markers
