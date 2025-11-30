@@ -5799,9 +5799,11 @@ ${
       !journalChartData ||
       journalChartData.length === 0
     ) {
+      console.log('🔴 MARKER ABORT: No trade or chart data', { trades: tradeHistoryData?.length || 0, candles: journalChartData?.length || 0 });
       return [];
     }
 
+    console.log('🟢 MARKER START: Processing', tradeHistoryData.length, 'trades against', journalChartData.length, 'candles');
     const markers: TradeMarker[] = [];
 
     // Get the selected date for the chart (to match candles correctly)
@@ -5812,9 +5814,10 @@ ${
         // 🔶 TIME-BASED MATCHING ONLY - ignore symbol, use only trade time
         // Parse trade time (e.g., "1:16:33 PM" or "11:23:56 AM")
         const tradeTime = trade.time;
-        if (!tradeTime) return;
-
-        console.log(`🕐 Processing trade #${index + 1}: ${trade.order} @ ${tradeTime}`);
+        if (!tradeTime) {
+          console.log(`❌ Trade #${index + 1}: No time found`);
+          return;
+        }
 
         // Convert 12-hour format to 24-hour format
         const [time, period] = tradeTime.split(" ");
@@ -5830,21 +5833,20 @@ ${
         // Create target time in minutes from midnight for comparison
         const tradeMinutesFromMidnight = hour24 * 60 + minutes;
         
-        console.log(`  📍 Trade time: ${hour24}:${minutes} (${tradeMinutesFromMidnight} mins from midnight)`);
+        console.log(`🕐 Trade #${index + 1}: ${tradeTime} → 24h: ${hour24}:${String(minutes).padStart(2, '0')} (${tradeMinutesFromMidnight}min) [${trade.order}]`);
 
         // Find closest candle in chart data by matching time
         let closestCandleIndex = -1;
         let minTimeDiff = Infinity;
 
         journalChartData.forEach((candle, candleIndex) => {
-          // Candle time matches what shows on chart (IST)
-          // Use same hours/minutes extraction for simple matching
+          // Candle timestamp is UTC (Unix seconds), convert to IST for matching
+          // IST = UTC + 5:30 hours = UTC + 330 minutes
           const candleDate = new Date(candle.time * 1000);
-          const candleHours = candleDate.getHours();
-          const candleMinutes = candleDate.getMinutes();
-          const candleMinutesFromMidnight = candleHours * 60 + candleMinutes;
-
-          const timeDiff = Math.abs(candleMinutesFromMidnight - tradeMinutesFromMidnight);
+          const utcMinutes = candleDate.getUTCHours() * 60 + candleDate.getUTCMinutes();
+          const istMinutes = (utcMinutes + 330) % 1440; // Add IST offset, wrap at midnight
+          
+          const timeDiff = Math.abs(istMinutes - tradeMinutesFromMidnight);
           
           if (timeDiff < minTimeDiff) {
             minTimeDiff = timeDiff;
