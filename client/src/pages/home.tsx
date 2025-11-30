@@ -5829,7 +5829,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData]);
+  }, [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData, journalChartFromTime, journalChartToTime]);
 
   // Extract underlying symbol from option/futures trade symbol
   const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
