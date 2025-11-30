@@ -4623,6 +4623,7 @@ ${
   const [journalChartLoading, setJournalChartLoading] = useState(false);
   const [journalChartTimeframe, setJournalChartTimeframe] = useState('1'); // Default 1 minute
   const [showJournalTimeframeDropdown, setShowJournalTimeframeDropdown] = useState(false);
+  const [showHeatmapTimeframeDropdown, setShowHeatmapTimeframeDropdown] = useState(false);
   const [showTradeMarkers, setShowTradeMarkers] = useState(true); // Toggle for trade markers visibility
   const [showJournalTimeRangeFilter, setShowJournalTimeRangeFilter] = useState(false);
   const [journalChartFromTime, setJournalChartFromTime] = useState('09:15'); // Market open (IST)
@@ -11778,12 +11779,41 @@ ${
                                   </Popover>
                                   )}
                                   
-                                  {/* Heatmap Timeframe Indicator - ONLY in Heatmap Mode */}
+                                  {/* Heatmap Timeframe Selector - ONLY in Heatmap Mode */}
                                   {journalChartMode === 'heatmap' && (
-                                  <div className="h-8 px-2 text-xs font-medium flex items-center gap-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    <span>{getJournalTimeframeLabel(heatmapChartTimeframe)}</span>
-                                  </div>
+                                  <Popover open={showHeatmapTimeframeDropdown} onOpenChange={setShowHeatmapTimeframeDropdown}>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className="h-8 px-2 text-xs min-w-[60px] justify-between"
+                                        data-testid="button-heatmap-timeframe-dropdown"
+                                      >
+                                        <span>{getJournalTimeframeLabel(heatmapChartTimeframe)}</span>
+                                        <ChevronDown className="w-3 h-3 ml-1" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-56 p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
+                                      <div className="grid gap-1">
+                                        {journalTimeframeOptions.map((tf) => (
+                                          <button 
+                                            key={tf.value}
+                                            className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                                              heatmapChartTimeframe === tf.value 
+                                                ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium' 
+                                                : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                            }`}
+                                            onClick={() => {
+                                              setHeatmapChartTimeframe(tf.value);
+                                              setShowHeatmapTimeframeDropdown(false);
+                                            }}
+                                            data-testid={`heatmap-timeframe-option-${tf.value}`}
+                                          >
+                                            {tf.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
                                   )}
                                   
                                   {/* 📅 Heatmap Date Selector - ONLY in Heatmap Mode */}
