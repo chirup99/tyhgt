@@ -7074,32 +7074,20 @@ ${
         if (journalData.tradeHistory && Array.isArray(journalData.tradeHistory)) {
           setTradeHistoryData(journalData.tradeHistory);
           console.log("📊 Loaded trade history from Firebase:", journalData.tradeHistory.length, "trades");
+          
           // Extract symbols with most trades
           const symbols = extractTradedSymbols(journalData.tradeHistory);
           if (symbols.length > 0) {
             setTradedSymbols(symbols);
-            console.log(`📊 Extracted traded symbols (sorted by count):`, symbols);
+            setCurrentSymbolIndex(0);
             
-            // PRESERVE user's current symbol selection if it exists in this date's traded symbols
-            // Only default to first symbol if no symbol is selected or current symbol not in list
-            const currentSymbol = selectedJournalSymbol.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '');
-            const existingIndex = symbols.indexOf(currentSymbol);
+            // Always fetch chart for the first/primary symbol from trades on this date
+            const firstSymbol = symbols[0];
+            const chartSymbol = `NSE:${firstSymbol}-INDEX`;
+            setSelectedJournalSymbol(chartSymbol);
             
-            if (existingIndex >= 0) {
-              // User's current symbol is in this date's traded symbols - KEEP IT
-              setCurrentSymbolIndex(existingIndex);
-              console.log(`🎯 Preserving current symbol: ${selectedJournalSymbol} (index ${existingIndex}/${symbols.length})`);
-            } else if (!selectedJournalSymbol || selectedJournalSymbol === 'NSE:-INDEX') {
-              // No symbol selected - default to first traded symbol
-              setCurrentSymbolIndex(0);
-              const topSymbol = `NSE:${symbols[0]}-INDEX`;
-              setSelectedJournalSymbol(topSymbol);
-              console.log(`🎯 No symbol selected, defaulting to: ${topSymbol} (${symbols.length} unique symbols)`);
-            } else {
-              // User has a symbol selected but it's not in this date's traded symbols
-              // Keep the user's selection - they may want to view that symbol's chart for this date
-              console.log(`🎯 Keeping user's symbol: ${selectedJournalSymbol} (not traded on this date, but user selected it)`);
-            }
+            console.log(`📊 Extracted traded symbols:`, symbols);
+            console.log(`📊 Setting chart symbol to first trade: ${chartSymbol}`);
           }
         }
 
@@ -7200,32 +7188,20 @@ ${
               "trades",
             );
             console.log("📊 Trade data source: FIREBASE (no hardcoded data)");
+            
             // Extract symbols with most trades
             const symbols = extractTradedSymbols(journalData.tradeHistory);
             if (symbols.length > 0) {
               setTradedSymbols(symbols);
-              console.log(`📊 Extracted traded symbols (sorted by count):`, symbols);
+              setCurrentSymbolIndex(0);
               
-              // PRESERVE user's current symbol selection if it exists in this date's traded symbols
-              // Only default to first symbol if no symbol is selected or current symbol not in list
-              const currentSymbol = selectedJournalSymbol.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '');
-              const existingIndex = symbols.indexOf(currentSymbol);
+              // Always fetch chart for the first/primary symbol from trades on this date
+              const firstSymbol = symbols[0];
+              const chartSymbol = `NSE:${firstSymbol}-INDEX`;
+              setSelectedJournalSymbol(chartSymbol);
               
-              if (existingIndex >= 0) {
-                // User's current symbol is in this date's traded symbols - KEEP IT
-                setCurrentSymbolIndex(existingIndex);
-                console.log(`🎯 Preserving current symbol: ${selectedJournalSymbol} (index ${existingIndex}/${symbols.length})`);
-              } else if (!selectedJournalSymbol || selectedJournalSymbol === 'NSE:-INDEX') {
-                // No symbol selected - default to first traded symbol
-                setCurrentSymbolIndex(0);
-                const topSymbol = `NSE:${symbols[0]}-INDEX`;
-                setSelectedJournalSymbol(topSymbol);
-                console.log(`🎯 No symbol selected, defaulting to: ${topSymbol} (${symbols.length} unique symbols)`);
-              } else {
-                // User has a symbol selected but it's not in this date's traded symbols
-                // Keep the user's selection - they may want to view that symbol's chart for this date
-                console.log(`🎯 Keeping user's symbol: ${selectedJournalSymbol} (not traded on this date, but user selected it)`);
-              }
+              console.log(`📊 Extracted traded symbols:`, symbols);
+              console.log(`📊 Setting chart symbol to first trade: ${chartSymbol}`);
             }
           } else {
             // No trade history in Firebase - keep empty state, DO NOT construct fake data
