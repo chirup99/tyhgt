@@ -4983,12 +4983,12 @@ ${
         return;
       }
       
-      // Use first traded symbol (the one we already set in selectedJournalSymbol)
-      const symbolToFetch = tradedSymbols[0];
+      // 🔥 FIX: Use currentSymbolIndex to get the RIGHT symbol (not always first!)
+      const symbolToFetch = tradedSymbols[currentSymbolIndex] || tradedSymbols[0];
       const cleanSymbol = symbolToFetch.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '');
       stockToken = journalAngelOneTokens[cleanSymbol];
       
-      console.log(`🔶 [FETCH] Using symbol from trade history: ${symbolToFetch} (clean: ${cleanSymbol})`);
+      console.log(`🔶 [FETCH] currentSymbolIndex: ${currentSymbolIndex}, Using symbol: ${symbolToFetch} (clean: ${cleanSymbol})`);
       console.log('🔶 [FETCH] Token resolved:', stockToken);
       
       if (!stockToken) {
@@ -5148,15 +5148,14 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [tradedSymbols, journalChartTimeframe, journalSelectedDate]);
+  }, [tradedSymbols, journalChartTimeframe, journalSelectedDate, currentSymbolIndex]);
 
-  // 🔶 AUTO-FETCH when symbols are loaded from trade history
-  // Trigger when tradedSymbols changes (which happens AFTER trade data loads)
+  // 🔶 AUTO-FETCH when date is selected and symbols loaded from trade history
+  // This fires when tradedSymbols changes (after handleDateSelect loads trade data)
   useEffect(() => {
     if (journalSelectedDate && journalSelectedDate.length > 0 && tradedSymbols.length > 0) {
-      console.log(`📅 [AUTO-FETCH] Symbols loaded from trade history for date: ${journalSelectedDate}`);
-      console.log(`📅 [AUTO-FETCH] First symbol to fetch: ${tradedSymbols[0]}`);
-      // Fetch chart for the first traded symbol
+      console.log(`📅 [AUTO-FETCH] Date selected with symbols: ${journalSelectedDate}, symbols: ${tradedSymbols.join(', ')}`);
+      // Fetch chart for the current symbol index
       fetchJournalChartData();
     }
   }, [tradedSymbols, journalSelectedDate, fetchJournalChartData]);
