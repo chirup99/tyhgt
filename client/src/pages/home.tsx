@@ -4721,6 +4721,16 @@ ${
     instrumentType?: string;
   } | null>(null);
   
+  // FIX CRITICAL BUG: Sync selectedJournalSymbol with selectedInstrument
+  // When user selects a new instrument from search, update selectedJournalSymbol to match
+  useEffect(() => {
+    if (selectedInstrument) {
+      const newSymbol = `${selectedInstrument.exchange}:${selectedInstrument.symbol}`;
+      setSelectedJournalSymbol(newSymbol);
+      console.log(`✅ SYNC FIX: Updated selectedJournalSymbol to "${newSymbol}" (was: ${selectedJournalSymbol})`);
+    }
+  }, [selectedInstrument]);
+  
   // TradingView-style chart refs for Journal
   const journalChartContainerRef = useRef<HTMLDivElement>(null);
   const journalCandleCountRef = useRef<HTMLDivElement>(null);
