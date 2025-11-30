@@ -5740,6 +5740,9 @@ ${
       const addTimeRangeIndicators = () => {
         if (!journalChartRef.current || !candlestickSeries) return;
         
+        console.log(`🔍 Starting time range search for: ${journalChartFromTime} to ${journalChartToTime}`);
+        console.log(`📊 Searching ${sortedData.length} candles...`);
+        
         // Convert IST time string (HH:MM) to seconds for comparison
         const timeToSeconds = (timeStr: string) => {
           const [hours, mins] = timeStr.split(':').map(Number);
@@ -5749,18 +5752,28 @@ ${
         const fromSeconds = timeToSeconds(journalChartFromTime);
         const toSeconds = timeToSeconds(journalChartToTime);
         
+        console.log(`⏰ FROM: ${journalChartFromTime} = ${fromSeconds}s, TO: ${journalChartToTime} = ${toSeconds}s`);
+        
         // Find first candle at/after from time and last candle at/before to time
         let fromCandle = null;
         let toCandle = null;
         
         for (const candle of sortedData) {
           const candleDate = new Date(candle.time * 1000);
-          const candleHours = candleDate.getUTCHours();
-          const candleMinutes = candleDate.getUTCMinutes();
+          // Convert UTC to IST by adding 5:30 hours
+          const istDate = new Date(candleDate.getTime() + (330 * 60 * 1000));
+          const candleHours = istDate.getUTCHours();
+          const candleMinutes = istDate.getUTCMinutes();
           const candleSeconds = candleHours * 3600 + candleMinutes * 60;
+          
+          // Debug first few candles
+          if (sortedData.indexOf(candle) < 3) {
+            console.log(`📍 Candle ${sortedData.indexOf(candle)}: UTC=${candleDate.toLocaleTimeString()} IST=${istDate.toLocaleTimeString()} seconds=${candleSeconds}`);
+          }
           
           if (!fromCandle && candleSeconds >= fromSeconds) {
             fromCandle = candle;
+            console.log(`✅ FOUND FROM candle at IST ${candleHours}:${candleMinutes.toString().padStart(2, '0')}`);
           }
           if (candleSeconds <= toSeconds) {
             toCandle = candle;
@@ -5796,6 +5809,8 @@ ${
           } catch (e) {
             console.log('Marker error:', e);
           }
+        } else {
+          console.log(`❌ Could not find candles in range. fromCandle=${!!fromCandle}, toCandle=${!!toCandle}`);
         }
       };
       
