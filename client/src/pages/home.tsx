@@ -5109,6 +5109,7 @@ ${
   useEffect(() => {
     if (journalChartMode !== 'search') return;
     if (!selectedJournalSymbol) return;
+    if (activeTab !== 'journal') return;
     
     // Debounce auto-fetch to avoid too many requests while typing/selecting
     const timer = setTimeout(() => {
@@ -5117,7 +5118,7 @@ ${
     }, 500); // 500ms debounce
     
     return () => clearTimeout(timer);
-  }, [journalChartMode, selectedJournalSymbol, fetchJournalChartData]);
+  }, [journalChartMode, selectedJournalSymbol, activeTab, fetchJournalChartData]);
 
   // ========== HEATMAP CHART FETCH FUNCTION (Completely Separate) ==========
   const fetchHeatmapChartData = useCallback(async (symbol: string, date: string) => {
