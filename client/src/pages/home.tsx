@@ -5105,6 +5105,20 @@ ${
     }
   }, [selectedJournalSymbol, journalChartTimeframe]);
 
+  // ✅ AUTO-FETCH CHART DATA IN MANUAL MODE
+  useEffect(() => {
+    if (journalChartMode !== 'search') return;
+    if (!selectedJournalSymbol) return;
+    
+    // Debounce auto-fetch to avoid too many requests while typing/selecting
+    const timer = setTimeout(() => {
+      console.log(`🔄 [AUTO-FETCH] Triggering auto-fetch for ${selectedJournalSymbol} in search mode`);
+      fetchJournalChartData();
+    }, 500); // 500ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [journalChartMode, selectedJournalSymbol, fetchJournalChartData]);
+
   // ========== HEATMAP CHART FETCH FUNCTION (Completely Separate) ==========
   const fetchHeatmapChartData = useCallback(async (symbol: string, date: string) => {
     try {
