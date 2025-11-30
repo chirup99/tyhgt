@@ -5030,19 +5030,19 @@ ${
       const interval = getJournalAngelOneInterval(journalChartTimeframe);
       const today = new Date();
       const tenDaysAgo = new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000);
-      const formatDateString = (d: Date) => {
+      const formatDateWithTime = (d: Date, time: string) => {
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return `${year}-${month}-${day} ${time}`;
       };
       
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        fromDate: formatDateString(tenDaysAgo),
-        toDate: formatDateString(today),
+        fromDate: formatDateWithTime(tenDaysAgo, '09:15'), // Market open time
+        toDate: formatDateWithTime(today, '15:30'), // Market close time
       };
       
       console.log(`📊 [SEARCH CHART] API Request:`, requestBody);
