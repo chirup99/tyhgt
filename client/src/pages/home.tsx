@@ -11342,7 +11342,7 @@ ${
                     <div className="md:grid md:grid-cols-3 gap-6">
                       {/* Left Block - Performance Chart */}
                       <div
-                        className={`h-[600px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
+                        className={`h-[400px] ${mobileJournalPanel === 0 ? "block" : "hidden"} md:block`}
                       >
                         {/* Professional Visual Chart with Fyers Data - Same as Trading Master */}
                         <div className="h-full relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
@@ -12173,7 +12173,7 @@ ${
 
                       {/* Middle Block - Multiple Image Upload */}
                       <div
-                        className={`h-[600px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
+                        className={`h-[400px] ${mobileJournalPanel === 1 ? "block" : "hidden"} md:block`}
                       >
                         <MultipleImageUpload
                           ref={imageUploadRef}
@@ -12184,7 +12184,7 @@ ${
 
                       {/* Right Block - PERFORMANCE STATS (Split: 30% top, 70% bottom) */}
                       <Card
-                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[600px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
+                        className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[400px] flex flex-col ${mobileJournalPanel === 2 ? "block" : "hidden"} md:block`}
                       >
                         {/* Top 30% - Performance Insights */}
                         <div className="h-[30%] border-b border-gray-200 dark:border-gray-700">
