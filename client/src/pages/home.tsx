@@ -5837,14 +5837,16 @@ ${
         let minTimeDiff = Infinity;
 
         journalChartData.forEach((candle, candleIndex) => {
-          // Both candle timestamp and trade time are already in IST
-          // Simply extract hours and minutes for comparison
+          // Candle times are Unix seconds (UTC), need to convert to IST (+5:30) to match trade times
+          // Trade time is 11:19 AM IST
+          // Chart displays in IST (browser shows IST time on hover)
           const candleDate = new Date(candle.time * 1000);
-          const candleHours = candleDate.getUTCHours();
-          const candleMinutes = candleDate.getUTCMinutes();
-          const candleMinutesFromMidnight = candleHours * 60 + candleMinutes;
-
-          const timeDiff = Math.abs(candleMinutesFromMidnight - tradeMinutesFromMidnight);
+          const utcMinutes = candleDate.getUTCHours() * 60 + candleDate.getUTCMinutes();
+          const istMinutes = (utcMinutes + 330) % 1440; // Add IST offset
+          
+          const timeDiff = Math.abs(istMinutes - tradeMinutesFromMidnight);
+          
+          console.log(`    Candle ${candleIndex}: UTC ${candleDate.getUTCHours()}:${String(candleDate.getUTCMinutes()).padStart(2, '0')} (${utcMinutes}min) → IST ${String(Math.floor(istMinutes / 60)).padStart(2, '0')}:${String(istMinutes % 60).padStart(2, '0')} (${istMinutes}min), diff=${timeDiff}min`);
           
           if (timeDiff < minTimeDiff) {
             minTimeDiff = timeDiff;
