@@ -6911,11 +6911,25 @@ ${
   const handleDateSelect = async (date: Date, firebaseData?: any) => {
     // 📅 User selected date from heatmap
     const dateString = formatDateKey(date);
-    setJournalSelectedDate(dateString);
-    setSelectedDate(date);
-    setIsLoadingHeatmapData(true); // Show loading state
+    console.log(`📅 DATE SELECTED: ${dateString}`);
+    
+    // ✅ DESTROY CHART IMMEDIATELY - Don't wait for useEffect
+    if (journalChartRef.current) {
+      try {
+        journalChartRef.current.remove();
+        console.log(`✅ Chart destroyed in handleDateSelect`);
+      } catch (e) {}
+      journalChartRef.current = null;
+      journalCandlestickSeriesRef.current = null;
+      journalEma12SeriesRef.current = null;
+      journalEma26SeriesRef.current = null;
+    }
     
     // Clear all data immediately
+    setJournalSelectedDate(dateString);
+    setSelectedDate(date);
+    setJournalChartData([]);
+    setLiveOhlc(null);
     setNotesContent("");
     setTempNotesContent("");
     setSelectedTags([]);
@@ -6923,6 +6937,7 @@ ${
     setTradingImages([]);
     setTradedSymbols([]);
     setCurrentSymbolIndex(0);
+    setIsLoadingHeatmapData(true); // Show loading state
 
     const dateKey = formatDateKey(date);
     
@@ -6971,6 +6986,11 @@ ${
             
             console.log(`📊 Extracted traded symbols:`, symbols);
             console.log(`📊 Setting chart symbol to first trade: ${chartSymbol}`);
+            
+            // ✅ FETCH CHART DATA DIRECTLY (not via useEffect)
+            setTimeout(() => {
+              fetchJournalChartData();
+            }, 100);
           }
         }
 
