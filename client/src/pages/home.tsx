@@ -5150,16 +5150,16 @@ ${
     }
   }, [tradedSymbols, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 AUTO-FETCH when date is selected from heatmap
-  // SIMPLE: Fetch chart based on the FIRST symbol from trade history for this date
+  // 🔶 AUTO-FETCH when symbols are loaded from trade history
+  // Trigger when tradedSymbols changes (which happens AFTER trade data loads)
   useEffect(() => {
     if (journalSelectedDate && journalSelectedDate.length > 0 && tradedSymbols.length > 0) {
-      console.log(`📅 [AUTO-FETCH] Date selected from heatmap: ${journalSelectedDate}`);
-      console.log(`📅 [AUTO-FETCH] First traded symbol: ${tradedSymbols[0]}`);
-      // Fetch using the first traded symbol
+      console.log(`📅 [AUTO-FETCH] Symbols loaded from trade history for date: ${journalSelectedDate}`);
+      console.log(`📅 [AUTO-FETCH] First symbol to fetch: ${tradedSymbols[0]}`);
+      // Fetch chart for the first traded symbol
       fetchJournalChartData();
     }
-  }, [journalSelectedDate, fetchJournalChartData, tradedSymbols]); // Include fetchJournalChartData to use latest closure
+  }, [tradedSymbols, journalSelectedDate, fetchJournalChartData]);
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
@@ -7016,6 +7016,7 @@ ${
     const dateString = formatDateKey(date);
     setJournalSelectedDate(dateString);
     setSelectedDate(date);
+    setIsLoadingHeatmapData(true); // Show loading state
     
     // Clear all data immediately
     setNotesContent("");
@@ -7086,7 +7087,7 @@ ${
       } else {
         console.log(`📭 No Firebase data for: ${dateKey}`);
       }
-      console.log("✅ Date loading complete");
+      setIsLoadingHeatmapData(false);
       return; // Exit early - we used fresh Firebase data
     }
 
@@ -7112,6 +7113,16 @@ ${
         if (journalData && journalData.tradingData) {
           journalData = journalData.tradingData;
           console.log(`📦 Unwrapped Firebase tradingData:`, journalData);
+        }
+
+        // FALLBACK: If user data is empty and we have a userId, try loading shared demo data
+        if ((!journalData || Object.keys(journalData).length === 0) && userId) {
+          console.log(`📭 User journal empty for ${dateKey}, falling back to shared demo data`);
+          const demoResponse = await fetch(getFullApiUrl(`/api/journal/${dateKey}`));
+          if (demoResponse.ok) {
+            journalData = await demoResponse.json();
+            console.log(`✅ Loaded from shared demo endpoint:`, journalData);
+          }
         }
 
         if (journalData && Object.keys(journalData).length > 0) {
@@ -7244,9 +7255,9 @@ ${
     } catch (error) {
       console.error("❌ Error loading journal data:", error);
       console.log("⚠️ Error loading data - UI will remain empty");
-      // Data already cleared at start - just log the error
+    } finally {
+      setIsLoadingHeatmapData(false);
     }
-    console.log("✅ Date loading complete");
   };
 
   const handlePreviousMonth = () => {
