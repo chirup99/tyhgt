@@ -5736,6 +5736,68 @@ ${
       }
 
 
+      // Add visual indicators for time range (if set)
+      const addTimeRangeIndicators = () => {
+        if (!journalChartRef.current || !candlestickSeries) return;
+        
+        // Convert IST time string (HH:MM) to candle reference
+        const timeToSeconds = (timeStr: string) => {
+          const [hours, mins] = timeStr.split(':').map(Number);
+          return hours * 3600 + mins * 60;
+        };
+        
+        const fromSeconds = timeToSeconds(journalChartFromTime);
+        const toSeconds = timeToSeconds(journalChartToTime);
+        
+        // Find first and last candles within time range
+        const candlesInRange = sortedData.filter(candle => {
+          const candleDate = new Date(candle.time * 1000);
+          const candleHours = candleDate.getUTCHours();
+          const candleMinutes = candleDate.getUTCMinutes();
+          const candleSeconds = candleHours * 3600 + candleMinutes * 60;
+          
+          return candleSeconds >= fromSeconds && candleSeconds <= toSeconds;
+        });
+        
+        if (candlesInRange.length > 0) {
+          const firstInRange = candlesInRange[0];
+          const lastInRange = candlesInRange[candlesInRange.length - 1];
+          
+          console.log(`⏰ Time range visualization: ${journalChartFromTime} to ${journalChartToTime}`);
+          console.log(`📍 Candles in range: ${candlesInRange.length} (from ${new Date(firstInRange.time * 1000).toLocaleTimeString('en-IN')} to ${new Date(lastInRange.time * 1000).toLocaleTimeString('en-IN')})`);
+          
+          // Add visual marker at start of time range
+          try {
+            const startMarker = candlestickSeries.createPriceLine({
+              price: firstInRange.high,
+              color: '#3b82f6',
+              lineWidth: 2,
+              lineStyle: 1,
+              axisLabelVisible: true,
+              title: `FROM: ${journalChartFromTime}`,
+            });
+          } catch (e) {
+            console.log('Start marker note:', e);
+          }
+          
+          // Add visual marker at end of time range
+          try {
+            const endMarker = candlestickSeries.createPriceLine({
+              price: lastInRange.low,
+              color: '#ef4444',
+              lineWidth: 2,
+              lineStyle: 1,
+              axisLabelVisible: true,
+              title: `TO: ${journalChartToTime}`,
+            });
+          } catch (e) {
+            console.log('End marker note:', e);
+          }
+        }
+      };
+      
+      addTimeRangeIndicators();
+
       // Fit content but with better zoom to show time scale
       setTimeout(() => {
         if (journalChartRef.current) {
@@ -11571,22 +11633,6 @@ ${
                                       <X className="w-3.5 h-3.5" />
                                     </Button>
                                   )}
-
-                                  {/* Toggle Trade Markers Visibility */}
-                                  <Button
-                                    onClick={() => setShowTradeMarkers(!showTradeMarkers)}
-                                    variant={showTradeMarkers ? "default" : "outline"}
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    title={showTradeMarkers ? "Hide trade entry/exit markers" : "Show trade entry/exit markers"}
-                                    data-testid="button-toggle-trade-markers"
-                                  >
-                                    {showTradeMarkers ? (
-                                      <Eye className="w-3.5 h-3.5" />
-                                    ) : (
-                                      <Eye className="w-3.5 h-3.5 opacity-50" />
-                                    )}
-                                  </Button>
 
                                   {/* Fetch Button with Icon */}
                                   <Button
