@@ -4972,24 +4972,36 @@ ${
       
       let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
       
+      // 🔶 IMPORTANT: Always log which symbol we're fetching for debugging
+      console.log('🔶 [FETCH START] =====================================');
+      console.log('🔶 [FETCH] selectedJournalSymbol:', selectedJournalSymbol);
+      console.log('🔶 [FETCH] selectedInstrument:', selectedInstrument);
+      
       if (selectedInstrument) {
         stockToken = {
           token: selectedInstrument.token,
           exchange: selectedInstrument.exchange,
           tradingSymbol: selectedInstrument.tradingSymbol
         };
-        console.log('🔶 Using dynamically selected instrument:', selectedInstrument);
+        console.log('🔶 [FETCH] Using selectedInstrument:', {
+          symbol: selectedInstrument.symbol,
+          token: selectedInstrument.token,
+          exchange: selectedInstrument.exchange,
+          tradingSymbol: selectedInstrument.tradingSymbol
+        });
       } else {
         const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
         stockToken = journalAngelOneTokens[cleanSymbol];
-        console.log('🔶 Using hardcoded token mapping for:', cleanSymbol);
+        console.log('🔶 [FETCH] Using hardcoded token mapping for:', cleanSymbol, '→', stockToken);
       }
       
       if (!stockToken) {
-        console.warn(`🔶 No Angel One token found for symbol: ${selectedJournalSymbol}`);
+        console.warn(`🔶 [FETCH] No Angel One token found for symbol: ${selectedJournalSymbol}`);
         setJournalChartData([]);
         return;
       }
+      
+      console.log('🔶 [FETCH] Final token to use:', stockToken);
 
       const now = new Date();
       const today = now.toISOString().split('T')[0];
@@ -5142,7 +5154,7 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]);
+  }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate, selectedInstrument]);
 
   // 🔶 AUTO-FETCH when date is selected from heatmap
   // IMPORTANT: Always fetch chart based on the symbol in the SEARCH BAR (selectedJournalSymbol)
@@ -5152,11 +5164,12 @@ ${
   useEffect(() => {
     if (journalSelectedDate && journalSelectedDate.length > 0) {
       console.log(`📅 [AUTO-FETCH] Date selected from heatmap: ${journalSelectedDate}`);
-      console.log(`📅 [AUTO-FETCH] Fetching chart for symbol from search bar: ${selectedJournalSymbol}`);
+      console.log(`📅 [AUTO-FETCH] Current symbol: ${selectedJournalSymbol}`);
+      console.log(`📅 [AUTO-FETCH] Current instrument:`, selectedInstrument);
       // Always fetch using the current symbol in the search bar
       fetchJournalChartData();
     }
-  }, [journalSelectedDate]); // Only trigger on date selection change
+  }, [journalSelectedDate, fetchJournalChartData]); // Include fetchJournalChartData to use latest closure
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {

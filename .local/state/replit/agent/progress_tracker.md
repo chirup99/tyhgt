@@ -337,6 +337,32 @@
 [x] 4402.   4. To view NIFTY → manually change symbol in search bar
 [x] 4403. SEARCH BAR SYMBOL PRIORITY FIX 100% COMPLETE!
 
+[x] 4404. ROOT CAUSE FIX: Stale Closure in fetchJournalChartData
+[x] 4405. Date: November 30, 2025
+[x] 4406. Actual Root Cause Identified:
+[x] 4407.   ❌ fetchJournalChartData used `selectedInstrument` to determine token (line 4975)
+[x] 4408.   ❌ But `selectedInstrument` was NOT in the useCallback dependencies!
+[x] 4409.   ❌ This caused stale closure: function kept using OLD selectedInstrument value
+[x] 4410.   ❌ Even when user selected SENSEX, the old NIFTY instrument was still captured
+[x] 4411. The Bug Flow:
+[x] 4412.   1. User previously selected NIFTY → selectedInstrument = {token: "26000", ...}
+[x] 4413.   2. User then selected SENSEX → selectedInstrument = {token: "16389", ...}
+[x] 4414.   3. BUT useCallback still had old closure with NIFTY token
+[x] 4415.   4. fetchJournalChartData() called → used stale NIFTY token
+[x] 4416.   5. API fetched NIFTY data → chart showed ~25,200 instead of ~80,000
+[x] 4417. Solution Applied:
+[x] 4418.   ✅ Added `selectedInstrument` to useCallback dependencies (line 5148)
+[x] 4419.   ✅ Added `fetchJournalChartData` to useEffect dependencies (line 5163)
+[x] 4420.   ✅ Added detailed logging to track which symbol/token is being used
+[x] 4421. New Dependencies Array:
+[x] 4422.   OLD: [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate]
+[x] 4423.   NEW: [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate, selectedInstrument]
+[x] 4424. Expected Behavior After Fix:
+[x] 4425.   - useCallback recreates whenever selectedInstrument changes
+[x] 4426.   - No more stale closures capturing old instrument tokens
+[x] 4427.   - Console logs show exactly which symbol/token is being fetched
+[x] 4428. STALE CLOSURE BUG FIX 100% COMPLETE!
+
 [x] 4032. TRADEBOOK DATE AUTO-FETCH FEATURE IMPLEMENTED
 [x] 4033. User Request: When date is selected in tradebook, auto-fetch chart data
 [x] 4034. Solution: Added useEffect in client/src/pages/home.tsx (lines 5136-5143)
