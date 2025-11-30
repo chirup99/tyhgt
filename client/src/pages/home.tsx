@@ -5847,12 +5847,9 @@ ${
     return markers;
   }, [tradeHistoryData, journalChartData]);
 
-  // Ref to store trade line references
-  const tradeLinesRef = useRef<any[]>([]);
-
-  // Apply trade lines to chart when trade history data changes
+  // Apply trade vertical lines markers to chart when trade history data changes
   useEffect(() => {
-    console.log('📊 Trade lines useEffect triggered:', {
+    console.log('📊 Trade vertical lines useEffect triggered:', {
       activeTab,
       hasSeriesRef: !!journalCandlestickSeriesRef.current,
       chartDataLength: journalChartData?.length || 0,
@@ -5860,42 +5857,37 @@ ${
     });
 
     if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartData || journalChartData.length === 0) {
-      console.log('📊 Trade lines: Skipping - conditions not met');
+      console.log('📊 Trade vertical lines: Skipping - conditions not met');
       return;
     }
 
-    // Remove old lines
-    tradeLinesRef.current.forEach(line => {
-      try {
-        journalCandlestickSeriesRef.current?.removePriceLine(line);
-      } catch (e) {
-        console.error('Error removing price line:', e);
-      }
-    });
-    tradeLinesRef.current = [];
-
     const markers = getTradeMarkersForChart();
-    console.log('📊 Trade lines to display:', markers.length);
+    console.log('📊 Vertical line markers to display:', markers.length);
     
     if (markers.length > 0) {
-      markers.forEach((marker, idx) => {
-        try {
-          const line = journalCandlestickSeriesRef.current?.createPriceLine({
-            price: marker.price,
-            color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
-            lineWidth: 4, // Thick line
-            lineStyle: 0, // Solid line
-            axisLabelVisible: true,
-            title: `${marker.type.toUpperCase()} @${marker.price} (${marker.time})`,
-          });
-          if (line) {
-            tradeLinesRef.current.push(line);
-          }
-        } catch (e) {
-          console.error(`Error adding trade line ${idx}:`, e);
-        }
-      });
-      console.log(`📊 ✅ Trade Lines Added: ${tradeLinesRef.current.length} lines on chart (thick horizontal lines)`);
+      // Use the ORIGINAL journalChartData order (not sorted) since candleIndex matches original array
+      const chartMarkers = markers.map((marker) => {
+        const candle = journalChartData[marker.candleIndex];
+        return {
+          time: candle?.time,
+          position: 'inBar' as any,
+          color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
+          shape: 'arrowUp' as any,
+          text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @${marker.price?.toFixed(2) || '0'} (${marker.time})`,
+          size: 'large' as any,
+        };
+      }).filter(m => m.time !== undefined);
+      
+      // Sort markers by time (required by lightweight-charts)
+      chartMarkers.sort((a: any, b: any) => a.time - b.time);
+      
+      try {
+        // Cast to any to access setMarkers method (exists at runtime but not in TS types)
+        (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
+        console.log(`📊 ✅ Vertical Trade Lines Added: ${chartMarkers.length} lines on candles (vertical at trade times)`);
+      } catch (e) {
+        console.error('📊 ❌ Vertical Line Error:', e);
+      }
     }
   }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
 
