@@ -12038,7 +12038,7 @@ ${
                               </div>
 
                               {/* ========== SEARCH CHART (Manual Symbol Search) ========== */}
-                              <div className={`flex-1 relative min-h-[350px] ${journalChartMode === 'search' ? 'block' : 'hidden'}`}>
+                              <div className={`flex-1 relative overflow-hidden ${journalChartMode === 'search' ? 'flex flex-col' : 'hidden'}`}>
                                 {journalChartLoading && (
                                   <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                     <div className="flex flex-col items-center gap-4">
@@ -12084,7 +12084,7 @@ ${
                                 {/* Search Chart Container */}
                                 <div 
                                   ref={journalChartContainerRef}
-                                  className="w-full h-full relative bg-white dark:bg-gray-800"
+                                  className="flex-1 w-full relative bg-white dark:bg-gray-800"
                                   data-testid="search-chart-container"
                                 />
                                 
@@ -12103,7 +12103,7 @@ ${
                               </div>
 
                               {/* ========== HEATMAP CHART (Date Selection from Calendar) ========== */}
-                              <div className={`flex-1 relative min-h-[350px] ${journalChartMode === 'heatmap' ? 'block' : 'hidden'}`}>
+                              <div className={`flex-1 relative overflow-hidden ${journalChartMode === 'heatmap' ? 'flex flex-col' : 'hidden'}`}>
                                 {heatmapChartLoading && (
                                   <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                     <div className="flex flex-col items-center gap-4">
@@ -12149,7 +12149,7 @@ ${
                                 {/* Heatmap Chart Container */}
                                 <div 
                                   ref={heatmapChartContainerRef}
-                                  className="w-full h-full relative bg-white dark:bg-gray-800"
+                                  className="flex-1 w-full relative bg-white dark:bg-gray-800"
                                   data-testid="heatmap-chart-container"
                                 />
                                 
