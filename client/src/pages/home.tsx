@@ -11915,7 +11915,7 @@ ${
                                   {journalChartMode === 'heatmap' && (
                                   <Button
                                     size="icon"
-                                    variant="ghost"
+                                    variant="outline"
                                     className="h-8 w-8"
                                     onClick={() => {
                                       console.log(`❌ Switching from heatmap to manual mode`);
