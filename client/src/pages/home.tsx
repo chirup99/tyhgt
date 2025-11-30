@@ -5383,54 +5383,35 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // CRITICAL: Clear chart and data when interval changes
+  // ✅ MASTER JOURNAL CHART EFFECT: ONE effect to rule them all
+  // When symbol or interval changes, ALWAYS: destroy → clear → fetch → render
   useEffect(() => {
-    if (activeTab === 'journal') {
-      console.log(`🔄 INTERVAL CHANGED TO: ${selectedJournalInterval}`);
-      // Clear chart data to force fresh fetch
-      setJournalChartData([]);
-      setLiveOhlc(null);
-      // Destroy existing chart
-      if (journalChartRef.current) {
-        try {
-          journalChartRef.current.remove();
-        } catch (e) {}
-        journalChartRef.current = null;
-        journalCandlestickSeriesRef.current = null;
-        journalEma12SeriesRef.current = null;
-        journalEma26SeriesRef.current = null;
-      }
-    }
-  }, [selectedJournalInterval, activeTab]);
+    if (activeTab !== 'journal') return;
+    if (!selectedJournalSymbol) return;
 
-  // CRITICAL: Clear chart and data when symbol changes (e.g., Next button clicked)
-  useEffect(() => {
-    if (activeTab === 'journal') {
-      console.log(`🔄 SYMBOL CHANGED TO: ${selectedJournalSymbol}`);
-      // Clear chart data to force fresh fetch
-      setJournalChartData([]);
-      setLiveOhlc(null);
-      // Destroy existing chart - MUST recreate for new symbol
-      if (journalChartRef.current) {
-        try {
-          journalChartRef.current.remove();
-        } catch (e) {}
-        journalChartRef.current = null;
-        journalCandlestickSeriesRef.current = null;
-        journalEma12SeriesRef.current = null;
-        journalEma26SeriesRef.current = null;
-      }
-    }
-  }, [selectedJournalSymbol, activeTab]);
+    console.log(`📊 MASTER EFFECT: Symbol=${selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '')}, Interval=${selectedJournalInterval}`);
 
-  // Auto-fetch chart data when symbol or interval changes on journal tab
-  useEffect(() => {
-    if (activeTab === 'journal') {
-      console.log(`📊 [AUTO-FETCH] Triggered by symbol/interval change`);
-      console.log(`📊 [AUTO-FETCH] Symbol: ${selectedJournalSymbol}, Interval: ${selectedJournalInterval}`);
-      fetchJournalChartData();
+    // STEP 1: DESTROY chart immediately (no waiting)
+    if (journalChartRef.current) {
+      try {
+        journalChartRef.current.remove();
+        console.log(`✅ Chart destroyed`);
+      } catch (e) {}
+      journalChartRef.current = null;
+      journalCandlestickSeriesRef.current = null;
+      journalEma12SeriesRef.current = null;
+      journalEma26SeriesRef.current = null;
     }
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, fetchJournalChartData]);
+
+    // STEP 2: CLEAR chart data
+    setJournalChartData([]);
+    setLiveOhlc(null);
+
+    // STEP 3: FETCH new data immediately
+    console.log(`📊 Fetching chart data...`);
+    fetchJournalChartData();
+
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
@@ -5450,24 +5431,8 @@ ${
     if (!journalChartContainerRef.current) return;
     if (!journalChartData || journalChartData.length === 0) return;
 
-    // CRITICAL: Only recreate chart if it doesn't exist yet
-    // If chart already exists, SSE updates handle incremental data changes
-    if (journalChartRef.current && journalCandlestickSeriesRef.current) {
-      console.log('📊 Chart already initialized, skipping recreation (SSE handles updates)');
-      return;
-    }
-
-    // Clean up existing chart (only runs on initial creation or symbol/interval change)
-    if (journalChartRef.current) {
-      try {
-        journalChartRef.current.remove();
-      } catch (e) {}
-      journalChartRef.current = null;
-      journalCandlestickSeriesRef.current = null;
-      journalEma12SeriesRef.current = null;
-      journalEma26SeriesRef.current = null;
-      journalVolumeSeriesRef.current = null;
-    }
+    // ✅ ALWAYS recreate chart when data changes (master effect already destroyed old one)
+    console.log(`📊 Rendering chart with ${journalChartData.length} candles`);
 
     // Defer chart creation until layout is ready
     requestAnimationFrame(() => {
