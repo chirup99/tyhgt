@@ -5026,9 +5026,10 @@ ${
         return;
       }
 
-      // STEP 4: Build API request - fetch today's data for search chart
+      // STEP 4: Build API request - fetch last 10 days for search chart
       const interval = getJournalAngelOneInterval(journalChartTimeframe);
       const today = new Date();
+      const tenDaysAgo = new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000);
       const formatDateString = (d: Date) => {
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -5036,12 +5037,12 @@ ${
         return `${year}-${month}-${day}`;
       };
       
-      const todayStr = formatDateString(today);
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        date: todayStr, // Use today's date for current day data
+        fromDate: formatDateString(tenDaysAgo),
+        toDate: formatDateString(today),
       };
       
       console.log(`📊 [SEARCH CHART] API Request:`, requestBody);
