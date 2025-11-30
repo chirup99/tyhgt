@@ -258,3 +258,14 @@
 [x] 4041. Console Log: "📅 [AUTO-FETCH] Date selected from tradebook heatmap: {date}"
 [x] 4042. No manual fetch button click required anymore!
 [x] 4043. TRADEBOOK AUTO-FETCH FEATURE 100% COMPLETE!
+
+[x] 4044. CLEAR DATE AUTO-FETCH FEATURE IMPLEMENTED
+[x] 4045. User Request: When X icon is clicked, auto-fetch last 10 days
+[x] 4046. Solution: Modified X button onClick handler (lines 11402-11407)
+[x] 4047. Behavior:
+[x] 4048.   - User clicks X icon to clear date filter
+[x] 4049.   - setJournalSelectedDate("") clears the selected date
+[x] 4050.   - fetchJournalChartData() is called after 100ms delay
+[x] 4051.   - Chart loads last 10 trading days of candle data
+[x] 4052. Console Log: "📅 [CLEAR DATE] Clearing date filter and auto-fetching last 10 days"
+[x] 4053. CLEAR DATE AUTO-FETCH FEATURE 100% COMPLETE!

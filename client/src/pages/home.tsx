@@ -11396,7 +11396,12 @@ ${
                                   {/* Clear Date Button */}
                                   {journalSelectedDate && (
                                     <Button
-                                      onClick={() => setJournalSelectedDate("")}
+                                      onClick={() => {
+                                        console.log(`📅 [CLEAR DATE] Clearing date filter and auto-fetching last 10 days`);
+                                        setJournalSelectedDate("");
+                                        // Trigger fetch for last 10 days after clearing date
+                                        setTimeout(() => fetchJournalChartData(), 100);
+                                      }}
                                       variant="outline"
                                       size="icon"
                                       className="h-8 w-8"
