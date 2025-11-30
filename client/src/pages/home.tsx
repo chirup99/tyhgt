@@ -5847,46 +5847,47 @@ ${
     return markers;
   }, [tradeHistoryData, journalChartData]);
 
-  // Apply trade vertical lines markers to chart when trade history data changes
+  // Apply custom SVG trade marks (TradingView-style) to chart overlay
   useEffect(() => {
-    console.log('📊 Trade vertical lines useEffect triggered:', {
+    console.log('📊 TradingView marks useEffect triggered:', {
       activeTab,
       hasSeriesRef: !!journalCandlestickSeriesRef.current,
+      hasChartRef: !!journalChartRef.current,
       chartDataLength: journalChartData?.length || 0,
       tradeHistoryLength: tradeHistoryData?.length || 0
     });
 
-    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartData || journalChartData.length === 0) {
-      console.log('📊 Trade vertical lines: Skipping - conditions not met');
+    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current || !journalChartData || journalChartData.length === 0) {
+      console.log('📊 TradingView marks: Skipping - conditions not met');
       return;
     }
 
     const markers = getTradeMarkersForChart();
-    console.log('📊 Vertical line markers to display:', markers.length);
+    console.log('📊 TradingView marks to display:', markers.length);
     
     if (markers.length > 0) {
-      // Use the ORIGINAL journalChartData order (not sorted) since candleIndex matches original array
-      const chartMarkers = markers.map((marker) => {
-        const candle = journalChartData[marker.candleIndex];
-        return {
-          time: candle?.time,
-          position: 'inBar' as any,
-          color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
-          shape: 'arrowUp' as any,
-          text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @${marker.price?.toFixed(2) || '0'} (${marker.time})`,
-          size: 'large' as any,
-        };
-      }).filter(m => m.time !== undefined);
-      
-      // Sort markers by time (required by lightweight-charts)
-      chartMarkers.sort((a: any, b: any) => a.time - b.time);
-      
       try {
-        // Cast to any to access setMarkers method (exists at runtime but not in TS types)
+        // Use built-in setMarkers with proper configuration for TradingView-style marks
+        const chartMarkers = markers.map((marker) => {
+          const candle = journalChartData[marker.candleIndex];
+          return {
+            time: candle?.time,
+            position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
+            color: marker.type === 'buy' ? '#22c55e' : '#ef4444', // Bright green/red
+            shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
+            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'}`,
+            size: 'large' as any,
+          };
+        }).filter(m => m.time !== undefined);
+        
+        // Sort markers by time (required by lightweight-charts)
+        chartMarkers.sort((a: any, b: any) => a.time - b.time);
+        
+        // Apply markers using built-in lightweight-charts API
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ Vertical Trade Lines Added: ${chartMarkers.length} lines on candles (vertical at trade times)`);
+        console.log(`📊 ✅ TradingView Marks Added: ${chartMarkers.length} entry/exit arrows on chart`);
       } catch (e) {
-        console.error('📊 ❌ Vertical Line Error:', e);
+        console.error('📊 ❌ TradingView Marks Error:', e);
       }
     }
   }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
