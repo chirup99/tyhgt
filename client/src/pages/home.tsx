@@ -5837,11 +5837,12 @@ ${
         let minTimeDiff = Infinity;
 
         journalChartData.forEach((candle, candleIndex) => {
-          // Candle timestamps are Unix epoch (UTC), convert to IST for matching
-          // Add IST offset (5 hours 30 minutes = 330 minutes) to UTC time
+          // Both candle timestamp and trade time are already in IST
+          // Simply extract hours and minutes for comparison
           const candleDate = new Date(candle.time * 1000);
-          const candleUtcMinutes = candleDate.getUTCHours() * 60 + candleDate.getUTCMinutes();
-          const candleMinutesFromMidnight = (candleUtcMinutes + 330) % 1440; // +5:30 IST offset, wrap at midnight
+          const candleHours = candleDate.getUTCHours();
+          const candleMinutes = candleDate.getUTCMinutes();
+          const candleMinutesFromMidnight = candleHours * 60 + candleMinutes;
 
           const timeDiff = Math.abs(candleMinutesFromMidnight - tradeMinutesFromMidnight);
           
