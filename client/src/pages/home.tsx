@@ -5312,7 +5312,7 @@ ${
       console.log(`⏱️ [HEATMAP TIMEFRAME] Changed to ${getJournalTimeframeLabel(heatmapChartTimeframe)} - re-fetching chart for ${heatmapSelectedDate}`);
       fetchHeatmapChartData(heatmapSelectedSymbol, heatmapSelectedDate);
     }
-  }, [heatmapChartTimeframe, journalChartMode, heatmapSelectedDate, heatmapSelectedSymbol, fetchHeatmapChartData]);
+  }, [heatmapChartTimeframe, journalChartMode, heatmapSelectedSymbol, fetchHeatmapChartData]);
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
@@ -6231,7 +6231,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, heatmapChartData, heatmapTradeHistory, heatmapSelectedDate]);
+  }, [activeTab, heatmapChartData, heatmapTradeHistory]);
 
   // Extract underlying symbol from option/futures trade symbol
   const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
