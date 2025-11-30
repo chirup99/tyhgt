@@ -11610,7 +11610,7 @@ ${
                                 <div className="flex items-center gap-1">
                                   {/* Heatmap Symbol Display - ONLY in Heatmap Mode */}
                                   {journalChartMode === 'heatmap' && (
-                                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 px-2">
+                                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-200 px-2 py-1 rounded bg-gray-100 dark:bg-gray-700/50">
                                       {
                                         (() => {
                                           const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
