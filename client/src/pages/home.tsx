@@ -5083,8 +5083,9 @@ ${
       console.log(`✅ [SEARCH CHART] Chart ready: ${candleData.length} candles for ${cleanSymbol}`);
       setJournalChartData(candleData);
       
-      // Switch to search mode
+      // Switch to search mode + ensure we're on journal tab
       setJournalChartMode('search');
+      setActiveTab('journal');
       
     } catch (error) {
       console.error("❌ [SEARCH CHART] Error:", error);
@@ -11861,7 +11862,7 @@ ${
                             </div>
 
                             {/* Chart Mode Toggle + Chart Container */}
-                            <div className="flex-1 relative flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
+                            <div className="flex-1 relative flex flex-col min-h-[400px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
                               
                               {/* Mode Toggle Buttons */}
                               <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
@@ -11901,7 +11902,7 @@ ${
                               </div>
 
                               {/* ========== SEARCH CHART (Manual Symbol Search) ========== */}
-                              <div className={`flex-1 relative ${journalChartMode === 'search' ? 'block' : 'hidden'}`}>
+                              <div className={`flex-1 relative min-h-[350px] ${journalChartMode === 'search' ? 'block' : 'hidden'}`}>
                                 {journalChartLoading && (
                                   <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                     <div className="flex flex-col items-center gap-4">
@@ -11966,7 +11967,7 @@ ${
                               </div>
 
                               {/* ========== HEATMAP CHART (Date Selection from Calendar) ========== */}
-                              <div className={`flex-1 relative ${journalChartMode === 'heatmap' ? 'block' : 'hidden'}`}>
+                              <div className={`flex-1 relative min-h-[350px] ${journalChartMode === 'heatmap' ? 'block' : 'hidden'}`}>
                                 {heatmapChartLoading && (
                                   <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                     <div className="flex flex-col items-center gap-4">
