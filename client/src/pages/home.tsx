@@ -5872,9 +5872,9 @@ ${
           time: candle?.time,
           position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
           color: marker.type === 'buy' ? '#16a34a' : '#dc2626',
-          shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
-          text: `${marker.type.toUpperCase()} @₹${marker.price?.toFixed(2) || '0'}`,
-          size: 'medium' as any,
+          shape: 'circle',
+          text: `${marker.type === 'buy' ? '🟢 BUY' : '🔴 SELL'}\n₹${marker.price?.toFixed(2) || '0'}`,
+          size: 'large' as any,
         };
       }).filter(m => m.time !== undefined);
       
@@ -5884,7 +5884,7 @@ ${
       try {
         // Cast to any to access setMarkers method (exists at runtime but not in TS types)
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ Trade Markers Added: ${chartMarkers.length} markers (🟢 BUY/🔴 SELL arrows on chart)`);
+        console.log(`📊 ✅ Trade Markers Added: ${chartMarkers.length} visible markers on chart`);
       } catch (e) {
         console.error('📊 ❌ Marker Error:', e);
       }
