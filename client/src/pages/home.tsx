@@ -5848,7 +5848,14 @@ ${
     return markers;
   }, [tradeHistoryData, journalChartData]);
 
-  // Apply custom SVG trade marks (TradingView-style) to chart overlay - ONLY for currently loaded date
+  // Check if symbol is an INDEX (NIFTY50, BANKNIFTY, etc) - marks only for indices
+  const isIndexChart = () => {
+    const indexSymbols = ['NIFTY50', 'BANKNIFTY', 'SENSEX', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYIT'];
+    const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+    return indexSymbols.some(idx => cleanSymbol.toUpperCase().includes(idx));
+  };
+
+  // Apply custom SVG trade marks (TradingView-style) to chart overlay - ONLY on INDEX charts
   useEffect(() => {
     if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current) {
       if (journalCandlestickSeriesRef.current) {
@@ -5857,6 +5864,17 @@ ${
         } catch (e) {
           console.error('Error clearing marks:', e);
         }
+      }
+      return;
+    }
+
+    // ⚠️ ONLY DISPLAY MARKS ON INDEX CHARTS (not options/futures)
+    if (!isIndexChart()) {
+      console.log('📊 Marks disabled - only for INDEX charts (NIFTY50, BANKNIFTY, etc)');
+      try {
+        (journalCandlestickSeriesRef.current as any).setMarkers([]);
+      } catch (e) {
+        console.error('Error clearing marks:', e);
       }
       return;
     }
@@ -5916,7 +5934,7 @@ ${
     } catch (e) {
       console.error('📊 ❌ Marker Error:', e);
     }
-  }, [activeTab, journalSelectedDate, journalChartData, tradeHistoryData, getTradeMarkersForChart, showTradeMarkers]);
+  }, [activeTab, journalSelectedDate, journalChartData, tradeHistoryData, getTradeMarkersForChart, showTradeMarkers, selectedJournalSymbol]);
 
   // Notes state for journal tab
   const [notesContent, setNotesContent] = useState(() => {
