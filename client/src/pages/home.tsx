@@ -5755,13 +5755,17 @@ ${
           const candle = sortedData[idx];
           // candle.time is param.time in Unix seconds (IST-based)
           const candleDate = new Date(candle.time * 1000);
+          const candleYear = candleDate.getFullYear();
+          const candleMonth = String(candleDate.getMonth() + 1).padStart(2, '0');
+          const candleDay = String(candleDate.getDate()).padStart(2, '0');
           const candleHours = candleDate.getHours();
           const candleMins = candleDate.getMinutes();
+          const candleDateTime = `${candleYear}-${candleMonth}-${candleDay} ${candleHours.toString().padStart(2, '0')}:${candleMins.toString().padStart(2, '0')}`;
           const candleTime = `${candleHours.toString().padStart(2, '0')}:${candleMins.toString().padStart(2, '0')}`;
           
           // Debug: Show sample candles
           if (idx < 3 || idx === sortedData.length - 1) {
-            console.log(`  Candle[${idx}]: ${candleTime} | param.time=${candle.time} | O=${candle.open} H=${candle.high} L=${candle.low} C=${candle.close}`);
+            console.log(`  Candle[${idx}]: ${candleDateTime} | param.time=${candle.time} | O=${candle.open} H=${candle.high} L=${candle.low} C=${candle.close}`);
           }
           
           // Match FROM: find first candle >= FROM time
@@ -5771,7 +5775,7 @@ ${
             console.log(`\n✅ FROM CANDLE MATCHED:`);
             console.log(`  Index: ${fromIndex}`);
             console.log(`  param.time: ${fromCandle.time}`);
-            console.log(`  IST Time: ${candleTime}`);
+            console.log(`  Date & Time: ${candleDateTime}`);
             console.log(`  OHLC: O=${fromCandle.open} H=${fromCandle.high} L=${fromCandle.low} C=${fromCandle.close}`);
             console.log(`  Volume: ${fromCandle.volume}`);
           }
@@ -5786,13 +5790,16 @@ ${
         // Show TO candle details
         if (toCandle) {
           const toDate = new Date(toCandle.time * 1000);
+          const toYear = toDate.getFullYear();
+          const toMonth = String(toDate.getMonth() + 1).padStart(2, '0');
+          const toDay = String(toDate.getDate()).padStart(2, '0');
           const toHours = toDate.getHours();
           const toMins = toDate.getMinutes();
-          const toTime = `${toHours.toString().padStart(2, '0')}:${toMins.toString().padStart(2, '0')}`;
+          const toDateTime = `${toYear}-${toMonth}-${toDay} ${toHours.toString().padStart(2, '0')}:${toMins.toString().padStart(2, '0')}`;
           console.log(`\n✅ TO CANDLE MATCHED:`);
           console.log(`  Index: ${toIndex}`);
           console.log(`  param.time: ${toCandle.time}`);
-          console.log(`  IST Time: ${toTime}`);
+          console.log(`  Date & Time: ${toDateTime}`);
           console.log(`  OHLC: O=${toCandle.open} H=${toCandle.high} L=${toCandle.low} C=${toCandle.close}`);
           console.log(`  Volume: ${toCandle.volume}`);
         }
