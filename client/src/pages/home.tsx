@@ -6161,7 +6161,7 @@ ${
         window.removeEventListener('resize', () => {});
       }
     };
-  }, [activeTab, heatmapChartData, heatmapSelectedDate]);
+  }, [activeTab, heatmapChartData, heatmapSelectedDate, heatmapChartTimeframe]);
 
   // Extract underlying symbol from option/futures trade symbol
   const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
