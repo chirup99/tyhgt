@@ -5736,60 +5736,39 @@ ${
       }
 
 
-      // Add vertical line markers using same param.time logic as crosshair
+      // Add vertical line markers using param.time matching (IST-based)
       const addTimeRangeIndicators = () => {
         if (!journalChartRef.current || !candlestickSeries || sortedData.length === 0) return;
         
-        console.log(`🎯 Using param.time logic for time range: ${journalChartFromTime} to ${journalChartToTime}`);
+        console.log(`🎯 Time filter - FROM: ${journalChartFromTime}, TO: ${journalChartToTime}`);
         
-        // Helper: Convert IST time string (HH:MM) to minutes since midnight
-        const parseIST = (timeStr: string) => {
-          const [hours, mins] = timeStr.split(':').map(Number);
-          return hours * 60 + mins;
-        };
-        
-        const fromMins = parseIST(journalChartFromTime);
-        const toMins = parseIST(journalChartToTime);
-        
-        console.log(`⏰ Looking for candles at: ${journalChartFromTime} (${fromMins}m) to ${journalChartToTime} (${toMins}m)`);
-        
-        // Scan all candles to find FROM and TO using exact param.time matching
+        // Convert IST time strings directly to match with candle param.time
+        // Both are in IST format, so just extract hours:minutes
         let fromCandle = null;
         let toCandle = null;
         
         for (const candle of sortedData) {
-          // candle.time is Unix seconds (same as param.time from crosshair)
-          const candleDate = new Date(candle.time * 1000); // Convert to milliseconds
+          // candle.time is param.time in Unix seconds (IST-based)
+          const candleDate = new Date(candle.time * 1000);
+          const candleHours = candleDate.getHours();
+          const candleMins = candleDate.getMinutes();
+          const candleTime = `${candleHours.toString().padStart(2, '0')}:${candleMins.toString().padStart(2, '0')}`;
           
-          // Add IST offset: IST = UTC + 5:30 hours = +330 minutes
-          const istTime = new Date(candleDate.getTime() + (330 * 60 * 1000));
-          
-          // Extract IST hours and minutes
-          const istHours = istTime.getUTCHours();
-          const istMins = istTime.getUTCMinutes();
-          const candleIST_Mins = istHours * 60 + istMins;
-          
-          // Debug: Show first few candles to verify IST conversion
-          if (sortedData.indexOf(candle) < 2) {
-            console.log(`📍 Candle[${sortedData.indexOf(candle)}]: param.time=${candle.time}, IST=${istHours}:${istMins.toString().padStart(2, '0')} (${candleIST_Mins}m)`);
-          }
-          
-          // Match FROM candle (find first candle >= FROM time)
-          if (!fromCandle && candleIST_Mins >= fromMins) {
+          // Match FROM: find first candle >= FROM time
+          if (!fromCandle && candleTime >= journalChartFromTime) {
             fromCandle = candle;
-            console.log(`✅ FROM candle found: param.time=${fromCandle.time} at IST ${istHours}:${istMins.toString().padStart(2, '0')}`);
+            console.log(`✅ FROM candle: param.time=${fromCandle.time} at ${candleTime}`);
           }
           
-          // Track TO candle (find last candle <= TO time)
-          if (candleIST_Mins <= toMins) {
+          // Match TO: track all candles <= TO time (last one wins)
+          if (candleTime <= journalChartToTime) {
             toCandle = candle;
           }
         }
         
-        // Draw vertical lines at FROM and TO candle positions using setMarkers
+        // Draw vertical lines at exact param.time positions
         if (fromCandle && toCandle) {
-          console.log(`✅ BOTH candles found! Drawing vertical lines...`);
-          console.log(`   FROM: param.time=${fromCandle.time}, TO: param.time=${toCandle.time}`);
+          console.log(`✅ Found both candles! FROM=${fromCandle.time}, TO=${toCandle.time}`);
           
           const markers = [
             {
@@ -5809,10 +5788,9 @@ ${
           ];
           
           candlestickSeries.setMarkers(markers);
-          console.log('🟢 Vertical line markers drawn using param.time positions');
+          console.log('🟢 Vertical lines drawn at param.time positions');
         } else {
-          console.log(`❌ Missing candles: fromCandle=${!!fromCandle}, toCandle=${!!toCandle}`);
-          console.log(`   FROM=${journalChartFromTime} (${fromMins}m), TO=${journalChartToTime} (${toMins}m)`);
+          console.log(`❌ Could not find candles. FROM found: ${!!fromCandle}, TO found: ${!!toCandle}`);
         }
       };
       
