@@ -11608,6 +11608,24 @@ ${
 
                                 {/* 🔶 Timeframe Dropdown + Time Range Filter + Next Symbol Button */}
                                 <div className="flex items-center gap-1">
+                                  {/* Heatmap Symbol Display - ONLY in Heatmap Mode */}
+                                  {journalChartMode === 'heatmap' && (
+                                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 px-2">
+                                      {
+                                        (() => {
+                                          const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
+                                          const parts = sym.split(' ');
+                                          if (parts.length > 1) {
+                                            const underlying = parts[0];
+                                            if (underlying === 'NIFTY') return 'NIFTY50';
+                                            if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) return underlying;
+                                          }
+                                          return sym || 'No symbol';
+                                        })()
+                                      }
+                                    </span>
+                                  )}
+
                                   {/* Time Range Filter Button */}
                                   <Popover open={showJournalTimeRangeFilter} onOpenChange={setShowJournalTimeRangeFilter}>
                                     <PopoverTrigger asChild>
