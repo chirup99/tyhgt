@@ -5138,11 +5138,23 @@ ${
       setHeatmapSelectedSymbol(symbol);
       setHeatmapSelectedDate(date);
 
-      // STEP 3: Extract clean symbol
-      const cleanSymbol = symbol
+      // STEP 3: Extract clean symbol and underlying symbol
+      let cleanSymbol = symbol
         .replace(/^(NSE|BSE):/, '')
         .replace(/-INDEX$/, '')
         .replace(/-EQ$/, '');
+      
+      // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY50", "SENSEX 4th w SEP PE" -> "SENSEX")
+      const parts = cleanSymbol.split(' ');
+      if (parts.length > 1) {
+        // This is likely an option/future symbol, extract underlying
+        const underlyingPart = parts[0];
+        if (underlyingPart === 'NIFTY') {
+          cleanSymbol = 'NIFTY50';
+        } else if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlyingPart)) {
+          cleanSymbol = underlyingPart;
+        }
+      }
       
       const stockToken = journalAngelOneTokens[cleanSymbol];
       console.log(`🗓️ [HEATMAP FETCH] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
