@@ -4972,36 +4972,30 @@ ${
       
       let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
       
-      // 🔶 IMPORTANT: Always log which symbol we're fetching for debugging
+      // 🔶 SIMPLE: Use ONLY the symbol from trade history (tradedSymbols)
+      // Always fetch using the FIRST symbol from the trades on this date
       console.log('🔶 [FETCH START] =====================================');
-      console.log('🔶 [FETCH] selectedJournalSymbol:', selectedJournalSymbol);
-      console.log('🔶 [FETCH] selectedInstrument:', selectedInstrument);
+      console.log('🔶 [FETCH] tradedSymbols (from trade history):', tradedSymbols);
       
-      if (selectedInstrument) {
-        stockToken = {
-          token: selectedInstrument.token,
-          exchange: selectedInstrument.exchange,
-          tradingSymbol: selectedInstrument.tradingSymbol
-        };
-        console.log('🔶 [FETCH] Using selectedInstrument:', {
-          symbol: selectedInstrument.symbol,
-          token: selectedInstrument.token,
-          exchange: selectedInstrument.exchange,
-          tradingSymbol: selectedInstrument.tradingSymbol
-        });
-      } else {
-        const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
-        stockToken = journalAngelOneTokens[cleanSymbol];
-        console.log('🔶 [FETCH] Using hardcoded token mapping for:', cleanSymbol, '→', stockToken);
-      }
-      
-      if (!stockToken) {
-        console.warn(`🔶 [FETCH] No Angel One token found for symbol: ${selectedJournalSymbol}`);
+      if (tradedSymbols.length === 0) {
+        console.warn('🔶 [FETCH] No traded symbols - cannot fetch chart');
         setJournalChartData([]);
         return;
       }
       
-      console.log('🔶 [FETCH] Final token to use:', stockToken);
+      // Use first traded symbol (the one we already set in selectedJournalSymbol)
+      const symbolToFetch = tradedSymbols[0];
+      const cleanSymbol = symbolToFetch.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '');
+      stockToken = journalAngelOneTokens[cleanSymbol];
+      
+      console.log(`🔶 [FETCH] Using symbol from trade history: ${symbolToFetch} (clean: ${cleanSymbol})`);
+      console.log('🔶 [FETCH] Token resolved:', stockToken);
+      
+      if (!stockToken) {
+        console.warn(`🔶 [FETCH] No Angel One token found for symbol: ${cleanSymbol}`);
+        setJournalChartData([]);
+        return;
+      }
 
       const now = new Date();
       const today = now.toISOString().split('T')[0];
@@ -5154,22 +5148,18 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [selectedJournalSymbol, selectedJournalDate, journalChartTimeframe, journalSelectedDate, selectedInstrument]);
+  }, [tradedSymbols, journalChartTimeframe, journalSelectedDate]);
 
   // 🔶 AUTO-FETCH when date is selected from heatmap
-  // IMPORTANT: Always fetch chart based on the symbol in the SEARCH BAR (selectedJournalSymbol)
-  // Do NOT automatically change the symbol when a date is selected
-  // This is because some dates have multiple symbols (e.g., July 15 has both SENSEX and NIFTY trades)
-  // User should manually select the symbol they want to view in the search bar
+  // SIMPLE: Fetch chart based on the FIRST symbol from trade history for this date
   useEffect(() => {
-    if (journalSelectedDate && journalSelectedDate.length > 0) {
+    if (journalSelectedDate && journalSelectedDate.length > 0 && tradedSymbols.length > 0) {
       console.log(`📅 [AUTO-FETCH] Date selected from heatmap: ${journalSelectedDate}`);
-      console.log(`📅 [AUTO-FETCH] Current symbol: ${selectedJournalSymbol}`);
-      console.log(`📅 [AUTO-FETCH] Current instrument:`, selectedInstrument);
-      // Always fetch using the current symbol in the search bar
+      console.log(`📅 [AUTO-FETCH] First traded symbol: ${tradedSymbols[0]}`);
+      // Fetch using the first traded symbol
       fetchJournalChartData();
     }
-  }, [journalSelectedDate, fetchJournalChartData]); // Include fetchJournalChartData to use latest closure
+  }, [journalSelectedDate, fetchJournalChartData, tradedSymbols]); // Include fetchJournalChartData to use latest closure
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
