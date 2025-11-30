@@ -11297,7 +11297,8 @@ ${
                           <div className="h-full flex flex-col">
                             <div className="flex items-center justify-between px-2 py-2">
                               <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                                {/* Stock Search Button - Mobile Compact */}
+                                {/* Stock Search Button - ONLY IN SEARCH MODE */}
+                                {journalChartMode === 'search' && (
                                 <Popover
                                   open={showStockSearch}
                                   onOpenChange={setShowStockSearch}
@@ -11565,6 +11566,7 @@ ${
                                     </div>
                                   </PopoverContent>
                                 </Popover>
+                                )}
 
                                 {/* 🔶 Timeframe Dropdown + Time Range Filter + Next Symbol Button */}
                                 <div className="flex items-center gap-1">
