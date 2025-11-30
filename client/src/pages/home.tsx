@@ -5589,6 +5589,9 @@ ${
     // ✅ ALWAYS recreate chart when data changes (master effect already destroyed old one)
     console.log(`📊 Rendering chart with ${journalChartData.length} candles`);
 
+    // Clear container first to remove any placeholder or old content
+    journalChartContainerRef.current.innerHTML = '';
+
     // Defer chart creation until layout is ready
     requestAnimationFrame(() => {
       if (!journalChartContainerRef.current) return;
@@ -5932,7 +5935,16 @@ ${
 
       window.addEventListener('resize', handleResize);
       } catch (error) {
-        console.error('Error rendering journal chart:', error instanceof Error ? error.message : String(error), error);
+        console.error('❌ Error rendering journal chart:', error instanceof Error ? error.message : String(error));
+        if (error instanceof Error) console.error('Stack:', error.stack);
+        // Show error message instead of placeholder
+        if (journalChartContainerRef.current) {
+          journalChartContainerRef.current.innerHTML = `
+            <div style="display: flex; align-items: center; justify-center; height: 100%; font-size: 12px; color: #e74c3c;">
+              Chart render error: ${error instanceof Error ? error.message : 'Unknown error'}
+            </div>
+          `;
+        }
       }
     });
     
