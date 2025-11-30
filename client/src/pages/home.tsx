@@ -5165,16 +5165,24 @@ ${
         return;
       }
 
-      // STEP 4: Build API request
+      // STEP 4: Build API request with market hours format
       const interval = getJournalAngelOneInterval(heatmapChartTimeframe);
+      
+      // Format date with market opening time if not already formatted
+      let formattedDate = date;
+      if (date && !date.includes(' ')) {
+        // Date is just YYYY-MM-DD, add market opening time (09:15)
+        formattedDate = `${date} 09:15`;
+      }
+      
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        date: date,
+        date: formattedDate,
       };
       
-      console.log(`🗓️ [HEATMAP FETCH] API Request:`, requestBody);
+      console.log(`🗓️ [HEATMAP FETCH] API Request (formatted date: ${formattedDate}):`, requestBody);
 
       // STEP 5: Fetch chart data
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
