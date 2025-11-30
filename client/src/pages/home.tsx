@@ -5066,15 +5066,8 @@ ${
     }
   }, [selectedJournalSymbol, journalChartTimeframe, journalSelectedDate]);
 
-  // 🔶 AUTO-FETCH when date is selected and symbols loaded from trade history
-  // This fires when tradedSymbols changes (after handleDateSelect loads trade data)
-  useEffect(() => {
-    if (journalSelectedDate && journalSelectedDate.length > 0 && tradedSymbols.length > 0) {
-      console.log(`📅 [AUTO-FETCH] Date selected with symbols: ${journalSelectedDate}, symbols: ${tradedSymbols.join(', ')}`);
-      // Fetch chart for the current symbol index
-      fetchJournalChartData();
-    }
-  }, [tradedSymbols, journalSelectedDate, fetchJournalChartData]);
+  // REMOVED: AUTO-FETCH effect - rely on main fetch effect that watches symbol and date changes
+  // The main effect at line ~5403 handles all fetching when symbol or date changes
 
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
