@@ -5940,9 +5940,13 @@ ${
     }
 
     const markers = getTradeMarkersForChart();
-    console.log('📊 Generating markers for date:', journalSelectedDate, 'Count:', markers.length, 'Visible:', showTradeMarkers);
-    markers.forEach(m => {
-      console.log(`  📍 TRADE: ${m.time} - ${m.type.toUpperCase()} @ ₹${m.price} (${m.quantity} qty)`);
+    console.log('📊 MARKER DEBUG - Generating markers for date:', journalSelectedDate);
+    console.log('  - Trades:', tradeHistoryData.length, 'Chart candles:', journalChartData.length);
+    console.log('  - Generated markers:', markers.length, 'Visible:', showTradeMarkers);
+    console.log('  - Series ref valid:', !!journalCandlestickSeriesRef.current);
+    
+    markers.forEach((m, idx) => {
+      console.log(`  📍 [${idx}] Candle#${m.candleIndex} TIME: ${m.time} - ${m.type.toUpperCase()} @ ₹${m.price}`);
     });
     
     try {
@@ -5951,6 +5955,9 @@ ${
         const chartMarkers = markers.map((marker) => {
           const candle = journalChartData[marker.candleIndex];
           const markTime = candle?.time;
+          
+          console.log(`  🔄 Converting marker: candle[${marker.candleIndex}].time = ${markTime}, type=${marker.type}`);
+          
           return {
             time: markTime,
             position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
@@ -5959,16 +5966,25 @@ ${
             text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @${marker.price.toFixed(2)}`,
             size: 'large' as any,
           };
-        }).filter(m => m.time !== undefined);
+        }).filter((m, idx) => {
+          const hasTime = m.time !== undefined;
+          if (!hasTime) console.log(`  ❌ Filtered out marker ${idx} - no time`);
+          return hasTime;
+        });
         
         // Sort markers by time (required by lightweight-charts)
         chartMarkers.sort((a: any, b: any) => a.time - b.time);
+        
+        console.log(`  🎯 Final markers to apply: ${chartMarkers.length}`);
+        chartMarkers.forEach((m, i) => {
+          console.log(`    [${i}] time=${m.time} ${m.position} ${m.shape} color=${m.color}`);
+        });
         
         // Apply markers using built-in lightweight-charts API
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
         console.log(`📊 ✅ Markers applied: ${chartMarkers.length} arrows`);
       } else {
-        // Clear marks if no trades for this date
+        console.log('📊 No markers to apply - clearing');
         (journalCandlestickSeriesRef.current as any).setMarkers([]);
       }
     } catch (e) {
