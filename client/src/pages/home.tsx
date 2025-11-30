@@ -5847,26 +5847,47 @@ ${
     return markers;
   }, [tradeHistoryData, journalChartData]);
 
-  // Apply custom SVG trade marks (TradingView-style) to chart overlay
+  // Apply custom SVG trade marks (TradingView-style) to chart overlay - ONLY for currently loaded date
   useEffect(() => {
     console.log('📊 TradingView marks useEffect triggered:', {
       activeTab,
+      journalSelectedDate,
       hasSeriesRef: !!journalCandlestickSeriesRef.current,
       hasChartRef: !!journalChartRef.current,
       chartDataLength: journalChartData?.length || 0,
       tradeHistoryLength: tradeHistoryData?.length || 0
     });
 
-    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current || !journalChartData || journalChartData.length === 0) {
-      console.log('📊 TradingView marks: Skipping - conditions not met');
+    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current) {
+      console.log('📊 TradingView marks: Skipping - not on journal tab or no chart ref');
+      // Clear marks when leaving journal tab
+      if (journalCandlestickSeriesRef.current) {
+        try {
+          (journalCandlestickSeriesRef.current as any).setMarkers([]);
+        } catch (e) {
+          console.error('Error clearing marks:', e);
+        }
+      }
+      return;
+    }
+
+    // Only display marks if there's chart data AND trade data for current date
+    if (!journalChartData || journalChartData.length === 0 || !tradeHistoryData || tradeHistoryData.length === 0) {
+      console.log('📊 TradingView marks: No data - clearing marks from chart');
+      // Clear marks when there's no data
+      try {
+        (journalCandlestickSeriesRef.current as any).setMarkers([]);
+      } catch (e) {
+        console.error('Error clearing marks:', e);
+      }
       return;
     }
 
     const markers = getTradeMarkersForChart();
-    console.log('📊 TradingView marks to display:', markers.length);
+    console.log('📊 TradingView marks to display for date:', journalSelectedDate, 'Count:', markers.length);
     
-    if (markers.length > 0) {
-      try {
+    try {
+      if (markers.length > 0) {
         // Use built-in setMarkers with proper configuration for TradingView-style marks
         const chartMarkers = markers.map((marker) => {
           const candle = journalChartData[marker.candleIndex];
@@ -5885,12 +5906,16 @@ ${
         
         // Apply markers using built-in lightweight-charts API
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ TradingView Marks Added: ${chartMarkers.length} entry/exit arrows on chart`);
-      } catch (e) {
-        console.error('📊 ❌ TradingView Marks Error:', e);
+        console.log(`📊 ✅ TradingView Marks Added: ${chartMarkers.length} entry/exit arrows on chart for date: ${journalSelectedDate}`);
+      } else {
+        // Clear marks if no trades for this date
+        (journalCandlestickSeriesRef.current as any).setMarkers([]);
+        console.log('📊 ℹ️ No trades for selected date - marks cleared');
       }
+    } catch (e) {
+      console.error('📊 ❌ TradingView Marks Error:', e);
     }
-  }, [activeTab, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
+  }, [activeTab, journalSelectedDate, journalChartData, tradeHistoryData, getTradeMarkersForChart]);
 
   // Notes state for journal tab
   const [notesContent, setNotesContent] = useState(() => {
