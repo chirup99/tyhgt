@@ -7350,6 +7350,11 @@ ${
             setCurrentSymbolIndex(0);
             
             console.log(`📊 Extracted traded symbols:`, symbols);
+            // ✅ SYNC HEATMAP HEADER: Update when date is selected from trade book
+            const firstSymbol = symbols[0];
+            setHeatmapSelectedSymbol(`NSE:${firstSymbol}-INDEX`);
+            setHeatmapSelectedDate(dateString);
+            console.log(`🗓️ [TRADE BOOK SELECT] Syncing heatmap header with date: ${dateString}, symbol: ${firstSymbol}`);
             // ✅ DO NOT set selectedJournalSymbol here - manual search chart is independent from heatmap
           }
         }
@@ -7454,6 +7459,11 @@ ${
               setCurrentSymbolIndex(0);
               
               console.log(`📊 Extracted traded symbols:`, symbols);
+              // ✅ SYNC HEATMAP HEADER: Update when date is selected from trade book
+              const firstSymbol = symbols[0];
+              setHeatmapSelectedSymbol(`NSE:${firstSymbol}-INDEX`);
+              setHeatmapSelectedDate(dateString);
+              console.log(`🗓️ [TRADE BOOK SELECT] Syncing heatmap header with date: ${dateString}, symbol: ${firstSymbol}`);
               // ✅ DO NOT set selectedJournalSymbol here - manual search chart is independent from heatmap
             }
           } else {
