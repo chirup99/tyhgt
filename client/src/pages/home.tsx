@@ -5135,8 +5135,16 @@ ${
 
       setHeatmapChartLoading(true);
       setHeatmapChartData([]);
+      
+      // ✅ ENSURE DATE FORMAT IS YYYY-MM-DD STRING
+      let formattedDate = date as string;
+      if (date instanceof Date) {
+        formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      }
+      
       setHeatmapSelectedSymbol(symbol);
-      setHeatmapSelectedDate(date);
+      setHeatmapSelectedDate(formattedDate);
+      console.log(`🗓️ [HEATMAP SYNC] Updated header - Date: ${formattedDate}, Symbol: ${symbol}`);
 
       // STEP 3: Extract clean symbol and underlying symbol
       let cleanSymbol = symbol
