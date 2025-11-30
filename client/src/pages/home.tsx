@@ -5763,6 +5763,27 @@ ${
     };
   }, [activeTab, selectedJournalSymbol, journalChartTimeframe, journalChartData]);
 
+  // Extract underlying symbol from option/futures trade symbol
+  const getTradeUnderlyingSymbol = (tradeSymbol: string): string => {
+    // For options/futures like "NIFTY 22nd w MAR PE", "BANKNIFTY 15 AUG CE", extract the underlying
+    const indexSymbols = ['NIFTY50', 'NIFTY', 'BANKNIFTY', 'SENSEX', 'FINNIFTY', 'MIDCPNIFTY', 'NIFTYIT'];
+    const cleanSymbol = tradeSymbol.toUpperCase().trim();
+    
+    for (const idx of indexSymbols) {
+      if (cleanSymbol.includes(idx)) {
+        return idx === 'NIFTY' ? 'NIFTY50' : idx; // Map NIFTY to NIFTY50
+      }
+    }
+    return tradeSymbol; // Return as-is if no match
+  };
+
+  // Check if trade symbol matches chart symbol (including option/futures on underlying)
+  const doesTradeMatchChart = (tradeSymbol: string, chartSymbol: string): boolean => {
+    const tradeUnderlying = getTradeUnderlyingSymbol(tradeSymbol);
+    const chartUnderlying = getTradeUnderlyingSymbol(chartSymbol);
+    return tradeUnderlying === chartUnderlying;
+  };
+
   // Convert trade history to chart markers
   const getTradeMarkersForChart = useCallback(() => {
     if (
@@ -5775,10 +5796,19 @@ ${
     }
 
     const markers: TradeMarker[] = [];
+    const chartCleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
 
     tradeHistoryData.forEach((trade, index) => {
       try {
-        // Parse trade time (e.g., "1:16:33 PM")
+        // 🔍 Check if trade matches chart underlying symbol (handles options/futures on index)
+        if (!doesTradeMatchChart(trade.symbol, chartCleanSymbol)) {
+          console.log(`⏭️ Skipping trade ${trade.symbol} - doesn't match chart ${chartCleanSymbol}`);
+          return;
+        }
+
+        console.log(`✅ Trade ${trade.symbol} matches chart ${chartCleanSymbol}`);
+
+        // Parse trade time (e.g., "1:16:33 PM" or "11:23:56 AM")
         const tradeTime = trade.time;
         if (!tradeTime) return;
 
@@ -5832,6 +5862,9 @@ ${
             time: trade.time,
             pnl: trade.pnl,
           });
+          console.log(`📍 Marker added: ${trade.symbol} ${trade.order} @ ${trade.time}`);
+        } else {
+          console.log(`⚠️ No matching candle for ${trade.symbol} @ ${trade.time} (diff: ${minTimeDiff}min)`);
         }
       } catch (error) {
         console.error("Error parsing trade for markers:", trade, error);
@@ -5846,7 +5879,7 @@ ${
       "trades",
     );
     return markers;
-  }, [tradeHistoryData, journalChartData]);
+  }, [tradeHistoryData, journalChartData, selectedJournalSymbol]);
 
   // Check if symbol is an INDEX (NIFTY50, BANKNIFTY, etc) - marks only for indices
   const isIndexChart = () => {
