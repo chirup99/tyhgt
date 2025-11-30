@@ -5858,9 +5858,8 @@ ${
       tradeHistoryLength: tradeHistoryData?.length || 0
     });
 
-    if (activeTab !== 'journal' || !journalCandlestickSeriesRef.current || !journalChartRef.current) {
-      console.log('📊 TradingView marks: Skipping - not on journal tab or no chart ref');
-      // Clear marks when leaving journal tab
+    if (activeTab !== 'journal') {
+      console.log('📊 TradingView marks: Not on journal tab, clearing marks');
       if (journalCandlestickSeriesRef.current) {
         try {
           (journalCandlestickSeriesRef.current as any).setMarkers([]);
@@ -5871,10 +5870,19 @@ ${
       return;
     }
 
+    if (!journalCandlestickSeriesRef.current) {
+      console.log('📊 TradingView marks: No candlestick series ref');
+      return;
+    }
+
+    if (!journalChartRef.current) {
+      console.log('📊 TradingView marks: No chart ref');
+      return;
+    }
+
     // Only display marks if there's chart data AND trade data for current date
-    if (!journalChartData || journalChartData.length === 0 || !tradeHistoryData || tradeHistoryData.length === 0) {
-      console.log('📊 TradingView marks: No data - clearing marks from chart');
-      // Clear marks when there's no data
+    if (!journalChartData || journalChartData.length === 0) {
+      console.log('📊 TradingView marks: No chart data');
       try {
         (journalCandlestickSeriesRef.current as any).setMarkers([]);
       } catch (e) {
@@ -5883,34 +5891,52 @@ ${
       return;
     }
 
+    if (!tradeHistoryData || tradeHistoryData.length === 0) {
+      console.log('📊 TradingView marks: No trade history data');
+      try {
+        (journalCandlestickSeriesRef.current as any).setMarkers([]);
+      } catch (e) {
+        console.error('Error clearing marks:', e);
+      }
+      return;
+    }
+
+    console.log('📊 About to generate markers for date:', journalSelectedDate);
     const markers = getTradeMarkersForChart();
-    console.log('📊 TradingView marks to display for date:', journalSelectedDate, 'Count:', markers.length);
+    console.log('📊 Generated markers for date:', journalSelectedDate, 'Count:', markers.length);
+    markers.forEach(m => {
+      console.log(`  📍 TRADE MARK: ${m.time} - ${m.type.toUpperCase()} @ ₹${m.price} (${m.quantity} qty) - P&L: ${m.pnl}`);
+    });
     
     try {
       if (markers.length > 0) {
         // Use built-in setMarkers with proper configuration for TradingView-style marks
         const chartMarkers = markers.map((marker) => {
           const candle = journalChartData[marker.candleIndex];
+          const markTime = candle?.time;
+          console.log(`📍 Trade at ${marker.time}: ${marker.type.toUpperCase()} @ ${marker.price}, Candle time: ${markTime}`);
           return {
-            time: candle?.time,
+            time: markTime,
             position: marker.type === 'buy' ? 'belowBar' : 'aboveBar',
             color: marker.type === 'buy' ? '#22c55e' : '#ef4444', // Bright green/red
             shape: marker.type === 'buy' ? 'arrowUp' : 'arrowDown',
-            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'}`,
+            text: `${marker.type === 'buy' ? 'BUY' : 'SELL'} @${marker.price.toFixed(2)}`,
             size: 'large' as any,
           };
         }).filter(m => m.time !== undefined);
+        
+        console.log('📊 Final chart markers to display:', chartMarkers.length);
         
         // Sort markers by time (required by lightweight-charts)
         chartMarkers.sort((a: any, b: any) => a.time - b.time);
         
         // Apply markers using built-in lightweight-charts API
         (journalCandlestickSeriesRef.current as any).setMarkers(chartMarkers);
-        console.log(`📊 ✅ TradingView Marks Added: ${chartMarkers.length} entry/exit arrows on chart for date: ${journalSelectedDate}`);
+        console.log(`📊 ✅ TradingView Marks Added: ${chartMarkers.length} arrows on chart for date: ${journalSelectedDate}`);
       } else {
         // Clear marks if no trades for this date
         (journalCandlestickSeriesRef.current as any).setMarkers([]);
-        console.log('📊 ℹ️ No trades for selected date - marks cleared');
+        console.log('📊 ℹ️ No trades matched - marks cleared');
       }
     } catch (e) {
       console.error('📊 ❌ TradingView Marks Error:', e);
