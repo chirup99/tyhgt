@@ -5772,32 +5772,29 @@ ${
           console.log(`📍 FROM candle: ${new Date(fromCandle.time * 1000).toLocaleTimeString('en-IN')} (price: ${fromCandle.close})`);
           console.log(`📍 TO candle: ${new Date(toCandle.time * 1000).toLocaleTimeString('en-IN')} (price: ${toCandle.close})`);
           
-          // Add vertical line at FROM candle
-          try {
-            candlestickSeries.createPriceLine({
-              price: fromCandle.high,
+          // Add markers with vertical line appearance at FROM and TO candles
+          const markers = [
+            {
+              time: fromCandle.time as any,
+              position: 'top' as const,
               color: '#3b82f6',
-              lineWidth: 3,
-              lineStyle: 2, // Dashed
-              axisLabelVisible: true,
-              title: `FROM ${journalChartFromTime}`,
-            });
-          } catch (e) {
-            console.log('FROM marker error:', e);
-          }
-          
-          // Add vertical line at TO candle
-          try {
-            candlestickSeries.createPriceLine({
-              price: toCandle.low,
+              shape: 'arrowDown' as const,
+              text: `FROM ${journalChartFromTime}`,
+            },
+            {
+              time: toCandle.time as any,
+              position: 'bottom' as const,
               color: '#ef4444',
-              lineWidth: 3,
-              lineStyle: 2, // Dashed
-              axisLabelVisible: true,
-              title: `TO ${journalChartToTime}`,
-            });
+              shape: 'arrowUp' as const,
+              text: `TO ${journalChartToTime}`,
+            },
+          ];
+          
+          try {
+            candlestickSeries.setMarkers(markers);
+            console.log('✅ Time range markers applied');
           } catch (e) {
-            console.log('TO marker error:', e);
+            console.log('Marker error:', e);
           }
         }
       };
@@ -11296,6 +11293,8 @@ ${
                                             onClick={() => {
                                               setShowJournalTimeRangeFilter(false);
                                               console.log(`⏰ Chart time filter: ${journalChartFromTime} to ${journalChartToTime}`);
+                                              // Force chart re-render by triggering state update
+                                              setJournalChartData([...journalChartData]);
                                             }}
                                             data-testid="button-apply-time-filter"
                                           >
