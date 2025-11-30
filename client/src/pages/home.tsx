@@ -5504,9 +5504,11 @@ ${
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
     if (activeTab === 'journal') {
+      console.log(`📊 [AUTO-FETCH] Triggered by symbol/interval change`);
+      console.log(`📊 [AUTO-FETCH] Symbol: ${selectedJournalSymbol}, Interval: ${selectedJournalInterval}`);
       fetchJournalChartData();
     }
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, fetchJournalChartData]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
