@@ -6211,9 +6211,31 @@ ${
         if (heatmapTradeHistory && heatmapTradeHistory.length > 0) {
           const markers: any[] = [];
           
-          console.log(`🔍 [HEATMAP MARKERS] Processing ${heatmapTradeHistory.length} trades from trade history...`);
+          // Extract the underlying symbol from the current chart
+          let currentChartUnderlying = heatmapSelectedSymbol
+            .replace(/^(NSE|BSE):/, '')
+            .replace(/-INDEX$/, '')
+            .replace(/-EQ$/, '');
+          
+          console.log(`🔍 [HEATMAP MARKERS] Processing ${heatmapTradeHistory.length} trades, filtering for symbol: ${currentChartUnderlying}...`);
           
           heatmapTradeHistory.forEach((trade) => {
+            // FILTER BY SYMBOL: Extract underlying from trade symbol and compare
+            const tradeSymbol = trade.symbol || '';
+            const tradeParts = tradeSymbol.split(' ');
+            let tradeUnderlying = tradeParts[0]; // e.g., "NIFTY", "SENSEX", "BANKNIFTY"
+            
+            // Normalize trade underlying to match chart symbol
+            if (tradeUnderlying === 'NIFTY') {
+              tradeUnderlying = 'NIFTY50';
+            }
+            
+            // Only process trades for the current chart's underlying symbol
+            if (tradeUnderlying !== currentChartUnderlying) {
+              console.log(`⏭️ [HEATMAP MARKERS] Skipping trade for ${tradeUnderlying} (current chart: ${currentChartUnderlying})`);
+              return;
+            }
+            
             // Parse trade time (format: "HH:MM:SS AM/PM")
             const timeStr = trade.time || '';
             if (!timeStr) {
