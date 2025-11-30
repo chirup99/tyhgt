@@ -11278,7 +11278,7 @@ ${
                                     </PopoverContent>
                                   </Popover>
 
-                                  {/* Next Symbol Button - REBUILT CLEAN: Cycle symbol → AUTO-FETCH handles chart */}
+                                  {/* Next Symbol Button - Extract base symbol from contract */}
                                   {tradedSymbols.length > 1 && (
                                     <Button
                                       variant="outline"
@@ -11287,7 +11287,8 @@ ${
                                       onClick={() => {
                                         const nextIndex = (currentSymbolIndex + 1) % tradedSymbols.length;
                                         setCurrentSymbolIndex(nextIndex);
-                                        setSelectedJournalSymbol(`NSE:${tradedSymbols[nextIndex]}-INDEX`);
+                                        const baseSymbol = tradedSymbols[nextIndex].split(' ')[0];
+                                        setSelectedJournalSymbol(`NSE:${baseSymbol}-INDEX`);
                                       }}
                                       data-testid="button-next-symbol"
                                     >
