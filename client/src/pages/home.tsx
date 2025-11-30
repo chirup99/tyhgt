@@ -11869,8 +11869,20 @@ ${
                                                   if (tradingData?.tradeHistory && tradingData.tradeHistory.length > 0) {
                                                     const firstTrade = tradingData.tradeHistory[0];
                                                     if (firstTrade.symbol) {
-                                                      // Format symbol for API (e.g., SENSEX -> NSE:SENSEX-INDEX)
-                                                      const cleanSym = firstTrade.symbol.replace(/NSE:|BSE:|-INDEX|-EQ/g, '');
+                                                      // Clean the symbol first
+                                                      let cleanSym = firstTrade.symbol.replace(/NSE:|BSE:|-INDEX|-EQ/g, '');
+                                                      
+                                                      // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY")
+                                                      const parts = cleanSym.split(' ');
+                                                      if (parts.length > 1) {
+                                                        const underlying = parts[0];
+                                                        if (underlying === 'NIFTY') {
+                                                          cleanSym = 'NIFTY50';
+                                                        } else if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) {
+                                                          cleanSym = underlying;
+                                                        }
+                                                      }
+                                                      
                                                       symbolForDate = `NSE:${cleanSym}-INDEX`;
                                                     }
                                                   }
