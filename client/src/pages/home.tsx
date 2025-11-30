@@ -5376,9 +5376,8 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // ✅ SIMPLE: When symbol changes → fetch its chart data (symbol is the LAST step)
-  // Only watch selectedJournalSymbol, not journalSelectedDate
-  // This ensures fetch happens AFTER both date and symbol are updated
+  // ✅ SIMPLE: When symbol OR date changes → fetch its chart data
+  // Watch both so it fetches when date changes even if symbol stays same
   useEffect(() => {
     if (activeTab !== 'journal') return;
     if (!selectedJournalSymbol) return;
@@ -5389,7 +5388,7 @@ ${
     // Fetch chart for this symbol on this date
     fetchJournalChartData();
 
-  }, [activeTab, selectedJournalSymbol]);
+  }, [activeTab, selectedJournalSymbol, journalSelectedDate]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
