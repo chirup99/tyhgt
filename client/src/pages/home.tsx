@@ -4983,13 +4983,21 @@ ${
         return;
       }
       
-      // 🔥 FIX: Use currentSymbolIndex to get the RIGHT symbol (not always first!)
-      const symbolToFetch = tradedSymbols[currentSymbolIndex] || tradedSymbols[0];
-      const cleanSymbol = symbolToFetch.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '');
+      // 🔥 CRITICAL FIX: Get symbol from selectedJournalSymbol (UI source of truth), not from index!
+      // selectedJournalSymbol is what's currently displayed and what user selected
+      if (!selectedJournalSymbol) {
+        console.warn('🔶 [FETCH] selectedJournalSymbol is empty - cannot fetch chart');
+        setJournalChartData([]);
+        return;
+      }
+      
+      // Extract clean symbol from selectedJournalSymbol (format: NSE:NIFTY-INDEX)
+      const cleanSymbol = selectedJournalSymbol.replace(/^(NSE|BSE):/, '').replace(/-INDEX$/, '').replace(/-EQ$/, '');
       stockToken = journalAngelOneTokens[cleanSymbol];
       
-      console.log(`🔶 [FETCH] currentSymbolIndex: ${currentSymbolIndex}, Using symbol: ${symbolToFetch} (clean: ${cleanSymbol})`);
-      console.log('🔶 [FETCH] Token resolved:', stockToken);
+      console.log(`🔶 [FETCH] Using selectedJournalSymbol: ${selectedJournalSymbol}`);
+      console.log(`🔶 [FETCH] Extracted clean symbol: ${cleanSymbol}`);
+      console.log(`🔶 [FETCH] Token resolved:`, stockToken);
       
       if (!stockToken) {
         console.warn(`🔶 [FETCH] No Angel One token found for symbol: ${cleanSymbol}`);
@@ -5148,7 +5156,7 @@ ${
     } finally {
       setJournalChartLoading(false);
     }
-  }, [tradedSymbols, journalChartTimeframe, journalSelectedDate, currentSymbolIndex]);
+  }, [selectedJournalSymbol, journalChartTimeframe, journalSelectedDate]);
 
   // 🔶 AUTO-FETCH when date is selected and symbols loaded from trade history
   // This fires when tradedSymbols changes (after handleDateSelect loads trade data)
