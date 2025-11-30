@@ -7301,14 +7301,8 @@ ${
             setTradedSymbols(symbols);
             setCurrentSymbolIndex(0);
             
-            // Set chart symbol to first traded symbol
-            const firstSymbol = symbols[0];
-            const chartSymbol = `NSE:${firstSymbol}-INDEX`;
-            setSelectedJournalSymbol(chartSymbol);
-            
             console.log(`📊 Extracted traded symbols:`, symbols);
-            console.log(`📊 Setting chart symbol to first trade: ${chartSymbol}`);
-            // useEffect watches selectedJournalSymbol + journalSelectedDate and fetches automatically
+            // ✅ DO NOT set selectedJournalSymbol here - manual search chart is independent from heatmap
           }
         }
 
@@ -7411,13 +7405,8 @@ ${
               setTradedSymbols(symbols);
               setCurrentSymbolIndex(0);
               
-              // Always fetch chart for the first/primary symbol from trades on this date
-              const firstSymbol = symbols[0];
-              const chartSymbol = `NSE:${firstSymbol}-INDEX`;
-              setSelectedJournalSymbol(chartSymbol);
-              
               console.log(`📊 Extracted traded symbols:`, symbols);
-              console.log(`📊 Setting chart symbol to first trade: ${chartSymbol}`);
+              // ✅ DO NOT set selectedJournalSymbol here - manual search chart is independent from heatmap
             }
           } else {
             // No trade history in Firebase - keep empty state, DO NOT construct fake data
