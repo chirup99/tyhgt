@@ -11945,7 +11945,19 @@ ${
                                   {journalChartMode === 'search' ? (
                                     <span>Manual: {selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '') || 'Select symbol'}</span>
                                   ) : (
-                                    <span>Date: {heatmapSelectedDate || 'Select date'} | {heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '') || 'No symbol'}</span>
+                                    <span>Date: {heatmapSelectedDate || 'Select date'} | {
+                                      (() => {
+                                        const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
+                                        // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY50")
+                                        const parts = sym.split(' ');
+                                        if (parts.length > 1) {
+                                          const underlying = parts[0];
+                                          if (underlying === 'NIFTY') return 'NIFTY50';
+                                          if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) return underlying;
+                                        }
+                                        return sym || 'No symbol';
+                                      })()
+                                    }</span>
                                   )}
                                 </div>
                               </div>
