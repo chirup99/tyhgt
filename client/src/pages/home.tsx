@@ -5165,24 +5165,16 @@ ${
         return;
       }
 
-      // STEP 4: Build API request with market hours format
+      // STEP 4: Build API request
       const interval = getJournalAngelOneInterval(heatmapChartTimeframe);
-      
-      // Format date with market opening time if not already formatted
-      let formattedDate = date;
-      if (date && !date.includes(' ')) {
-        // Date is just YYYY-MM-DD, add market opening time (09:15)
-        formattedDate = `${date} 09:15`;
-      }
-      
       const requestBody = {
         exchange: stockToken.exchange,
         symbolToken: stockToken.token,
         interval: interval,
-        date: formattedDate,
+        date: date,
       };
       
-      console.log(`🗓️ [HEATMAP FETCH] API Request (formatted date: ${formattedDate}):`, requestBody);
+      console.log(`🗓️ [HEATMAP FETCH] API Request:`, requestBody);
 
       // STEP 5: Fetch chart data
       const response = await fetch(getFullApiUrl("/api/angelone/historical"), {
@@ -11869,20 +11861,8 @@ ${
                                                   if (tradingData?.tradeHistory && tradingData.tradeHistory.length > 0) {
                                                     const firstTrade = tradingData.tradeHistory[0];
                                                     if (firstTrade.symbol) {
-                                                      // Clean the symbol first
-                                                      let cleanSym = firstTrade.symbol.replace(/NSE:|BSE:|-INDEX|-EQ/g, '');
-                                                      
-                                                      // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY")
-                                                      const parts = cleanSym.split(' ');
-                                                      if (parts.length > 1) {
-                                                        const underlying = parts[0];
-                                                        if (underlying === 'NIFTY') {
-                                                          cleanSym = 'NIFTY50';
-                                                        } else if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) {
-                                                          cleanSym = underlying;
-                                                        }
-                                                      }
-                                                      
+                                                      // Format symbol for API (e.g., SENSEX -> NSE:SENSEX-INDEX)
+                                                      const cleanSym = firstTrade.symbol.replace(/NSE:|BSE:|-INDEX|-EQ/g, '');
                                                       symbolForDate = `NSE:${cleanSym}-INDEX`;
                                                     }
                                                   }
