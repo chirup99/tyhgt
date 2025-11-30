@@ -11911,6 +11911,23 @@ ${
                                   </Popover>
                                   )}
 
+                                  {/* X Button to Exit Heatmap Mode - ONLY in Heatmap Mode */}
+                                  {journalChartMode === 'heatmap' && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      console.log(`❌ Switching from heatmap to manual mode`);
+                                      setJournalChartMode('search');
+                                    }}
+                                    title="Switch to manual mode"
+                                    data-testid="button-exit-heatmap-mode"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </Button>
+                                  )}
+
                                   {/* Search Chart Fetch Button - ONLY in Search Mode */}
                                   {journalChartMode === 'search' && (
                                   <Button
@@ -11971,34 +11988,19 @@ ${
                                   {journalChartMode === 'search' ? (
                                     <span>Manual: {selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '') || 'Select symbol'}</span>
                                   ) : (
-                                    <>
-                                      <span>Date: {heatmapSelectedDate || 'Select date'} | {
-                                        (() => {
-                                          const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
-                                          // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY50")
-                                          const parts = sym.split(' ');
-                                          if (parts.length > 1) {
-                                            const underlying = parts[0];
-                                            if (underlying === 'NIFTY') return 'NIFTY50';
-                                            if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) return underlying;
-                                          }
-                                          return sym || 'No symbol';
-                                        })()
-                                      }</span>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-5 w-5"
-                                        onClick={() => {
-                                          console.log(`❌ Switching from heatmap to manual mode`);
-                                          setJournalChartMode('search');
-                                        }}
-                                        title="Switch to manual mode"
-                                        data-testid="button-exit-heatmap-mode"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </Button>
-                                    </>
+                                    <span>Date: {heatmapSelectedDate || 'Select date'} | {
+                                      (() => {
+                                        const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
+                                        // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY50")
+                                        const parts = sym.split(' ');
+                                        if (parts.length > 1) {
+                                          const underlying = parts[0];
+                                          if (underlying === 'NIFTY') return 'NIFTY50';
+                                          if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) return underlying;
+                                        }
+                                        return sym || 'No symbol';
+                                      })()
+                                    }</span>
                                   )}
                                 </div>
                               </div>
