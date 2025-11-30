@@ -5740,35 +5740,68 @@ ${
       const addTimeRangeIndicators = () => {
         if (!journalChartRef.current || !candlestickSeries || sortedData.length === 0) return;
         
-        console.log(`🎯 Time filter - FROM: ${journalChartFromTime}, TO: ${journalChartToTime}`);
+        console.log(`\n🎯 === TIME RANGE FILTER MATCHING START ===`);
+        console.log(`📍 User selected: FROM=${journalChartFromTime}, TO=${journalChartToTime}`);
+        console.log(`📊 Total candles available: ${sortedData.length}`);
         
         // Convert IST time strings directly to match with candle param.time
         // Both are in IST format, so just extract hours:minutes
         let fromCandle = null;
         let toCandle = null;
+        let fromIndex = -1;
+        let toIndex = -1;
         
-        for (const candle of sortedData) {
+        for (let idx = 0; idx < sortedData.length; idx++) {
+          const candle = sortedData[idx];
           // candle.time is param.time in Unix seconds (IST-based)
           const candleDate = new Date(candle.time * 1000);
           const candleHours = candleDate.getHours();
           const candleMins = candleDate.getMinutes();
           const candleTime = `${candleHours.toString().padStart(2, '0')}:${candleMins.toString().padStart(2, '0')}`;
           
+          // Debug: Show sample candles
+          if (idx < 3 || idx === sortedData.length - 1) {
+            console.log(`  Candle[${idx}]: ${candleTime} | param.time=${candle.time} | O=${candle.open} H=${candle.high} L=${candle.low} C=${candle.close}`);
+          }
+          
           // Match FROM: find first candle >= FROM time
           if (!fromCandle && candleTime >= journalChartFromTime) {
             fromCandle = candle;
-            console.log(`✅ FROM candle: param.time=${fromCandle.time} at ${candleTime}`);
+            fromIndex = idx;
+            console.log(`\n✅ FROM CANDLE MATCHED:`);
+            console.log(`  Index: ${fromIndex}`);
+            console.log(`  param.time: ${fromCandle.time}`);
+            console.log(`  IST Time: ${candleTime}`);
+            console.log(`  OHLC: O=${fromCandle.open} H=${fromCandle.high} L=${fromCandle.low} C=${fromCandle.close}`);
+            console.log(`  Volume: ${fromCandle.volume}`);
           }
           
           // Match TO: track all candles <= TO time (last one wins)
           if (candleTime <= journalChartToTime) {
             toCandle = candle;
+            toIndex = idx;
           }
+        }
+        
+        // Show TO candle details
+        if (toCandle) {
+          const toDate = new Date(toCandle.time * 1000);
+          const toHours = toDate.getHours();
+          const toMins = toDate.getMinutes();
+          const toTime = `${toHours.toString().padStart(2, '0')}:${toMins.toString().padStart(2, '0')}`;
+          console.log(`\n✅ TO CANDLE MATCHED:`);
+          console.log(`  Index: ${toIndex}`);
+          console.log(`  param.time: ${toCandle.time}`);
+          console.log(`  IST Time: ${toTime}`);
+          console.log(`  OHLC: O=${toCandle.open} H=${toCandle.high} L=${toCandle.low} C=${toCandle.close}`);
+          console.log(`  Volume: ${toCandle.volume}`);
         }
         
         // Draw vertical lines at exact param.time positions
         if (fromCandle && toCandle) {
-          console.log(`✅ Found both candles! FROM=${fromCandle.time}, TO=${toCandle.time}`);
+          console.log(`\n🟢 BOTH CANDLES FOUND - Drawing vertical lines...`);
+          console.log(`  FROM marker at param.time=${fromCandle.time}`);
+          console.log(`  TO marker at param.time=${toCandle.time}`);
           
           const markers = [
             {
@@ -5788,9 +5821,13 @@ ${
           ];
           
           candlestickSeries.setMarkers(markers);
-          console.log('🟢 Vertical lines drawn at param.time positions');
+          console.log(`✅ Markers applied successfully!`);
+          console.log(`🎯 === TIME RANGE FILTER MATCHING COMPLETE ===\n`);
         } else {
-          console.log(`❌ Could not find candles. FROM found: ${!!fromCandle}, TO found: ${!!toCandle}`);
+          console.log(`\n❌ MATCHING FAILED:`);
+          console.log(`  FROM candle found: ${!!fromCandle}`);
+          console.log(`  TO candle found: ${!!toCandle}`);
+          console.log(`🎯 === TIME RANGE FILTER MATCHING COMPLETE ===\n`);
         }
       };
       
