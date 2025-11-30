@@ -4771,8 +4771,8 @@ ${
   } | null>(null);
 
   // ========== CHART MODE SYSTEM ==========
-  // Two separate charts: Search Chart (manual symbol search) vs Heatmap Chart (date selection)
-  const [journalChartMode, setJournalChartMode] = useState<'search' | 'heatmap'>('search');
+  // Only heatmap chart with symbol navigation
+  const [journalChartMode, setJournalChartMode] = useState<'search' | 'heatmap'>('heatmap');
   
   // ========== HEATMAP CHART STATE (Separate from Search Chart) ==========
   const [heatmapChartData, setHeatmapChartData] = useState<Array<{ time: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
@@ -11673,26 +11673,19 @@ ${
                                         
                                         console.log(`⏭️  Switching: ${tradedSymbols[currentSymbolIndex]} → ${nextSymbol}`);
                                         
-                                        // DESTROY CHART IMMEDIATELY - Don't wait for useEffect
-                                        if (journalChartRef.current) {
-                                          try {
-                                            journalChartRef.current.remove();
-                                            console.log(`⏭️  Chart destroyed`);
-                                          } catch (e) {}
-                                          journalChartRef.current = null;
-                                          journalCandlestickSeriesRef.current = null;
-                                          journalEma12SeriesRef.current = null;
-                                          journalEma26SeriesRef.current = null;
-                                        }
-                                        
-                                        // Update state
+                                        // Update heatmap symbol with current selected date
                                         setCurrentSymbolIndex(nextIdx);
-                                        setSelectedJournalSymbol(`NSE:${nextSymbol}-INDEX`);
-                                        setJournalChartData([]);
-                                        setLiveOhlc(null);
+                                        const formattedSymbol = `NSE:${nextSymbol}-INDEX`;
                                         
-                                        console.log(`⏭️  Fetching ${nextSymbol} data...`);
-                                        // useEffect watches selectedJournalSymbol + journalSelectedDate and fetches automatically
+                                        // If date is selected, fetch heatmap chart for new symbol
+                                        if (heatmapSelectedDate) {
+                                          console.log(`⏭️  Fetching heatmap for ${nextSymbol} on ${heatmapSelectedDate}`);
+                                          fetchHeatmapChartData(formattedSymbol, heatmapSelectedDate);
+                                        } else {
+                                          // Just update symbol, wait for user to select a date
+                                          setHeatmapSelectedSymbol(formattedSymbol);
+                                          console.log(`⏭️  Symbol changed to ${nextSymbol}, select a date to fetch chart`);
+                                        }
                                       }}
                                       data-testid="button-next-symbol"
                                     >
@@ -11903,25 +11896,17 @@ ${
                                   </Popover>
                                   )}
 
-                                  {/* Search Chart Fetch Button - ONLY in Search Mode */}
-                                  {journalChartMode === 'search' && (
+                                  {/* Search Chart Fetch Button - HIDDEN */}
+                                  {false && (
                                   <Button
-                                    onClick={() => {
-                                      console.log(`🔶 SEARCH CHART: Fetching ${getJournalTimeframeLabel(journalChartTimeframe)} data for manual search`);
-                                      fetchJournalChartData();
-                                    }}
-                                    disabled={journalChartLoading}
+                                    onClick={() => {}}
+                                    disabled={false}
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    title={`Fetch ${getJournalTimeframeLabel(journalChartTimeframe)} chart data (standalone search - last 10 days)`}
                                     data-testid="button-fetch-journal-chart"
                                   >
-                                    {journalChartLoading ? (
-                                      <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                    ) : (
-                                      <RefreshCw className="w-3.5 h-3.5" />
-                                    )}
+                                    <RefreshCw className="w-3.5 h-3.5" />
                                   </Button>
                                   )}
                                 </div>
@@ -11931,57 +11916,26 @@ ${
                             {/* Chart Mode Toggle + Chart Container */}
                             <div className="flex-1 relative flex flex-col min-h-[400px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-0">
                               
-                              {/* Mode Toggle Buttons */}
-                              <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => setJournalChartMode('search')}
-                                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                                      journalChartMode === 'search'
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                                    }`}
-                                    data-testid="button-chart-mode-search"
-                                  >
-                                    <Search className="w-3 h-3 inline mr-1" />
-                                    Search
-                                  </button>
-                                  <button
-                                    onClick={() => setJournalChartMode('heatmap')}
-                                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                                      journalChartMode === 'heatmap'
-                                        ? 'bg-purple-500 text-white'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                                    }`}
-                                    data-testid="button-chart-mode-heatmap"
-                                  >
-                                    <CalendarDays className="w-3 h-3 inline mr-1" />
-                                    Heatmap
-                                  </button>
-                                </div>
+                              {/* Mode Toggle Buttons - HIDDEN (only heatmap mode) */}
+                              <div className="hidden px-2 py-1 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {journalChartMode === 'search' ? (
-                                    <span>Manual: {selectedJournalSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '') || 'Select symbol'}</span>
-                                  ) : (
-                                    <span>Date: {heatmapSelectedDate || 'Select date'} | {
-                                      (() => {
-                                        const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
-                                        // Extract underlying from options/futures (e.g., "NIFTY 22nd w MAY PE" -> "NIFTY50")
-                                        const parts = sym.split(' ');
-                                        if (parts.length > 1) {
-                                          const underlying = parts[0];
-                                          if (underlying === 'NIFTY') return 'NIFTY50';
-                                          if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) return underlying;
-                                        }
-                                        return sym || 'No symbol';
-                                      })()
-                                    }</span>
-                                  )}
+                                  Date: {heatmapSelectedDate || 'Select date'} | {
+                                    (() => {
+                                      const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
+                                      const parts = sym.split(' ');
+                                      if (parts.length > 1) {
+                                        const underlying = parts[0];
+                                        if (underlying === 'NIFTY') return 'NIFTY50';
+                                        if (['SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(underlying)) return underlying;
+                                      }
+                                      return sym || 'No symbol';
+                                    })()
+                                  }
                                 </div>
                               </div>
 
-                              {/* ========== SEARCH CHART (Manual Symbol Search) ========== */}
-                              <div className={`flex-1 relative min-h-[350px] ${journalChartMode === 'search' ? 'block' : 'hidden'}`}>
+                              {/* ========== SEARCH CHART (Manual Symbol Search) - HIDDEN ========== */}
+                              <div className="hidden flex-1 relative min-h-[350px]">
                                 {journalChartLoading && (
                                   <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 rounded-lg">
                                     <div className="flex flex-col items-center gap-4">
