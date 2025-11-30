@@ -5386,17 +5386,18 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // ✅ SIMPLE: When selected symbol changes → fetch its chart data (like search bar)
+  // ✅ SIMPLE: When symbol OR date changes → fetch its chart data (like search bar)
   useEffect(() => {
     if (activeTab !== 'journal') return;
     if (!selectedJournalSymbol) return;
+    if (!journalSelectedDate) return;
 
-    console.log(`🔍 Symbol selected: ${selectedJournalSymbol}`);
+    console.log(`🔍 Fetching: Symbol=${selectedJournalSymbol}, Date=${journalSelectedDate}`);
     
-    // Fetch chart for this symbol
+    // Fetch chart for this symbol on this date
     fetchJournalChartData();
 
-  }, [activeTab, selectedJournalSymbol]);
+  }, [activeTab, selectedJournalSymbol, journalSelectedDate]);
 
   // Initialize and render TradingView-style chart for Journal
   useEffect(() => {
