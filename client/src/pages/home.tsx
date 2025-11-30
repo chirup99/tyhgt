@@ -5066,9 +5066,6 @@ ${
     }
   }, [selectedJournalSymbol, journalChartTimeframe, journalSelectedDate]);
 
-  // REMOVED: AUTO-FETCH effect - rely on main fetch effect that watches symbol and date changes
-  // The main effect at line ~5403 handles all fetching when symbol or date changes
-
   // Reset OHLC display when chart data changes (simple - same as Trading Master)
   useEffect(() => {
     if (journalChartData && journalChartData.length > 0) {
