@@ -5403,6 +5403,26 @@ ${
     }
   }, [selectedJournalInterval, activeTab]);
 
+  // CRITICAL: Clear chart and data when symbol changes (e.g., Next button clicked)
+  useEffect(() => {
+    if (activeTab === 'journal') {
+      console.log(`🔄 SYMBOL CHANGED TO: ${selectedJournalSymbol}`);
+      // Clear chart data to force fresh fetch
+      setJournalChartData([]);
+      setLiveOhlc(null);
+      // Destroy existing chart - MUST recreate for new symbol
+      if (journalChartRef.current) {
+        try {
+          journalChartRef.current.remove();
+        } catch (e) {}
+        journalChartRef.current = null;
+        journalCandlestickSeriesRef.current = null;
+        journalEma12SeriesRef.current = null;
+        journalEma26SeriesRef.current = null;
+      }
+    }
+  }, [selectedJournalSymbol, activeTab]);
+
   // Auto-fetch chart data when symbol or interval changes on journal tab
   useEffect(() => {
     if (activeTab === 'journal') {
