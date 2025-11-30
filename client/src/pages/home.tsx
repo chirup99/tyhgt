@@ -5258,21 +5258,7 @@ ${
     } finally {
       setHeatmapChartLoading(false);
     }
-  }, [journalChartTimeframe]);
-
-  // ✅ AUTO-FETCH CHART DATA IN HEATMAP MODE WHEN TIMEFRAME CHANGES
-  useEffect(() => {
-    if (journalChartMode !== 'heatmap') return;
-    if (!heatmapSelectedDate || !heatmapSelectedSymbol) return;
-    
-    // Debounce auto-fetch to avoid too many requests
-    const timer = setTimeout(() => {
-      console.log(`🔄 [AUTO-FETCH] Triggering auto-fetch for heatmap: ${heatmapSelectedSymbol} on ${heatmapSelectedDate} with ${getJournalTimeframeLabel(journalChartTimeframe)} timeframe`);
-      fetchHeatmapChartData(heatmapSelectedSymbol, heatmapSelectedDate);
-    }, 300); // 300ms debounce
-    
-    return () => clearTimeout(timer);
-  }, [journalChartMode, journalChartTimeframe, heatmapSelectedDate, heatmapSelectedSymbol, fetchHeatmapChartData]);
+  }, [heatmapChartTimeframe]);
 
   // Reset Heatmap OHLC display when heatmap chart data changes
   useEffect(() => {
