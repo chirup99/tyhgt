@@ -6931,6 +6931,67 @@ ${
   });
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
 
+  // Indicators state for tracking mistakes with indicators and timeframes
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("tradingIndicators");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+  const [indicatorTimeframe, setIndicatorTimeframe] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("indicatorTimeframe") || "5min";
+    }
+    return "5min";
+  });
+  const [isIndicatorDropdownOpen, setIsIndicatorDropdownOpen] = useState(false);
+
+  // Indicator list system
+  const indicatorList = [
+    "Moving Average",
+    "EMA",
+    "MACD",
+    "RSI",
+    "Stochastic",
+    "Bollinger Bands",
+    "ATR",
+    "Volume",
+    "CCI",
+    "ADX",
+    "PSAR",
+    "Ichimoku",
+  ];
+
+  const timeframeOptions = [
+    { value: "1min", label: "1 Min" },
+    { value: "5min", label: "5 Min" },
+    { value: "15min", label: "15 Min" },
+    { value: "30min", label: "30 Min" },
+    { value: "1h", label: "1 Hour" },
+    { value: "daily", label: "Daily" },
+    { value: "weekly", label: "Weekly" },
+  ];
+
+  const toggleIndicator = (indicator: string) => {
+    setSelectedIndicators((prev) => {
+      const updated = prev.includes(indicator)
+        ? prev.filter((i) => i !== indicator)
+        : [...prev, indicator];
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tradingIndicators", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  const clearAllIndicators = () => {
+    setSelectedIndicators([]);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tradingIndicators", JSON.stringify([]));
+    }
+  };
+
   // Trade book window states
   const [showTradingNotesWindow, setShowTradingNotesWindow] = useState(false);
   const [showPerformanceWindow, setShowPerformanceWindow] = useState(false);
@@ -12834,6 +12895,112 @@ ${
                                 TRADING NOTES
                               </h3>
                               <div className="flex items-center gap-1">
+                                {/* Indicators Dropdown */}
+                                <Popover
+                                  open={isIndicatorDropdownOpen}
+                                  onOpenChange={setIsIndicatorDropdownOpen}
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs border-emerald-300 dark:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900"
+                                      data-testid="button-indicators-dropdown"
+                                    >
+                                      <LineChart className="w-3 h-3" />
+                                      <span className="ml-1 text-xs font-semibold">{selectedIndicators.length}</span>
+                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-80 p-3">
+                                    <div className="space-y-3">
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-medium text-sm">
+                                          Indicator & Timeframe Tracker
+                                        </h4>
+                                        {selectedIndicators.length > 0 && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={clearAllIndicators}
+                                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                            data-testid="button-clear-indicators"
+                                          >
+                                            <Trash2 className="w-3 h-3 mr-1" />
+                                            Clear All
+                                          </Button>
+                                        )}
+                                      </div>
+
+                                      {/* Timeframe Selector */}
+                                      <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                          Timeframe
+                                        </label>
+                                        <div className="grid grid-cols-4 gap-1">
+                                          {timeframeOptions.map((tf) => (
+                                            <button
+                                              key={tf.value}
+                                              onClick={() => {
+                                                setIndicatorTimeframe(tf.value);
+                                                if (typeof window !== "undefined") {
+                                                  localStorage.setItem("indicatorTimeframe", tf.value);
+                                                }
+                                              }}
+                                              className={`px-2 py-1.5 text-xs rounded-md border transition-all duration-200 ${
+                                                indicatorTimeframe === tf.value
+                                                  ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
+                                                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                              }`}
+                                              data-testid={`timeframe-${tf.value}`}
+                                            >
+                                              {tf.label}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Selected Indicators Display */}
+                                      {selectedIndicators.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+                                          {selectedIndicators.map((indicator) => (
+                                            <span
+                                              key={indicator}
+                                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-full cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
+                                              onClick={() => toggleIndicator(indicator)}
+                                              data-testid={`selected-indicator-${indicator}`}
+                                            >
+                                              {indicator}
+                                              <X className="w-3 h-3 ml-1" />
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Available Indicators Grid */}
+                                      <div className="grid grid-cols-2 gap-1">
+                                        {indicatorList.map((indicator) => {
+                                          const isSelected = selectedIndicators.includes(indicator);
+                                          return (
+                                            <button
+                                              key={indicator}
+                                              onClick={() => toggleIndicator(indicator)}
+                                              className={`px-2 py-1.5 text-xs rounded-md border transition-all duration-200 text-left ${
+                                                isSelected
+                                                  ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
+                                                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                              }`}
+                                              data-testid={`indicator-option-${indicator}`}
+                                            >
+                                              {indicator}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+
                                 {/* Tag Dropdown */}
                                 <Popover
                                   open={isTagDropdownOpen}
