@@ -180,6 +180,7 @@ import {
   MoreVertical,
   ChevronsUpDown,
   CalendarDays,
+  Brain,
 } from "lucide-react";
 import { AIChatWindow } from "@/components/ai-chat-window";
 import { BrokerImportDialog } from "@/components/broker-import-dialog";
@@ -13139,7 +13140,7 @@ ${
                                       className="text-xs border-emerald-300 dark:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900"
                                       data-testid="button-indicators-dropdown"
                                     >
-                                      <LineChart className="w-3 h-3" />
+                                      <BarChart3 className="w-3 h-3" />
                                       <span className="ml-1 text-xs font-semibold">{selectedIndicators.length}</span>
                                       <ChevronDown className="w-3 h-3 ml-1" />
                                     </Button>
@@ -13325,7 +13326,7 @@ ${
                                       className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
                                       data-testid="button-tags-dropdown"
                                     >
-                                      <Tag className="w-3 h-3" />
+                                      <Brain className="w-3 h-3" />
                                       <span className="ml-1 text-xs font-semibold">{selectedTags.length}</span>
                                       <ChevronDown className="w-3 h-3 ml-1" />
                                     </Button>
