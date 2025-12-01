@@ -16670,7 +16670,7 @@ ${
                             size="sm"
                             className="gap-1.5"
                             onClick={() => {
-                              // Auto-extract from first line
+                              // Auto-extract from first line - using WORD POSITIONS not character positions
                               const firstLine = importData.trim().split('\n')[0] || "";
                               const parts = firstLine.split(/\s+/);
                               
@@ -16679,14 +16679,14 @@ ${
                               let timeVal = "", orderVal = "", symbolVal = "", typeVal = "", qtyVal = "", priceVal = "";
                               let foundTime = false, foundOrder = false, foundSymbol = false;
                               
-                              // Identify price and qty first (they're at the end)
+                              // Identify price and qty first (they're at the end) - use array INDEX, not character position!
                               const lastIdx = parts.length - 1;
                               if (lastIdx >= 0 && /^\d+(\.\d+)?$/.test(parts[lastIdx])) {
-                                qtyPos = firstLine.lastIndexOf(parts[lastIdx]);
+                                qtyPos = lastIdx;
                                 qtyVal = parts[lastIdx];
                               }
                               if (lastIdx >= 1 && /^\d+(\.\d+)?$/.test(parts[lastIdx - 1])) {
-                                pricePos = firstLine.lastIndexOf(parts[lastIdx - 1]);
+                                pricePos = lastIdx - 1;
                                 priceVal = parts[lastIdx - 1];
                               }
                               
@@ -16694,33 +16694,33 @@ ${
                               for (let i = 0; i < parts.length; i++) {
                                 const part = parts[i];
                                 
-                                // Time pattern: HH:MM:SS
+                                // Time pattern: HH:MM:SS - use index i, not indexOf!
                                 if (!foundTime && /^\d{1,2}:\d{2}:\d{2}$/.test(part)) {
-                                  timePos = firstLine.indexOf(part);
+                                  timePos = i;
                                   timeVal = part;
                                   foundTime = true;
                                   continue;
                                 }
                                 
-                                // Order: BUY/SELL
+                                // Order: BUY/SELL - use index i, not indexOf!
                                 if (!foundOrder && /^(BUY|SELL)$/i.test(part)) {
-                                  orderPos = firstLine.indexOf(part);
+                                  orderPos = i;
                                   orderVal = part.toUpperCase();
                                   foundOrder = true;
                                   continue;
                                 }
                                 
-                                // Symbol: all caps, comes after order
+                                // Symbol: all caps, comes after order - use index i, not indexOf!
                                 if (!foundSymbol && foundOrder && /^[A-Z]+$/.test(part) && !/^(CE|PE|FUT|MIS|NRML|IOC)$/i.test(part)) {
-                                  symbolPos = firstLine.indexOf(part);
+                                  symbolPos = i;
                                   symbolVal = part;
                                   foundSymbol = true;
                                   continue;
                                 }
                                 
-                                // Type: (CE, PE, FUT, MIS, NRML, etc) or numbers (strike price, expiry codes)
+                                // Type: (CE, PE, FUT, MIS, NRML, etc) or numbers (strike price, expiry codes) - use index i, not indexOf!
                                 if (foundSymbol && !typeVal && (/(CE|PE|FUT|NRML|MIS|IOC|CALL|PUT)$/i.test(part) || /^\d+$/.test(part))) {
-                                  typePos = firstLine.indexOf(part);
+                                  typePos = i;
                                   typeVal = part;
                                 }
                               }
@@ -16745,7 +16745,7 @@ ${
                                 }
                               });
                               setIsBuildMode(true);
-                              console.log("🔨 Build mode - auto-extracted from first line", { timeVal, orderVal, symbolVal, typeVal, qtyVal, priceVal });
+                              console.log("🔨 Build mode - auto-extracted from first line with CORRECT word positions", { positions: { timePos, orderPos, symbolPos, typePos, qtyPos, pricePos }, displayValues: { timeVal, orderVal, symbolVal, typeVal, qtyVal, priceVal } });
                             }}
                             data-testid="button-build"
                           >
