@@ -16823,7 +16823,7 @@ ${
                   <div className="flex items-center gap-1">
                     <Input
                       type="number"
-                      placeholder="Qty"
+                      placeholder={paperTradeType === 'STOCK' ? "Qty" : "Lots"}
                       value={paperTradeQuantity}
                       onChange={(e) => setPaperTradeQuantity(e.target.value)}
                       className="w-20 h-8 text-xs text-center"
@@ -16831,8 +16831,8 @@ ${
                       data-testid="input-paper-trade-qty"
                     />
                     {selectedPaperTradingInstrument && paperTradeType !== 'STOCK' && (
-                      <span className="text-[10px] text-gray-400 px-1">
-                        Lot: {getLotSizeForInstrument(selectedPaperTradingInstrument.symbol, paperTradeType)}
+                      <span className="text-[10px] text-gray-400 px-1 whitespace-nowrap">
+                        Lot: {paperTradeQuantity || '1'} x {getLotSizeForInstrument(selectedPaperTradingInstrument.symbol, paperTradeType)}
                       </span>
                     )}
                   </div>
