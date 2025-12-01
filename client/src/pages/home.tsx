@@ -3821,7 +3821,7 @@ ${
 
   // Get lot size for Angel One instruments based on API standards
   const getLotSizeForInstrument = (symbol: string, type: 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'): number => {
-    // Angel One API lot sizes - https://api-docs.angelbroking.com/
+
     // Current lot sizes (effective now)
     
     // NSE Futures lot sizes - CURRENT
@@ -3866,7 +3866,9 @@ ${
       'DHANIYA': 100,
     };
     
-    const baseSymbol = symbol.replace(/\d{2}[A-Z]{3}\d{2}[A-Z]{2}/i, '').toUpperCase();
+    // Extract base symbol: remove everything from first digit onwards
+    // E.g., "BANKNIFTY30DEC25FUT" → "BANKNIFTY"
+    const baseSymbol = symbol.replace(/\d.*$/i, '').toUpperCase();
     
     switch (type) {
       case 'FUTURES':
