@@ -812,3 +812,68 @@
 [x] 4369. ✅ WORKFLOW RESTARTED & RUNNING
 [x] 4370. 
 [x] 4371. ALL UPDATES 100% COMPLETE! 🚀
+
+[x] 4372. IMPORT P&L DATA DIALOG REDESIGNED - MINIMALIST DESIGN COMPLETE!
+[x] 4373. Date: December 1, 2025
+[x] 4374. User Request: Redesign Import P&L Data dialog to match Paper Trading minimalist design
+[x] 4375.
+[x] 4376. MINIMALIST REDESIGN APPLIED:
+[x] 4377.
+[x] 4378. 1. HEADER:
+[x] 4379.    ✓ Sticky top header with clean slate colors (text-slate-800/100)
+[x] 4380.    ✓ Gray background (bg-white/gray-900 with border-bottom)
+[x] 4381.    ✓ Removed DialogHeader wrapper for cleaner look
+[x] 4382.
+[x] 4383. 2. CSV UPLOAD SECTION:
+[x] 4384.    ✓ Simplified label to "Upload CSV" (text-xs font-medium slate-700/300)
+[x] 4385.    ✓ Compact input height h-8
+[x] 4386.    ✓ Shortened help text: "Expected: date, symbol, action..."
+[x] 4387.
+[x] 4388. 3. DATA PASTING SECTION:
+[x] 4389.    ✓ Removed decorative "Or" divider (was cluttering UI)
+[x] 4390.    ✓ Changed to simple "Or Paste Data" label
+[x] 4391.    ✓ Format detection badge: slate colors instead of green
+[x] 4392.    ✓ Simplified helper text
+[x] 4393.
+[x] 4394. 4. SAVED FORMATS:
+[x] 4395.    ✓ Removed emoji (📚) for minimalist feel
+[x] 4396.    ✓ Changed to slate background (bg-slate-50/900/30)
+[x] 4397.    ✓ All text uses slate colors (slate-700/300, slate-500/400)
+[x] 4398.    ✓ Reduced spacing and padding for compact look
+[x] 4399.    ✓ Load button: ghost variant (h-6 text-xs px-2)
+[x] 4400.    ✓ Delete button: slate ghost variant instead of red
+[x] 4401.
+[x] 4402. 5. BUILD MODE:
+[x] 4403.    ✓ Removed emoji (🔨) for minimalist feel
+[x] 4404.    ✓ Simplified instruction text
+[x] 4405.    ✓ Save button: ghost variant (h-7 text-xs px-2)
+[x] 4406.    ✓ Changed spacing to compact (space-y-3)
+[x] 4407.
+[x] 4408. 6. TEXTAREA:
+[x] 4409.    ✓ Removed verbose placeholder with examples
+[x] 4410.    ✓ Simple: "Paste your trade data..."
+[x] 4411.    ✓ Reduced height: min-h-32 (from min-h-48)
+[x] 4412.    ✓ Added text-xs for consistency
+[x] 4413.
+[x] 4414. 7. ERROR MESSAGES:
+[x] 4415.    ✓ Import error: slate colors (text-xs), dark mode support
+[x] 4416.    ✓ Parse errors: slate background (bg-slate-50/800), removed emoji
+[x] 4417.    ✓ Reduced max-height to max-h-40
+[x] 4418.
+[x] 4419. 8. ACTION BUTTONS:
+[x] 4420.    ✓ Cancel: ghost variant (h-8 text-xs)
+[x] 4421.    ✓ Import: primary variant (h-8 text-xs)
+[x] 4422.    ✓ Footer border: slate-200/700 (matching theme)
+[x] 4423.    ✓ Reduced gap to gap-2 for compact layout
+[x] 4424.
+[x] 4425. DESIGN CONSISTENCY:
+[x] 4426. - Matches Paper Trading dialog aesthetic
+[x] 4427. - Slate color palette throughout (not green/yellow alerts)
+[x] 4428. - Ghost buttons for subtle interactions
+[x] 4429. - Minimal visual clutter (removed all emoji)
+[x] 4430. - Compact spacing (xs/sm sizes)
+[x] 4431. - Proper dark mode support everywhere
+[x] 4432. - Clean, professional minimalist look
+[x] 4433.
+[x] 4434. ✅ WORKFLOW RESTARTED & RUNNING
+[x] 4435. ✅ ALL CHANGES 100% COMPLETE!
