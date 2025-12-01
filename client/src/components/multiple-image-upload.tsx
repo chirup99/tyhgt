@@ -275,7 +275,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
           {/* Counter Badge - Tiny and minimalistic */}
           <div 
-            className={`relative z-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-semibold ${
+            className={`relative z-10 bg-gray-500 dark:bg-gray-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-semibold shadow-md border border-gray-400 dark:border-gray-500 ${
               isDragging ? '' : 'transition-transform duration-400 ease-out'
             }`}
             style={{
