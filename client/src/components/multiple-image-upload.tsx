@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle, createElement } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Image, BookOpen, TrendingUp, DollarSign, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadedImage {
@@ -165,11 +165,11 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
     // Determine cards to show
     const cardsToShow = images.length > 0 ? images : [
-      { id: 'card-1', color: 'bg-blue-500', name: 'Upload Image' },
-      { id: 'card-2', color: 'bg-purple-500', name: 'Upload Articles Images' },
-      { id: 'card-3', color: 'bg-pink-500', name: 'Technical Analysis' },
-      { id: 'card-4', color: 'bg-green-500', name: 'Fundamentals' },
-      { id: 'card-5', color: 'bg-orange-500', name: 'Strategy Image' },
+      { id: 'card-1', color: 'bg-blue-500', name: 'Upload Image', icon: Image },
+      { id: 'card-2', color: 'bg-purple-500', name: 'Upload Articles Images', icon: BookOpen },
+      { id: 'card-3', color: 'bg-pink-500', name: 'Technical Analysis', icon: TrendingUp },
+      { id: 'card-4', color: 'bg-green-500', name: 'Fundamentals', icon: DollarSign },
+      { id: 'card-5', color: 'bg-orange-500', name: 'Strategy Image', icon: Lightbulb },
     ];
 
     return (
@@ -231,8 +231,9 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                         data-testid={`img-card-${idx}`}
                       />
                     ) : (
-                      <div className={`w-full h-full ${(card as any).color} flex items-center justify-center`}>
-                        <span className="text-white text-sm font-medium opacity-70">{(card as any).name}</span>
+                      <div className={`w-full h-full ${(card as any).color} flex flex-col items-center justify-center gap-3`}>
+                        {(card as any).icon && createElement((card as any).icon, { className: "w-10 h-10 text-white opacity-90" })}
+                        <span className="text-white text-xs font-medium opacity-80 text-center px-2">{(card as any).name}</span>
                       </div>
                     )}
                   </div>
