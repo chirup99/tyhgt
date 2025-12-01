@@ -4246,7 +4246,7 @@ ${
   };
   
   // 🔴 NEW: Record all paper trades to personal tradebook heatmap (today's date only)
-  const recordAllPaperTrades = () => {
+  const recordAllPaperTrades = async () => {
     if (paperTradeHistory.length === 0) {
       toast({
         title: "No Trades",
@@ -4290,37 +4290,71 @@ ${
     // Merge with existing trades (append new ones)
     const mergedTrades = [...existingTrades, ...convertedTrades];
     
+    // Calculate P&L amount
+    const profitLossAmount = mergedTrades.reduce((sum: number, trade: any) => {
+      if (trade.pnl && trade.pnl !== '-') {
+        const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
+        return sum + (parseFloat(pnlStr) || 0);
+      }
+      return sum;
+    }, 0);
+    
     // Update tradingDataByDate with merged trades
     const updatedData = {
       ...existingData,
       tradeHistory: mergedTrades,
-      // Re-calculate summary stats
-      profitLossAmount: mergedTrades.reduce((sum: number, trade: any) => {
-        if (trade.pnl && trade.pnl !== '-') {
-          const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
-          return sum + (parseFloat(pnlStr) || 0);
-        }
-        return sum;
-      }, 0),
+      profitLossAmount,
       totalTrades: mergedTrades.length
     };
     
-    // Update personal heatmap (not demo)
-    setPersonalTradingDataByDate((prev: any) => ({
-      ...prev,
-      [todayKey]: updatedData
-    }));
-    
-    // Save to localStorage
-    localStorage.setItem("personalTradingDataByDate", JSON.stringify({
-      ...personalTradingDataByDate,
-      [todayKey]: updatedData
-    }));
-    
-    toast({
-      title: "Trades Recorded",
-      description: `Recorded ${convertedTrades.length} trades to today's personal tradebook`
-    });
+    try {
+      // 🔴 CRITICAL: Save to API/Firebase first (so heatmap can load it)
+      const response = await fetch(getFullApiUrl(`/api/journal/${todayKey}`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+      
+      if (response.ok) {
+        console.log(`✅ Recorded ${convertedTrades.length} trades to Firebase for ${todayKey}`);
+        
+        // Update local state after API saves
+        setTradingDataByDate((prev: any) => ({
+          ...prev,
+          [todayKey]: updatedData
+        }));
+        
+        setPersonalTradingDataByDate((prev: any) => ({
+          ...prev,
+          [todayKey]: updatedData
+        }));
+        
+        // Update calendar data for heatmap colors
+        setCalendarData((prev: any) => ({
+          ...prev,
+          [todayKey]: updatedData
+        }));
+        
+        toast({
+          title: "Trades Recorded",
+          description: `Recorded ${convertedTrades.length} trades to today's personal tradebook`
+        });
+      } else {
+        console.error("❌ Failed to save trades to Firebase");
+        toast({
+          title: "Save Failed",
+          description: "Could not save trades to personal tradebook",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("❌ Error recording trades:", error);
+      toast({
+        title: "Error",
+        description: "Failed to record trades",
+        variant: "destructive"
+      });
+    }
   };
 
   // Exit all open positions at once
