@@ -4245,6 +4245,83 @@ ${
     });
   };
   
+  // 🔴 NEW: Record all paper trades to personal tradebook heatmap (today's date only)
+  const recordAllPaperTrades = () => {
+    if (paperTradeHistory.length === 0) {
+      toast({
+        title: "No Trades",
+        description: "No trade history to record",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // ✅ ONLY record to personal heatmap (NOT demo)
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Switch to personal mode to record trades",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const todayKey = formatDateKey(today);
+    
+    // Get existing trades for today (if any)
+    const existingData = tradingDataByDate[todayKey] || {};
+    const existingTrades = existingData.tradeHistory || [];
+    
+    // Convert paper trades to heatmap trade format
+    const convertedTrades = paperTradeHistory.map((trade: any) => ({
+      symbol: trade.symbol,
+      type: trade.type || 'MIS',
+      action: trade.action, // BUY or SELL
+      quantity: trade.quantity,
+      price: trade.price,
+      time: trade.time,
+      pnl: trade.pnl,
+      closedAt: trade.closedAt
+    }));
+    
+    // Merge with existing trades (append new ones)
+    const mergedTrades = [...existingTrades, ...convertedTrades];
+    
+    // Update tradingDataByDate with merged trades
+    const updatedData = {
+      ...existingData,
+      tradeHistory: mergedTrades,
+      // Re-calculate summary stats
+      profitLossAmount: mergedTrades.reduce((sum: number, trade: any) => {
+        if (trade.pnl && trade.pnl !== '-') {
+          const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
+          return sum + (parseFloat(pnlStr) || 0);
+        }
+        return sum;
+      }, 0),
+      totalTrades: mergedTrades.length
+    };
+    
+    // Update personal heatmap (not demo)
+    setPersonalTradingDataByDate((prev: any) => ({
+      ...prev,
+      [todayKey]: updatedData
+    }));
+    
+    // Save to localStorage
+    localStorage.setItem("personalTradingDataByDate", JSON.stringify({
+      ...personalTradingDataByDate,
+      [todayKey]: updatedData
+    }));
+    
+    toast({
+      title: "Trades Recorded",
+      description: `Recorded ${convertedTrades.length} trades to today's personal tradebook`
+    });
+  };
+
   // Exit all open positions at once
   const exitAllPaperPositions = () => {
     const openPositions = paperPositions.filter(p => p.isOpen);
@@ -16402,11 +16479,20 @@ ${
                 </div>
               )}
 
-              {/* Trade History - With Header */}
+              {/* Trade History - With Header and Record Button */}
               {paperTradeHistory.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                    History
+                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 flex items-center justify-between gap-2">
+                    <div>History</div>
+                    <Button
+                      onClick={recordAllPaperTrades}
+                      size="sm"
+                      variant="outline"
+                      className="h-5 px-2 text-[10px] text-blue-600 border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-700 dark:hover:bg-blue-900/20"
+                      data-testid="button-record-all-trades"
+                    >
+                      Record
+                    </Button>
                   </div>
                   <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden max-h-40 overflow-y-auto custom-thin-scrollbar">
                     <table className="w-full text-[11px]">
