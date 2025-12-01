@@ -7031,6 +7031,8 @@ ${
     return "5min";
   });
   const [isIndicatorDropdownOpen, setIsIndicatorDropdownOpen] = useState(false);
+  const [isCustomTimeframeDialogOpen, setIsCustomTimeframeDialogOpen] = useState(false);
+  const [customTimeframeInput, setCustomTimeframeInput] = useState("");
 
   // Indicator list system
   const indicatorList = [
@@ -13165,6 +13167,62 @@ ${
                                               {tf.label}
                                             </button>
                                           ))}
+                                          <Dialog open={isCustomTimeframeDialogOpen} onOpenChange={setIsCustomTimeframeDialogOpen}>
+                                            <DialogTrigger asChild>
+                                              <button
+                                                className="px-2 py-1.5 text-xs rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+                                                data-testid="button-add-custom-timeframe"
+                                              >
+                                                <Plus className="w-3 h-3" />
+                                              </button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[300px]">
+                                              <DialogHeader>
+                                                <DialogTitle>Custom Timeframe</DialogTitle>
+                                              </DialogHeader>
+                                              <div className="space-y-3">
+                                                <input
+                                                  type="text"
+                                                  placeholder="e.g., 2h, 4h, 3d, 1w"
+                                                  value={customTimeframeInput}
+                                                  onChange={(e) => setCustomTimeframeInput(e.target.value)}
+                                                  className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                                                  data-testid="input-custom-timeframe"
+                                                />
+                                                <div className="flex gap-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      setCustomTimeframeInput("");
+                                                      setIsCustomTimeframeDialogOpen(false);
+                                                    }}
+                                                    className="flex-1 text-xs"
+                                                    data-testid="button-cancel-custom-timeframe"
+                                                  >
+                                                    Cancel
+                                                  </Button>
+                                                  <Button
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      if (customTimeframeInput.trim()) {
+                                                        setIndicatorTimeframe(customTimeframeInput.trim());
+                                                        if (typeof window !== "undefined") {
+                                                          localStorage.setItem("indicatorTimeframe", customTimeframeInput.trim());
+                                                        }
+                                                        setCustomTimeframeInput("");
+                                                        setIsCustomTimeframeDialogOpen(false);
+                                                      }
+                                                    }}
+                                                    className="flex-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                                                    data-testid="button-confirm-custom-timeframe"
+                                                  >
+                                                    Apply
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            </DialogContent>
+                                          </Dialog>
                                         </div>
                                       </div>
 
