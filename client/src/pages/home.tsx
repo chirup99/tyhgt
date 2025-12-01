@@ -5824,17 +5824,57 @@ ${
             console.log('🆕 [NEW CANDLE] New interval detected, adding new candle to chart');
             
             // 🔴 CRITICAL: Finalize the PREVIOUS candle with its complete OHLC before moving to new candle
-            // This prevents the previous candle from collapsing into a line
+            // Get the FINAL OHLC for the previous candle
+            const prevCandleOpen = lastChartCandle.open;
+            const prevCandleHigh = Math.max(lastChartCandle.high, liveCandle.close);
+            const prevCandleLow = Math.min(lastChartCandle.low, liveCandle.close);
+            const prevCandleClose = liveCandle.close;
+            
+            // Create new candle with proper timestamp and OHLC from backend
+            const newCandle = {
+              time: currentCandleStartTime,
+              open: liveCandle.open,
+              high: liveCandle.high,
+              low: liveCandle.low,
+              close: liveCandle.close,
+              volume: liveCandle.volume || 0
+            };
+            
+            // UPDATE STATE: Finalize previous candle + add new candle atomically
+            const updatedChartData = (() => {
+              const prev = journalChartDataRef.current || [];
+              // Avoid duplicate new candles
+              const newCandleExists = prev.some(c => c.time === currentCandleStartTime);
+              if (newCandleExists) return prev;
+              
+              // Create updated array with:
+              // 1. All previous candles EXCEPT the last one
+              // 2. The last candle with its FINALIZED OHLC
+              // 3. The new candle
+              const updated = [...prev];
+              if (updated.length > 0) {
+                // Update the last candle's OHLC to match what we calculated
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  open: prevCandleOpen,
+                  high: prevCandleHigh,
+                  low: prevCandleLow,
+                  close: prevCandleClose
+                };
+              }
+              updated.push(newCandle);
+              return updated;
+            })();
+            
+            // Update BOTH state and ref synchronously to prevent desync
+            setJournalChartData(updatedChartData);
+            journalChartDataRef.current = updatedChartData;
+            
+            // ALSO update the chart series immediately to prevent chart from reverting
             setTimeout(() => {
               if (journalCandlestickSeriesRef.current) {
                 try {
-                  // Get the last candle's FINAL OHLC (that we've been updating in this interval)
-                  const prevCandleOpen = lastChartCandle.open;
-                  const prevCandleHigh = Math.max(lastChartCandle.high, liveCandle.close);
-                  const prevCandleLow = Math.min(lastChartCandle.low, liveCandle.close);
-                  const prevCandleClose = liveCandle.close;
-                  
-                  // FINALIZE previous candle one last time with its complete OHLC
+                  // FINALIZE previous candle on chart with its complete OHLC
                   journalCandlestickSeriesRef.current.update({
                     time: lastChartCandle.time as any,
                     open: prevCandleOpen,
@@ -5848,24 +5888,6 @@ ${
                 }
               }
             }, 20);
-            
-            // Create new candle with proper timestamp and OHLC from backend
-            const newCandle = {
-              time: currentCandleStartTime,
-              open: liveCandle.open,
-              high: liveCandle.high,
-              low: liveCandle.low,
-              close: liveCandle.close,
-              volume: liveCandle.volume || 0
-            };
-            
-            // Add new candle to chart data state
-            setJournalChartData(prev => {
-              // Avoid duplicates
-              const exists = prev.some(c => c.time === currentCandleStartTime);
-              if (exists) return prev;
-              return [...prev, newCandle];
-            });
             
             // Add new candle to chart series using update() - it adds if timestamp is newer
             setTimeout(() => {
