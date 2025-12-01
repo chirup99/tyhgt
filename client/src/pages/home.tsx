@@ -13013,14 +13013,12 @@ ${
                                 >
                                   <PopoverTrigger asChild>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
                                       data-testid="button-daily-factors-dropdown"
                                     >
-                                      <Activity className="w-3 h-3" />
-                                      <span className="ml-1 text-xs font-semibold">{selectedDailyFactors.length}</span>
-                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                      <Activity className="w-4 h-4" />
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-80 p-3">
@@ -13135,14 +13133,12 @@ ${
                                 >
                                   <PopoverTrigger asChild>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs border-emerald-300 dark:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
                                       data-testid="button-indicators-dropdown"
                                     >
-                                      <BarChart3 className="w-3 h-3" />
-                                      <span className="ml-1 text-xs font-semibold">{selectedIndicators.length}</span>
-                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                      <BarChart3 className="w-4 h-4" />
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-80 p-3">
@@ -13321,14 +13317,12 @@ ${
                                 >
                                   <PopoverTrigger asChild>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
                                       data-testid="button-tags-dropdown"
                                     >
-                                      <Brain className="w-3 h-3" />
-                                      <span className="ml-1 text-xs font-semibold">{selectedTags.length}</span>
-                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                      <Brain className="w-4 h-4" />
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-80 p-3">
