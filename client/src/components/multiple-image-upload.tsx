@@ -173,11 +173,11 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     ];
 
     return (
-      <div className="w-full h-full flex flex-col bg-gray-900 relative overflow-hidden">
+      <div className="w-full h-full flex flex-col bg-transparent relative overflow-hidden">
         {/* Main Carousel Area - Full height, no wrapper */}
         <div 
           ref={carouselRef}
-          className="flex-1 relative bg-gray-900 flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
+          className="flex-1 relative bg-transparent flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -258,8 +258,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           </Button>
         </div>
 
-        {/* Curved Line Footer - Matches Paper Trading Dialog */}
-        <div className="h-16 relative bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 rounded-t-2xl shadow-lg">
+        {/* Curved Line Footer - Transparent Background */}
+        <div className="h-16 relative bg-transparent flex items-center justify-center overflow-hidden">
           <svg
             className="absolute inset-0 w-full h-full opacity-40"
             viewBox="0 0 800 60"
