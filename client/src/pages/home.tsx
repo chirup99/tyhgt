@@ -5757,12 +5757,11 @@ ${
             
             // Create new price line with current LTP and countdown
             journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
-              price: liveCandle.close,
-              color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',
+            
               lineWidth: 1,
               lineStyle: 2, // Dashed
-              axisLabelVisible: false, // Hide price to avoid duplicate
-              title: `⏱️ ${countdownFormatted}`, // Show only countdown with icon
+         
+              title: ` ${countdownFormatted}`, // Show only countdown with icon
             });
           }
           
