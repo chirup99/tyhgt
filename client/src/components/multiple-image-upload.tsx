@@ -203,8 +203,9 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
               // Only apply drag offset to the center/top card (displayOffset === 0)
               const dragOffsetForThisCard = isDragging && displayOffset === 0 ? dragOffset : 0;
+              const dragRotationForThisCard = isDragging && displayOffset === 0 ? (dragOffset * 0.15) : 0;
 
-              const rotation = displayOffset * 8;
+              const rotation = displayOffset * 8 + dragRotationForThisCard;
               const translateX = displayOffset * 45 + dragOffsetForThisCard * 0.3;
               const translateY = Math.abs(displayOffset) * 15;
               const scale = 1 - Math.abs(displayOffset) * 0.06;
