@@ -3818,6 +3818,67 @@ ${
     }
   };
 
+  // Get lot size for Angel One instruments based on API standards
+  const getLotSizeForInstrument = (symbol: string, type: 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'): number => {
+    // Angel One API lot sizes - https://api-docs.angelbroking.com/
+    
+    // NSE Futures lot sizes
+    const futuresLotSizes: { [key: string]: number } = {
+      'NIFTY': 50,
+      'BANKNIFTY': 20,
+      'FINNIFTY': 40,
+      'MIDCPNIFTY': 75,
+      'SENSEX': 10,
+      'BANKEX': 15,
+      'NIFTYIT': 50,
+      'NIFTYPHARMA': 50,
+      'NIFTYINFRA': 50,
+      'NIFTYAUTO': 50,
+      'NIFTYBANK': 50,
+    };
+    
+    // MCX lot sizes (in units)
+    const mcxLotSizes: { [key: string]: number } = {
+      'GOLD': 100,      // 100 grams
+      'SILVER': 30,     // 30 kg
+      'CRUDEOIL': 100,  // 100 barrels
+      'NATURALGAS': 250, // 250 MMBtu
+      'COPPER': 1,      // 1 MT
+      'LEAD': 1,        // 1 MT
+      'NICKEL': 1,      // 1 MT
+      'ZINC': 1,        // 1 MT
+      'ALUMMINI': 1,    // 1 MT
+      'COTTON': 1,      // 1 bale
+      'MENTHAOIL': 1,   // 1 MT
+    };
+    
+    // NCDEX lot sizes
+    const ncdexLotSizes: { [key: string]: number } = {
+      'TURMERIC': 1,
+      'MAIZE': 100,
+      'SOYBEANGRDER': 100,
+      'SOYBEAN': 100,
+      'MUSTARD': 100,
+      'CARDAMOM': 1,
+      'PEPPER': 1,
+      'DHANIYA': 100,
+    };
+    
+    const baseSymbol = symbol.replace(/\d{2}[A-Z]{3}\d{2}[A-Z]{2}/i, '').toUpperCase();
+    
+    switch (type) {
+      case 'FUTURES':
+        return futuresLotSizes[baseSymbol] || 1;
+      case 'OPTIONS':
+        return 1; // Options are typically 1 per contract
+      case 'MCX':
+        return mcxLotSizes[baseSymbol] || 1;
+      case 'STOCK':
+      default:
+        return 1; // Stocks can be bought in any quantity
+    }
+  };
+
   // Get placeholder text based on selected type
   const getSearchPlaceholder = (): string => {
     switch (paperTradeType) {
@@ -16710,6 +16771,9 @@ ${
                                 setSelectedPaperTradingInstrument(stock);
                                 setPaperTradeSymbol(stock.symbol);
                                 setPaperTradeSymbolSearch(stock.symbol);
+                                // Auto-set lot size for futures/options/MCX
+                                const lotSize = getLotSizeForInstrument(stock.symbol, paperTradeType);
+                                setPaperTradeQuantity(lotSize.toString());
                                 fetchPaperTradePrice(stock);
                               }}
                               className="w-full text-left px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between text-xs"
@@ -16755,16 +16819,23 @@ ${
                     </SelectContent>
                   </Select>
 
-                  {/* Quantity */}
-                  <Input
-                    type="number"
-                    placeholder="Qty"
-                    value={paperTradeQuantity}
-                    onChange={(e) => setPaperTradeQuantity(e.target.value)}
-                    className="w-20 h-8 text-xs text-center"
-                    min="1"
-                    data-testid="input-paper-trade-qty"
-                  />
+                  {/* Quantity with Lot Size Info */}
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      placeholder="Qty"
+                      value={paperTradeQuantity}
+                      onChange={(e) => setPaperTradeQuantity(e.target.value)}
+                      className="w-20 h-8 text-xs text-center"
+                      min="1"
+                      data-testid="input-paper-trade-qty"
+                    />
+                    {selectedPaperTradingInstrument && paperTradeType !== 'STOCK' && (
+                      <span className="text-[10px] text-gray-400 px-1">
+                        Lot: {getLotSizeForInstrument(selectedPaperTradingInstrument.symbol, paperTradeType)}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Price Display */}
                   <div className="w-24 h-8 flex items-center justify-center text-xs font-medium border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800/50">
