@@ -16589,46 +16589,56 @@ ${
                             onClick={() => {
                               // Auto-extract from first line
                               const firstLine = importData.trim().split('\n')[0] || "";
-                              
-                              // Simple pattern: time order symbol type qty price
-                              // Example: "84.9 10:25:20 BUY BANKNIFTY SEP 39500 CE NFO MIS 25"
                               const parts = firstLine.split(/\s+/);
                               
-                              // Find positions by matching patterns
+                              // Find positions by matching patterns (track found state to avoid reusing parts)
                               let timePos = -1, orderPos = -1, symbolPos = -1, typePos = -1, qtyPos = -1, pricePos = -1;
                               let timeVal = "", orderVal = "", symbolVal = "", typeVal = "", qtyVal = "", priceVal = "";
+                              let foundTime = false, foundOrder = false, foundSymbol = false;
                               
+                              // Identify price and qty first (they're at the end)
+                              const lastIdx = parts.length - 1;
+                              if (lastIdx >= 0 && /^\d+(\.\d+)?$/.test(parts[lastIdx])) {
+                                qtyPos = firstLine.lastIndexOf(parts[lastIdx]);
+                                qtyVal = parts[lastIdx];
+                              }
+                              if (lastIdx >= 1 && /^\d+(\.\d+)?$/.test(parts[lastIdx - 1])) {
+                                pricePos = firstLine.lastIndexOf(parts[lastIdx - 1]);
+                                priceVal = parts[lastIdx - 1];
+                              }
+                              
+                              // Now scan left to right for time, order, symbol, type
                               for (let i = 0; i < parts.length; i++) {
                                 const part = parts[i];
+                                
                                 // Time pattern: HH:MM:SS
-                                if (!timeVal && /^\d{1,2}:\d{2}:\d{2}$/.test(part)) {
+                                if (!foundTime && /^\d{1,2}:\d{2}:\d{2}$/.test(part)) {
                                   timePos = firstLine.indexOf(part);
                                   timeVal = part;
+                                  foundTime = true;
+                                  continue;
                                 }
+                                
                                 // Order: BUY/SELL
-                                if (!orderVal && /^(BUY|SELL)$/i.test(part)) {
+                                if (!foundOrder && /^(BUY|SELL)$/i.test(part)) {
                                   orderPos = firstLine.indexOf(part);
-                                  orderVal = part;
+                                  orderVal = part.toUpperCase();
+                                  foundOrder = true;
+                                  continue;
                                 }
-                                // Symbol: all caps before expiry/numbers
-                                if (!symbolVal && /^[A-Z]+$/.test(part) && timeVal && orderVal) {
+                                
+                                // Symbol: all caps, comes after order
+                                if (!foundSymbol && foundOrder && /^[A-Z]+$/.test(part) && !/^(CE|PE|FUT|MIS|NRML|IOC)$/i.test(part)) {
                                   symbolPos = firstLine.indexOf(part);
                                   symbolVal = part;
+                                  foundSymbol = true;
+                                  continue;
                                 }
-                                // Type: numbers after symbol (lot size or strike)
-                                if (symbolVal && !typeVal && /^[A-Z]/.test(part)) {
+                                
+                                // Type: (CE, PE, FUT, MIS, NRML, etc) or numbers (strike price, expiry codes)
+                                if (foundSymbol && !typeVal && (/(CE|PE|FUT|NRML|MIS|IOC|CALL|PUT)$/i.test(part) || /^\d+$/.test(part))) {
                                   typePos = firstLine.indexOf(part);
                                   typeVal = part;
-                                }
-                                // Qty: number at end
-                                if (/^\d+$/.test(part) && i === parts.length - 1) {
-                                  qtyPos = firstLine.indexOf(part);
-                                  qtyVal = part;
-                                }
-                                // Price: number before qty
-                                if (/^\d+$/.test(part) && i === parts.length - 2) {
-                                  pricePos = firstLine.indexOf(part);
-                                  priceVal = part;
                                 }
                               }
                               
@@ -16652,7 +16662,7 @@ ${
                                 }
                               });
                               setIsBuildMode(true);
-                              console.log("🔨 Build mode - auto-extracted from first line. Edit if needed.", { timeVal, orderVal, symbolVal, typeVal, qtyVal, priceVal });
+                              console.log("🔨 Build mode - auto-extracted from first line", { timeVal, orderVal, symbolVal, typeVal, qtyVal, priceVal });
                             }}
                             data-testid="button-build"
                           >
