@@ -15841,9 +15841,12 @@ ${
                   </Button>
 
                   {/* SL Button with Dropdown */}
-                  <div className="relative ml-auto">
+                  <div className="relative ml-auto" onMouseDown={(e) => e.stopPropagation()}>
                     <Button
-                      onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown);
+                      }}
                       size="sm"
                       variant="outline"
                       className="h-8 px-3 text-xs"
@@ -15852,11 +15855,11 @@ ${
                       SL
                     </Button>
                     {showPaperTradeSLDropdown && (
-                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
                         <div className="p-3 space-y-2 min-w-[220px]">
                           <div>
                             <label className="text-[10px] text-gray-500 uppercase">Type</label>
-                            <Select value={paperTradeSLType} onValueChange={(v: any) => setPaperTradeSLType(v)}>
+                            <Select value={paperTradeSLType} onValueChange={(v: any) => { e.stopPropagation?.(); setPaperTradeSLType(v); }}>
                               <SelectTrigger className="h-7 text-xs mt-1">
                                 <SelectValue />
                               </SelectTrigger>
@@ -15873,7 +15876,7 @@ ${
                           {(paperTradeSLType === 'high' || paperTradeSLType === 'low') && (
                             <div>
                               <label className="text-[10px] text-gray-500 uppercase">Timeframe</label>
-                              <Select value={paperTradeSLTimeframe} onValueChange={(v) => setPaperTradeSLTimeframe(v)}>
+                              <Select value={paperTradeSLTimeframe} onValueChange={(v) => { setPaperTradeSLTimeframe(v); }}>
                                 <SelectTrigger className="h-7 text-xs mt-1">
                                   <SelectValue />
                                 </SelectTrigger>
@@ -15900,7 +15903,7 @@ ${
                                 className="h-7 text-xs flex-1"
                                 data-testid="input-paper-sl-duration"
                               />
-                              <Select value={paperTradeSLDurationUnit} onValueChange={(v) => setPaperTradeSLDurationUnit(v)}>
+                              <Select value={paperTradeSLDurationUnit} onValueChange={(v) => { setPaperTradeSLDurationUnit(v); }}>
                                 <SelectTrigger className="h-7 text-xs w-16">
                                   <SelectValue />
                                 </SelectTrigger>
@@ -15924,9 +15927,9 @@ ${
                           )}
 
                           <Button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setShowPaperTradeSLDropdown(false);
-                              // SL will be applied to next trade
                             }}
                             size="sm"
                             className="w-full h-7 text-xs bg-gray-600 hover:bg-gray-700 text-white"
