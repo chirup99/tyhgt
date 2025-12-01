@@ -5870,9 +5870,20 @@ ${
             setJournalChartData(updatedChartData);
             journalChartDataRef.current = updatedChartData;
             
-            // ALSO update the chart series immediately to prevent chart from reverting
+            // 🔴 CRITICAL: Save viewport BEFORE any chart updates to prevent flickering
+            let savedViewportRange: any = null;
+            if (journalChartRef.current) {
+              try {
+                const timeScale = journalChartRef.current.timeScale();
+                savedViewportRange = timeScale.getVisibleRange();
+              } catch (e) {
+                console.warn('⚠️ Could not save viewport range', e);
+              }
+            }
+            
+            // Update chart series with viewport preservation
             setTimeout(() => {
-              if (journalCandlestickSeriesRef.current) {
+              if (journalCandlestickSeriesRef.current && journalChartRef.current) {
                 try {
                   // FINALIZE previous candle on chart with its complete OHLC
                   journalCandlestickSeriesRef.current.update({
@@ -5883,21 +5894,8 @@ ${
                     close: prevCandleClose
                   });
                   console.log(`✅ [CANDLE FINALIZED] Previous candle locked with OHLC: O${prevCandleOpen} H${prevCandleHigh} L${prevCandleLow} C${prevCandleClose}`);
-                } catch (e) {
-                  console.warn('⚠️ Previous candle finalization skipped', e);
-                }
-              }
-            }, 20);
-            
-            // Add new candle to chart series using update() - it adds if timestamp is newer
-            setTimeout(() => {
-              if (journalCandlestickSeriesRef.current && journalChartRef.current) {
-                try {
-                  // Save current viewport position before adding new candle
-                  const timeScale = journalChartRef.current.timeScale();
-                  const visibleRange = timeScale.getVisibleRange();
                   
-                  // Use update() to add the new candle - it will add if time > last candle time
+                  // Add the new candle immediately after finalizing previous
                   journalCandlestickSeriesRef.current.update({
                     time: currentCandleStartTime as any,
                     open: liveCandle.open,
@@ -5905,16 +5903,23 @@ ${
                     low: liveCandle.low,
                     close: liveCandle.close
                   });
+                  console.log(`🕯️ [CANDLE ADDED] New candle: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
                   
-                  // Restore the viewport to prevent chart from jumping to center
-                  if (visibleRange) {
-                    timeScale.setVisibleRange(visibleRange);
+                  // 🎯 Restore viewport IMMEDIATELY after all candle updates
+                  if (savedViewportRange) {
+                    try {
+                      const timeScale = journalChartRef.current.timeScale();
+                      timeScale.setVisibleRange(savedViewportRange);
+                      console.log('✅ [VIEWPORT RESTORED] Smooth transition complete');
+                    } catch (e) {
+                      console.warn('⚠️ Viewport restoration skipped', e);
+                    }
                   }
                 } catch (e) {
-                  console.warn('⚠️ New candle add skipped (time conflict)', e);
+                  console.warn('⚠️ Candle update skipped (time conflict)', e);
                 }
               }
-            }, 70);
+            }, 20);
             
             // Update live OHLC display for the new candle
             const changePercent = liveCandle.open > 0 ? ((liveCandle.close - liveCandle.open) / liveCandle.open) * 100 : 0;
