@@ -12110,7 +12110,9 @@ ${
                                                 : 'text-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                             }`}
                                             onClick={() => {
+                                              // 🔴 FIX: Update BOTH display AND countdown interval
                                               setJournalChartTimeframe(tf.value);
+                                              setSelectedJournalInterval(tf.value); // ← CRITICAL: For countdown calculation
                                               setShowJournalTimeframeDropdown(false);
                                             }}
                                             data-testid={`timeframe-option-${tf.value}`}
@@ -12147,7 +12149,9 @@ ${
                                                 : 'text-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                             }`}
                                             onClick={() => {
+                                              // 🔴 FIX: Update BOTH display AND countdown interval
                                               setHeatmapChartTimeframe(tf.value);
+                                              setSelectedJournalInterval(tf.value); // ← CRITICAL: For countdown calculation
                                               setShowHeatmapTimeframeDropdown(false);
                                             }}
                                             data-testid={`heatmap-timeframe-option-${tf.value}`}
