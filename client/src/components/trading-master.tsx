@@ -5163,7 +5163,6 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
 
   // Auto-fetch ICICI Bank 1-minute data on component load
   useEffect(() => {
-    console.log(`🚀 Trading Master: Component mounted with state - symbol=${ohlcSymbol}, from=${ohlcFromDate}, to=${ohlcToDate}, timeframe=${ohlcTimeframe}`);
     console.log('🚀 Trading Master: Auto-fetching ICICI Bank 1-min data on load');
     fetchOhlcData.mutate();
   }, []); // Run once on mount
@@ -5190,11 +5189,8 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
   // 🔶 OHLC fetch mutation - Using Angel One API for historical data
   const fetchOhlcData = useMutation({
     mutationFn: async () => {
-      console.log(`🔶 [OHLC-FETCH] Starting fetch with: symbol=${ohlcSymbol}, from=${ohlcFromDate}, to=${ohlcToDate}, timeframe=${ohlcTimeframe}`);
-      
       const stockToken = getAngelOneStockToken(ohlcSymbol);
       if (!stockToken) {
-        console.error(`❌ [OHLC-FETCH] Stock token not found for ${ohlcSymbol}`);
         throw new Error(`Stock token not found for ${ohlcSymbol}. Please select a supported stock.`);
       }
 
@@ -5222,14 +5218,12 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error(`❌ [OHLC-FETCH] API returned error:`, errorData);
         throw new Error(errorData.message || 'Failed to fetch Angel One historical data');
       }
       
       const result = await response.json();
       
       if (!result.success) {
-        console.error(`❌ [OHLC-FETCH] API returned failure:`, result);
         throw new Error(result.message || 'Angel One API returned an error');
       }
 
@@ -5243,7 +5237,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
         volume: candle.volume
       }));
 
-      console.log(`✅ [OHLC-FETCH] Angel One returned ${transformedCandles.length} candles for ${ohlcSymbol}`);
+      console.log(`🔶 Angel One returned ${transformedCandles.length} candles`);
 
       return {
         symbol: ohlcSymbol,
@@ -5252,11 +5246,7 @@ Risk Warning: Past performance does not guarantee future results. Trade responsi
       };
     },
     onSuccess: (data) => {
-      console.log(`✅ [OHLC-FETCH] Successfully cached ${data.candles.length} candles`);
       queryClient.setQueryData(['/api/angelone/historical', ohlcSymbol, ohlcFromDate, ohlcToDate, ohlcTimeframe, timeRange, showTimeFilter], data);
-    },
-    onError: (error: Error) => {
-      console.error(`❌ [OHLC-FETCH] Mutation failed:`, error.message);
     },
   });
 
