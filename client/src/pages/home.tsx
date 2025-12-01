@@ -6931,6 +6931,91 @@ ${
   });
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
 
+  // Daily life factors state - affects trading performance
+  const [selectedDailyFactors, setSelectedDailyFactors] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("tradingDailyFactors");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+  const [isDailyFactorsDropdownOpen, setIsDailyFactorsDropdownOpen] = useState(false);
+
+  // Daily life factors system - personal factors affecting market performance
+  const dailyFactorsSystem = {
+    financial: {
+      name: "Financial",
+      color: "amber",
+      maxSelections: 3,
+      tags: [
+        "debt",
+        "money shortage",
+        "total risk high",
+        "borrowed money",
+        "unexpected expense",
+        "loan pressure",
+      ],
+    },
+    physical: {
+      name: "Physical & Sleep",
+      color: "orange",
+      maxSelections: 3,
+      tags: [
+        "poor sleep",
+        "exhausted",
+        "hungry",
+        "sick",
+        "hangover",
+        "jet lag",
+      ],
+    },
+    stress: {
+      name: "Work & Stress",
+      color: "red",
+      maxSelections: 3,
+      tags: [
+        "work stress",
+        "family tension",
+        "relationship issues",
+        "health anxiety",
+        "deadline pressure",
+        "personal crisis",
+      ],
+    },
+    distraction: {
+      name: "Distraction & Calls",
+      color: "yellow",
+      maxSelections: 3,
+      tags: [
+        "telegram calls",
+        "youtube calls",
+        "social media",
+        "whatsapp messages",
+        "family calls",
+        "others suggestions",
+      ],
+    },
+  };
+
+  const toggleDailyFactor = (factor: string) => {
+    setSelectedDailyFactors((prev) => {
+      const updated = prev.includes(factor)
+        ? prev.filter((f) => f !== factor)
+        : [...prev, factor];
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tradingDailyFactors", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  const clearAllDailyFactors = () => {
+    setSelectedDailyFactors([]);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tradingDailyFactors", JSON.stringify([]));
+    }
+  };
+
   // Indicators state for tracking mistakes with indicators and timeframes
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -12896,6 +12981,128 @@ ${
                                 TRADING NOTES
                               </h3>
                               <div className="flex items-center gap-1">
+                                {/* Daily Life Factors Dropdown */}
+                                <Popover
+                                  open={isDailyFactorsDropdownOpen}
+                                  onOpenChange={setIsDailyFactorsDropdownOpen}
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900"
+                                      data-testid="button-daily-factors-dropdown"
+                                    >
+                                      <Heart className="w-3 h-3" />
+                                      <span className="ml-1 text-xs font-semibold">{selectedDailyFactors.length}</span>
+                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-80 p-3">
+                                    <div className="space-y-3">
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="font-medium text-sm">
+                                          Daily Life Factors
+                                        </h4>
+                                        {selectedDailyFactors.length > 0 && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={clearAllDailyFactors}
+                                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                            data-testid="button-clear-daily-factors"
+                                          >
+                                            <Trash2 className="w-3 h-3 mr-1" />
+                                            Clear All
+                                          </Button>
+                                        )}
+                                      </div>
+
+                                      {/* Selected Factors Display */}
+                                      {selectedDailyFactors.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+                                          {selectedDailyFactors.map((factor) => (
+                                            <span
+                                              key={factor}
+                                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 rounded-full cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors"
+                                              onClick={() => toggleDailyFactor(factor)}
+                                              data-testid={`selected-daily-factor-${factor}`}
+                                            >
+                                              {factor}
+                                              <X className="w-3 h-3 ml-1" />
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Available Factors by Category */}
+                                      <div className="space-y-3 max-h-96 overflow-y-auto custom-thin-scrollbar">
+                                        {Object.entries(dailyFactorsSystem).map(
+                                          ([categoryKey, category]) => (
+                                            <div
+                                              key={categoryKey}
+                                              className="space-y-2"
+                                            >
+                                              <div className="flex items-center justify-between">
+                                                <h5
+                                                  className={`text-xs font-semibold text-${category.color}-600 dark:text-${category.color}-400`}
+                                                >
+                                                  {category.name}
+                                                </h5>
+                                                <span className="text-xs text-gray-500">
+                                                  {
+                                                    selectedDailyFactors.filter((f) =>
+                                                      category.tags.includes(f),
+                                                    ).length
+                                                  }
+                                                  /{category.maxSelections}
+                                                </span>
+                                              </div>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                {category.tags.map((factor) => {
+                                                  const isSelected =
+                                                    selectedDailyFactors.includes(factor);
+                                                  const categoryCount =
+                                                    selectedDailyFactors.filter((f) =>
+                                                      category.tags.includes(f),
+                                                    ).length;
+                                                  const isDisabled =
+                                                    !isSelected &&
+                                                    categoryCount >=
+                                                      category.maxSelections;
+
+                                                  return (
+                                                    <button
+                                                      key={factor}
+                                                      onClick={() =>
+                                                        toggleDailyFactor(factor)
+                                                      }
+                                                      disabled={isDisabled}
+                                                      className={`
+                                                  px-2 py-1.5 text-xs rounded-md border transition-all duration-200 text-left
+                                                  ${
+                                                    isSelected
+                                                      ? `bg-${category.color}-500 text-white border-${category.color}-500 hover:bg-${category.color}-600`
+                                                      : isDisabled
+                                                        ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed"
+                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                                  }
+                                                `}
+                                                      data-testid={`daily-factor-option-${factor}`}
+                                                    >
+                                                      {factor}
+                                                    </button>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          ),
+                                        )}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+
                                 {/* Indicators Dropdown */}
                                 <Popover
                                   open={isIndicatorDropdownOpen}
