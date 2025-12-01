@@ -5987,39 +5987,38 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // 🔴 CONTINUOUS COUNTDOWN UPDATER: Updates countdown bar every 100ms based on selected timeframe
+  // 🔴 CONTINUOUS COUNTDOWN UPDATER: Updates countdown bar every 100ms (independent of SSE)
   useEffect(() => {
-    if (activeTab !== 'journal' || !journalLiveData || !journalCountdownBarRef.current) {
+    if (activeTab !== 'journal' || !journalCountdownBarRef.current) {
       return;
     }
 
     const updateCountdown = () => {
-      if (!journalLiveData) return;
-      
-      // Convert selected timeframe to seconds
+      // Convert selected timeframe to seconds (from header)
       const intervalSeconds = parseInt(selectedJournalInterval || "1") * 60;
       
-      // Calculate current time and countdown
+      // Get current time aligned to the selected interval
       const currentTime = Math.floor(Date.now() / 1000);
-      const lastCandleTime = journalLiveData.currentCandle.time;
-      const currentCandleStartTime = Math.floor(lastCandleTime / intervalSeconds) * intervalSeconds;
+      const currentCandleStartTime = Math.floor(currentTime / intervalSeconds) * intervalSeconds;
       const nextCandleTime = currentCandleStartTime + intervalSeconds;
       const remainingSeconds = Math.max(0, nextCandleTime - currentTime);
       
-      // Update countdown bar width
+      // Update countdown bar width (respects header timeframe)
       const percentRemaining = (remainingSeconds / intervalSeconds) * 100;
-      journalCountdownBarRef.current!.style.width = `${percentRemaining}%`;
-      journalCountdownBarRef.current!.title = `${remainingSeconds}s / ${intervalSeconds}s`;
+      if (journalCountdownBarRef.current) {
+        journalCountdownBarRef.current.style.width = `${Math.max(0, Math.min(100, percentRemaining))}%`;
+        journalCountdownBarRef.current.title = `${remainingSeconds}s / ${intervalSeconds}s`;
+      }
     };
 
     // Update immediately
     updateCountdown();
     
-    // Then update every 100ms for smooth animation
+    // Then update every 100ms for smooth animation (runs every time, recalculates with current interval)
     const interval = setInterval(updateCountdown, 100);
     
     return () => clearInterval(interval);
-  }, [activeTab, selectedJournalInterval, journalLiveData]);
+  }, [activeTab, selectedJournalInterval]);
 
   // ❌ REMOVED: useEffect that fetched based on journalSelectedDate
   // Manual search chart is now standalone - only fetches on explicit button click
