@@ -1908,6 +1908,7 @@ export default function Home() {
     new Set(),
   );
   const [pendingTab, setPendingTab] = useState<string>("");
+  const [showSavedFormatsDropdown, setShowSavedFormatsDropdown] = useState(false);
 
   // Expose toggle nav function to window for profile icon in right sidebar
   useEffect(() => {
@@ -16429,9 +16430,17 @@ ${
                       {/* Saved Formats Table - Shows all saved formats with their original trade lines */}
                       {Object.keys(savedFormats).length > 0 && (
                         <div className="mt-4 space-y-2">
-                          <div className="text-xs font-medium text-muted-foreground">
+                          <button
+                            onClick={() => setShowSavedFormatsDropdown(!showSavedFormatsDropdown)}
+                            className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+                            data-testid="button-toggle-saved-formats"
+                          >
+                            <ChevronDown 
+                              className={`w-3 h-3 transition-transform ${showSavedFormatsDropdown ? "rotate-180" : ""}`}
+                            />
                             📚 Saved Formats ({Object.keys(savedFormats).length})
-                          </div>
+                          </button>
+                          {showSavedFormatsDropdown && (
                           <div className="bg-background rounded border overflow-hidden">
                             <table className="w-full text-xs">
                               <thead>
@@ -16491,6 +16500,7 @@ ${
                               </tbody>
                             </table>
                           </div>
+                          )}
                         </div>
                       )}
                     </div>
