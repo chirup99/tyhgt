@@ -201,21 +201,17 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
               if (Math.abs(displayOffset) > 2) return null;
 
-              const isCurrentCard = displayOffset === 0;
-              const rotation = isCurrentCard ? 0 : displayOffset * 8;
-              const translateX = isCurrentCard ? dragOffset : displayOffset * 45;
-              const translateY = isCurrentCard ? 0 : Math.abs(displayOffset) * 15;
-              const scale = isCurrentCard ? 1 : 1 - Math.abs(displayOffset) * 0.06;
-              const zIndex = isCurrentCard ? 100 : 50;
-              const opacity = isCurrentCard ? 1 : 0;
-
-              // Only show current card
-              if (!isCurrentCard) return null;
+              const rotation = displayOffset * 8;
+              const translateX = displayOffset * 45 + (isDragging ? dragOffset * 0.3 : 0);
+              const translateY = Math.abs(displayOffset) * 15;
+              const scale = 1 - Math.abs(displayOffset) * 0.06;
+              const zIndex = 100 - Math.abs(displayOffset);
+              const opacity = displayOffset === 0 ? 1 : 0.65;
 
               return (
                 <div
                   key={card.id}
-                  className={`absolute ${isDragging ? '' : 'transition-all duration-300 ease-out'}`}
+                  className={`absolute ${isDragging ? '' : 'transition-all duration-400 ease-out'}`}
                   style={{
                     transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
                     zIndex: zIndex,
