@@ -181,189 +181,83 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         >
           {/* Main Carousel Area */}
           <div className="flex-1 relative bg-gray-900 flex items-center justify-center overflow-visible">
-            {images.length === 0 ? (
-              // Empty state - minimal
+            {/* 5 Empty Colored Cards - Swipeable */}
+            {[
+              { id: 'card-1', color: 'bg-blue-500' },
+              { id: 'card-2', color: 'bg-purple-500' },
+              { id: 'card-3', color: 'bg-pink-500' },
+              { id: 'card-4', color: 'bg-green-500' },
+              { id: 'card-5', color: 'bg-orange-500' },
+            ].map((card, idx) => {
+              const offset = idx - currentIndex;
+              let displayOffset = offset;
+              if (displayOffset < -5 / 2) {
+                displayOffset += 5;
+              } else if (displayOffset > 5 / 2) {
+                displayOffset -= 5;
+              }
+
+              if (Math.abs(displayOffset) > 4) return null;
+
+              const rotation = displayOffset * 6;
+              const translateX = displayOffset * 35;
+              const translateY = Math.abs(displayOffset) * 10;
+              const scale = 1 - Math.abs(displayOffset) * 0.04;
+              const zIndex = 100 - Math.abs(displayOffset);
+              const opacity = displayOffset === 0 ? 1 : 0.75;
+
+              return (
+                <div
+                  key={card.id}
+                  className="absolute transition-all duration-300 ease-out"
+                  style={{
+                    transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
+                    zIndex: zIndex,
+                    opacity: opacity,
+                  }}
+                >
+                  <div className={`relative ${card.color} rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow`} style={{ width: '280px', height: '200px' }}>
+                    {/* Empty card with subtle center text */}
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium opacity-70">Card {idx + 1}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Navigation arrows */}
+            <>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
+                onClick={navigateLeft}
+                data-testid="button-nav-left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
+                onClick={navigateRight}
+                data-testid="button-nav-right"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+
+            {/* Upload overlay when no images */}
+            {images.length === 0 && (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center gap-3 text-gray-500 hover:text-gray-400 transition-colors cursor-pointer"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer bg-black/20 hover:bg-black/30 z-10"
                 data-testid="empty-upload-button"
               >
                 <Plus className="w-16 h-16" />
-                <p className="text-sm">Click or drag images</p>
+                <p className="text-sm">Upload images</p>
               </button>
-            ) : (
-              // Carousel with fanned cards
-              <>
-                {images.map((img, idx) => {
-                  const offset = idx - currentIndex;
-                  let displayOffset = offset;
-                  if (displayOffset < -images.length / 2) {
-                    displayOffset += images.length;
-                  } else if (displayOffset > images.length / 2) {
-                    displayOffset -= images.length;
-                  }
-
-                  if (Math.abs(displayOffset) > 4) return null;
-
-                  const rotation = displayOffset * 6;
-                  const translateX = displayOffset * 35;
-                  const translateY = Math.abs(displayOffset) * 10;
-                  const scale = 1 - Math.abs(displayOffset) * 0.04;
-                  const zIndex = 100 - Math.abs(displayOffset);
-                  const opacity = displayOffset === 0 ? 1 : 0.75;
-
-                  return (
-                    <div
-                      key={img.id}
-                      className="absolute transition-all duration-300 ease-out"
-                      style={{
-                        transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
-                        zIndex: zIndex,
-                        opacity: opacity,
-                      }}
-                    >
-                      <div className="relative bg-black rounded-md overflow-hidden shadow-xl" style={{ width: '280px', height: '200px' }}>
-                        <img
-                          src={img.url}
-                          alt={img.name}
-                          className="w-full h-full object-cover"
-                          data-testid={`img-card-${idx}`}
-                        />
-
-                        {/* Image label */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-3">
-                          <p className="text-white text-xs font-medium truncate">{img.name}</p>
-                        </div>
-
-                        {/* Controls - only on center card */}
-                        {displayOffset === 0 && (
-                          <div className="absolute top-2 right-2 flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="h-7 w-7 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
-                              onClick={handleFullscreen}
-                              data-testid="button-fullscreen"
-                            >
-                              <Expand className="w-3 h-3" />
-                            </Button>
-
-                            {!isSaved ? (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="h-7 w-7 p-0"
-                                onClick={() => removeImage(img.id)}
-                                data-testid={`button-remove-${idx}`}
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            ) : (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    className="h-7 w-7 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
-                                    data-testid="button-image-menu"
-                                  >
-                                    <MoreVertical className="w-3 h-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-gray-800 border border-gray-700">
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setIsSaved(false);
-                                      toast({ title: "Edit mode enabled" });
-                                    }}
-                                    className="cursor-pointer hover:bg-gray-700"
-                                  >
-                                    <Edit className="w-3 h-3 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => navigator.clipboard.writeText(img.url)}
-                                    className="cursor-pointer hover:bg-gray-700"
-                                  >
-                                    <Copy className="w-3 h-3 mr-2" />
-                                    Copy URL
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      const link = document.createElement('a');
-                                      link.href = img.url;
-                                      link.download = img.name || `image_1`;
-                                      link.click();
-                                    }}
-                                    className="cursor-pointer hover:bg-gray-700"
-                                  >
-                                    <Download className="w-3 h-3 mr-2" />
-                                    Download
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Navigation arrows */}
-                {images.length > 1 && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
-                      onClick={navigateLeft}
-                      data-testid="button-nav-left"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
-                      onClick={navigateRight}
-                      data-testid="button-nav-right"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
-
-                {/* Bottom controls */}
-                {!isSaved && (
-                  <div className="absolute bottom-4 left-4 flex gap-2 z-20">
-                    <Button
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
-                      onClick={() => {
-                        setIsSaved(true);
-                        toast({ title: "Images saved" });
-                      }}
-                      disabled={isUploading || images.length === 0}
-                      data-testid="button-save-post"
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      Save
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      data-testid="button-add-more"
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      {isUploading ? 'Uploading...' : 'Add More'}
-                    </Button>
-                  </div>
-                )}
-              </>
             )}
           </div>
 
