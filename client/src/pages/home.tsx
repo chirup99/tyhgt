@@ -3952,7 +3952,7 @@ ${
     }
   };
   
-  // Fetch live price from Angel One WebSocket (same stream as chart)
+  // 🔴 FIX: Keep paper trading WebSocket OPEN for continuous 700ms streaming (not just first price!)
   const fetchPaperTradePrice = async (stockInfoOverride?: any) => {
     const stockInfo = stockInfoOverride || selectedPaperTradingInstrument;
     
@@ -3960,6 +3960,14 @@ ${
       console.warn(`⚠️ [PAPER-TRADE-PRICE] No instrument selected`);
       return;
     }
+    
+    // Close previous stream if any
+    if (paperTradingEventSourcesRef.current.has(stockInfo.symbol)) {
+      const prevStream = paperTradingEventSourcesRef.current.get(stockInfo.symbol);
+      if (prevStream) prevStream.close();
+      paperTradingEventSourcesRef.current.delete(stockInfo.symbol);
+    }
+    
     console.log(`🔍 [PAPER-TRADE-PRICE] Selected instrument:`, {
       symbol: stockInfo.symbol,
       token: stockInfo.token,
@@ -3980,43 +3988,46 @@ ${
     }
     
     setPaperTradePriceLoading(true);
+    setPaperTradingWsStatus('connecting');
     try {
-      // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
-      // 🔶 Use 1-minute interval for live price stream (aggregation happens on display)
-      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`; // 60 seconds = 1 minute
+      // 🔴 CRITICAL FIX: Stream continuous live prices at 700ms (tick data!)
+      // Using interval=0 to get raw tick updates from Angel One, NOT binned candles
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=0`; // 0 = live tick data at 700ms
       
-      console.log(`📊 [PAPER-TRADE-PRICE] Subscribing to live price stream`);
+      console.log(`📊 [PAPER-TRADE-PRICE] Opening CONTINUOUS live price stream for ${stockInfo.symbol} (NSE, BSE, MCX, NCDEX, NFO, BFO, CDS)`);
       console.log(`  URL: ${sseUrl}`);
       
       const eventSource = new EventSource(sseUrl);
-      
-      eventSource.onopen = () => {
-        console.log(`✅ [PAPER-TRADE-PRICE] WebSocket connected for ${stockInfo.symbol}`);
-      };
+      paperTradingEventSourcesRef.current.set(stockInfo.symbol, eventSource);
       
       let priceReceived = false;
       const timeout = setTimeout(() => {
         if (!priceReceived) {
           console.warn(`⚠️ [PAPER-TRADE-PRICE] No price received for ${stockInfo.symbol} after 5s`);
-          eventSource.close();
           setPaperTradePriceLoading(false);
         }
       }, 5000);
+      
+      eventSource.onopen = () => {
+        console.log(`✅ [PAPER-TRADE-PRICE] WebSocket STREAMING for ${stockInfo.symbol} @ 700ms`);
+        setPaperTradingWsStatus('connected');
+      };
       
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           const ltp = data.ltp || data.close;
           
-          console.log(`📦 [PAPER-TRADE-PRICE] Received data:`, { ltp, data });
-          
           if (ltp && ltp > 0) {
-            console.log(`✅ [PAPER-TRADE-PRICE] Got real price for ${stockInfo.symbol}: ₹${ltp}`);
+            if (!priceReceived) {
+              console.log(`✅ [PAPER-TRADE-PRICE] Got initial price for ${stockInfo.symbol}: ₹${ltp}`);
+              clearTimeout(timeout);
+              setPaperTradePriceLoading(false);
+              priceReceived = true;
+            }
+            // 🔴 CRITICAL: Keep connection OPEN and update continuously (not close!)
             setPaperTradeCurrentPrice(ltp);
-            priceReceived = true;
-            clearTimeout(timeout);
-            eventSource.close();
-            setPaperTradePriceLoading(false);
+            setPaperTradingLivePrices(prev => new Map(prev).set(stockInfo.symbol, ltp));
           }
         } catch (err) {
           console.error(`[PAPER-TRADE-PRICE] Parse error for ${stockInfo.symbol}:`, err);
@@ -4027,14 +4038,16 @@ ${
         console.error(`❌ [PAPER-TRADE-PRICE] Connection error for ${stockInfo.symbol}:`, event);
         clearTimeout(timeout);
         eventSource.close();
+        paperTradingEventSourcesRef.current.delete(stockInfo.symbol);
+        setPaperTradingWsStatus('disconnected');
         if (!priceReceived) {
-          console.warn(`⚠️ [PAPER-TRADE-PRICE] Setting price loading to false due to error`);
           setPaperTradePriceLoading(false);
         }
       };
     } catch (error) {
       console.error("❌ [PAPER-TRADE-PRICE] Exception:", error);
       setPaperTradePriceLoading(false);
+      setPaperTradingWsStatus('disconnected');
     }
   };
   
@@ -16034,6 +16047,13 @@ ${
                         value={paperTradeSymbolSearch}
                         onChange={(e) => {
                           const query = e.target.value;
+                          // 🔴 Close paper trading WebSocket when clearing search
+                          if (!query && paperTradeSymbol && paperTradingEventSourcesRef.current.has(paperTradeSymbol)) {
+                            const stream = paperTradingEventSourcesRef.current.get(paperTradeSymbol);
+                            if (stream) stream.close();
+                            paperTradingEventSourcesRef.current.delete(paperTradeSymbol);
+                            setPaperTradingWsStatus('disconnected');
+                          }
                           setPaperTradeSymbolSearch(query);
                           setPaperTradeSymbol("");
                           setPaperTradeCurrentPrice(null);
@@ -16084,12 +16104,19 @@ ${
                     value={paperTradeType} 
                     onValueChange={(v) => {
                       const newType = v as 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX';
+                      // 🔴 Close paper trading WebSocket when changing type
+                      if (paperTradeSymbol && paperTradingEventSourcesRef.current.has(paperTradeSymbol)) {
+                        const stream = paperTradingEventSourcesRef.current.get(paperTradeSymbol);
+                        if (stream) stream.close();
+                        paperTradingEventSourcesRef.current.delete(paperTradeSymbol);
+                      }
                       setPaperTradeType(newType);
                       setPaperTradeSymbol("");
                       setPaperTradeSymbolSearch("");
                       setPaperTradeSearchResults([]);
                       setPaperTradeCurrentPrice(null);
                       setSelectedPaperTradingInstrument(null);
+                      setPaperTradingWsStatus('disconnected');
                     }}
                   >
                     <SelectTrigger className="w-24 h-8 text-xs" data-testid="select-paper-trade-type">
