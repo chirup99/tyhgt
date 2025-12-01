@@ -24,7 +24,12 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     const [images, setImages] = useState<UploadedImage[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const [dragOffset, setDragOffset] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const touchStartX = useRef(0);
+    const touchStartY = useRef(0);
+    const carouselRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
     // Sync external images
@@ -89,6 +94,75 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
       setCurrentIndex((currentIndex + 1) % (images.length > 0 ? images.length : 5));
     };
 
+    const handleTouchStart = (e: React.TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+      setIsDragging(true);
+      setDragOffset(0);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+      if (!isDragging) return;
+      
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const deltaX = currentX - touchStartX.current;
+      const deltaY = Math.abs(currentY - touchStartY.current);
+      
+      // Only horizontal swipe (not vertical)
+      if (deltaY < 50) {
+        setDragOffset(deltaX);
+      }
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+      setIsDragging(false);
+      const threshold = 50;
+      
+      if (dragOffset > threshold) {
+        // Swiped right - go to previous
+        navigateLeft();
+      } else if (dragOffset < -threshold) {
+        // Swiped left - go to next
+        navigateRight();
+      }
+      
+      setDragOffset(0);
+    };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+      touchStartX.current = e.clientX;
+      touchStartY.current = e.clientY;
+      setIsDragging(true);
+      setDragOffset(0);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      
+      const currentX = e.clientX;
+      const currentY = e.clientY;
+      const deltaX = currentX - touchStartX.current;
+      const deltaY = Math.abs(currentY - touchStartY.current);
+      
+      if (deltaY < 50) {
+        setDragOffset(deltaX);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      const threshold = 50;
+      
+      if (dragOffset > threshold) {
+        navigateLeft();
+      } else if (dragOffset < -threshold) {
+        navigateRight();
+      }
+      
+      setDragOffset(0);
+    };
+
     // Determine cards to show
     const cardsToShow = images.length > 0 ? images : [
       { id: 'card-1', color: 'bg-blue-500', name: 'Card 1' },
@@ -101,7 +175,17 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     return (
       <div className="w-full h-full flex flex-col bg-gray-900 relative overflow-hidden">
         {/* Main Carousel Area - Full height, no wrapper */}
-        <div className="flex-1 relative bg-gray-900 flex items-center justify-center">
+        <div 
+          ref={carouselRef}
+          className="flex-1 relative bg-gray-900 flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
           {/* Cards Container */}
           <div className="absolute inset-0 flex items-center justify-center">
             {cardsToShow.map((card, idx) => {
@@ -118,7 +202,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               if (Math.abs(displayOffset) > 2) return null;
 
               const rotation = displayOffset * 8;
-              const translateX = displayOffset * 45;
+              const translateX = displayOffset * 45 + (isDragging ? dragOffset * 0.3 : 0);
               const translateY = Math.abs(displayOffset) * 15;
               const scale = 1 - Math.abs(displayOffset) * 0.06;
               const zIndex = 100 - Math.abs(displayOffset);
@@ -127,7 +211,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               return (
                 <div
                   key={card.id}
-                  className="absolute transition-all duration-400 ease-out"
+                  className={`absolute ${isDragging ? '' : 'transition-all duration-400 ease-out'}`}
                   style={{
                     transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
                     zIndex: zIndex,
