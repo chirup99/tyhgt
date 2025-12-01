@@ -12817,11 +12817,11 @@ ${
                               variant="outline"
                               size="sm"
                               onClick={() => setShowPaperTradingModal(true)}
-                              className="h-8 px-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 hover:from-purple-600 hover:to-pink-600"
-                              data-testid="button-demo-trade"
+                              className="h-8 px-3"
+                              data-testid="button-paper-trade"
                             >
                               <Play className="h-4 w-4 mr-2" />
-                              Demo Trade
+                              Paper Trade
                             </Button>
                             <div className="h-8 px-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md flex items-center justify-center text-xs font-medium text-indigo-700 dark:text-indigo-300 min-w-[80px]">
                               <Timer className="h-4 w-4 mr-2" />
