@@ -327,7 +327,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           >
             {/* Main Modal */}
             <div 
-              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full h-auto flex-shrink-0 animate-in zoom-in-95 duration-300 flex flex-col"
+              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full h-auto flex-shrink-0 animate-modal-bounce flex flex-col"
               style={{ maxHeight: 'calc(100vh - 300px)' }}
               onClick={(e) => e.stopPropagation()}
             >
