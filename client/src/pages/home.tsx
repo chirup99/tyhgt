@@ -12846,8 +12846,8 @@ ${
                                       className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
                                       data-testid="button-tags-dropdown"
                                     >
-                                      <Tag className="w-3 h-3 mr-1" />
-                                      Tags ({selectedTags.length})
+                                      <Tag className="w-3 h-3" />
+                                      <span className="ml-1 text-xs font-semibold">{selectedTags.length}</span>
                                       <ChevronDown className="w-3 h-3 ml-1" />
                                     </Button>
                                   </PopoverTrigger>
@@ -12995,8 +12995,7 @@ ${
                                     className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
                                     data-testid="button-edit-notes"
                                   >
-                                    <Edit className="w-3 h-3 md:mr-1" />
-                                    <span className="hidden md:inline">Edit</span>
+                                    <Edit className="w-3 h-3" />
                                   </Button>
                                 )}
                               </div>
