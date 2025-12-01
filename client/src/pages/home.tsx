@@ -12817,61 +12817,51 @@ ${
                         onClick={() =>
                           setShowMobileTradeHistory(!showMobileTradeHistory)
                         }
-                        className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors"
                         data-testid="button-toggle-trade-history"
                       >
                         <div className="flex items-center gap-2">
-                          <BarChart3 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                          <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                          <BarChart3 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                          <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                             TRADE HISTORY SUMMARY
                           </span>
                         </div>
                         {showMobileTradeHistory ? (
-                          <ChevronUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                          <ChevronUp className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                          <ChevronDown className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         )}
                       </div>
 
                       {/* Mobile: Trade History Summary Content (Dropdown) */}
                       {showMobileTradeHistory && (
-                        <Card className="mt-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-end gap-2 mb-4">
+                        <Card className="mt-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                          <CardContent className="p-3">
+                            <div className="flex items-center justify-end gap-1.5 mb-3">
                               <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowOrderModal(true)}
-                                className="h-8 px-3"
-                                data-testid="button-place-order"
-                              >
-                                <Target className="h-4 w-4 mr-2" />
-                                Order
-                              </Button>
-                              <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => setShowImportModal(true)}
-                                className="h-8 px-3"
+                                className="h-7 text-xs px-2"
                                 data-testid="button-import-pnl"
                               >
-                                <Upload className="h-4 w-4 mr-2" />
+                                <Upload className="h-3 w-3 mr-1" />
                                 Import
                               </Button>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => setShowPaperTradingModal(true)}
-                                className="h-8 px-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400"
+                                className="h-7 text-xs px-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300"
                                 data-testid="button-demo-trade-mobile"
                               >
-                                <Play className="h-4 w-4 mr-2" />
-                                Demo
+                                <Play className="h-3 w-3 mr-1" />
+                                Paper Trade
                               </Button>
                             </div>
-                            <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
+                            <div className="max-h-80 overflow-auto border border-slate-200 dark:border-slate-700 custom-thin-scrollbar">
                               <table className="w-full text-xs">
-                                <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
+                                <thead className="bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 sticky top-0">
                                   <tr>
                                     <th className="p-1 text-left min-w-[60px]">
                                       Time
@@ -12902,21 +12892,21 @@ ${
                                     </th>
                                   </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                <tbody className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                                   {isLoadingHeatmapData && tradeHistoryData.length === 0 ? (
                                     <tr>
                                       <td colSpan={9} className="p-8 text-center">
                                         <div className="flex flex-col items-center gap-2">
                                           <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                          <span className="text-sm text-gray-500 dark:text-gray-400">Loading trade history...</span>
+                                          <span className="text-sm text-slate-500 dark:text-slate-400">Loading trade history...</span>
                                         </div>
                                       </td>
                                     </tr>
                                   ) : tradeHistoryData.length === 0 ? (
                                     <tr>
-                                      <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                      <td colSpan={9} className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
                                         {!isDemoMode 
-                                          ? "No personal data yet - switch to Demo mode or start adding your trades!" 
+                                          ? "No personal data yet - switch to Paper Trade mode or start adding your trades!" 
                                           : selectedDate 
                                             ? "No trades for this date" 
                                             : "Select a date from the calendar to view trades"}
@@ -12926,7 +12916,7 @@ ${
                                     tradeHistoryData.map((trade, index) => (
                                       <tr
                                         key={index}
-                                        className="border-b border-gray-200 dark:border-gray-700"
+                                        className="border-b border-slate-200 dark:border-slate-700"
                                       >
                                       <td className="p-1">{trade.time}</td>
                                       <td className="p-1">
