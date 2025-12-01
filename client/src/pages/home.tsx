@@ -15992,7 +15992,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.time.length > 0 && (
+                                {buildModeData.positions.time.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -16018,6 +16018,36 @@ ${
                                     </div>
                                     <span className="font-medium text-xs">{buildModeData.displayValues.time}</span>
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText && firstLine) {
+                                          const selectedWords = selectedText.split(/\s+/);
+                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
+                                          if (newPositions.length > 0) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, time: [...prev.positions.time, ...newPositions] },
+                                              displayValues: { ...prev.displayValues!, time: prev.displayValues.time ? `${prev.displayValues.time} ${selectedText}` : selectedText }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-time"
+                                    title="Select text and click +"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
@@ -16030,7 +16060,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.order.length > 0 && (
+                                {buildModeData.positions.order.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -16056,6 +16086,36 @@ ${
                                     </div>
                                     <span className="font-medium text-xs">{buildModeData.displayValues.order}</span>
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText && firstLine) {
+                                          const selectedWords = selectedText.split(/\s+/);
+                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
+                                          if (newPositions.length > 0) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, order: [...prev.positions.order, ...newPositions] },
+                                              displayValues: { ...prev.displayValues!, order: prev.displayValues.order ? `${prev.displayValues.order} ${selectedText}` : selectedText }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-order"
+                                    title="Select text and click +"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
@@ -16068,7 +16128,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.symbol.length > 0 && (
+                                {buildModeData.positions.symbol.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -16094,6 +16154,36 @@ ${
                                     </div>
                                     <span className="font-medium text-xs">{buildModeData.displayValues.symbol}</span>
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText && firstLine) {
+                                          const selectedWords = selectedText.split(/\s+/);
+                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
+                                          if (newPositions.length > 0) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, symbol: [...prev.positions.symbol, ...newPositions] },
+                                              displayValues: { ...prev.displayValues!, symbol: prev.displayValues.symbol ? `${prev.displayValues.symbol} ${selectedText}` : selectedText }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-symbol"
+                                    title="Select text and click +"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
@@ -16106,7 +16196,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.type.length > 0 && (
+                                {buildModeData.positions.type.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -16132,6 +16222,36 @@ ${
                                     </div>
                                     <span className="font-medium text-xs">{buildModeData.displayValues.type}</span>
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText && firstLine) {
+                                          const selectedWords = selectedText.split(/\s+/);
+                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
+                                          if (newPositions.length > 0) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, type: [...prev.positions.type, ...newPositions] },
+                                              displayValues: { ...prev.displayValues!, type: prev.displayValues.type ? `${prev.displayValues.type} ${selectedText}` : selectedText }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-type"
+                                    title="Select text and click +"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
@@ -16144,7 +16264,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.qty.length > 0 && (
+                                {buildModeData.positions.qty.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -16170,6 +16290,36 @@ ${
                                     </div>
                                     <span className="font-medium text-xs">{buildModeData.displayValues.qty}</span>
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText && firstLine) {
+                                          const selectedWords = selectedText.split(/\s+/);
+                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
+                                          if (newPositions.length > 0) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, qty: [...prev.positions.qty, ...newPositions] },
+                                              displayValues: { ...prev.displayValues!, qty: prev.displayValues.qty ? `${prev.displayValues.qty} ${selectedText}` : selectedText }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-qty"
+                                    title="Select text and click +"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
 
@@ -16182,7 +16332,7 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.price.length > 0 && (
+                                {buildModeData.positions.price.length > 0 ? (
                                   <div 
                                     draggable
                                     onDragStart={(e) => {
@@ -16208,6 +16358,36 @@ ${
                                     </div>
                                     <span className="font-medium text-xs">{buildModeData.displayValues.price}</span>
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const textarea = importDataTextareaRef.current;
+                                      if (textarea) {
+                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
+                                        if (selectedText && firstLine) {
+                                          const selectedWords = selectedText.split(/\s+/);
+                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
+                                          if (newPositions.length > 0) {
+                                            setBuildModeData(prev => ({ 
+                                              ...prev,
+                                              sampleLine: firstLine,
+                                              positions: { ...prev.positions, price: [...prev.positions.price, ...newPositions] },
+                                              displayValues: { ...prev.displayValues!, price: prev.displayValues.price ? `${prev.displayValues.price} ${selectedText}` : selectedText }
+                                            }));
+                                          } else {
+                                            alert("Could not find selected text in first line!");
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    data-testid="add-price"
+                                    title="Select text and click +"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
                                 )}
                               </td>
                             </tr>
