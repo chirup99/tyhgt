@@ -3730,6 +3730,14 @@ ${
     pnl: number;
     pnlPercent: number;
     isOpen: boolean;
+    // Stop Loss fields
+    slEnabled?: boolean;
+    slType?: 'price' | 'percent' | 'duration' | 'high' | 'low';
+    slValue?: string;
+    slTimeframe?: string;
+    slDurationUnit?: string;
+    slTriggerPrice?: number;
+    slExpiryTime?: number; // For duration-based SL
   }
   
   // Paper trading trade history
@@ -3779,6 +3787,7 @@ ${
   const [paperTradeSLValue, setPaperTradeSLValue] = useState("");
   const [paperTradeSLTimeframe, setPaperTradeSLTimeframe] = useState("5m");
   const [paperTradeSLDurationUnit, setPaperTradeSLDurationUnit] = useState("min");
+  const [paperTradeSLEnabled, setPaperTradeSLEnabled] = useState(false); // SL is enabled when user sets it
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
   
   // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
@@ -4054,6 +4063,23 @@ ${
         return;
       }
       
+      // Calculate SL trigger price if SL is enabled
+      let slTriggerPrice: number | undefined;
+      let slExpiryTime: number | undefined;
+      
+      if (paperTradeSLEnabled && paperTradeSLValue) {
+        if (paperTradeSLType === 'price') {
+          slTriggerPrice = parseFloat(paperTradeSLValue);
+        } else if (paperTradeSLType === 'percent') {
+          const percentValue = parseFloat(paperTradeSLValue);
+          slTriggerPrice = paperTradeCurrentPrice * (1 - percentValue / 100);
+        } else if (paperTradeSLType === 'duration') {
+          const durationValue = parseFloat(paperTradeSLValue);
+          const multiplier = paperTradeSLDurationUnit === 'hr' ? 60 : 1;
+          slExpiryTime = Date.now() + (durationValue * multiplier * 60 * 1000);
+        }
+      }
+      
       // Create new position
       const newPosition: PaperPosition = {
         id: `PT-${Date.now()}`,
@@ -4069,7 +4095,15 @@ ${
         isOpen: true,
         // Store token and exchange for WebSocket live price streaming
         symbolToken: (selectedPaperTradingInstrument as any)?.token || "0",
-        exchange: (selectedPaperTradingInstrument as any)?.exchange || "NSE"
+        exchange: (selectedPaperTradingInstrument as any)?.exchange || "NSE",
+        // Stop Loss settings
+        slEnabled: paperTradeSLEnabled,
+        slType: paperTradeSLEnabled ? paperTradeSLType : undefined,
+        slValue: paperTradeSLEnabled ? paperTradeSLValue : undefined,
+        slTimeframe: paperTradeSLEnabled ? paperTradeSLTimeframe : undefined,
+        slDurationUnit: paperTradeSLEnabled ? paperTradeSLDurationUnit : undefined,
+        slTriggerPrice: slTriggerPrice,
+        slExpiryTime: slExpiryTime
       } as any;
       
       // Add to positions
@@ -4096,10 +4130,23 @@ ${
       setPaperTradeHistory(updatedHistory);
       localStorage.setItem("paperTradeHistory", JSON.stringify(updatedHistory));
       
+      // Build toast message with SL info
+      let toastDescription = `Bought ${quantity} ${paperTradeSymbol} @ ₹${paperTradeCurrentPrice.toFixed(2)}`;
+      if (paperTradeSLEnabled && slTriggerPrice) {
+        toastDescription += ` | SL: ₹${slTriggerPrice.toFixed(2)}`;
+      } else if (paperTradeSLEnabled && slExpiryTime) {
+        toastDescription += ` | SL: ${paperTradeSLValue} ${paperTradeSLDurationUnit}`;
+      }
+      
       toast({
         title: "Trade Executed",
-        description: `Bought ${quantity} ${paperTradeSymbol} @ ₹${paperTradeCurrentPrice.toFixed(2)}`
+        description: toastDescription
       });
+      
+      // Reset SL settings after trade
+      setPaperTradeSLEnabled(false);
+      setPaperTradeSLValue("");
+      setShowPaperTradeSLDropdown(false);
       
     } else {
       // SELL - Close an existing position
@@ -4389,6 +4436,99 @@ ${
     const openPositions = paperPositions.filter(p => p.isOpen);
     return openPositions.reduce((total, p) => total + (p.pnl || 0), 0);
   }, [paperPositions]);
+  
+  // SL Monitoring Effect - Auto-exit positions when SL is triggered
+  useEffect(() => {
+    const openPositions = paperPositions.filter(p => p.isOpen);
+    if (openPositions.length === 0) return;
+    
+    // Check each open position for SL trigger
+    openPositions.forEach(position => {
+      const pos = position as any;
+      if (!pos.slEnabled) return;
+      
+      let slTriggered = false;
+      let slReason = '';
+      
+      // Price-based SL (for both price and percent types)
+      if (pos.slTriggerPrice && pos.currentPrice > 0) {
+        if (pos.action === 'BUY') {
+          // For long positions, trigger SL when price drops below trigger price
+          if (pos.currentPrice <= pos.slTriggerPrice) {
+            slTriggered = true;
+            slReason = `Price SL hit at ₹${pos.currentPrice.toFixed(2)} (SL: ₹${pos.slTriggerPrice.toFixed(2)})`;
+          }
+        } else {
+          // For short positions, trigger SL when price rises above trigger price
+          if (pos.currentPrice >= pos.slTriggerPrice) {
+            slTriggered = true;
+            slReason = `Price SL hit at ₹${pos.currentPrice.toFixed(2)} (SL: ₹${pos.slTriggerPrice.toFixed(2)})`;
+          }
+        }
+      }
+      
+      // Duration-based SL
+      if (pos.slExpiryTime && Date.now() >= pos.slExpiryTime) {
+        slTriggered = true;
+        slReason = `Time SL expired (${pos.slValue} ${pos.slDurationUnit})`;
+      }
+      
+      // If SL is triggered, auto-exit the position
+      if (slTriggered) {
+        console.log(`🛑 [SL-TRIGGER] Auto-exiting ${pos.symbol}: ${slReason}`);
+        
+        // Calculate final P&L
+        const priceDiff = pos.action === 'BUY' 
+          ? (pos.currentPrice - pos.entryPrice) 
+          : (pos.entryPrice - pos.currentPrice);
+        const finalPnl = priceDiff * pos.quantity;
+        const finalPnlPercent = (priceDiff / pos.entryPrice) * 100;
+        
+        // Close the position
+        setPaperPositions(prevPositions => {
+          const updated = prevPositions.map(p => 
+            p.id === pos.id 
+              ? { ...p, isOpen: false, pnl: finalPnl, pnlPercent: finalPnlPercent }
+              : p
+          );
+          localStorage.setItem("paperPositions", JSON.stringify(updated));
+          return updated;
+        });
+        
+        // Add sale value back to capital
+        const saleValue = pos.quantity * pos.currentPrice;
+        setPaperTradingCapital(prev => {
+          const newCapital = prev + saleValue;
+          localStorage.setItem("paperTradingCapital", String(newCapital));
+          return newCapital;
+        });
+        
+        // Add to trade history
+        const exitTrade = {
+          id: `PT-${Date.now()}`,
+          symbol: pos.symbol,
+          type: pos.type,
+          action: 'SELL' as const,
+          quantity: pos.quantity,
+          price: pos.currentPrice,
+          time: new Date().toLocaleTimeString(),
+          pnl: `${finalPnl >= 0 ? '+' : ''}₹${finalPnl.toFixed(2)}`
+        };
+        setPaperTradeHistory(prev => {
+          const updated = [...prev, exitTrade];
+          localStorage.setItem("paperTradeHistory", JSON.stringify(updated));
+          return updated;
+        });
+        
+        // Show toast notification
+        toast({
+          title: "Stop Loss Triggered",
+          description: `${pos.symbol}: ${slReason} | P&L: ${finalPnl >= 0 ? '+' : ''}₹${finalPnl.toFixed(2)}`,
+          variant: finalPnl >= 0 ? "default" : "destructive"
+        });
+      }
+    });
+  }, [paperPositions.map(p => `${p.id}:${p.currentPrice}:${p.isOpen}`).join(',')]);
   
   // ============================================
   // END PAPER TRADING STATE
@@ -15914,11 +16054,11 @@ ${
                       onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
                       disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
                       size="sm"
-                      variant="outline"
-                      className="h-8 px-3 text-xs"
+                      variant={paperTradeSLEnabled ? "default" : "outline"}
+                      className={`h-8 px-3 text-xs ${paperTradeSLEnabled ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}`}
                       data-testid="button-paper-sl"
                     >
-                      SL
+                      SL {paperTradeSLEnabled && '✓'}
                     </Button>
                     {showPaperTradeSLDropdown && (
                       <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
@@ -15994,8 +16134,21 @@ ${
 
                           <Button
                             onClick={() => {
+                              // Enable SL for the next trade
+                              if (paperTradeSLValue || paperTradeSLType === 'high' || paperTradeSLType === 'low') {
+                                setPaperTradeSLEnabled(true);
+                                toast({
+                                  title: "Stop Loss Set",
+                                  description: paperTradeSLType === 'price' 
+                                    ? `SL at ₹${paperTradeSLValue}` 
+                                    : paperTradeSLType === 'percent'
+                                    ? `SL at ${paperTradeSLValue}% loss`
+                                    : paperTradeSLType === 'duration'
+                                    ? `SL after ${paperTradeSLValue} ${paperTradeSLDurationUnit}`
+                                    : `SL at ${paperTradeSLTimeframe} candle ${paperTradeSLType}`
+                                });
+                              }
                               setShowPaperTradeSLDropdown(false);
-                              // SL will be applied to next trade
                             }}
                             size="sm"
                             className="w-full h-7 text-xs bg-gray-600 hover:bg-gray-700 text-white"
@@ -16044,6 +16197,7 @@ ${
                           <th className="px-2 py-1.5 text-right font-medium">Qty</th>
                           <th className="px-2 py-1.5 text-right font-medium">Avg</th>
                           <th className="px-2 py-1.5 text-right font-medium">LTP</th>
+                          <th className="px-2 py-1.5 text-right font-medium">SL</th>
                           <th className="px-2 py-1.5 text-right font-medium">P&L</th>
                           <th className="px-2 py-1.5 text-right font-medium">%</th>
                           <th className="px-2 py-1.5 text-right font-medium">Duration</th>
@@ -16096,6 +16250,15 @@ ${
                               <td className="px-2 py-1.5 text-right text-gray-500">{position.entryPrice.toFixed(2)}</td>
                               <td className="px-2 py-1.5 text-right" data-testid={`position-ltp-${position.symbol}`}>
                                 {position.currentPrice.toFixed(2)}
+                              </td>
+                              <td className="px-2 py-1.5 text-right text-[10px] text-orange-500" data-testid={`position-sl-${position.symbol}`}>
+                                {(position as any).slEnabled && (position as any).slTriggerPrice 
+                                  ? `₹${(position as any).slTriggerPrice.toFixed(1)}`
+                                  : (position as any).slEnabled && (position as any).slExpiryTime
+                                  ? `${(position as any).slValue}${(position as any).slDurationUnit}`
+                                  : (position as any).slEnabled && ((position as any).slType === 'high' || (position as any).slType === 'low')
+                                  ? `${(position as any).slTimeframe} ${(position as any).slType}`
+                                  : '-'}
                               </td>
                               <td className={`px-2 py-1.5 text-right font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid={`position-pnl-${position.symbol}`}>
                                 {position.pnl >= 0 ? '+' : ''}{position.pnl.toFixed(0)}
