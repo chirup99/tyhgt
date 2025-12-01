@@ -15128,13 +15128,14 @@ ${
                       <th className="px-2 py-2 text-left font-medium">Qty</th>
                       <th className="px-2 py-2 text-left font-medium">Price</th>
                       <th className="px-2 py-2 text-left font-medium">P&L</th>
+                      <th className="px-2 py-2 text-left font-medium">Duration</th>
                     </tr>
                   </thead>
                   <tbody>
                     {tradeHistoryData.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={7}
+                          colSpan={8}
                           className="px-2 py-4 text-center text-gray-500"
                         >
                           No trade history imported
@@ -15187,7 +15188,7 @@ ${
                               </span>
                             </td>
                             <td className="px-2 py-2 text-gray-500">
-                              {trade.duration}
+                              {normalizeDurationForDisplay(trade.duration)}
                             </td>
                           </tr>
                         );
