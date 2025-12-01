@@ -15853,31 +15853,70 @@ ${
                           <th className="px-2 py-1.5 text-right font-medium">Avg</th>
                           <th className="px-2 py-1.5 text-right font-medium">LTP</th>
                           <th className="px-2 py-1.5 text-right font-medium">P&L</th>
+                          <th className="px-2 py-1.5 text-right font-medium">%</th>
+                          <th className="px-2 py-1.5 text-right font-medium">Duration</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {paperPositions.filter(p => p.isOpen).map(position => (
-                          <tr 
-                            key={position.id} 
-                            className="border-t border-gray-100 dark:border-gray-800"
-                            data-testid={`position-row-${position.symbol}`}
-                          >
-                            <td className="px-2 py-1.5 font-medium">{position.symbol}</td>
-                            <td className="px-2 py-1.5 text-center">
-                              <span className={`text-[10px] ${position.action === 'BUY' ? 'text-green-600' : 'text-red-600'}`}>
-                                {position.action === 'BUY' ? 'L' : 'S'}
-                              </span>
-                            </td>
-                            <td className="px-2 py-1.5 text-right">{position.quantity}</td>
-                            <td className="px-2 py-1.5 text-right text-gray-500">{position.entryPrice.toFixed(2)}</td>
-                            <td className="px-2 py-1.5 text-right" data-testid={`position-ltp-${position.symbol}`}>
-                              {position.currentPrice.toFixed(2)}
-                            </td>
-                            <td className={`px-2 py-1.5 text-right font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid={`position-pnl-${position.symbol}`}>
-                              {position.pnl >= 0 ? '+' : ''}{position.pnl.toFixed(0)}
-                            </td>
-                          </tr>
-                        ))}
+                        {paperPositions.filter(p => p.isOpen).map(position => {
+                          // Calculate duration
+                          const entryTimeParts = position.entryTime.match(/(\d+):(\d+):(\d+)\s*(AM|PM)?/i);
+                          let durationStr = '-';
+                          if (entryTimeParts) {
+                            const now = new Date();
+                            const entryDate = new Date();
+                            let hours = parseInt(entryTimeParts[1]);
+                            const minutes = parseInt(entryTimeParts[2]);
+                            const seconds = parseInt(entryTimeParts[3]);
+                            const ampm = entryTimeParts[4];
+                            if (ampm) {
+                              if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                              if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                            }
+                            entryDate.setHours(hours, minutes, seconds, 0);
+                            const diffMs = now.getTime() - entryDate.getTime();
+                            if (diffMs > 0) {
+                              const diffMins = Math.floor(diffMs / 60000);
+                              const diffHrs = Math.floor(diffMins / 60);
+                              const remainMins = diffMins % 60;
+                              if (diffHrs > 0) {
+                                durationStr = `${diffHrs}h ${remainMins}m`;
+                              } else {
+                                durationStr = `${remainMins}m`;
+                              }
+                            } else {
+                              durationStr = '0m';
+                            }
+                          }
+                          return (
+                            <tr 
+                              key={position.id} 
+                              className="border-t border-gray-100 dark:border-gray-800"
+                              data-testid={`position-row-${position.symbol}`}
+                            >
+                              <td className="px-2 py-1.5 font-medium">{position.symbol}</td>
+                              <td className="px-2 py-1.5 text-center">
+                                <span className={`text-[10px] ${position.action === 'BUY' ? 'text-green-600' : 'text-red-600'}`}>
+                                  {position.action === 'BUY' ? 'L' : 'S'}
+                                </span>
+                              </td>
+                              <td className="px-2 py-1.5 text-right">{position.quantity}</td>
+                              <td className="px-2 py-1.5 text-right text-gray-500">{position.entryPrice.toFixed(2)}</td>
+                              <td className="px-2 py-1.5 text-right" data-testid={`position-ltp-${position.symbol}`}>
+                                {position.currentPrice.toFixed(2)}
+                              </td>
+                              <td className={`px-2 py-1.5 text-right font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid={`position-pnl-${position.symbol}`}>
+                                {position.pnl >= 0 ? '+' : ''}{position.pnl.toFixed(0)}
+                              </td>
+                              <td className={`px-2 py-1.5 text-right text-[10px] ${position.pnlPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
+                              </td>
+                              <td className="px-2 py-1.5 text-right text-[10px] text-gray-500" title={`Opened at ${position.entryTime}`}>
+                                {durationStr}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
