@@ -4328,7 +4328,10 @@ ${
       [todayKey]: updatedData
     }));
     
-    // 4️⃣ Close paper trading dialog and show summary
+    // 4️⃣ Auto-select today's date on heatmap
+    setHeatmapSelectedDate(todayKey);
+    
+    // 5️⃣ Close paper trading dialog and show summary
     setShowPaperTradingModal(false);
     setShowOrderModal(true);
     
