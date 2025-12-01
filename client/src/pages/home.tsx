@@ -5672,8 +5672,8 @@ ${
     // Get the last candle from chart data for initial OHLC values
     const lastCandle = journalChartData[journalChartData.length - 1];
     
-    // 🔶 1-minute interval = 60 seconds
-    const intervalSeconds = 60;
+    // 🔶 Convert selected timeframe to seconds (selectedJournalInterval is in minutes)
+    const intervalSeconds = parseInt(selectedJournalInterval || "1") * 60;
     
     // Start new WebSocket SSE connection with REAL Angel One market data
     let sseUrl = getFullApiUrl(`/api/angelone/live-stream-ws?symbol=${stockToken.tradingSymbol}&symbolToken=${stockToken.token}&exchange=${stockToken.exchange}&tradingSymbol=${stockToken.tradingSymbol}&interval=${intervalSeconds}`);
@@ -5684,7 +5684,7 @@ ${
       console.log('📡 [SSE] Initial fallback OHLC:', { open: lastCandle.open, high: lastCandle.high, low: lastCandle.low, close: lastCandle.close });
     }
     
-    console.log(`📡 [SSE] Connecting for REAL Angel One market data at 700ms intervals (${intervalSeconds}s candle interval)`);
+    console.log(`📡 [SSE] Connecting with timeframe: ${selectedJournalInterval}min (${intervalSeconds}s candle interval)`);
     
     const eventSource = new EventSource(sseUrl);
     journalEventSourceRef.current = eventSource;
@@ -5719,8 +5719,9 @@ ${
         
         // Update chart candlestick - only if chart is initialized
         if (journalCandlestickSeriesRef.current && journalChartRef.current && liveCandle.close > 0) {
-          // 🔶 1-minute interval = 60 seconds
-          const intervalSeconds = 60;
+          // 🔶 Convert selected timeframe to seconds (selectedJournalInterval is in minutes)
+          const intervalSeconds = parseInt(selectedJournalInterval || "1") * 60;
+          console.log(`⏱️ [INTERVAL] Using ${selectedJournalInterval}min = ${intervalSeconds}s for countdown`);
           
           // Get the last candle from the chart (use ref to avoid triggering re-render)
           const chartData = journalChartDataRef.current;
