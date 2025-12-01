@@ -5795,6 +5795,15 @@ ${
             
             const changePercent = candleOpen > 0 ? ((candleClose - candleOpen) / candleOpen) * 100 : 0;
             
+            // 🔴 CRITICAL: SAVE the current candle's final OHLC to use when it becomes the "previous" candle
+            (window as any).journalLastFinalizedOHLC = {
+              open: candleOpen,
+              high: candleHigh,
+              low: candleLow,
+              close: candleClose,
+              time: lastChartCandle.time
+            };
+            
             setLiveOhlc({
               open: candleOpen,
               high: candleHigh,
@@ -5818,17 +5827,20 @@ ${
               }
             }, 50);
             
-            console.log('📊 [UPDATE] Same candle interval, updating OHLC only');
+            console.log(`📊 [UPDATE] Same candle interval, OHLC: O${candleOpen} H${candleHigh} L${candleLow} C${candleClose}`);
           } else if (currentCandleStartTime > lastCandleStartTime) {
             // We've crossed into a new candle interval - this means the previous candle is complete
             console.log('🆕 [NEW CANDLE] New interval detected, adding new candle to chart');
             
-            // 🔴 CRITICAL: Finalize the PREVIOUS candle with its complete OHLC before moving to new candle
-            // Get the FINAL OHLC for the previous candle
-            const prevCandleOpen = lastChartCandle.open;
-            const prevCandleHigh = Math.max(lastChartCandle.high, liveCandle.close);
-            const prevCandleLow = Math.min(lastChartCandle.low, liveCandle.close);
-            const prevCandleClose = liveCandle.close;
+            // 🔴 CRITICAL: Use the SAVED final OHLC from the previous candle's last update
+            // NOT the new candle's data!
+            const savedOHLC = (window as any).journalLastFinalizedOHLC;
+            const prevCandleOpen = savedOHLC?.open || lastChartCandle.open;
+            const prevCandleHigh = savedOHLC?.high || lastChartCandle.high;
+            const prevCandleLow = savedOHLC?.low || lastChartCandle.low;
+            const prevCandleClose = savedOHLC?.close || lastChartCandle.close;
+            
+            console.log(`✅ [USING SAVED OHLC] From last update: O${prevCandleOpen} H${prevCandleHigh} L${prevCandleLow} C${prevCandleClose} (NOT from new candle with close: ${liveCandle.close})`);
             
             // Create new candle with proper timestamp and OHLC from backend
             const newCandle = {
