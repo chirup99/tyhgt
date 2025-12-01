@@ -4260,23 +4260,26 @@ ${
     if (isDemoMode) {
       console.log("🔄 Auto-switching to personal mode to record trades...");
       setIsDemoMode(false);
-      setTimeout(() => recordAllPaperTrades(), 100);
+      // Continue recording after state updates
+      setTimeout(() => {
+        recordAllPaperTrades();
+      }, 100);
       return;
     }
     
-    // Get today's date
+    // Get today's date in YYYY-MM-DD format
     const today = new Date();
     const todayKey = formatDateKey(today);
     
-    // Get existing data for today
+    // Get existing trades for today (if any)
     const existingData = tradingDataByDate[todayKey] || {};
     const existingTrades = existingData.tradeHistory || [];
     
-    // Convert paper trades
+    // Convert paper trades to heatmap trade format
     const convertedTrades = paperTradeHistory.map((trade: any) => ({
       symbol: trade.symbol,
       type: trade.type || 'MIS',
-      action: trade.action,
+      action: trade.action, // BUY or SELL
       quantity: trade.quantity,
       price: trade.price,
       time: trade.time,
@@ -4284,51 +4287,39 @@ ${
       closedAt: trade.closedAt
     }));
     
-    // Merge trades
+    // Merge with existing trades (append new ones)
     const mergedTrades = [...existingTrades, ...convertedTrades];
     
-    // Calculate P&L
-    const profitLossAmount = mergedTrades.reduce((sum: number, trade: any) => {
-      if (trade.pnl && trade.pnl !== '-') {
-        const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
-        return sum + (parseFloat(pnlStr) || 0);
-      }
-      return sum;
-    }, 0);
-    
-    // Build updated data
+    // Update tradingDataByDate with merged trades
     const updatedData = {
       ...existingData,
       tradeHistory: mergedTrades,
-      profitLossAmount,
+      // Re-calculate summary stats
+      profitLossAmount: mergedTrades.reduce((sum: number, trade: any) => {
+        if (trade.pnl && trade.pnl !== '-') {
+          const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
+          return sum + (parseFloat(pnlStr) || 0);
+        }
+        return sum;
+      }, 0),
       totalTrades: mergedTrades.length
     };
     
-    // Save to API/Firebase
-    fetch(getFullApiUrl(`/api/journal/${todayKey}`), {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedData),
-    }).then(response => {
-      if (response.ok) {
-        // Update all state
-        setTradingDataByDate((prev: any) => ({ ...prev, [todayKey]: updatedData }));
-        setPersonalTradingDataByDate((prev: any) => ({ ...prev, [todayKey]: updatedData }));
-        setCalendarData((prev: any) => ({ ...prev, [todayKey]: updatedData }));
-        
-        toast({
-          title: "Recorded",
-          description: `${convertedTrades.length} trade(s) imported to today's heatmap`
-        });
-        console.log(`✅ Recorded ${convertedTrades.length} trades`);
-      }
-    }).catch(error => {
-      console.error("❌ Error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to record trades",
-        variant: "destructive"
-      });
+    // Update personal heatmap (not demo)
+    setPersonalTradingDataByDate((prev: any) => ({
+      ...prev,
+      [todayKey]: updatedData
+    }));
+    
+    // Save to localStorage
+    localStorage.setItem("personalTradingDataByDate", JSON.stringify({
+      ...personalTradingDataByDate,
+      [todayKey]: updatedData
+    }));
+    
+    toast({
+      title: "Trades Recorded",
+      description: `Recorded ${convertedTrades.length} trades to today's personal tradebook`
     });
   };
 
@@ -16497,7 +16488,8 @@ ${
                     <Button
                       onClick={recordAllPaperTrades}
                       size="sm"
-                      className="h-8 text-xs"
+                      variant="outline"
+                      className="h-5 px-2 text-[10px] text-blue-600 border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-700 dark:hover:bg-blue-900/20"
                       data-testid="button-record-all-trades"
                     >
                       Record
