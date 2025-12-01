@@ -3780,7 +3780,6 @@ ${
   const [paperTradeSLTimeframe, setPaperTradeSLTimeframe] = useState("5m");
   const [paperTradeSLDurationUnit, setPaperTradeSLDurationUnit] = useState("min");
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
-  const paperTradeSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
   const [paperTradingWsStatus, setPaperTradingWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
@@ -15704,16 +15703,8 @@ ${
                           setPaperTradeSymbolSearch(query);
                           setPaperTradeSymbol("");
                           setPaperTradeCurrentPrice(null);
-                          
-                          // Debounce search by 300ms
-                          if (paperTradeSearchDebounceRef.current) {
-                            clearTimeout(paperTradeSearchDebounceRef.current);
-                          }
-                          
                           if (query.length > 0) {
-                            paperTradeSearchDebounceRef.current = setTimeout(() => {
-                              searchPaperTradingInstruments(query);
-                            }, 300);
+                            searchPaperTradingInstruments(query);
                           } else {
                             setPaperTradeSearchResults([]);
                           }
