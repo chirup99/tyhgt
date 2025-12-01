@@ -3783,6 +3783,7 @@ ${
   const [selectedPaperTradingInstrument, setSelectedPaperTradingInstrument] = useState<any>(null);
   const [paperTradeType, setPaperTradeType] = useState<'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'>('STOCK');
   const [paperTradeQuantity, setPaperTradeQuantity] = useState("");
+  const [paperTradeLotInput, setPaperTradeLotInput] = useState(""); // For futures/options (multiplied by lot size)
   const [paperTradeAction, setPaperTradeAction] = useState<'BUY' | 'SELL'>('BUY');
   const [paperTradeCurrentPrice, setPaperTradeCurrentPrice] = useState<number | null>(null);
   const [paperTradePriceLoading, setPaperTradePriceLoading] = useState(false);
@@ -4120,16 +4121,22 @@ ${
   
   // Execute paper trade (BUY or SELL)
   const executePaperTrade = () => {
-    if (!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice) {
+    const inputValue = paperTradeType === 'STOCK' ? paperTradeQuantity : paperTradeLotInput;
+    if (!paperTradeSymbol || !inputValue || !paperTradeCurrentPrice) {
       toast({
         title: "Invalid Trade",
-        description: "Please select a symbol and enter quantity",
+        description: `Please select a symbol and enter ${paperTradeType === 'STOCK' ? 'quantity' : 'lots'}`,
         variant: "destructive"
       });
       return;
     }
     
-    const quantity = parseInt(paperTradeQuantity);
+    // Calculate quantity: for stocks it's direct, for futures/options it's lots * lot size
+    let quantity = parseInt(inputValue);
+    if (paperTradeType !== 'STOCK') {
+      const lotSize = getLotSizeForInstrument(paperTradeSymbol, paperTradeType);
+      quantity = quantity * lotSize;
+    }
     const tradeValue = quantity * paperTradeCurrentPrice;
     
     if (paperTradeAction === 'BUY') {
@@ -4294,6 +4301,7 @@ ${
     // Reset form
     setPaperTradeSymbol("");
     setPaperTradeQuantity("");
+    setPaperTradeLotInput("");
     setPaperTradeCurrentPrice(null);
     setPaperTradeSymbolSearch("");
   };
@@ -4303,6 +4311,10 @@ ${
     setPaperTradingCapital(1000000);
     setPaperPositions([]);
     setPaperTradeHistory([]);
+    setPaperTradeSymbol("");
+    setPaperTradeQuantity("");
+    setPaperTradeLotInput("");
+    setPaperTradeCurrentPrice(null);
     localStorage.setItem("paperTradingCapital", "1000000");
     localStorage.setItem("paperPositions", "[]");
     localStorage.setItem("paperTradeHistory", "[]");
@@ -16771,9 +16783,12 @@ ${
                                 setSelectedPaperTradingInstrument(stock);
                                 setPaperTradeSymbol(stock.symbol);
                                 setPaperTradeSymbolSearch(stock.symbol);
-                                // Auto-set lot size for futures/options/MCX
-                                const lotSize = getLotSizeForInstrument(stock.symbol, paperTradeType);
-                                setPaperTradeQuantity(lotSize.toString());
+                                // Auto-populate: 1 lot for futures/options/MCX, empty for stocks
+                                if (paperTradeType === 'STOCK') {
+                                  setPaperTradeQuantity("");
+                                } else {
+                                  setPaperTradeLotInput("1");
+                                }
                                 fetchPaperTradePrice(stock);
                               }}
                               className="w-full text-left px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between text-xs"
@@ -16805,6 +16820,8 @@ ${
                       setPaperTradeSearchResults([]);
                       setPaperTradeCurrentPrice(null);
                       setSelectedPaperTradingInstrument(null);
+                      setPaperTradeQuantity("");
+                      setPaperTradeLotInput("");
                       setPaperTradingWsStatus('disconnected');
                     }}
                   >
@@ -16819,8 +16836,8 @@ ${
                     </SelectContent>
                   </Select>
 
-                  {/* Quantity with Lot Size Info */}
-                  <div className="flex items-center gap-1">
+                  {/* Quantity or Lots Input */}
+                  {paperTradeType === 'STOCK' ? (
                     <Input
                       type="number"
                       placeholder="Qty"
@@ -16830,12 +16847,17 @@ ${
                       min="1"
                       data-testid="input-paper-trade-qty"
                     />
-                    {selectedPaperTradingInstrument && paperTradeType !== 'STOCK' && (
-                      <span className="text-[10px] text-gray-400 px-1">
-                        Lot: {getLotSizeForInstrument(selectedPaperTradingInstrument.symbol, paperTradeType)}
-                      </span>
-                    )}
-                  </div>
+                  ) : (
+                    <Input
+                      type="number"
+                      placeholder="Lots"
+                      value={paperTradeLotInput}
+                      onChange={(e) => setPaperTradeLotInput(e.target.value)}
+                      className="w-20 h-8 text-xs text-center"
+                      min="1"
+                      data-testid="input-paper-trade-lots"
+                    />
+                  )}
 
                   {/* Price Display */}
                   <div className="w-24 h-8 flex items-center justify-center text-xs font-medium border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800/50">
@@ -16849,30 +16871,40 @@ ${
                   </div>
 
                   {/* Buy/Sell Buttons */}
-                  <Button
-                    onClick={() => { setPaperTradeAction('BUY'); executePaperTrade(); }}
-                    disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
-                    size="sm"
-                    className="h-8 px-4 bg-green-600 hover:bg-green-700 text-white text-xs"
-                    data-testid="button-paper-buy"
-                  >
-                    BUY
-                  </Button>
-                  <Button
-                    onClick={() => { setPaperTradeAction('SELL'); executePaperTrade(); }}
-                    disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
-                    size="sm"
-                    className="h-8 px-4 bg-red-600 hover:bg-red-700 text-white text-xs"
-                    data-testid="button-paper-sell"
-                  >
-                    SELL
-                  </Button>
+                  {(() => {
+                    const inputValue = paperTradeType === 'STOCK' ? paperTradeQuantity : paperTradeLotInput;
+                    return (
+                      <>
+                        <Button
+                          onClick={() => { setPaperTradeAction('BUY'); executePaperTrade(); }}
+                          disabled={!paperTradeSymbol || !inputValue || !paperTradeCurrentPrice}
+                          size="sm"
+                          className="h-8 px-4 bg-green-600 hover:bg-green-700 text-white text-xs"
+                          data-testid="button-paper-buy"
+                        >
+                          BUY
+                        </Button>
+                        <Button
+                          onClick={() => { setPaperTradeAction('SELL'); executePaperTrade(); }}
+                          disabled={!paperTradeSymbol || !inputValue || !paperTradeCurrentPrice}
+                          size="sm"
+                          className="h-8 px-4 bg-red-600 hover:bg-red-700 text-white text-xs"
+                          data-testid="button-paper-sell"
+                        >
+                          SELL
+                        </Button>
+                      </>
+                    );
+                  })()}
 
                   {/* SL Button with Dropdown - Right Corner */}
                   <div className="relative ml-auto">
+                    {(() => {
+                      const inputValue = paperTradeType === 'STOCK' ? paperTradeQuantity : paperTradeLotInput;
+                      return (
                     <Button
                       onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
-                      disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
+                      disabled={!paperTradeSymbol || !inputValue || !paperTradeCurrentPrice}
                       size="sm"
                       variant={paperTradeSLEnabled ? "default" : "outline"}
                       className={`h-8 px-3 text-xs ${paperTradeSLEnabled ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}`}
@@ -16880,6 +16912,8 @@ ${
                     >
                       SL {paperTradeSLEnabled && '✓'}
                     </Button>
+                      );
+                    })()}
                     {showPaperTradeSLDropdown && (
                       <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         <div className="p-3 space-y-2 min-w-[220px]">
@@ -16983,11 +17017,20 @@ ${
                 </div>
 
                 {/* Trade Value - Inline */}
-                {paperTradeSymbol && paperTradeQuantity && paperTradeCurrentPrice && (
-                  <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-400">
-                    Value: ₹{(parseInt(paperTradeQuantity) * paperTradeCurrentPrice).toLocaleString('en-IN')}
-                  </div>
-                )}
+                {paperTradeSymbol && paperTradeCurrentPrice && (() => {
+                  const inputValue = paperTradeType === 'STOCK' ? paperTradeQuantity : paperTradeLotInput;
+                  if (!inputValue) return null;
+                  let quantity = parseInt(inputValue);
+                  if (paperTradeType !== 'STOCK') {
+                    const lotSize = getLotSizeForInstrument(paperTradeSymbol, paperTradeType);
+                    quantity = quantity * lotSize;
+                  }
+                  return (
+                    <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-400">
+                      Value: ₹{(quantity * paperTradeCurrentPrice).toLocaleString('en-IN')}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Open Positions - Compact Table */}
