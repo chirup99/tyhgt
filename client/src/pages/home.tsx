@@ -5690,14 +5690,15 @@ ${
     journalEventSourceRef.current = eventSource;
 
     eventSource.onopen = () => {
-      console.log('📡 [SSE] Connected');
+      console.log('📡 [SSE] Connected to:', sseUrl);
       setIsJournalStreaming(true);
     };
 
     eventSource.onmessage = (event) => {
       try {
+        console.log('📡 [SSE MESSAGE] Raw data:', event.data.substring(0, 100));
         const liveCandle = JSON.parse(event.data);
-        console.log('💹 [PRICE] LTP:', liveCandle.close, 'Time:', liveCandle.time);
+        console.log('💹 [PRICE] LTP:', liveCandle.close, 'Open:', liveCandle.open, 'Time:', liveCandle.time);
         
         // Update demo trading positions with live price (700ms real-time P&L)
         if (liveCandle.close > 0 && paperPositions.length > 0) {
@@ -5896,7 +5897,8 @@ ${
       }
     };
 
-    eventSource.onerror = () => {
+    eventSource.onerror = (err) => {
+      console.error('❌ [SSE ERROR]:', err);
       setIsJournalStreaming(false);
     };
 
