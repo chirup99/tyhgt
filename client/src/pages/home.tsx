@@ -5757,7 +5757,9 @@ ${
             
             // Create new price line with current LTP and countdown
             journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
-            
+              price: liveCandle.close,
+              color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',  price: liveCandle.close,
+              color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',
               lineWidth: 1,
               lineStyle: 2, // Dashed
          
