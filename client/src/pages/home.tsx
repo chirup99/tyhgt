@@ -8588,6 +8588,25 @@ ${
     };
   }, [tradeHistoryData]);
 
+  // Helper function to format duration in milliseconds to readable format (d, h, m, s)
+  const formatDuration = (durationMs: number): string => {
+    if (durationMs < 0) return '-';
+    
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    const parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0) parts.push(`${seconds}s`);
+    
+    return parts.length > 0 ? parts.join(' ') : '0s';
+  };
+
   // Import handling functions
   const calculateSimplePnL = (trades: any[]) => {
     const processedTrades = [...trades];
@@ -8636,9 +8655,7 @@ ${
           );
           const exitTime = new Date(`1970-01-01 ${trade.time}`);
           const durationMs = exitTime.getTime() - entryTime.getTime();
-          const minutes = Math.floor(durationMs / 60000);
-          const seconds = Math.floor((durationMs % 60000) / 1000);
-          const durationText = `${minutes}m ${seconds}s`;
+          const durationText = formatDuration(durationMs);
 
           // Set P&L and duration on this SELL trade
           processedTrades[i].pnl = `₹${totalPnL.toFixed(2)}`;
@@ -9029,9 +9046,7 @@ ${
         const openTime = new Date(`1970-01-01 ${openTrade.time}`);
         const closeTime = new Date(`1970-01-01 ${trade.time}`);
         const durationMs = closeTime.getTime() - openTime.getTime();
-        const durationMinutes = Math.floor(durationMs / 60000);
-        const durationSeconds = Math.floor((durationMs % 60000) / 1000);
-        const durationText = `${durationMinutes}m ${durationSeconds}s`;
+        const durationText = formatDuration(durationMs);
 
         // Only show P&L and duration on the closing trade
         // For LONG (BUY first): Show on SELL row
