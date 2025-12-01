@@ -237,25 +237,6 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             })}
           </div>
 
-          {/* Navigation Arrows */}
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/80 hover:bg-white text-gray-800 z-20"
-            onClick={navigateLeft}
-            data-testid="button-nav-left"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/80 hover:bg-white text-gray-800 z-20"
-            onClick={navigateRight}
-            data-testid="button-nav-right"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
         </div>
 
         {/* Curved Line Footer - Transparent Background */}
