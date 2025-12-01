@@ -9382,6 +9382,49 @@ ${
     return position >= 0 ? position : null;
   };
 
+  // Helper: Recalculate format positions based on current textarea's first line
+  const recalculateFormatPositions = (format: FormatData, currentFirstLine: string): FormatData => {
+    if (!currentFirstLine || !format.displayValues) return format;
+    
+    const recalculatedPositions: FormatData["positions"] = {
+      time: [],
+      order: [],
+      symbol: [],
+      type: [],
+      qty: [],
+      price: []
+    };
+
+    // Get words from current first line
+    const currentWords = currentFirstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
+
+    // For each field, try to find positions based on displayValues
+    (["time", "order", "symbol", "type", "qty", "price"] as const).forEach(field => {
+      const displayText = format.displayValues[field];
+      if (displayText) {
+        const selectedWords = displayText.split(/\s+/);
+        selectedWords.forEach(word => {
+          const pos = currentWords.findIndex(w => w === word || w.includes(word) || word.includes(w));
+          if (pos >= 0) {
+            recalculatedPositions[field].push(pos);
+          }
+        });
+      }
+    });
+
+    console.log("🔄 Recalculated format positions:", {
+      original: format.positions,
+      recalculated: recalculatedPositions,
+      displayValues: format.displayValues
+    });
+
+    return {
+      ...format,
+      sampleLine: currentFirstLine,
+      positions: recalculatedPositions
+    };
+  };
+
   // Parse trades using saved format with position-based mapping (supports multiple positions per field)
   const parseTradesWithFormat = (data: string, format: FormatData): ParseResult => {
     const result: ParseResult = {
@@ -15874,8 +15917,23 @@ ${
                               size="sm"
                               className="h-6 text-xs px-2"
                               onClick={() => {
-                                setBuildModeData(format);
-                                setActiveFormat(format);
+                                // Recalculate positions based on current textarea's first line
+                                const textarea = importDataTextareaRef.current;
+                                if (textarea) {
+                                  const currentFirstLine = textarea.value.trim().split('\n')[0] || "";
+                                  if (currentFirstLine) {
+                                    const recalculatedFormat = recalculateFormatPositions(format, currentFirstLine);
+                                    setBuildModeData(recalculatedFormat);
+                                    setActiveFormat(recalculatedFormat);
+                                  } else {
+                                    // No data in textarea yet, use format as-is
+                                    setBuildModeData(format);
+                                    setActiveFormat(format);
+                                  }
+                                } else {
+                                  setBuildModeData(format);
+                                  setActiveFormat(format);
+                                }
                                 toast({
                                   title: "Format Loaded",
                                   description: `Using "${label}" format for import`,
@@ -16533,8 +16591,22 @@ ${
                             onChange={(e) => {
                               if (e.target.value) {
                                 const loadedFormat = savedFormats[e.target.value];
-                                setBuildModeData(loadedFormat);
-                                setActiveFormat(loadedFormat);
+                                // Recalculate positions based on current textarea's first line
+                                const textarea = importDataTextareaRef.current;
+                                if (textarea && loadedFormat) {
+                                  const currentFirstLine = textarea.value.trim().split('\n')[0] || "";
+                                  if (currentFirstLine) {
+                                    const recalculatedFormat = recalculateFormatPositions(loadedFormat, currentFirstLine);
+                                    setBuildModeData(recalculatedFormat);
+                                    setActiveFormat(recalculatedFormat);
+                                  } else {
+                                    setBuildModeData(loadedFormat);
+                                    setActiveFormat(loadedFormat);
+                                  }
+                                } else {
+                                  setBuildModeData(loadedFormat);
+                                  setActiveFormat(loadedFormat);
+                                }
                                 setIsBuildMode(true);
                                 console.log("✅ Format loaded and activated:", e.target.value, loadedFormat);
                               }
