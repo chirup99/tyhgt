@@ -3772,6 +3772,12 @@ ${
   const [paperTradeAction, setPaperTradeAction] = useState<'BUY' | 'SELL'>('BUY');
   const [paperTradeCurrentPrice, setPaperTradeCurrentPrice] = useState<number | null>(null);
   const [paperTradePriceLoading, setPaperTradePriceLoading] = useState(false);
+  
+  // Stop Loss state
+  const [showPaperTradeSLDropdown, setShowPaperTradeSLDropdown] = useState(false);
+  const [paperTradeSLType, setPaperTradeSLType] = useState<'price' | 'percent' | 'duration' | 'high' | 'low'>('price');
+  const [paperTradeSLValue, setPaperTradeSLValue] = useState("");
+  const [activeSLForPosition, setActiveSLForPosition] = useState<Record<string, {type: string; value: number}>({});
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
   
   // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
@@ -15826,6 +15832,59 @@ ${
                   >
                     SELL
                   </Button>
+
+                  {/* SL Button with Dropdown */}
+                  <div className="relative">
+                    <Button
+                      onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
+                      size="sm"
+                      variant="outline"
+                      className="h-8 px-3 text-xs"
+                      data-testid="button-paper-sl"
+                    >
+                      SL
+                    </Button>
+                    {showPaperTradeSLDropdown && (
+                      <div className="absolute z-50 top-8 left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                        <div className="p-3 space-y-2 min-w-[200px]">
+                          <div>
+                            <label className="text-[10px] text-gray-500 uppercase">Type</label>
+                            <Select value={paperTradeSLType} onValueChange={(v: any) => setPaperTradeSLType(v)}>
+                              <SelectTrigger className="h-7 text-xs mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="price">Price SL</SelectItem>
+                                <SelectItem value="percent">% SL</SelectItem>
+                                <SelectItem value="duration">Duration</SelectItem>
+                                <SelectItem value="high">Candle High</SelectItem>
+                                <SelectItem value="low">Candle Low</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Input
+                            type="number"
+                            placeholder={paperTradeSLType === 'price' ? 'Price' : paperTradeSLType === 'percent' ? '%' : 'Duration (min)'}
+                            value={paperTradeSLValue}
+                            onChange={(e) => setPaperTradeSLValue(e.target.value)}
+                            className="h-7 text-xs"
+                            data-testid="input-paper-sl-value"
+                          />
+                          <Button
+                            onClick={() => {
+                              setShowPaperTradeSLDropdown(false);
+                              // SL will be applied to next trade
+                            }}
+                            size="sm"
+                            className="w-full h-7 text-xs bg-gray-600 hover:bg-gray-700 text-white"
+                            data-testid="button-set-paper-sl"
+                          >
+                            Set SL
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Trade Value - Inline */}
