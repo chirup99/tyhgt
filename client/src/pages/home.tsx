@@ -5022,11 +5022,17 @@ ${
     time: number;
   } | null>(null);
 
-  // Angel One Stock Token Mapping for Journal Chart
+  // Angel One Stock Token Mapping for Journal Chart (Expanded for all exchanges)
   const journalAngelOneTokens: { [key: string]: { token: string, exchange: string, tradingSymbol: string } } = {
+    // NSE Indices
     'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
-    'SENSEX': { token: '99919000', exchange: 'BSE', tradingSymbol: 'SENSEX' },
+    'NIFTY': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
     'BANKNIFTY': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+    'NIFTYIT': { token: '99926013', exchange: 'NSE', tradingSymbol: 'Nifty IT' },
+    'NIFTYNEXT50': { token: '99926001', exchange: 'NSE', tradingSymbol: 'NIFTY NEXT 50' },
+    'NIFTYMIDCAP50': { token: '99926027', exchange: 'NSE', tradingSymbol: 'Nifty Midcap 50' },
+    'INDIAVIX': { token: '99926004', exchange: 'NSE', tradingSymbol: 'INDIA VIX' },
+    // NSE Stocks
     'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
     'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
     'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
@@ -5039,20 +5045,50 @@ ${
     'LT': { token: '11483', exchange: 'NSE', tradingSymbol: 'LT-EQ' },
     'AXISBANK': { token: '5900', exchange: 'NSE', tradingSymbol: 'AXISBANK-EQ' },
     'WIPRO': { token: '3787', exchange: 'NSE', tradingSymbol: 'WIPRO-EQ' },
+    'TATASTEEL': { token: '3499', exchange: 'NSE', tradingSymbol: 'TATASTEEL-EQ' },
+    // BSE Indices
+    'SENSEX': { token: '99919000', exchange: 'BSE', tradingSymbol: 'SENSEX' },
+    // MCX Commodities
     'GOLD': { token: '232801', exchange: 'MCX', tradingSymbol: 'GOLD' },
     'CRUDEOIL': { token: '232665', exchange: 'MCX', tradingSymbol: 'CRUDEOIL' },
     'SILVER': { token: '234977', exchange: 'MCX', tradingSymbol: 'SILVER' },
   };
 
-  // Convert NSE/MCX symbol format to Angel One format
+  // Store selected instrument with token (direct from search API)
+  const [selectedInstrumentToken, setSelectedInstrumentToken] = useState<{ token: string; exchange: string; tradingSymbol: string } | null>(null);
+
+  // Convert NSE/MCX symbol format to Angel One format with fuzzy matching
   const getJournalAngelOneSymbol = (symbol: string): string => {
-    const cleanSymbol = symbol
-      .replace("NSE:", "")
-      .replace("MCX:", "")
-      .replace("-EQ", "")
-      .replace("-INDEX", "")
-      .replace("-COM", "");
-    return cleanSymbol;
+    let cleanSymbol = symbol
+      .replace(/^(NSE|BSE|MCX|NCDEX|NFO|BFO|CDS):/, '')
+      .replace(/-EQ$/, '')
+      .replace(/-INDEX$/, '')
+      .replace(/-COM$/, '')
+      .replace(/-FUT$/, '')
+      .replace(/-OPT$/, '');
+    
+    // Normalize spaces and case for better matching
+    cleanSymbol = cleanSymbol.replace(/\s+/g, '').toUpperCase();
+    
+    // Try direct lookup first
+    if (journalAngelOneTokens[cleanSymbol]) {
+      return cleanSymbol;
+    }
+    
+    // Try fuzzy matching (handle "Nifty 50" → "NIFTY50")
+    const fuzzyMatches: { [key: string]: string } = {
+      'NIFTY50': 'NIFTY50',
+      'NIFTYBANK': 'BANKNIFTY',
+      'NIFTYIT': 'NIFTYIT',
+      'BANKNIFTY': 'BANKNIFTY',
+      'INDIAVIX': 'INDIAVIX',
+      'SENSEX': 'SENSEX',
+      'GOLD': 'GOLD',
+      'CRUDEOIL': 'CRUDEOIL',
+      'SILVER': 'SILVER',
+    };
+    
+    return fuzzyMatches[cleanSymbol] || cleanSymbol;
   };
 
   // 🔶 PURE NUMERIC: Convert custom timeframe to minutes ONLY (no "2D", only "2880")
@@ -5232,17 +5268,20 @@ ${
       setJournalChartLoading(true);
       setJournalChartData([]);
 
-      // STEP 3: Extract clean symbol from selectedJournalSymbol (e.g., NSE:NIFTY-INDEX → NIFTY)
-      const cleanSymbol = selectedJournalSymbol
-        .replace(/^(NSE|BSE):/, '')
-        .replace(/-INDEX$/, '')
-        .replace(/-EQ$/, '');
-      
-      const stockToken = journalAngelOneTokens[cleanSymbol];
-      console.log(`📊 [SEARCH CHART] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
+      // STEP 3: Get token - Use direct token if available, otherwise lookup
+      let stockToken = selectedInstrumentToken;
       
       if (!stockToken) {
-        console.warn(`❌ [SEARCH CHART] No token for: ${cleanSymbol}`);
+        // Fallback: Extract clean symbol and lookup
+        const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+        stockToken = journalAngelOneTokens[cleanSymbol];
+        console.log(`📊 [SEARCH CHART] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
+      } else {
+        console.log(`📊 [SEARCH CHART] Using direct token from search: ${selectedJournalSymbol}, Token: ${stockToken.token}`);
+      }
+      
+      if (!stockToken) {
+        console.warn(`❌ [SEARCH CHART] No token for: ${selectedJournalSymbol}`);
         setJournalChartLoading(false);
         return;
       }
@@ -11748,6 +11787,11 @@ ${
                                                         tradingSymbol: instrument.tradingSymbol,
                                                         instrumentType: instrument.instrumentType
                                                       });
+                                                      setSelectedInstrumentToken({
+                                                        token: instrument.token,
+                                                        exchange: instrument.exchange,
+                                                        tradingSymbol: instrument.tradingSymbol
+                                                      });
                                                       setShowStockSearch(false);
                                                       setStockSearchQuery("");
                                                     }}
@@ -11854,6 +11898,11 @@ ${
                                                 exchange: instrument.exchange,
                                                 tradingSymbol: instrument.tradingSymbol,
                                                 instrumentType: instrument.instrumentType
+                                              });
+                                              setSelectedInstrumentToken({
+                                                token: instrument.token,
+                                                exchange: instrument.exchange,
+                                                tradingSymbol: instrument.tradingSymbol
                                               });
                                               setShowStockSearch(false);
                                               setStockSearchQuery("");
