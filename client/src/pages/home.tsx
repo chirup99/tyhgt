@@ -6936,50 +6936,13 @@ ${
   const [showPerformanceWindow, setShowPerformanceWindow] = useState(false);
   const [showMultipleImageUpload, setShowMultipleImageUpload] = useState(false);
 
-  // Enhanced trading tag system with categories and rules
+  // Enhanced trading tag system - 4 SEPARATE CATEGORIES
   const tradingTagSystem = {
-    psychology: {
-      name: "Psychology",
-      color: "red",
-      maxSelections: 2,
-      tags: [
-        "fomo",
-        "greedy",
-        "overtrading",
-        "hero zero",
-        "fear",
-        "euphoric",
-        "revenge trading",
-        "disciplined",
-        "patient",
-        "confident",
-        "anxious",
-        "impulsive",
-      ],
-    },
-    strategy: {
-      name: "Strategy",
-      color: "blue",
-      maxSelections: 2,
-      tags: [
-        "planned",
-        "unplanned",
-        "scalping",
-        "swing trading",
-        "intraday",
-        "position",
-        "btst",
-        "breakout",
-        "trend following",
-        "counter trend",
-        "momentum",
-        "mean reversion",
-      ],
-    },
     market: {
-      name: "Market Conditions",
+      name: "Market",
+      icon: "📊",
       color: "green",
-      maxSelections: 2,
+      maxSelections: 3,
       tags: [
         "trending",
         "sideways",
@@ -6995,25 +6958,59 @@ ${
         "expiry day",
       ],
     },
-    timeframe: {
-      name: "Timeframe",
-      color: "purple",
-      maxSelections: 1,
-      tags: ["short terms", "intraday", "swing", "investment", "long term"],
+    indicator: {
+      name: "Indicator",
+      icon: "📈",
+      color: "blue",
+      maxSelections: 5,
+      tags: [
+        "EMA",
+        "SMA",
+        "RSI",
+        "MACD",
+        "Bollinger Bands",
+        "Fibonacci",
+        "Support/Resistance",
+        "Trendline",
+        "Volume",
+        "ATR",
+        "Stochastic",
+        "CCI",
+      ],
     },
-    setup: {
-      name: "Trade Setup",
-      color: "orange",
+    mind: {
+      name: "Mind/Routine",
+      icon: "🧠",
+      color: "purple",
+      maxSelections: 4,
+      tags: [
+        "fomo",
+        "greedy",
+        "disciplined",
+        "patient",
+        "anxious",
+        "confident",
+        "stressed",
+        "focused",
+        "tired",
+        "sleep deprivation",
+        "work busy",
+        "calm",
+      ],
+    },
+    money: {
+      name: "Money",
+      icon: "💰",
+      color: "yellow",
       maxSelections: 2,
       tags: [
-        "no setup",
-        "blind trades",
-        "technical analysis",
-        "fundamental analysis",
-        "news based",
-        "price action",
-        "indicator based",
-        "pattern based",
+        "own money",
+        "borrowed money",
+        "client money",
+        "high risk",
+        "low risk",
+        "minimal loss",
+        "good entry",
       ],
     },
   };
@@ -7021,17 +7018,19 @@ ${
   // Tag validation rules
   const tagValidationRules = {
     conflictingTags: [
-      ["planned", "unplanned", "no setup"],
       ["fomo", "disciplined", "patient"],
-      ["patient", "impulsive"],
-      ["trending", "sideways"],
-      ["gap up", "gap down"],
-      ["disciplined", "blind trades"],
-      ["technical analysis", "blind trades", "no setup"],
+      ["greedy", "disciplined"],
+      ["tired", "focused"],
     ],
-    maxTotalTags: 8,
+    maxTotalTags: 14,
     minRequiredTags: 0,
   };
+
+  // Separate dropdown states for each category
+  const [showMarketDropdown, setShowMarketDropdown] = useState(false);
+  const [showIndicatorDropdown, setShowIndicatorDropdown] = useState(false);
+  const [showMindDropdown, setShowMindDropdown] = useState(false);
+  const [showMoneyDropdown, setShowMoneyDropdown] = useState(false);
 
   // Get all tags as flat array for compatibility
   const getAllTags = () => {
@@ -12834,133 +12833,81 @@ ${
                                 TRADING NOTES
                               </h3>
                               <div className="flex items-center gap-1">
-                                {/* Tag Dropdown */}
-                                <Popover
-                                  open={isTagDropdownOpen}
-                                  onOpenChange={setIsTagDropdownOpen}
-                                >
+                                {/* Market Tags Dropdown */}
+                                <Popover open={showMarketDropdown} onOpenChange={setShowMarketDropdown}>
                                   <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
-                                      data-testid="button-tags-dropdown"
-                                    >
-                                      <Tag className="w-3 h-3 mr-1" />
-                                      Tags ({selectedTags.length})
-                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                    <Button size="sm" variant="ghost" className="text-xs px-1.5 h-7" data-testid="button-market-tags">
+                                      <span className="text-base">📊</span>
+                                      <span className="text-xs font-medium ml-0.5">{selectedTags.filter((t) => tradingTagSystem.market.tags.includes(t)).length}</span>
                                     </Button>
                                   </PopoverTrigger>
-                                  <PopoverContent className="w-80 p-3">
-                                    <div className="space-y-3">
-                                      <div className="flex items-center justify-between">
-                                        <h4 className="font-medium text-sm">
-                                          Trading Psychology & Strategy Tags
-                                        </h4>
-                                        {selectedTags.length > 0 && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={clearAllTags}
-                                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                            data-testid="button-clear-tags"
-                                          >
-                                            <Trash2 className="w-3 h-3 mr-1" />
-                                            Clear All
-                                          </Button>
-                                        )}
+                                  <PopoverContent className="w-72 p-3">
+                                    <div className="space-y-2">
+                                      <h4 className="text-xs font-semibold text-green-600 dark:text-green-400">Market Conditions</h4>
+                                      <div className="grid grid-cols-2 gap-1">
+                                        {tradingTagSystem.market.tags.map((tag) => (
+                                          <button key={tag} onClick={() => toggleTagWithValidation(tag)} className={`px-2 py-1 text-xs rounded border transition-all ${selectedTags.includes(tag) ? "bg-green-500 text-white border-green-500" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`} data-testid={`tag-market-${tag}`}>{tag}</button>
+                                        ))}
                                       </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
 
-                                      {/* Selected Tags Display */}
-                                      {selectedTags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-                                          {selectedTags.map((tag) => (
-                                            <span
-                                              key={tag}
-                                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
-                                              onClick={() => toggleTag(tag)}
-                                              data-testid={`selected-tag-${tag}`}
-                                            >
-                                              {tag}
-                                              <X className="w-3 h-3 ml-1" />
-                                            </span>
-                                          ))}
-                                        </div>
-                                      )}
+                                {/* Indicator Tags Dropdown */}
+                                <Popover open={showIndicatorDropdown} onOpenChange={setShowIndicatorDropdown}>
+                                  <PopoverTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="text-xs px-1.5 h-7" data-testid="button-indicator-tags">
+                                      <span className="text-base">📈</span>
+                                      <span className="text-xs font-medium ml-0.5">{selectedTags.filter((t) => tradingTagSystem.indicator.tags.includes(t)).length}</span>
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-72 p-3">
+                                    <div className="space-y-2">
+                                      <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400">Indicators Used</h4>
+                                      <div className="grid grid-cols-2 gap-1">
+                                        {tradingTagSystem.indicator.tags.map((tag) => (
+                                          <button key={tag} onClick={() => toggleTagWithValidation(tag)} className={`px-2 py-1 text-xs rounded border transition-all ${selectedTags.includes(tag) ? "bg-blue-500 text-white border-blue-500" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`} data-testid={`tag-indicator-${tag}`}>{tag}</button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
 
-                                      {/* Available Tags by Category */}
-                                      <div className="space-y-4 max-h-96 overflow-y-auto custom-thin-scrollbar">
-                                        {Object.entries(tradingTagSystem).map(
-                                          ([categoryKey, category]) => (
-                                            <div
-                                              key={categoryKey}
-                                              className="space-y-2"
-                                            >
-                                              <div className="flex items-center justify-between">
-                                                <h5
-                                                  className={`text-xs font-semibold text-${category.color}-600 dark:text-${category.color}-400`}
-                                                >
-                                                  {category.name}
-                                                  {(category as any)
-                                                    .required && (
-                                                    <span className="text-red-500 ml-1">
-                                                      *
-                                                    </span>
-                                                  )}
-                                                </h5>
-                                                <span className="text-xs text-gray-500">
-                                                  {
-                                                    selectedTags.filter((tag) =>
-                                                      category.tags.includes(
-                                                        tag,
-                                                      ),
-                                                    ).length
-                                                  }
-                                                  /{category.maxSelections}
-                                                </span>
-                                              </div>
-                                              <div className="grid grid-cols-2 gap-1">
-                                                {category.tags.map((tag) => {
-                                                  const isSelected =
-                                                    selectedTags.includes(tag);
-                                                  const categoryCount =
-                                                    selectedTags.filter((t) =>
-                                                      category.tags.includes(t),
-                                                    ).length;
-                                                  const isDisabled =
-                                                    !isSelected &&
-                                                    categoryCount >=
-                                                      category.maxSelections;
+                                {/* Mind/Routine Tags Dropdown */}
+                                <Popover open={showMindDropdown} onOpenChange={setShowMindDropdown}>
+                                  <PopoverTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="text-xs px-1.5 h-7" data-testid="button-mind-tags">
+                                      <span className="text-base">🧠</span>
+                                      <span className="text-xs font-medium ml-0.5">{selectedTags.filter((t) => tradingTagSystem.mind.tags.includes(t)).length}</span>
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-72 p-3">
+                                    <div className="space-y-2">
+                                      <h4 className="text-xs font-semibold text-purple-600 dark:text-purple-400">Mind & Routine</h4>
+                                      <div className="grid grid-cols-2 gap-1">
+                                        {tradingTagSystem.mind.tags.map((tag) => (
+                                          <button key={tag} onClick={() => toggleTagWithValidation(tag)} className={`px-2 py-1 text-xs rounded border transition-all ${selectedTags.includes(tag) ? "bg-purple-500 text-white border-purple-500" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`} data-testid={`tag-mind-${tag}`}>{tag}</button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
 
-                                                  return (
-                                                    <button
-                                                      key={tag}
-                                                      onClick={() =>
-                                                        toggleTagWithValidation(
-                                                          tag,
-                                                        )
-                                                      }
-                                                      disabled={isDisabled}
-                                                      className={`
-                                                  px-2 py-1.5 text-xs rounded-md border transition-all duration-200 text-left
-                                                  ${
-                                                    isSelected
-                                                      ? `bg-${category.color}-500 text-white border-${category.color}-500 hover:bg-${category.color}-600`
-                                                      : isDisabled
-                                                        ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed"
-                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                                                  }
-                                                `}
-                                                      data-testid={`tag-option-${tag}`}
-                                                    >
-                                                      {tag}
-                                                    </button>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          ),
-                                        )}
+                                {/* Money Tags Dropdown */}
+                                <Popover open={showMoneyDropdown} onOpenChange={setShowMoneyDropdown}>
+                                  <PopoverTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="text-xs px-1.5 h-7" data-testid="button-money-tags">
+                                      <span className="text-base">💰</span>
+                                      <span className="text-xs font-medium ml-0.5">{selectedTags.filter((t) => tradingTagSystem.money.tags.includes(t)).length}</span>
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-72 p-3">
+                                    <div className="space-y-2">
+                                      <h4 className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Money Type</h4>
+                                      <div className="grid grid-cols-2 gap-1">
+                                        {tradingTagSystem.money.tags.map((tag) => (
+                                          <button key={tag} onClick={() => toggleTagWithValidation(tag)} className={`px-2 py-1 text-xs rounded border transition-all ${selectedTags.includes(tag) ? "bg-yellow-500 text-white border-yellow-500" : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`} data-testid={`tag-money-${tag}`}>{tag}</button>
+                                        ))}
                                       </div>
                                     </div>
                                   </PopoverContent>
