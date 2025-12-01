@@ -4256,13 +4256,14 @@ ${
       return;
     }
     
-    // ✅ ONLY record to personal heatmap (NOT demo)
+    // 🔴 AUTO-SWITCH to personal mode if in demo
     if (isDemoMode) {
-      toast({
-        title: "Demo Mode",
-        description: "Switch to personal mode to record trades",
-        variant: "destructive"
-      });
+      console.log("🔄 Auto-switching to personal mode to record trades...");
+      setIsDemoMode(false);
+      // Continue recording after state updates
+      setTimeout(() => {
+        recordAllPaperTrades();
+      }, 100);
       return;
     }
     
