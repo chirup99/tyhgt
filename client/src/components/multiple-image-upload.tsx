@@ -165,11 +165,11 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
     // Determine cards to show
     const cardsToShow = images.length > 0 ? images : [
-      { id: 'card-1', color: 'bg-blue-500', name: 'Card 1' },
-      { id: 'card-2', color: 'bg-purple-500', name: 'Card 2' },
-      { id: 'card-3', color: 'bg-pink-500', name: 'Card 3' },
-      { id: 'card-4', color: 'bg-green-500', name: 'Card 4' },
-      { id: 'card-5', color: 'bg-orange-500', name: 'Card 5' },
+      { id: 'card-1', color: 'bg-blue-500', name: 'Upload Image' },
+      { id: 'card-2', color: 'bg-purple-500', name: 'Upload Articles Images' },
+      { id: 'card-3', color: 'bg-pink-500', name: 'Technical Analysis' },
+      { id: 'card-4', color: 'bg-green-500', name: 'Fundamentals' },
+      { id: 'card-5', color: 'bg-orange-500', name: 'Strategy Image' },
     ];
 
     return (
