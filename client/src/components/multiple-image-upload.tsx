@@ -378,57 +378,36 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     <Card className="h-full border-2 border-gray-300 dark:border-gray-600 relative overflow-hidden transition-none bg-gray-900">
       <CardContent className="p-0 h-full relative max-h-full flex flex-col">
         {images.length === 0 ? (
-          // Empty state with upload area
+          // Empty state - minimal upload trigger
           <div
             ref={dropZoneRef}
-            className={`flex-1 flex flex-col items-center justify-center p-6 ${
+            className={`flex-1 flex flex-col items-center justify-center p-6 cursor-pointer ${
               isDragOver 
-                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400' 
-                : 'bg-gray-50 dark:bg-gray-900'
+                ? 'bg-blue-900/30 border-blue-400' 
+                : 'bg-gray-900 hover:bg-gray-800'
             }`}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
             data-testid="image-upload-zone"
           >
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+            <div className="text-center space-y-3">
+              <Plus className="w-12 h-12 mx-auto text-gray-500" />
+              <div>
+                <p className="text-gray-400 text-sm">Drag images or click to upload</p>
               </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Upload Images
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Drag & drop images here, or click to browse
-                </p>
-                <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <Copy className="w-4 h-4" />
-                  <span>Copy-paste images from anywhere</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="button-upload-images"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Choose Images
-              </Button>
             </div>
           </div>
         ) : (
-          // New card swiping layout: 80% cards, 20% curved bottom
+          // Card carousel layout with thumbnails below and curved line
           <>
-            {/* 80% Card Swiping Area */}
-            <div className="flex-[4] relative bg-gray-900 flex items-center justify-center overflow-visible">
-              {/* Card fan stack effect - show all images */}
+            {/* Main Card Display Area */}
+            <div className="flex-1 relative bg-gray-900 flex items-center justify-center overflow-visible pt-4">
+              {/* Card carousel - show fanned stack */}
               {images.map((img, idx) => {
                 const offset = idx - currentIndex;
-                // Show cards before and after current, with proper wrapping for circular behavior
                 let displayOffset = offset;
                 if (displayOffset < -images.length / 2) {
                   displayOffset += images.length;
@@ -436,16 +415,14 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                   displayOffset -= images.length;
                 }
                 
-                // Only show cards within visible range (-4 to +4)
                 if (Math.abs(displayOffset) > 4) return null;
                 
-                // Calculate position based on offset for fan effect
-                const rotation = displayOffset * 8; // More rotation for visible cards
-                const translateX = displayOffset * 45; // Spread cards horizontally
-                const translateY = Math.abs(displayOffset) * 15; // Move back cards down
-                const scale = 1 - Math.abs(displayOffset) * 0.05; // Scale based on distance
-                const zIndex = 100 - Math.abs(displayOffset); // Proper z-order
-                const opacity = displayOffset === 0 ? 1 : 0.85;
+                const rotation = displayOffset * 6;
+                const translateX = displayOffset * 35;
+                const translateY = Math.abs(displayOffset) * 10;
+                const scale = 1 - Math.abs(displayOffset) * 0.04;
+                const zIndex = 100 - Math.abs(displayOffset);
+                const opacity = displayOffset === 0 ? 1 : 0.75;
                 
                 return (
                   <div
@@ -457,7 +434,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                       opacity: opacity,
                     }}
                   >
-                    <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl" style={{ width: '320px', height: '420px' }}>
+                    <div className="relative bg-black rounded-md overflow-hidden shadow-xl" style={{ width: '280px', height: '200px' }}>
                       <img
                         src={img.url}
                         alt={img.name}
@@ -465,81 +442,66 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                         data-testid={`img-card-${idx}`}
                       />
                       
-                      {/* Image label overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4">
-                        <p className="text-white text-sm font-medium truncate">{img.name}</p>
+                      {/* Image label overlay - bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-3">
+                        <p className="text-white text-xs font-medium truncate">{img.name}</p>
                       </div>
 
-                      {/* Top right controls - only show for current card */}
+                      {/* Controls - only on current card */}
                       {displayOffset === 0 && (
-                        <div className="absolute top-3 right-3 flex gap-2">
-                          {/* Fullscreen button */}
+                        <div className="absolute top-2 right-2 flex gap-1">
                           <Button
                             size="sm"
                             variant="secondary"
-                            className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
+                            className="h-7 w-7 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
                             onClick={handleFullscreen}
                             data-testid="button-fullscreen"
                           >
-                            <Expand className="w-4 h-4" />
+                            <Expand className="w-3 h-3" />
                           </Button>
 
                           {!isSaved ? (
-                            // Remove button for unsaved images
                             <Button
                               size="sm"
                               variant="destructive"
-                              className="h-8 w-8 p-0"
+                              className="h-7 w-7 p-0"
                               onClick={() => removeImage(img.id)}
                               data-testid={`button-remove-${idx}`}
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-3 h-3" />
                             </Button>
                           ) : (
-                            // 3-dot menu for saved images
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   size="sm"
                                   variant="secondary"
-                                  className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
+                                  className="h-7 w-7 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
                                   data-testid="button-image-menu"
                                 >
-                                  <MoreVertical className="w-4 h-4" />
+                                  <MoreVertical className="w-3 h-3" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                                <DropdownMenuItem 
-                                  onClick={() => {
-                                    setIsSaved(false);
-                                    toast({
-                                      title: "Edit mode enabled",
-                                      description: "You can now modify images",
-                                    });
-                                  }}
-                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit Images
+                              <DropdownMenuContent align="end" className="bg-gray-800 border border-gray-700">
+                                <DropdownMenuItem onClick={() => {
+                                  setIsSaved(false);
+                                  toast({ title: "Edit mode enabled" });
+                                }} className="cursor-pointer hover:bg-gray-700">
+                                  <Edit className="w-3 h-3 mr-2" />
+                                  Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => navigator.clipboard.writeText(img.url)}
-                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  Copy Image URL
+                                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(img.url)} className="cursor-pointer hover:bg-gray-700">
+                                  <Copy className="w-3 h-3 mr-2" />
+                                  Copy URL
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = img.url;
-                                    link.download = img.name || `image_${idx + 1}`;
-                                    link.click();
-                                  }}
-                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Download Image
+                                <DropdownMenuItem onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = img.url;
+                                  link.download = img.name || `image_${idx + 1}`;
+                                  link.click();
+                                }} className="cursor-pointer hover:bg-gray-700">
+                                  <Download className="w-3 h-3 mr-2" />
+                                  Download
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -551,85 +513,112 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                 );
               })}
 
-              {/* Navigation arrows - positioned in card area */}
+              {/* Navigation */}
               {images.length > 1 && (
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex gap-4 z-20">
+                <>
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="h-10 w-10 p-0 bg-white/90 hover:bg-white text-gray-800"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
                     onClick={navigateLeft}
                     data-testid="button-nav-left"
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4" />
                   </Button>
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="h-10 w-10 p-0 bg-white/90 hover:bg-white text-gray-800"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
                     onClick={navigateRight}
                     data-testid="button-nav-right"
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                   </Button>
-                </div>
+                </>
               )}
 
-              {/* Bottom controls for unsaved posts - inside card area */}
+              {/* Bottom controls for unsaved posts */}
               {!isSaved && (
-                <div className="absolute bottom-6 left-6 flex gap-2 z-20">
+                <div className="absolute bottom-4 left-4 flex gap-2 z-20">
                   <Button
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
                     onClick={handleSavePost}
                     disabled={isUploading || images.length === 0}
                     data-testid="button-save-post"
                   >
-                    <Save className="w-4 h-4 mr-1" />
+                    <Save className="w-3 h-3 mr-1" />
                     Save
                   </Button>
                   
                   <Button
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                     data-testid="button-add-more"
                   >
-                    <Plus className="w-4 h-4 mr-1" />
+                    <Plus className="w-3 h-3 mr-1" />
                     {isUploading ? 'Uploading...' : 'Add More'}
                   </Button>
                 </div>
               )}
             </div>
 
-            {/* 20% Curved Bottom Counter Section */}
-            <div className="flex-1 relative bg-gray-800 flex items-center justify-center overflow-hidden">
-              {/* SVG Curved Line */}
+            {/* Thumbnail Cards Row */}
+            <div className="h-24 bg-gray-800 px-4 py-2 overflow-x-auto flex gap-2 items-center border-t border-gray-700">
+              {images.map((img, idx) => (
+                <div
+                  key={img.id}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`flex-shrink-0 rounded-md overflow-hidden cursor-pointer transition-all duration-200 ${
+                    idx === currentIndex 
+                      ? 'ring-2 ring-blue-500 scale-105' 
+                      : 'hover:ring-1 hover:ring-gray-600'
+                  }`}
+                  style={{ width: '80px', height: '80px' }}
+                  data-testid={`thumbnail-${idx}`}
+                >
+                  <img
+                    src={img.url}
+                    alt={`Thumbnail ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+              
+              {/* Add more slot */}
+              {!isSaved && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-shrink-0 rounded-md border-2 border-dashed border-gray-600 hover:border-gray-500 flex items-center justify-center transition-colors"
+                  style={{ width: '80px', height: '80px' }}
+                  data-testid="button-add-thumbnail"
+                >
+                  <Plus className="w-6 h-6 text-gray-500" />
+                </button>
+              )}
+            </div>
+
+            {/* Curved Line Footer */}
+            <div className="h-16 relative bg-gray-900 flex items-center justify-center overflow-hidden border-t border-gray-800">
               <svg
-                className="absolute top-0 left-0 w-full h-full"
-                viewBox={`0 0 ${images.length > 0 ? 800 : 800} 120`}
+                className="absolute inset-0 w-full h-full"
+                viewBox="0 0 800 60"
                 preserveAspectRatio="none"
               >
                 <path
-                  d="M 0 50 Q 200 10, 400 30 T 800 50"
-                  stroke="#475569"
+                  d="M 0 40 Q 200 10, 400 25 T 800 40"
+                  stroke="#4b5563"
                   strokeWidth="2"
                   fill="none"
-                  opacity="0.6"
                 />
               </svg>
 
-              {/* Center Counter Badge */}
-              {images.length > 0 && (
-                <div className="relative z-10 flex items-center justify-center">
-                  <div className="bg-white text-gray-900 rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
-                    <span className="text-lg font-bold">
-                      {currentIndex + 1}/{images.length}
-                    </span>
-                  </div>
-                </div>
-              )}
+              {/* Counter Badge */}
+              <div className="relative z-10 bg-white text-gray-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg font-bold text-sm">
+                {currentIndex + 1}/{images.length}
+              </div>
             </div>
           </>
         )}
