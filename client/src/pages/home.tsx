@@ -3822,16 +3822,16 @@ ${
   // Get lot size for Angel One instruments based on API standards
   const getLotSizeForInstrument = (symbol: string, type: 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'): number => {
     // Angel One API lot sizes - https://api-docs.angelbroking.com/
-    // Updated effective Jan 2026
+    // Current lot sizes (effective now)
     
-    // NSE Futures lot sizes (Jan 2026)
+    // NSE Futures lot sizes - CURRENT
     const futuresLotSizes: { [key: string]: number } = {
-      'NIFTY': 65,          // Updated Jan 2026
-      'BANKNIFTY': 30,      // Updated Jan 2026
-      'FINNIFTY': 60,       // Updated Jan 2026
-      'MIDCPNIFTY': 50,     // Updated Jan 2026
-      'SENSEX': 15,         // Updated Jan 2026 (BSE)
-      'BANKEX': 15,         // No change (BSE)
+      'NIFTY': 75,          // 1 lot = 75 qty
+      'BANKNIFTY': 35,      // 1 lot = 35 qty
+      'FINNIFTY': 65,       // 1 lot = 65 qty
+      'MIDCPNIFTY': 40,     // 1 lot = 40 qty
+      'SENSEX': 20,         // 1 lot = 20 qty (BSE)
+      'BANKEX': 15,         // 1 lot = 15 qty (BSE)
       'NIFTYIT': 50,
       'NIFTYPHARMA': 50,
       'NIFTYINFRA': 50,
