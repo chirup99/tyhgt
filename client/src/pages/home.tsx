@@ -15992,33 +15992,34 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.time.length > 0 ? (
-                                  <div 
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData("sourceField", "time");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.time);
-                                    }}
-                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time.join(", ")}]</span>
-                                      <button
-                                        onClick={() => setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          positions: { ...prev.positions, time: [] },
-                                          displayValues: { ...prev.displayValues!, time: "" }
-                                        }))}
-                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                        data-testid="delete-time"
-                                        title="Delete"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
+                                <div className="flex items-center gap-1">
+                                  {buildModeData.positions.time.length > 0 ? (
+                                    <div 
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData("sourceField", "time");
+                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.time);
+                                      }}
+                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time.join(", ")}]</span>
+                                        <button
+                                          onClick={() => setBuildModeData(prev => ({ 
+                                            ...prev, 
+                                            positions: { ...prev.positions, time: [] },
+                                            displayValues: { ...prev.displayValues!, time: "" }
+                                          }))}
+                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                          data-testid="delete-time"
+                                          title="Delete all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <span className="font-medium">{buildModeData.displayValues.time}</span>
                                     </div>
-                                    <span className="font-medium">{buildModeData.displayValues.time}</span>
-                                  </div>
-                                ) : (
+                                  ) : null}
                                   <button
                                     onClick={() => {
                                       const textarea = importDataTextareaRef.current;
@@ -16034,7 +16035,6 @@ ${
                                               positions: { ...prev.positions, time: [...prev.positions.time, position] },
                                               displayValues: { ...prev.displayValues!, time: prev.displayValues.time ? `${prev.displayValues.time} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
-                                            console.log("✅ Added position to time:", position);
                                           } else {
                                             alert("Could not find selected text in first line!");
                                           }
@@ -16043,11 +16043,11 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-time"
-                                    title="Select text from below and click to add (multiple selections allowed)"
+                                    title="Select text from below and click to add more"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
-                                )}
+                                </div>
                               </td>
 
                               {/* Order Column */}
@@ -16059,33 +16059,34 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.order.length > 0 ? (
-                                  <div 
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData("sourceField", "order");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.order);
-                                    }}
-                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order.join(", ")}]</span>
-                                      <button
-                                        onClick={() => setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          positions: { ...prev.positions, order: [] },
-                                          displayValues: { ...prev.displayValues!, order: "" }
-                                        }))}
-                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                        data-testid="delete-order"
-                                        title="Delete"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
+                                <div className="flex items-center gap-1">
+                                  {buildModeData.positions.order.length > 0 ? (
+                                    <div 
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData("sourceField", "order");
+                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.order);
+                                      }}
+                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order.join(", ")}]</span>
+                                        <button
+                                          onClick={() => setBuildModeData(prev => ({ 
+                                            ...prev, 
+                                            positions: { ...prev.positions, order: [] },
+                                            displayValues: { ...prev.displayValues!, order: "" }
+                                          }))}
+                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                          data-testid="delete-order"
+                                          title="Delete all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <span className="font-medium">{buildModeData.displayValues.order}</span>
                                     </div>
-                                    <span className="font-medium">{buildModeData.displayValues.order}</span>
-                                  </div>
-                                ) : (
+                                  ) : null}
                                   <button
                                     onClick={() => {
                                       const textarea = importDataTextareaRef.current;
@@ -16109,11 +16110,11 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-order"
-                                    title="Select text from below and click to add (multiple selections allowed)"
+                                    title="Select text from below and click to add more"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
-                                )}
+                                </div>
                               </td>
 
                               {/* Symbol Column */}
@@ -16125,33 +16126,34 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.symbol.length > 0 ? (
-                                  <div 
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData("sourceField", "symbol");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.symbol);
-                                    }}
-                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol.join(", ")}]</span>
-                                      <button
-                                        onClick={() => setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          positions: { ...prev.positions, symbol: [] },
-                                          displayValues: { ...prev.displayValues!, symbol: "" }
-                                        }))}
-                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                        data-testid="delete-symbol"
-                                        title="Delete"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
+                                <div className="flex items-center gap-1">
+                                  {buildModeData.positions.symbol.length > 0 ? (
+                                    <div 
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData("sourceField", "symbol");
+                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.symbol);
+                                      }}
+                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol.join(", ")}]</span>
+                                        <button
+                                          onClick={() => setBuildModeData(prev => ({ 
+                                            ...prev, 
+                                            positions: { ...prev.positions, symbol: [] },
+                                            displayValues: { ...prev.displayValues!, symbol: "" }
+                                          }))}
+                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                          data-testid="delete-symbol"
+                                          title="Delete all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <span className="font-medium">{buildModeData.displayValues.symbol}</span>
                                     </div>
-                                    <span className="font-medium">{buildModeData.displayValues.symbol}</span>
-                                  </div>
-                                ) : (
+                                  ) : null}
                                   <button
                                     onClick={() => {
                                       const textarea = importDataTextareaRef.current;
@@ -16167,6 +16169,7 @@ ${
                                               positions: { ...prev.positions, symbol: [...prev.positions.symbol, position] },
                                               displayValues: { ...prev.displayValues!, symbol: prev.displayValues.symbol ? `${prev.displayValues.symbol} ${selectedText.trim()}` : selectedText.trim() }
                                             }));
+                                            console.log("✅ Symbol position added:", { position, positions: [...buildModeData.positions.symbol, position] });
                                           } else {
                                             alert("Could not find selected text in first line!");
                                           }
@@ -16175,11 +16178,11 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-symbol"
-                                    title="Select text from below and click to add (multiple selections allowed)"
+                                    title="Select text from below and click to add more"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
-                                )}
+                                </div>
                               </td>
 
                               {/* Type Column */}
@@ -16191,33 +16194,34 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.type.length > 0 ? (
-                                  <div 
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData("sourceField", "type");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.type);
-                                    }}
-                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type.join(", ")}]</span>
-                                      <button
-                                        onClick={() => setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          positions: { ...prev.positions, type: [] },
-                                          displayValues: { ...prev.displayValues!, type: "" }
-                                        }))}
-                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                        data-testid="delete-type"
-                                        title="Delete"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
+                                <div className="flex items-center gap-1">
+                                  {buildModeData.positions.type.length > 0 ? (
+                                    <div 
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData("sourceField", "type");
+                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.type);
+                                      }}
+                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type.join(", ")}]</span>
+                                        <button
+                                          onClick={() => setBuildModeData(prev => ({ 
+                                            ...prev, 
+                                            positions: { ...prev.positions, type: [] },
+                                            displayValues: { ...prev.displayValues!, type: "" }
+                                          }))}
+                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                          data-testid="delete-type"
+                                          title="Delete all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <span className="font-medium">{buildModeData.displayValues.type}</span>
                                     </div>
-                                    <span className="font-medium">{buildModeData.displayValues.type}</span>
-                                  </div>
-                                ) : (
+                                  ) : null}
                                   <button
                                     onClick={() => {
                                       const textarea = importDataTextareaRef.current;
@@ -16241,11 +16245,11 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-type"
-                                    title="Select text from below and click to add (multiple selections allowed)"
+                                    title="Select text from below and click to add more"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
-                                )}
+                                </div>
                               </td>
 
                               {/* Qty Column */}
@@ -16257,33 +16261,34 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.qty.length > 0 ? (
-                                  <div 
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData("sourceField", "qty");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.qty);
-                                    }}
-                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty.join(", ")}]</span>
-                                      <button
-                                        onClick={() => setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          positions: { ...prev.positions, qty: [] },
-                                          displayValues: { ...prev.displayValues!, qty: "" }
-                                        }))}
-                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                        data-testid="delete-qty"
-                                        title="Delete"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
+                                <div className="flex items-center gap-1">
+                                  {buildModeData.positions.qty.length > 0 ? (
+                                    <div 
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData("sourceField", "qty");
+                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.qty);
+                                      }}
+                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty.join(", ")}]</span>
+                                        <button
+                                          onClick={() => setBuildModeData(prev => ({ 
+                                            ...prev, 
+                                            positions: { ...prev.positions, qty: [] },
+                                            displayValues: { ...prev.displayValues!, qty: "" }
+                                          }))}
+                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                          data-testid="delete-qty"
+                                          title="Delete all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <span className="font-medium">{buildModeData.displayValues.qty}</span>
                                     </div>
-                                    <span className="font-medium">{buildModeData.displayValues.qty}</span>
-                                  </div>
-                                ) : (
+                                  ) : null}
                                   <button
                                     onClick={() => {
                                       const textarea = importDataTextareaRef.current;
@@ -16307,11 +16312,11 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-qty"
-                                    title="Select text from below and click to add (multiple selections allowed)"
+                                    title="Select text from below and click to add more"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
-                                )}
+                                </div>
                               </td>
 
                               {/* Price Column */}
@@ -16323,33 +16328,34 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                {buildModeData.positions.price.length > 0 ? (
-                                  <div 
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData("sourceField", "price");
-                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.price);
-                                    }}
-                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price.join(", ")}]</span>
-                                      <button
-                                        onClick={() => setBuildModeData(prev => ({ 
-                                          ...prev, 
-                                          positions: { ...prev.positions, price: [] },
-                                          displayValues: { ...prev.displayValues!, price: "" }
-                                        }))}
-                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                        data-testid="delete-price"
-                                        title="Delete"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
+                                <div className="flex items-center gap-1">
+                                  {buildModeData.positions.price.length > 0 ? (
+                                    <div 
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.dataTransfer.setData("sourceField", "price");
+                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.price);
+                                      }}
+                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price.join(", ")}]</span>
+                                        <button
+                                          onClick={() => setBuildModeData(prev => ({ 
+                                            ...prev, 
+                                            positions: { ...prev.positions, price: [] },
+                                            displayValues: { ...prev.displayValues!, price: "" }
+                                          }))}
+                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                          data-testid="delete-price"
+                                          title="Delete all"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <span className="font-medium">{buildModeData.displayValues.price}</span>
                                     </div>
-                                    <span className="font-medium">{buildModeData.displayValues.price}</span>
-                                  </div>
-                                ) : (
+                                  ) : null}
                                   <button
                                     onClick={() => {
                                       const textarea = importDataTextareaRef.current;
@@ -16373,11 +16379,11 @@ ${
                                     }}
                                     className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                                     data-testid="add-price"
-                                    title="Select text from below and click to add (multiple selections allowed)"
+                                    title="Select text from below and click to add more"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
-                                )}
+                                </div>
                               </td>
                             </tr>
                           </tbody>
