@@ -13611,7 +13611,7 @@ ${
                                 className="h-7 text-xs px-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300"
                                 data-testid="button-demo-trade-mobile"
                               >
-                                <Play className="h-3 w-3 mr-1" />
+                                <TrendingUp className="h-3 w-3 mr-1" />
                                 Paper Trade
                               </Button>
                             </div>
@@ -13776,6 +13776,7 @@ ${
                               className="h-7 px-2 text-xs"
                               data-testid="button-paper-trade"
                             >
+                              <TrendingUp className="h-4 w-4 mr-1" />
                               Paper Trade
                             </Button>
                             <div className="h-7 px-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-md flex items-center justify-center text-xs font-semibold text-blue-600 dark:text-blue-300">
