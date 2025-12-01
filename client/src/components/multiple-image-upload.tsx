@@ -261,7 +261,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             )}
           </div>
 
-          {/* Thumbnail Row - Only show if images exist */}
+          {/* Thumbnail Row - show for images */}
           {images.length > 0 && (
             <div className="h-24 bg-gray-800 px-4 py-2 overflow-x-auto flex gap-2 items-center border-t border-gray-700">
               {images.map((img, idx) => (
@@ -298,27 +298,25 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             </div>
           )}
 
-          {/* Curved Line Footer - Only show if images exist */}
-          {images.length > 0 && (
-            <div className="h-16 relative bg-gray-900 flex items-center justify-center overflow-hidden border-t border-gray-800">
-              <svg
-                className="absolute inset-0 w-full h-full"
-                viewBox="0 0 800 60"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M 0 40 Q 200 10, 400 25 T 800 40"
-                  stroke="#4b5563"
-                  strokeWidth="2"
-                  fill="none"
-                />
-              </svg>
+          {/* Curved Line Footer with Counter - Always show */}
+          <div className="h-16 relative bg-gray-900 flex items-center justify-center overflow-hidden border-t border-gray-800">
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 800 60"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M 0 40 Q 200 10, 400 25 T 800 40"
+                stroke="#4b5563"
+                strokeWidth="2"
+                fill="none"
+              />
+            </svg>
 
-              <div className="relative z-10 bg-white text-gray-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg font-bold text-sm">
-                {currentIndex + 1}/{images.length}
-              </div>
+            <div className="relative z-10 bg-white text-gray-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg font-bold text-sm">
+              {currentIndex + 1}/{images.length > 0 ? images.length : 5}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Hidden file input */}
