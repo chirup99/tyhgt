@@ -4246,7 +4246,7 @@ ${
   };
   
   // 🔴 NEW: Record all paper trades to personal tradebook heatmap (today's date only)
-  const recordAllPaperTrades = async () => {
+  const recordAllPaperTrades = () => {
     if (paperTradeHistory.length === 0) {
       toast({
         title: "No Trades",
@@ -4260,26 +4260,23 @@ ${
     if (isDemoMode) {
       console.log("🔄 Auto-switching to personal mode to record trades...");
       setIsDemoMode(false);
-      // Continue recording after state updates
-      setTimeout(() => {
-        recordAllPaperTrades();
-      }, 100);
+      setTimeout(() => recordAllPaperTrades(), 100);
       return;
     }
     
-    // Get today's date in YYYY-MM-DD format
+    // Get today's date
     const today = new Date();
     const todayKey = formatDateKey(today);
     
-    // Get existing trades for today (if any)
+    // Get existing data for today
     const existingData = tradingDataByDate[todayKey] || {};
     const existingTrades = existingData.tradeHistory || [];
     
-    // Convert paper trades to heatmap trade format
+    // Convert paper trades
     const convertedTrades = paperTradeHistory.map((trade: any) => ({
       symbol: trade.symbol,
       type: trade.type || 'MIS',
-      action: trade.action, // BUY or SELL
+      action: trade.action,
       quantity: trade.quantity,
       price: trade.price,
       time: trade.time,
@@ -4287,10 +4284,10 @@ ${
       closedAt: trade.closedAt
     }));
     
-    // Merge with existing trades (append new ones)
+    // Merge trades
     const mergedTrades = [...existingTrades, ...convertedTrades];
     
-    // Calculate P&L amount
+    // Calculate P&L
     const profitLossAmount = mergedTrades.reduce((sum: number, trade: any) => {
       if (trade.pnl && trade.pnl !== '-') {
         const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
@@ -4299,7 +4296,7 @@ ${
       return sum;
     }, 0);
     
-    // Update tradingDataByDate with merged trades
+    // Build updated data
     const updatedData = {
       ...existingData,
       tradeHistory: mergedTrades,
@@ -4307,54 +4304,32 @@ ${
       totalTrades: mergedTrades.length
     };
     
-    try {
-      // 🔴 CRITICAL: Save to API/Firebase first (so heatmap can load it)
-      const response = await fetch(getFullApiUrl(`/api/journal/${todayKey}`), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-      
+    // Save to API/Firebase
+    fetch(getFullApiUrl(`/api/journal/${todayKey}`), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData),
+    }).then(response => {
       if (response.ok) {
-        console.log(`✅ Recorded ${convertedTrades.length} trades to Firebase for ${todayKey}`);
-        
-        // Update local state after API saves
-        setTradingDataByDate((prev: any) => ({
-          ...prev,
-          [todayKey]: updatedData
-        }));
-        
-        setPersonalTradingDataByDate((prev: any) => ({
-          ...prev,
-          [todayKey]: updatedData
-        }));
-        
-        // Update calendar data for heatmap colors
-        setCalendarData((prev: any) => ({
-          ...prev,
-          [todayKey]: updatedData
-        }));
+        // Update all state
+        setTradingDataByDate((prev: any) => ({ ...prev, [todayKey]: updatedData }));
+        setPersonalTradingDataByDate((prev: any) => ({ ...prev, [todayKey]: updatedData }));
+        setCalendarData((prev: any) => ({ ...prev, [todayKey]: updatedData }));
         
         toast({
-          title: "Trades Recorded",
-          description: `Recorded ${convertedTrades.length} trades to today's personal tradebook`
+          title: "Recorded",
+          description: `${convertedTrades.length} trade(s) imported to today's heatmap`
         });
-      } else {
-        console.error("❌ Failed to save trades to Firebase");
-        toast({
-          title: "Save Failed",
-          description: "Could not save trades to personal tradebook",
-          variant: "destructive"
-        });
+        console.log(`✅ Recorded ${convertedTrades.length} trades`);
       }
-    } catch (error) {
-      console.error("❌ Error recording trades:", error);
+    }).catch(error => {
+      console.error("❌ Error:", error);
       toast({
         title: "Error",
         description: "Failed to record trades",
         variant: "destructive"
       });
-    }
+    });
   };
 
   // Exit all open positions at once
@@ -16522,8 +16497,7 @@ ${
                     <Button
                       onClick={recordAllPaperTrades}
                       size="sm"
-                      variant="outline"
-                      className="h-5 px-2 text-[10px] text-blue-600 border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-700 dark:hover:bg-blue-900/20"
+                      className="h-8 text-xs"
                       data-testid="button-record-all-trades"
                     >
                       Record
