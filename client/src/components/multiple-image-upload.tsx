@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle, createElement } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Image, BookOpen, TrendingUp, DollarSign, Lightbulb } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Image, BookOpen, TrendingUp, DollarSign, Lightbulb, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadedImage {
@@ -26,6 +26,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     const [isUploading, setIsUploading] = useState(false);
     const [dragOffset, setDragOffset] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<UploadedImage | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const touchStartX = useRef(0);
     const touchStartY = useRef(0);
@@ -228,12 +229,16 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                     opacity: opacity,
                   }}
                 >
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700" style={{ width: '300px', height: '220px' }}>
+                  <div 
+                    className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700 cursor-pointer transition-transform hover:scale-105" 
+                    style={{ width: '300px', height: '220px' }}
+                    onClick={() => (card as any).image && setSelectedImage((card as any).image)}
+                  >
                     {(card as any).image ? (
                       <img
                         src={(card as any).image.url}
                         alt={(card as any).label}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain bg-gray-50 dark:bg-gray-800"
                         data-testid={`img-card-${idx}`}
                       />
                     ) : (
@@ -288,6 +293,52 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           className="hidden"
           data-testid="input-file-upload"
         />
+
+        {/* Image Modal Dialog */}
+        {selectedImage && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+            onClick={() => setSelectedImage(null)}
+          >
+            <div 
+              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl max-h-[90vh] w-full animate-in zoom-in-95 duration-300 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                data-testid="button-close-modal"
+              >
+                <X className="w-5 h-5 text-gray-800 dark:text-white" />
+              </button>
+
+              {/* Image Display */}
+              <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-t-2xl overflow-hidden">
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.name}
+                  className="max-w-full max-h-full object-contain"
+                  data-testid="img-modal-display"
+                />
+              </div>
+
+              {/* Image Info */}
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-b-2xl">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">
+                  {selectedImage.name}
+                </p>
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
+                  data-testid="button-close-modal-footer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
