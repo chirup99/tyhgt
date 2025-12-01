@@ -6957,10 +6957,11 @@ ${
     "Bollinger Bands",
     "ATR",
     "Volume",
-    "CCI",
     "ADX",
-    "PSAR",
     "Ichimoku",
+    "Fibonacci",
+    "Pivot Points",
+    "Price Action",
   ];
 
   const timeframeOptions = [
