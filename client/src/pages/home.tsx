@@ -5613,7 +5613,7 @@ ${
     }
   }, [journalChartData]);
 
-  // Live streaming SSE connection for Journal Chart
+  // 🔴 TRIGGER: When user opens journal tab first time, ensure SSE starts
   useEffect(() => {
     if (activeTab !== 'journal') {
       // Disconnect SSE when leaving journal tab
@@ -5624,6 +5624,21 @@ ${
         setJournalLiveData(null);
         console.log('🔴 [SSE] Disconnected from live stream (tab change)');
       }
+      return;
+    }
+    
+    // ✅ FIX: Ensure chart data is loaded before SSE connection
+    if (!journalChartData || journalChartData.length === 0) {
+      console.log('📡 [SSE] Waiting for historical chart data to load...');
+      return;
+    }
+    
+    console.log('✅ [SSE TRIGGER] Journal tab active with chart data loaded - starting SSE connection');
+  }, [activeTab]); // Only trigger on tab change
+
+  // Live streaming SSE connection for Journal Chart
+  useEffect(() => {
+    if (activeTab !== 'journal') {
       return;
     }
 
