@@ -5823,6 +5823,32 @@ ${
             // We've crossed into a new candle interval - this means the previous candle is complete
             console.log('🆕 [NEW CANDLE] New interval detected, adding new candle to chart');
             
+            // 🔴 CRITICAL: Finalize the PREVIOUS candle with its complete OHLC before moving to new candle
+            // This prevents the previous candle from collapsing into a line
+            setTimeout(() => {
+              if (journalCandlestickSeriesRef.current) {
+                try {
+                  // Get the last candle's FINAL OHLC (that we've been updating in this interval)
+                  const prevCandleOpen = lastChartCandle.open;
+                  const prevCandleHigh = Math.max(lastChartCandle.high, liveCandle.close);
+                  const prevCandleLow = Math.min(lastChartCandle.low, liveCandle.close);
+                  const prevCandleClose = liveCandle.close;
+                  
+                  // FINALIZE previous candle one last time with its complete OHLC
+                  journalCandlestickSeriesRef.current.update({
+                    time: lastChartCandle.time as any,
+                    open: prevCandleOpen,
+                    high: prevCandleHigh,
+                    low: prevCandleLow,
+                    close: prevCandleClose
+                  });
+                  console.log(`✅ [CANDLE FINALIZED] Previous candle locked with OHLC: O${prevCandleOpen} H${prevCandleHigh} L${prevCandleLow} C${prevCandleClose}`);
+                } catch (e) {
+                  console.warn('⚠️ Previous candle finalization skipped', e);
+                }
+              }
+            }, 20);
+            
             // Create new candle with proper timestamp and OHLC from backend
             const newCandle = {
               time: currentCandleStartTime,
@@ -5866,7 +5892,7 @@ ${
                   console.warn('⚠️ New candle add skipped (time conflict)', e);
                 }
               }
-            }, 50);
+            }, 70);
             
             // Update live OHLC display for the new candle
             const changePercent = liveCandle.open > 0 ? ((liveCandle.close - liveCandle.open) / liveCandle.open) * 100 : 0;
