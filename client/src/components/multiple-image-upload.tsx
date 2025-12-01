@@ -297,7 +297,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         {/* Image Modal Dialog */}
         {selectedImage && (
           <div 
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300 flex flex-col items-center justify-center"
             onClick={() => setSelectedImage(null)}
             onTouchStart={(e) => {
               touchStartX.current = e.touches[0].clientX;
@@ -327,7 +327,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           >
             {/* Main Modal */}
             <div 
-              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl max-h-[70vh] w-full animate-in zoom-in-95 duration-300 flex flex-col"
+              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full h-auto flex-shrink-0 animate-in zoom-in-95 duration-300 flex flex-col"
+              style={{ maxHeight: 'calc(100vh - 300px)' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -340,7 +341,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               </button>
 
               {/* Image Display */}
-              <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-t-2xl overflow-hidden">
+              <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-t-2xl overflow-hidden min-h-96">
                 <img
                   src={selectedImage.url}
                   alt={selectedImage.name}
@@ -357,8 +358,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               </div>
             </div>
 
-            {/* Thumbnail Strip Below */}
-            <div className="flex gap-2 mt-6 overflow-x-auto pb-2 max-w-4xl w-full items-center justify-center">
+            {/* Thumbnail Strip Below - Separate from Modal */}
+            <div className="flex gap-2 mt-4 overflow-x-auto pb-2 max-w-4xl w-full items-center justify-center flex-shrink-0">
               {cardsToShow.map((card, idx) => (
                 card.image && (
                   <button
@@ -372,7 +373,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                         ? 'ring-2 ring-white scale-110' 
                         : 'hover:scale-105 opacity-75 hover:opacity-100'
                     }`}
-                    style={{ width: '80px', height: '80px' }}
+                    style={{ width: '60px', height: '60px' }}
                     data-testid={`button-thumbnail-${idx}`}
                   >
                     <img
@@ -388,7 +389,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             {/* Close Button Text */}
             <button
               onClick={() => setSelectedImage(null)}
-              className="mt-4 px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
+              className="mt-4 px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex-shrink-0"
               data-testid="button-close-modal-bottom"
             >
               Close
