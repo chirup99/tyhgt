@@ -8589,6 +8589,31 @@ ${
   }, [tradeHistoryData]);
 
   // Import handling functions
+  // Helper: Parse time string to minutes since midnight
+  const parseTimeToMinutes = (timeStr: string): number => {
+    try {
+      let time = timeStr.trim();
+      
+      // Match time patterns: "HH:MM:SS AM/PM" or "HH:MM:SS" 
+      const match = time.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+      if (!match) return 0;
+      
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const period = match[4]?.toUpperCase();
+      
+      // Convert 12-hour to 24-hour if needed
+      if (period) {
+        if (period === "AM" && hours === 12) hours = 0;
+        else if (period === "PM" && hours !== 12) hours += 12;
+      }
+      
+      return hours * 60 + minutes;
+    } catch {
+      return 0;
+    }
+  };
+
   const calculateSimplePnL = (trades: any[]) => {
     const processedTrades = [...trades];
     const positions: {
@@ -8596,6 +8621,7 @@ ${
         qty: number;
         avgPrice: number;
         firstTradeTime: string;
+        firstTradeMinutes: number;
       };
     } = {};
 
@@ -8605,7 +8631,12 @@ ${
 
       // Initialize position tracking for this symbol
       if (!positions[symbol]) {
-        positions[symbol] = { qty: 0, avgPrice: 0, firstTradeTime: trade.time };
+        positions[symbol] = { 
+          qty: 0, 
+          avgPrice: 0, 
+          firstTradeTime: trade.time,
+          firstTradeMinutes: parseTimeToMinutes(trade.time)
+        };
       }
 
       if (trade.order === "BUY") {
@@ -8622,6 +8653,7 @@ ${
         // If this is the first trade for this symbol, record the time
         if (positions[symbol].qty === trade.qty) {
           positions[symbol].firstTradeTime = trade.time;
+          positions[symbol].firstTradeMinutes = parseTimeToMinutes(trade.time);
         }
       } else if (trade.order === "SELL") {
         // Close position (partial or full)
@@ -8630,14 +8662,11 @@ ${
           const pnlPerShare = trade.price - positions[symbol].avgPrice;
           const totalPnL = pnlPerShare * trade.qty;
 
-          // Calculate duration from first buy to this sell
-          const entryTime = new Date(
-            `1970-01-01 ${positions[symbol].firstTradeTime}`,
-          );
-          const exitTime = new Date(`1970-01-01 ${trade.time}`);
-          const durationMs = exitTime.getTime() - entryTime.getTime();
-          const minutes = Math.floor(durationMs / 60000);
-          const seconds = Math.floor((durationMs % 60000) / 1000);
+          // Calculate duration using minutes (handles AM/PM correctly)
+          const exitMinutes = parseTimeToMinutes(trade.time);
+          const durationMinutes = Math.max(0, exitMinutes - positions[symbol].firstTradeMinutes);
+          const minutes = Math.floor(durationMinutes);
+          const seconds = 0; // Already in minutes, so seconds = 0
           const durationText = `${minutes}m ${seconds}s`;
 
           // Set P&L and duration on this SELL trade
@@ -8649,7 +8678,7 @@ ${
 
           // If position is fully closed, reset
           if (positions[symbol].qty <= 0) {
-            positions[symbol] = { qty: 0, avgPrice: 0, firstTradeTime: "" };
+            positions[symbol] = { qty: 0, avgPrice: 0, firstTradeTime: "", firstTradeMinutes: 0 };
           }
         }
       }
