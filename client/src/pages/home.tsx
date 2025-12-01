@@ -3778,6 +3778,7 @@ ${
   const [paperTradeSLType, setPaperTradeSLType] = useState<'price' | 'percent' | 'duration' | 'high' | 'low'>('price');
   const [paperTradeSLValue, setPaperTradeSLValue] = useState("");
   const [paperTradeSLTimeframe, setPaperTradeSLTimeframe] = useState("5m");
+  const [paperTradeSLDurationUnit, setPaperTradeSLDurationUnit] = useState("min");
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
   
   // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
@@ -15883,10 +15884,32 @@ ${
                             </div>
                           )}
 
-                          {paperTradeSLType !== 'high' && paperTradeSLType !== 'low' && (
+                          {paperTradeSLType === 'duration' && (
+                            <div className="flex gap-2">
+                              <Input
+                                type="number"
+                                placeholder="Duration"
+                                value={paperTradeSLValue}
+                                onChange={(e) => setPaperTradeSLValue(e.target.value)}
+                                className="h-7 text-xs flex-1"
+                                data-testid="input-paper-sl-duration"
+                              />
+                              <Select value={paperTradeSLDurationUnit} onValueChange={(v) => setPaperTradeSLDurationUnit(v)}>
+                                <SelectTrigger className="h-7 text-xs w-16">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="min">Min</SelectItem>
+                                  <SelectItem value="hr">Hr</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          {paperTradeSLType !== 'high' && paperTradeSLType !== 'low' && paperTradeSLType !== 'duration' && (
                             <Input
                               type="number"
-                              placeholder={paperTradeSLType === 'price' ? 'Price' : paperTradeSLType === 'percent' ? '%' : 'Duration (min)'}
+                              placeholder={paperTradeSLType === 'price' ? 'Price' : '%'}
                               value={paperTradeSLValue}
                               onChange={(e) => setPaperTradeSLValue(e.target.value)}
                               className="h-7 text-xs"
