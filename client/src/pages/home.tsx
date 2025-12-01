@@ -16049,17 +16049,18 @@ ${
                                   e.preventDefault();
                                   const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
                                   if (sourceField && sourceField !== "time") {
+                                    // Swap: exchange data between source and destination
                                     setBuildModeData(prev => ({
                                       ...prev,
                                       positions: {
                                         ...prev.positions,
                                         time: prev.positions[sourceField],
-                                        [sourceField]: []
+                                        [sourceField]: prev.positions.time
                                       },
                                       displayValues: {
                                         ...prev.displayValues!,
                                         time: prev.displayValues[sourceField],
-                                        [sourceField]: ""
+                                        [sourceField]: prev.displayValues.time
                                       }
                                     }));
                                   }
@@ -16132,17 +16133,18 @@ ${
                                   e.preventDefault();
                                   const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
                                   if (sourceField && sourceField !== "order") {
+                                    // Swap: exchange data between source and destination
                                     setBuildModeData(prev => ({
                                       ...prev,
                                       positions: {
                                         ...prev.positions,
                                         order: prev.positions[sourceField],
-                                        [sourceField]: []
+                                        [sourceField]: prev.positions.order
                                       },
                                       displayValues: {
                                         ...prev.displayValues!,
                                         order: prev.displayValues[sourceField],
-                                        [sourceField]: ""
+                                        [sourceField]: prev.displayValues.order
                                       }
                                     }));
                                   }
@@ -16215,17 +16217,18 @@ ${
                                   e.preventDefault();
                                   const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
                                   if (sourceField && sourceField !== "symbol") {
+                                    // Swap: exchange data between source and destination
                                     setBuildModeData(prev => ({
                                       ...prev,
                                       positions: {
                                         ...prev.positions,
                                         symbol: prev.positions[sourceField],
-                                        [sourceField]: []
+                                        [sourceField]: prev.positions.symbol
                                       },
                                       displayValues: {
                                         ...prev.displayValues!,
                                         symbol: prev.displayValues[sourceField],
-                                        [sourceField]: ""
+                                        [sourceField]: prev.displayValues.symbol
                                       }
                                     }));
                                   }
@@ -16298,17 +16301,18 @@ ${
                                   e.preventDefault();
                                   const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
                                   if (sourceField && sourceField !== "type") {
+                                    // Swap: exchange data between source and destination
                                     setBuildModeData(prev => ({
                                       ...prev,
                                       positions: {
                                         ...prev.positions,
                                         type: prev.positions[sourceField],
-                                        [sourceField]: []
+                                        [sourceField]: prev.positions.type
                                       },
                                       displayValues: {
                                         ...prev.displayValues!,
                                         type: prev.displayValues[sourceField],
-                                        [sourceField]: ""
+                                        [sourceField]: prev.displayValues.type
                                       }
                                     }));
                                   }
@@ -16381,17 +16385,18 @@ ${
                                   e.preventDefault();
                                   const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
                                   if (sourceField && sourceField !== "qty") {
+                                    // Swap: exchange data between source and destination
                                     setBuildModeData(prev => ({
                                       ...prev,
                                       positions: {
                                         ...prev.positions,
                                         qty: prev.positions[sourceField],
-                                        [sourceField]: []
+                                        [sourceField]: prev.positions.qty
                                       },
                                       displayValues: {
                                         ...prev.displayValues!,
                                         qty: prev.displayValues[sourceField],
-                                        [sourceField]: ""
+                                        [sourceField]: prev.displayValues.qty
                                       }
                                     }));
                                   }
@@ -16464,17 +16469,18 @@ ${
                                   e.preventDefault();
                                   const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
                                   if (sourceField && sourceField !== "price") {
+                                    // Swap: exchange data between source and destination
                                     setBuildModeData(prev => ({
                                       ...prev,
                                       positions: {
                                         ...prev.positions,
                                         price: prev.positions[sourceField],
-                                        [sourceField]: []
+                                        [sourceField]: prev.positions.price
                                       },
                                       displayValues: {
                                         ...prev.displayValues!,
                                         price: prev.displayValues[sourceField],
-                                        [sourceField]: ""
+                                        [sourceField]: prev.displayValues.price
                                       }
                                     }));
                                   }
