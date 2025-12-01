@@ -13017,15 +13017,6 @@ ${
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setShowOrderModal(true)}
-                              className="h-7 px-2 text-xs"
-                              data-testid="button-place-order"
-                            >
-                              Order
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
                               onClick={() => setShowImportModal(true)}
                               className="h-7 px-2 text-xs"
                               data-testid="button-import-pnl"
