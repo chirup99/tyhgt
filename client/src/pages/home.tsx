@@ -13006,12 +13006,12 @@ ${
                       )}
                     </div>
 
-                    {/* Desktop: TRADE HISTORY SUMMARY - Left Side - MINIMALIST DESIGN */}
+                    {/* Desktop: TRADE HISTORY SUMMARY - Left Side - MINIMALIST WITH BRIGHT COLORS */}
                     <Card className="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 h-[420px]">
                       <CardContent className="p-3">
                         <div className="flex items-center justify-between mb-3 gap-2">
-                          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-                            Trade History
+                          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                            TRADE HISTORY SUMMARY
                           </h3>
                           <div className="flex gap-1.5">
                             <Button
@@ -13041,25 +13041,32 @@ ${
                             >
                               Paper Trade
                             </Button>
+                            <div className="h-7 px-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-md flex items-center justify-center text-xs font-semibold text-blue-600 dark:text-blue-300">
+                              <Timer className="h-4 w-4 mr-1.5" />
+                              {calculateTotalDuration(tradeHistoryData)}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="max-h-96 overflow-auto custom-thin-scrollbar">
+                        <div className="max-h-80 overflow-auto custom-thin-scrollbar">
                           <table className="w-full text-xs">
                             <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                               <tr>
-                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[55px]">Time</th>
-                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[45px]">Order</th>
-                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[75px]">Symbol</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[60px]">Time</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[50px]">Order</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[80px]">Symbol</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[45px]">Type</th>
                                 <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[40px]">Qty</th>
-                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[55px]">Price</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[60px]">Price</th>
                                 <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[60px]">P&L</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[45px]">%</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[70px]">Duration</th>
                               </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-slate-900">
                               {isLoadingHeatmapData && tradeHistoryData.length === 0 ? (
                                 <tr>
-                                  <td colSpan={6} className="p-6 text-center">
+                                  <td colSpan={9} className="p-6 text-center">
                                     <div className="flex flex-col items-center gap-2">
                                       <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
                                       <span className="text-xs text-slate-500 dark:text-slate-400">Loading...</span>
@@ -13068,7 +13075,7 @@ ${
                                 </tr>
                               ) : tradeHistoryData.length === 0 ? (
                                 <tr>
-                                  <td colSpan={6} className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
+                                  <td colSpan={9} className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
                                     {!isDemoMode 
                                       ? "No data yet" 
                                       : selectedDate 
@@ -13085,16 +13092,16 @@ ${
                                     <td className="px-2 py-2 text-slate-600 dark:text-slate-400">{trade.time}</td>
                                     <td className="px-2 py-2">
                                       <span
-                                        className={`text-xs font-medium ${
+                                        className={`text-xs font-bold px-1.5 py-0.5 rounded ${
                                           trade.order === "BUY"
-                                            ? "text-emerald-600 dark:text-emerald-400"
-                                            : "text-red-600 dark:text-red-400"
+                                            ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
+                                            : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
                                         }`}
                                       >
                                         {trade.order}
                                       </span>
                                     </td>
-                                    <td className="px-2 py-2 text-slate-700 dark:text-slate-300 font-medium text-xs">
+                                    <td className="px-2 py-2 text-slate-700 dark:text-slate-300 font-medium">
                                       {(() => {
                                         if (!selectedDate) return trade.symbol;
                                         const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -13103,10 +13110,11 @@ ${
                                         return symbolWithoutMonth;
                                       })()}
                                     </td>
+                                    <td className="px-2 py-2 text-indigo-600 dark:text-indigo-300 font-semibold">MIS</td>
                                     <td className="px-2 py-2 text-slate-600 dark:text-slate-400">{trade.qty}</td>
-                                    <td className="px-2 py-2 text-slate-600 dark:text-slate-400">₹{trade.price}</td>
+                                    <td className="px-2 py-2 text-amber-600 dark:text-amber-300 font-medium">₹{trade.price}</td>
                                     <td
-                                      className={`px-2 py-2 font-medium text-xs ${
+                                      className={`px-2 py-2 font-bold ${
                                         (trade.pnl || "").includes("+")
                                           ? "text-emerald-600 dark:text-emerald-400"
                                           : (trade.pnl || "").includes("-")
@@ -13116,6 +13124,46 @@ ${
                                     >
                                       {trade.pnl}
                                     </td>
+                                    <td
+                                      className={`px-2 py-2 font-bold ${(() => {
+                                        if (!trade.pnl || trade.pnl === "-")
+                                          return "text-slate-400";
+                                        const pnlStr = (trade.pnl || "").replace(
+                                          /[₹,+\s]/g,
+                                          "",
+                                        );
+                                        const pnlValue = parseFloat(pnlStr) || 0;
+                                        const openPrice = trade.price;
+                                        const totalInvestment =
+                                          openPrice * trade.qty || 1;
+                                        const percentage =
+                                          (pnlValue / totalInvestment) * 100;
+                                        return percentage > 0
+                                          ? "text-emerald-600 dark:text-emerald-400"
+                                          : percentage < 0
+                                            ? "text-red-600 dark:text-red-400"
+                                            : "text-slate-600";
+                                      })()}`}
+                                    >
+                                      {(() => {
+                                        if (!trade.pnl || trade.pnl === "-")
+                                          return "-";
+                                        const pnlStr = (trade.pnl || "").replace(
+                                          /[₹,+\s]/g,
+                                          "",
+                                        );
+                                        const pnlValue = parseFloat(pnlStr) || 0;
+                                        const openPrice = trade.price;
+                                        const totalInvestment =
+                                          openPrice * trade.qty || 1;
+                                        const percentage =
+                                          (pnlValue / totalInvestment) * 100;
+                                        return `${
+                                          percentage >= 0 ? "+" : ""
+                                        }${percentage.toFixed(2)}%`;
+                                      })()}
+                                    </td>
+                                    <td className="px-2 py-2 text-violet-600 dark:text-violet-300 font-medium">{trade.duration}</td>
                                   </tr>
                                 ))
                               )}
