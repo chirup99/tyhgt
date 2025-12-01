@@ -15992,64 +15992,33 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  {buildModeData.positions.time.length > 0 && (
-                                    <div 
-                                      draggable
-                                      onDragStart={(e) => {
-                                        e.dataTransfer.setData("sourceField", "time");
-                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.time);
-                                      }}
-                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                    >
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time.join(", ")}]</span>
-                                        <button
-                                          onClick={() => setBuildModeData(prev => ({ 
-                                            ...prev, 
-                                            positions: { ...prev.positions, time: [] },
-                                            displayValues: { ...prev.displayValues!, time: "" }
-                                          }))}
-                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                          data-testid="delete-time"
-                                          title="Delete all"
-                                        >
-                                          <X className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                      <span className="font-medium text-xs">{buildModeData.displayValues.time}</span>
-                                    </div>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      const textarea = importDataTextareaRef.current;
-                                      if (textarea) {
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
-                                        if (selectedText && firstLine) {
-                                          const selectedWords = selectedText.split(/\s+/);
-                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
-                                          if (newPositions.length > 0) {
-                                            setBuildModeData(prev => ({ 
-                                              ...prev,
-                                              sampleLine: firstLine,
-                                              positions: { ...prev.positions, time: [...prev.positions.time, ...newPositions] },
-                                              displayValues: { ...prev.displayValues!, time: prev.displayValues.time ? `${prev.displayValues.time} ${selectedText}` : selectedText }
-                                            }));
-                                          } else {
-                                            alert("Could not find selected text in first line!");
-                                          }
-                                        }
-                                      }
+                                {buildModeData.positions.time.length > 0 && (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "time");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.time);
                                     }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    data-testid="add-time"
-                                    title="Select text and click +"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.time.join(", ")}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, time: [] },
+                                          displayValues: { ...prev.displayValues!, time: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-time"
+                                        title="Delete all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium text-xs">{buildModeData.displayValues.time}</span>
+                                  </div>
+                                )}
                               </td>
 
                               {/* Order Column */}
@@ -16061,64 +16030,33 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  {buildModeData.positions.order.length > 0 && (
-                                    <div 
-                                      draggable
-                                      onDragStart={(e) => {
-                                        e.dataTransfer.setData("sourceField", "order");
-                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.order);
-                                      }}
-                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                    >
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order.join(", ")}]</span>
-                                        <button
-                                          onClick={() => setBuildModeData(prev => ({ 
-                                            ...prev, 
-                                            positions: { ...prev.positions, order: [] },
-                                            displayValues: { ...prev.displayValues!, order: "" }
-                                          }))}
-                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                          data-testid="delete-order"
-                                          title="Delete all"
-                                        >
-                                          <X className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                      <span className="font-medium text-xs">{buildModeData.displayValues.order}</span>
-                                    </div>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      const textarea = importDataTextareaRef.current;
-                                      if (textarea) {
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
-                                        if (selectedText && firstLine) {
-                                          const selectedWords = selectedText.split(/\s+/);
-                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
-                                          if (newPositions.length > 0) {
-                                            setBuildModeData(prev => ({ 
-                                              ...prev,
-                                              sampleLine: firstLine,
-                                              positions: { ...prev.positions, order: [...prev.positions.order, ...newPositions] },
-                                              displayValues: { ...prev.displayValues!, order: prev.displayValues.order ? `${prev.displayValues.order} ${selectedText}` : selectedText }
-                                            }));
-                                          } else {
-                                            alert("Could not find selected text in first line!");
-                                          }
-                                        }
-                                      }
+                                {buildModeData.positions.order.length > 0 && (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "order");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.order);
                                     }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    data-testid="add-order"
-                                    title="Select text and click +"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.order.join(", ")}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, order: [] },
+                                          displayValues: { ...prev.displayValues!, order: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-order"
+                                        title="Delete all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium text-xs">{buildModeData.displayValues.order}</span>
+                                  </div>
+                                )}
                               </td>
 
                               {/* Symbol Column */}
@@ -16130,69 +16068,33 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  {buildModeData.positions.symbol.length > 0 && (
-                                    <div 
-                                      draggable
-                                      onDragStart={(e) => {
-                                        e.dataTransfer.setData("sourceField", "symbol");
-                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.symbol);
-                                      }}
-                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                    >
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol.join(", ")}]</span>
-                                        <button
-                                          onClick={() => setBuildModeData(prev => ({ 
-                                            ...prev, 
-                                            positions: { ...prev.positions, symbol: [] },
-                                            displayValues: { ...prev.displayValues!, symbol: "" }
-                                          }))}
-                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                          data-testid="delete-symbol"
-                                          title="Delete all"
-                                        >
-                                          <X className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                      <span className="font-medium text-xs">{buildModeData.displayValues.symbol}</span>
-                                    </div>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      const textarea = importDataTextareaRef.current;
-                                      if (textarea) {
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
-                                        if (selectedText && firstLine) {
-                                          // Split selected text into words
-                                          const selectedWords = selectedText.split(/\s+/);
-                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-                                          
-                                          // Find position of each word
-                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
-                                          
-                                          if (newPositions.length > 0) {
-                                            setBuildModeData(prev => ({ 
-                                              ...prev,
-                                              sampleLine: firstLine,
-                                              positions: { ...prev.positions, symbol: [...prev.positions.symbol, ...newPositions] },
-                                              displayValues: { ...prev.displayValues!, symbol: prev.displayValues.symbol ? `${prev.displayValues.symbol} ${selectedText}` : selectedText }
-                                            }));
-                                            console.log("✅ Symbol positions added:", newPositions);
-                                          } else {
-                                            alert("Could not find selected text in first line!");
-                                          }
-                                        }
-                                      }
+                                {buildModeData.positions.symbol.length > 0 && (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "symbol");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.symbol);
                                     }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    data-testid="add-symbol"
-                                    title="Select text and click +"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.symbol.join(", ")}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, symbol: [] },
+                                          displayValues: { ...prev.displayValues!, symbol: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-symbol"
+                                        title="Delete all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium text-xs">{buildModeData.displayValues.symbol}</span>
+                                  </div>
+                                )}
                               </td>
 
                               {/* Type Column */}
@@ -16204,64 +16106,33 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  {buildModeData.positions.type.length > 0 && (
-                                    <div 
-                                      draggable
-                                      onDragStart={(e) => {
-                                        e.dataTransfer.setData("sourceField", "type");
-                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.type);
-                                      }}
-                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                    >
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type.join(", ")}]</span>
-                                        <button
-                                          onClick={() => setBuildModeData(prev => ({ 
-                                            ...prev, 
-                                            positions: { ...prev.positions, type: [] },
-                                            displayValues: { ...prev.displayValues!, type: "" }
-                                          }))}
-                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                          data-testid="delete-type"
-                                          title="Delete all"
-                                        >
-                                          <X className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                      <span className="font-medium text-xs">{buildModeData.displayValues.type}</span>
-                                    </div>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      const textarea = importDataTextareaRef.current;
-                                      if (textarea) {
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
-                                        if (selectedText && firstLine) {
-                                          const selectedWords = selectedText.split(/\s+/);
-                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
-                                          if (newPositions.length > 0) {
-                                            setBuildModeData(prev => ({ 
-                                              ...prev,
-                                              sampleLine: firstLine,
-                                              positions: { ...prev.positions, type: [...prev.positions.type, ...newPositions] },
-                                              displayValues: { ...prev.displayValues!, type: prev.displayValues.type ? `${prev.displayValues.type} ${selectedText}` : selectedText }
-                                            }));
-                                          } else {
-                                            alert("Could not find selected text in first line!");
-                                          }
-                                        }
-                                      }
+                                {buildModeData.positions.type.length > 0 && (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "type");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.type);
                                     }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    data-testid="add-type"
-                                    title="Select text and click +"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.type.join(", ")}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, type: [] },
+                                          displayValues: { ...prev.displayValues!, type: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-type"
+                                        title="Delete all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium text-xs">{buildModeData.displayValues.type}</span>
+                                  </div>
+                                )}
                               </td>
 
                               {/* Qty Column */}
@@ -16273,64 +16144,33 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  {buildModeData.positions.qty.length > 0 && (
-                                    <div 
-                                      draggable
-                                      onDragStart={(e) => {
-                                        e.dataTransfer.setData("sourceField", "qty");
-                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.qty);
-                                      }}
-                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                    >
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty.join(", ")}]</span>
-                                        <button
-                                          onClick={() => setBuildModeData(prev => ({ 
-                                            ...prev, 
-                                            positions: { ...prev.positions, qty: [] },
-                                            displayValues: { ...prev.displayValues!, qty: "" }
-                                          }))}
-                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                          data-testid="delete-qty"
-                                          title="Delete all"
-                                        >
-                                          <X className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                      <span className="font-medium text-xs">{buildModeData.displayValues.qty}</span>
-                                    </div>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      const textarea = importDataTextareaRef.current;
-                                      if (textarea) {
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
-                                        if (selectedText && firstLine) {
-                                          const selectedWords = selectedText.split(/\s+/);
-                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
-                                          if (newPositions.length > 0) {
-                                            setBuildModeData(prev => ({ 
-                                              ...prev,
-                                              sampleLine: firstLine,
-                                              positions: { ...prev.positions, qty: [...prev.positions.qty, ...newPositions] },
-                                              displayValues: { ...prev.displayValues!, qty: prev.displayValues.qty ? `${prev.displayValues.qty} ${selectedText}` : selectedText }
-                                            }));
-                                          } else {
-                                            alert("Could not find selected text in first line!");
-                                          }
-                                        }
-                                      }
+                                {buildModeData.positions.qty.length > 0 && (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "qty");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.qty);
                                     }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    data-testid="add-qty"
-                                    title="Select text and click +"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.qty.join(", ")}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, qty: [] },
+                                          displayValues: { ...prev.displayValues!, qty: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-qty"
+                                        title="Delete all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium text-xs">{buildModeData.displayValues.qty}</span>
+                                  </div>
+                                )}
                               </td>
 
                               {/* Price Column */}
@@ -16342,64 +16182,33 @@ ${
                                   // Drag and drop disabled for position-based system
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  {buildModeData.positions.price.length > 0 && (
-                                    <div 
-                                      draggable
-                                      onDragStart={(e) => {
-                                        e.dataTransfer.setData("sourceField", "price");
-                                        e.dataTransfer.setData("sourceValue", buildModeData.displayValues.price);
-                                      }}
-                                      className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
-                                    >
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price.join(", ")}]</span>
-                                        <button
-                                          onClick={() => setBuildModeData(prev => ({ 
-                                            ...prev, 
-                                            positions: { ...prev.positions, price: [] },
-                                            displayValues: { ...prev.displayValues!, price: "" }
-                                          }))}
-                                          className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
-                                          data-testid="delete-price"
-                                          title="Delete all"
-                                        >
-                                          <X className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                      <span className="font-medium text-xs">{buildModeData.displayValues.price}</span>
-                                    </div>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      const textarea = importDataTextareaRef.current;
-                                      if (textarea) {
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-                                        const firstLine = textarea.value.trim().split('\n')[0] || "";
-                                        if (selectedText && firstLine) {
-                                          const selectedWords = selectedText.split(/\s+/);
-                                          const words = firstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-                                          const newPositions = selectedWords.map(word => words.findIndex(w => w === word || w.includes(word) || word.includes(w))).filter(p => p >= 0);
-                                          if (newPositions.length > 0) {
-                                            setBuildModeData(prev => ({ 
-                                              ...prev,
-                                              sampleLine: firstLine,
-                                              positions: { ...prev.positions, price: [...prev.positions.price, ...newPositions] },
-                                              displayValues: { ...prev.displayValues!, price: prev.displayValues.price ? `${prev.displayValues.price} ${selectedText}` : selectedText }
-                                            }));
-                                          } else {
-                                            alert("Could not find selected text in first line!");
-                                          }
-                                        }
-                                      }
+                                {buildModeData.positions.price.length > 0 && (
+                                  <div 
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData("sourceField", "price");
+                                      e.dataTransfer.setData("sourceValue", buildModeData.displayValues.price);
                                     }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    data-testid="add-price"
-                                    title="Select text and click +"
+                                    className="inline-flex flex-col gap-0.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs cursor-move"
                                   >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-blue-500 dark:text-blue-400 font-mono">[Pos {buildModeData.positions.price.join(", ")}]</span>
+                                      <button
+                                        onClick={() => setBuildModeData(prev => ({ 
+                                          ...prev, 
+                                          positions: { ...prev.positions, price: [] },
+                                          displayValues: { ...prev.displayValues!, price: "" }
+                                        }))}
+                                        className="hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded p-0.5"
+                                        data-testid="delete-price"
+                                        title="Delete all"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <span className="font-medium text-xs">{buildModeData.displayValues.price}</span>
+                                  </div>
+                                )}
                               </td>
                             </tr>
                           </tbody>
