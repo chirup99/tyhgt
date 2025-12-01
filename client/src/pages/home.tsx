@@ -5266,18 +5266,19 @@ ${
 
       console.log(`📊 [SEARCH CHART] Fetching ${selectedJournalSymbol} (manual search)`);
       setJournalChartLoading(true);
-      setJournalChartData([]);
 
       // STEP 3: Get token - Use direct token if available, otherwise lookup
       let stockToken = selectedInstrumentToken;
+      let cleanSymbol = selectedJournalSymbol; // Define cleanSymbol here for use in logs
       
       if (!stockToken) {
         // Fallback: Extract clean symbol and lookup
-        const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+        cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
         stockToken = journalAngelOneTokens[cleanSymbol];
         console.log(`📊 [SEARCH CHART] Symbol: ${cleanSymbol}, Token: ${stockToken?.token}`);
       } else {
         console.log(`📊 [SEARCH CHART] Using direct token from search: ${selectedJournalSymbol}, Token: ${stockToken.token}`);
+        cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
       }
       
       if (!stockToken) {
@@ -5353,8 +5354,7 @@ ${
       console.log(`✅ [SEARCH CHART] Chart ready: ${candleData.length} candles for ${cleanSymbol}`);
       setJournalChartData(candleData);
       
-      // Switch to search mode + ensure we're on journal tab
-      setJournalChartMode('search');
+      // Ensure we're on journal tab only (don't change mode here - let auto-fetch handle mode detection)
       setActiveTab('journal');
       
     } catch (error) {
@@ -5365,20 +5365,20 @@ ${
     }
   }, [selectedJournalSymbol, journalChartTimeframe]);
 
-  // ✅ AUTO-FETCH CHART DATA IN MANUAL MODE
+  // ✅ AUTO-FETCH CHART DATA IN MANUAL MODE (only when symbol changes)
   useEffect(() => {
-    if (journalChartMode !== 'search') return;
     if (!selectedJournalSymbol) return;
     if (activeTab !== 'journal') return;
     
-    // Debounce auto-fetch to avoid too many requests while typing/selecting
+    // Auto-fetch when symbol is selected (debounce to avoid too many requests)
     const timer = setTimeout(() => {
-      console.log(`🔄 [AUTO-FETCH] Triggering auto-fetch for ${selectedJournalSymbol} in search mode`);
+      console.log(`🔄 [AUTO-FETCH] Triggering auto-fetch for ${selectedJournalSymbol}`);
+      setJournalChartMode('search'); // Set mode here (before fetch completes)
       fetchJournalChartData();
     }, 500); // 500ms debounce
     
     return () => clearTimeout(timer);
-  }, [journalChartMode, selectedJournalSymbol, activeTab, fetchJournalChartData]);
+  }, [selectedJournalSymbol, activeTab, fetchJournalChartData]);
 
   // ========== HEATMAP CHART FETCH FUNCTION (Completely Separate) ==========
   const fetchHeatmapChartData = useCallback(async (symbol: string, date: string) => {
@@ -5933,14 +5933,8 @@ ${
 
     if (!journalChartContainerRef.current) return;
     
-    // Show message if no data but show something to the user
+    // Only render chart if we have data - don't show placeholder (user sees loading indicator)
     if (!journalChartData || journalChartData.length === 0) {
-      console.log('⚠️ [SEARCH CHART] No data available, showing placeholder');
-      journalChartContainerRef.current.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 14px; color: #999;">
-          No chart data available. Try selecting a different symbol or date range.
-        </div>
-      `;
       return;
     }
 
