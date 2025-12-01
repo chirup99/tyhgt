@@ -273,7 +273,15 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             />
           </svg>
 
-          <div className="relative z-10 bg-white text-gray-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg font-bold text-sm">
+          {/* Counter Badge - Slides with drag like audio player seek line */}
+          <div 
+            className={`relative z-10 bg-white text-gray-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg font-bold text-sm ${
+              isDragging ? '' : 'transition-transform duration-400 ease-out'
+            }`}
+            style={{
+              transform: `translateX(${(dragOffset * 0.5)}px)`
+            }}
+          >
             {currentIndex + 1}/{cardsToShow.length}
           </div>
         </div>
