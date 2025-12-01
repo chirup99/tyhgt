@@ -13168,6 +13168,30 @@ ${
                                               {tf.label}
                                             </button>
                                           ))}
+                                          {/* Display custom timeframe if selected */}
+                                          {!timeframeOptions.some((tf) => tf.value === indicatorTimeframe) && (
+                                            <button
+                                              onClick={() => {
+                                                // Clicking on custom timeframe shows it's selected
+                                              }}
+                                              className="px-2 py-1.5 text-xs rounded-md border bg-emerald-500 text-white border-emerald-500 transition-all duration-200 relative group"
+                                              data-testid={`timeframe-custom-${indicatorTimeframe}`}
+                                              title={`Custom: ${indicatorTimeframe}`}
+                                            >
+                                              <span className="truncate">{indicatorTimeframe}</span>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setIndicatorTimeframe("5min");
+                                                  localStorage.setItem("indicatorTimeframe", "5min");
+                                                }}
+                                                className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                data-testid="button-remove-custom-timeframe"
+                                              >
+                                                <X className="w-2.5 h-2.5" />
+                                              </button>
+                                            </button>
+                                          )}
                                           <Dialog open={isCustomTimeframeDialogOpen} onOpenChange={setIsCustomTimeframeDialogOpen}>
                                             <DialogTrigger asChild>
                                               <button
