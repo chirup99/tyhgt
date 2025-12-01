@@ -13006,185 +13006,117 @@ ${
                       )}
                     </div>
 
-                    {/* Desktop: TRADE HISTORY SUMMARY - Left Side */}
-                    <Card className="hidden md:block bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-[420px]">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                            TRADE HISTORY SUMMARY
+                    {/* Desktop: TRADE HISTORY SUMMARY - Left Side - MINIMALIST DESIGN */}
+                    <Card className="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 h-[420px]">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between mb-3 gap-2">
+                          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                            Trade History
                           </h3>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5">
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                               onClick={() => setShowOrderModal(true)}
-                              className="h-8 px-3"
+                              className="h-7 px-2 text-xs"
                               data-testid="button-place-order"
                             >
-                              <Target className="h-4 w-4 mr-2" />
                               Order
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                               onClick={() => setShowImportModal(true)}
-                              className="h-8 px-3"
+                              className="h-7 px-2 text-xs"
                               data-testid="button-import-pnl"
                             >
-                              <Upload className="h-4 w-4 mr-2" />
                               Import
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                               onClick={() => setShowPaperTradingModal(true)}
-                              className="h-8 px-3"
+                              className="h-7 px-2 text-xs"
                               data-testid="button-paper-trade"
                             >
-                              <Play className="h-4 w-4 mr-2" />
                               Paper Trade
                             </Button>
-                            <div className="h-8 px-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md flex items-center justify-center text-xs font-medium text-indigo-700 dark:text-indigo-300 min-w-[80px]">
-                              <Timer className="h-4 w-4 mr-2" />
-                              {calculateTotalDuration(tradeHistoryData)}
-                            </div>
                           </div>
                         </div>
 
-                        <div className="max-h-80 overflow-auto border border-gray-200 dark:border-gray-700 custom-thin-scrollbar">
+                        <div className="max-h-96 overflow-auto custom-thin-scrollbar">
                           <table className="w-full text-xs">
-                            <thead className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white sticky top-0">
+                            <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                               <tr>
-                                <th className="p-1 text-left min-w-[60px]">
-                                  Time
-                                </th>
-                                <th className="p-1 text-left min-w-[50px]">
-                                  Order
-                                </th>
-                                <th className="p-1 text-left min-w-[80px]">
-                                  Symbol
-                                </th>
-                                <th className="p-1 text-left min-w-[50px]">
-                                  Type
-                                </th>
-                                <th className="p-1 text-left min-w-[40px]">
-                                  Qty
-                                </th>
-                                <th className="p-1 text-left min-w-[60px]">
-                                  Price
-                                </th>
-                                <th className="p-1 text-left min-w-[60px]">
-                                  P&L
-                                </th>
-                                <th className="p-1 text-left min-w-[40px]">
-                                  %
-                                </th>
-                                <th className="p-1 text-left min-w-[70px]">
-                                  Duration
-                                </th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[55px]">Time</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[45px]">Order</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[75px]">Symbol</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[40px]">Qty</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[55px]">Price</th>
+                                <th className="px-2 py-2 text-left text-slate-600 dark:text-slate-400 font-medium min-w-[60px]">P&L</th>
                               </tr>
                             </thead>
-                            <tbody className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                            <tbody className="bg-white dark:bg-slate-900">
                               {isLoadingHeatmapData && tradeHistoryData.length === 0 ? (
                                 <tr>
-                                  <td colSpan={9} className="p-8 text-center">
+                                  <td colSpan={6} className="p-6 text-center">
                                     <div className="flex flex-col items-center gap-2">
-                                      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                      <span className="text-sm text-gray-500 dark:text-gray-400">Loading trade history...</span>
+                                      <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                                      <span className="text-xs text-slate-500 dark:text-slate-400">Loading...</span>
                                     </div>
                                   </td>
                                 </tr>
                               ) : tradeHistoryData.length === 0 ? (
                                 <tr>
-                                  <td colSpan={9} className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                  <td colSpan={6} className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
                                     {!isDemoMode 
-                                      ? "No personal data yet - switch to Demo mode or start adding your trades!" 
+                                      ? "No data yet" 
                                       : selectedDate 
                                         ? "No trades for this date" 
-                                        : "Select a date from the calendar to view trades"}
+                                        : "Select a date to view trades"}
                                   </td>
                                 </tr>
                               ) : (
                                 tradeHistoryData.map((trade, index) => (
                                   <tr
                                     key={index}
-                                    className="border-b border-gray-200 dark:border-gray-700"
+                                    className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
                                   >
-                                  <td className="p-1">{trade.time}</td>
-                                  <td className="p-1">
-                                    <span
-                                      className={`px-2 py-1 rounded text-xs font-medium ${
-                                        trade.order === "BUY"
-                                          ? "bg-green-600 text-white"
-                                          : "bg-red-600 text-white"
+                                    <td className="px-2 py-2 text-slate-600 dark:text-slate-400">{trade.time}</td>
+                                    <td className="px-2 py-2">
+                                      <span
+                                        className={`text-xs font-medium ${
+                                          trade.order === "BUY"
+                                            ? "text-emerald-600 dark:text-emerald-400"
+                                            : "text-red-600 dark:text-red-400"
+                                        }`}
+                                      >
+                                        {trade.order}
+                                      </span>
+                                    </td>
+                                    <td className="px-2 py-2 text-slate-700 dark:text-slate-300 font-medium text-xs">
+                                      {(() => {
+                                        if (!selectedDate) return trade.symbol;
+                                        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                                        const selectedMonth = monthNames[selectedDate.getMonth()];
+                                        const symbolWithoutMonth = trade.symbol.replace(/\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/, selectedMonth);
+                                        return symbolWithoutMonth;
+                                      })()}
+                                    </td>
+                                    <td className="px-2 py-2 text-slate-600 dark:text-slate-400">{trade.qty}</td>
+                                    <td className="px-2 py-2 text-slate-600 dark:text-slate-400">₹{trade.price}</td>
+                                    <td
+                                      className={`px-2 py-2 font-medium text-xs ${
+                                        (trade.pnl || "").includes("+")
+                                          ? "text-emerald-600 dark:text-emerald-400"
+                                          : (trade.pnl || "").includes("-")
+                                            ? "text-red-600 dark:text-red-400"
+                                            : "text-slate-600 dark:text-slate-400"
                                       }`}
                                     >
-                                      {trade.order}
-                                    </span>
-                                  </td>
-                                  <td className="p-1">{(() => {
-                                    if (!selectedDate) return trade.symbol;
-                                    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                                    const selectedMonth = monthNames[selectedDate.getMonth()];
-                                    // Replace any month abbreviation with the selected date's month
-                                    const symbolWithoutMonth = trade.symbol.replace(/\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/, selectedMonth);
-                                    return symbolWithoutMonth;
-                                  })()}</td>
-                                  <td className="p-1">{trade.type}</td>
-                                  <td className="p-1">{trade.qty}</td>
-                                  <td className="p-1">₹{trade.price}</td>
-                                  <td
-                                    className={`p-2 ${
-                                      (trade.pnl || "").includes("+")
-                                        ? "text-green-600"
-                                        : (trade.pnl || "").includes("-")
-                                          ? "text-red-600"
-                                          : ""
-                                    }`}
-                                  >
-                                    {trade.pnl}
-                                  </td>
-                                  <td
-                                    className={`p-2 font-medium ${(() => {
-                                      if (!trade.pnl || trade.pnl === "-")
-                                        return "";
-                                      const pnlStr = (trade.pnl || "").replace(
-                                        /[₹,+\s]/g,
-                                        "",
-                                      );
-                                      const pnlValue = parseFloat(pnlStr) || 0;
-                                      const openPrice = trade.price;
-                                      const totalInvestment =
-                                        openPrice * trade.qty || 1;
-                                      const percentage =
-                                        (pnlValue / totalInvestment) * 100;
-                                      return percentage > 0
-                                        ? "text-green-600"
-                                        : percentage < 0
-                                          ? "text-red-600"
-                                          : "text-gray-500";
-                                    })()}`}
-                                  >
-                                    {(() => {
-                                      if (!trade.pnl || trade.pnl === "-")
-                                        return "-";
-                                      const pnlStr = (trade.pnl || "").replace(
-                                        /[₹,+\s]/g,
-                                        "",
-                                      );
-                                      const pnlValue = parseFloat(pnlStr) || 0;
-                                      const openPrice = trade.price;
-                                      const totalInvestment =
-                                        openPrice * trade.qty || 1;
-                                      const percentage =
-                                        (pnlValue / totalInvestment) * 100;
-                                      return `${
-                                        percentage >= 0 ? "+" : ""
-                                      }${percentage.toFixed(2)}%`;
-                                    })()}
-                                  </td>
-                                  <td className="p-1">{trade.duration}</td>
-                                </tr>
+                                      {trade.pnl}
+                                    </td>
+                                  </tr>
                                 ))
                               )}
                             </tbody>
