@@ -3780,13 +3780,6 @@ ${
   const [paperTradeSLTimeframe, setPaperTradeSLTimeframe] = useState("5m");
   const [paperTradeSLDurationUnit, setPaperTradeSLDurationUnit] = useState("min");
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
-
-  // Close SL dropdown when modal opens/closes or when searching
-  useEffect(() => {
-    if (showPaperTradingModal) {
-      setShowPaperTradeSLDropdown(false);
-    }
-  }, [showPaperTradingModal]);
   
   // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
   const [paperTradingWsStatus, setPaperTradingWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
@@ -15733,7 +15726,6 @@ ${
                           setPaperTradeSymbolSearch(query);
                           setPaperTradeSymbol("");
                           setPaperTradeCurrentPrice(null);
-                          setShowPaperTradeSLDropdown(false);
                           if (query.length > 0) {
                             searchPaperTradingInstruments(query);
                           } else {
@@ -15843,19 +15835,18 @@ ${
                   </Button>
 
                   {/* SL Button with Dropdown */}
-                  <div className="relative ml-auto">
+                  <div className="relative">
                     <Button
                       onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
-                      disabled={!paperTradeSymbol || !paperTradeQuantity}
                       size="sm"
                       variant="outline"
-                      className="h-8 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-8 px-3 text-xs"
                       data-testid="button-paper-sl"
                     >
                       SL
                     </Button>
                     {showPaperTradeSLDropdown && (
-                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-50 top-8 left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         <div className="p-3 space-y-2 min-w-[220px]">
                           <div>
                             <label className="text-[10px] text-gray-500 uppercase">Type</label>
