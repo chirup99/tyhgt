@@ -5845,15 +5845,19 @@ ${
             
             console.log(`✅ [USING SAVED OHLC] From last update: O${prevCandleOpen} H${prevCandleHigh} L${prevCandleLow} C${prevCandleClose} (NOT from new candle with close: ${liveCandle.close})`);
             
-            // Create new candle with proper timestamp and OHLC from backend
+            // 🔴 CRITICAL FIX: For new candle, initialize OHLC properly
+            // Don't use live data's OHLC directly (it's just a single price point)
+            // Instead, initialize new candle with current price for all OHLC values
+            // Subsequent updates will adjust H and L while preserving O and C
             const newCandle = {
               time: currentCandleStartTime,
-              open: liveCandle.open,
-              high: liveCandle.high,
-              low: liveCandle.low,
+              open: liveCandle.close,  // 🔴 FIX: Initialize with current price (not liveCandle.open)
+              high: liveCandle.close,  // 🔴 FIX: Initialize with current price
+              low: liveCandle.close,   // 🔴 FIX: Initialize with current price
               close: liveCandle.close,
               volume: liveCandle.volume || 0
             };
+            console.log(`🕯️ [NEW CANDLE INIT] Initialized O/H/L/C all to ${liveCandle.close} (will update H/L with future prices)`);
             
             // UPDATE STATE: Finalize previous candle + add new candle atomically
             const updatedChartData = (() => {
@@ -5911,14 +5915,15 @@ ${
                   console.log(`✅ [CANDLE FINALIZED] Previous candle locked with OHLC: O${prevCandleOpen} H${prevCandleHigh} L${prevCandleLow} C${prevCandleClose}`);
                   
                   // Add the new candle immediately after finalizing previous
+                  // 🔴 FIX: Use corrected OHLC values (all initialized to current price)
                   journalCandlestickSeriesRef.current.update({
                     time: currentCandleStartTime as any,
-                    open: liveCandle.open,
-                    high: liveCandle.high,
-                    low: liveCandle.low,
-                    close: liveCandle.close
+                    open: newCandle.open,
+                    high: newCandle.high,
+                    low: newCandle.low,
+                    close: newCandle.close
                   });
-                  console.log(`🕯️ [CANDLE ADDED] New candle: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
+                  console.log(`🕯️ [CANDLE ADDED] New candle: O${newCandle.open} H${newCandle.high} L${newCandle.low} C${newCandle.close}`);
                   
                   // 🎯 Restore viewport IMMEDIATELY after all candle updates
                   if (savedViewportRange) {
@@ -5936,13 +5941,13 @@ ${
               }
             }, 20);
             
-            // Update live OHLC display for the new candle
-            const changePercent = liveCandle.open > 0 ? ((liveCandle.close - liveCandle.open) / liveCandle.open) * 100 : 0;
+            // 🔴 FIX: Update live OHLC display using corrected new candle values
+            const changePercent = newCandle.open > 0 ? ((newCandle.close - newCandle.open) / newCandle.open) * 100 : 0;
             setLiveOhlc({
-              open: liveCandle.open,
-              high: liveCandle.high,
-              low: liveCandle.low,
-              close: liveCandle.close,
+              open: newCandle.open,
+              high: newCandle.high,
+              low: newCandle.low,
+              close: newCandle.close,
               change: changePercent
             });
             
@@ -5951,7 +5956,7 @@ ${
               journalCandleCountRef.current.textContent = `${chartData.length + 1}`;
             }
             
-            console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${liveCandle.open} H${liveCandle.high} L${liveCandle.low} C${liveCandle.close}`);
+            console.log(`🕯️ [CANDLE ADDED] Time: ${new Date(currentCandleStartTime * 1000).toLocaleTimeString()} OHLC: O${newCandle.open} H${newCandle.high} L${newCandle.low} C${newCandle.close}`);
           }
           
           // Update countdown bar
