@@ -3780,6 +3780,13 @@ ${
   const [paperTradeSLTimeframe, setPaperTradeSLTimeframe] = useState("5m");
   const [paperTradeSLDurationUnit, setPaperTradeSLDurationUnit] = useState("min");
   const paperTradingStreamSymbolsRef = useRef<Set<string>>(new Set());
+
+  // Close SL dropdown when modal opens/closes or when searching
+  useEffect(() => {
+    if (showPaperTradingModal) {
+      setShowPaperTradeSLDropdown(false);
+    }
+  }, [showPaperTradingModal]);
   
   // Paper trading LIVE WebSocket streaming state (TradingView-style real-time P&L)
   const [paperTradingWsStatus, setPaperTradingWsStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
@@ -15726,6 +15733,7 @@ ${
                           setPaperTradeSymbolSearch(query);
                           setPaperTradeSymbol("");
                           setPaperTradeCurrentPrice(null);
+                          setShowPaperTradeSLDropdown(false);
                           if (query.length > 0) {
                             searchPaperTradingInstruments(query);
                           } else {
@@ -15838,9 +15846,10 @@ ${
                   <div className="relative ml-auto">
                     <Button
                       onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
+                      disabled={!paperTradeSymbol || !paperTradeQuantity}
                       size="sm"
                       variant="outline"
-                      className="h-8 px-3 text-xs"
+                      className="h-8 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="button-paper-sl"
                     >
                       SL
