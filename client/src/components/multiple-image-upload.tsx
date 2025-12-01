@@ -297,11 +297,37 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         {/* Image Modal Dialog */}
         {selectedImage && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300"
             onClick={() => setSelectedImage(null)}
+            onTouchStart={(e) => {
+              touchStartX.current = e.touches[0].clientX;
+              touchStartY.current = 0;
+            }}
+            onTouchMove={(e) => {
+              const currentX = e.touches[0].clientX;
+              const deltaX = currentX - touchStartX.current;
+              if (Math.abs(deltaX) > 50) {
+                const currentImageIndex = cardsToShow.findIndex(card => card.image?.id === selectedImage.id);
+                if (deltaX > 0) {
+                  // Swiped right - previous
+                  const prevIdx = currentImageIndex > 0 ? currentImageIndex - 1 : cardsToShow.length - 1;
+                  if (cardsToShow[prevIdx].image) {
+                    setSelectedImage(cardsToShow[prevIdx].image);
+                  }
+                } else {
+                  // Swiped left - next
+                  const nextIdx = currentImageIndex < cardsToShow.length - 1 ? currentImageIndex + 1 : 0;
+                  if (cardsToShow[nextIdx].image) {
+                    setSelectedImage(cardsToShow[nextIdx].image);
+                  }
+                }
+                touchStartX.current = currentX;
+              }
+            }}
           >
+            {/* Main Modal */}
             <div 
-              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl max-h-[90vh] w-full animate-in zoom-in-95 duration-300 flex flex-col"
+              className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl max-h-[70vh] w-full animate-in zoom-in-95 duration-300 flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -324,19 +350,49 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               </div>
 
               {/* Image Info */}
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-b-2xl">
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-b-2xl">
+                <p className="text-xs font-medium text-gray-800 dark:text-gray-100">
                   {selectedImage.name}
                 </p>
-                <button
-                  onClick={() => setSelectedImage(null)}
-                  className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
-                  data-testid="button-close-modal-footer"
-                >
-                  Close
-                </button>
               </div>
             </div>
+
+            {/* Thumbnail Strip Below */}
+            <div className="flex gap-2 mt-6 overflow-x-auto pb-2 max-w-4xl w-full items-center justify-center">
+              {cardsToShow.map((card, idx) => (
+                card.image && (
+                  <button
+                    key={card.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedImage(card.image);
+                    }}
+                    className={`flex-shrink-0 rounded-lg overflow-hidden transition-all cursor-pointer ${
+                      selectedImage.id === card.image.id 
+                        ? 'ring-2 ring-white scale-110' 
+                        : 'hover:scale-105 opacity-75 hover:opacity-100'
+                    }`}
+                    style={{ width: '80px', height: '80px' }}
+                    data-testid={`button-thumbnail-${idx}`}
+                  >
+                    <img
+                      src={card.image.url}
+                      alt={card.image.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                )
+              ))}
+            </div>
+
+            {/* Close Button Text */}
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="mt-4 px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
+              data-testid="button-close-modal-bottom"
+            >
+              Close
+            </button>
           </div>
         )}
       </div>
