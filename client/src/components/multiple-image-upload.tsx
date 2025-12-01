@@ -345,7 +345,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                 <img
                   src={selectedImage.url}
                   alt={selectedImage.name}
-                  className="max-w-full max-h-full object-contain"
+                  className="max-w-full max-h-full object-contain pointer-events-none"
                   data-testid="img-modal-display"
                 />
               </div>
