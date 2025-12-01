@@ -3951,31 +3951,58 @@ ${
       console.warn(`⚠️ [PAPER-TRADE-PRICE] No instrument selected`);
       return;
     }
+    console.log(`🔍 [PAPER-TRADE-PRICE] Selected instrument:`, {
+      symbol: stockInfo.symbol,
+      token: stockInfo.token,
+      exchange: stockInfo.exchange,
+      instrumentType: stockInfo.instrumentType,
+      type: stockInfo.type
+    });
     
+    // Validate required fields
     if (!stockInfo.symbol || !stockInfo.token || !stockInfo.exchange) {
-      console.error(`❌ [PAPER-TRADE-PRICE] Missing required fields`);
+      console.error(`❌ [PAPER-TRADE-PRICE] Missing required fields:`, {
+        symbol: stockInfo.symbol,
+        token: stockInfo.token,
+        exchange: stockInfo.exchange
+      });
+      setPaperTradePriceLoading(false);
       return;
     }
     
     setPaperTradePriceLoading(true);
     try {
-      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`;
+      // Subscribe to live stream for this symbol (SAME endpoint as chart 15-min candles)
+      // 🔶 Use 1-minute interval for live price stream (aggregation happens on display)
+      const sseUrl = `/api/angelone/live-stream-ws?symbol=${stockInfo.symbol}&symbolToken=${stockInfo.token}&exchange=${stockInfo.exchange}&tradingSymbol=${stockInfo.symbol}&interval=60`; // 60 seconds = 1 minute
+      
+      console.log(`📊 [PAPER-TRADE-PRICE] Subscribing to live price stream`);
+      console.log(`  URL: ${sseUrl}`);
+      
       const eventSource = new EventSource(sseUrl);
+      
+      eventSource.onopen = () => {
+        console.log(`✅ [PAPER-TRADE-PRICE] WebSocket connected for ${stockInfo.symbol}`);
+      };
       
       let priceReceived = false;
       const timeout = setTimeout(() => {
         if (!priceReceived) {
+          console.warn(`⚠️ [PAPER-TRADE-PRICE] No price received for ${stockInfo.symbol} after 5s`);
           eventSource.close();
           setPaperTradePriceLoading(false);
         }
-      }, 3000);
+      }, 5000);
       
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           const ltp = data.ltp || data.close;
           
+          console.log(`📦 [PAPER-TRADE-PRICE] Received data:`, { ltp, data });
+          
           if (ltp && ltp > 0) {
+            console.log(`✅ [PAPER-TRADE-PRICE] Got real price for ${stockInfo.symbol}: ₹${ltp}`);
             setPaperTradeCurrentPrice(ltp);
             priceReceived = true;
             clearTimeout(timeout);
@@ -3983,14 +4010,16 @@ ${
             setPaperTradePriceLoading(false);
           }
         } catch (err) {
-          console.error(`[PAPER-TRADE-PRICE] Parse error:`, err);
+          console.error(`[PAPER-TRADE-PRICE] Parse error for ${stockInfo.symbol}:`, err);
         }
       };
       
-      eventSource.onerror = () => {
+      eventSource.onerror = (event) => {
+        console.error(`❌ [PAPER-TRADE-PRICE] Connection error for ${stockInfo.symbol}:`, event);
         clearTimeout(timeout);
         eventSource.close();
         if (!priceReceived) {
+          console.warn(`⚠️ [PAPER-TRADE-PRICE] Setting price loading to false due to error`);
           setPaperTradePriceLoading(false);
         }
       };
@@ -15817,7 +15846,7 @@ ${
                       SL
                     </Button>
                     {showPaperTradeSLDropdown && (
-                      <div className="absolute z-40 top-8 left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-50 top-8 left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         <div className="p-3 space-y-2 min-w-[220px]">
                           <div>
                             <label className="text-[10px] text-gray-500 uppercase">Type</label>
