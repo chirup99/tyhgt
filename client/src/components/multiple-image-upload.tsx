@@ -424,24 +424,37 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           // New card swiping layout: 80% cards, 20% curved bottom
           <>
             {/* 80% Card Swiping Area */}
-            <div className="flex-[4] relative bg-gray-900 flex items-center justify-center overflow-hidden">
-              {/* Card stack effect - show current image and 2 behind it */}
+            <div className="flex-[4] relative bg-gray-900 flex items-center justify-center overflow-visible">
+              {/* Card fan stack effect - show all images */}
               {images.map((img, idx) => {
                 const offset = idx - currentIndex;
-                if (offset < 0 || offset > 2) return null;
+                // Show cards before and after current, with proper wrapping for circular behavior
+                let displayOffset = offset;
+                if (displayOffset < -images.length / 2) {
+                  displayOffset += images.length;
+                } else if (displayOffset > images.length / 2) {
+                  displayOffset -= images.length;
+                }
                 
-                const rotation = offset * 5;
-                const translateY = offset * 12;
-                const scale = 1 - offset * 0.03;
-                const zIndex = 10 - offset;
+                // Only show cards within visible range (-4 to +4)
+                if (Math.abs(displayOffset) > 4) return null;
+                
+                // Calculate position based on offset for fan effect
+                const rotation = displayOffset * 8; // More rotation for visible cards
+                const translateX = displayOffset * 45; // Spread cards horizontally
+                const translateY = Math.abs(displayOffset) * 15; // Move back cards down
+                const scale = 1 - Math.abs(displayOffset) * 0.05; // Scale based on distance
+                const zIndex = 100 - Math.abs(displayOffset); // Proper z-order
+                const opacity = displayOffset === 0 ? 1 : 0.85;
                 
                 return (
                   <div
                     key={img.id}
                     className="absolute transition-all duration-300 ease-out"
                     style={{
-                      transform: `translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
+                      transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
                       zIndex: zIndex,
+                      opacity: opacity,
                     }}
                   >
                     <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl" style={{ width: '320px', height: '420px' }}>
@@ -457,80 +470,82 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                         <p className="text-white text-sm font-medium truncate">{img.name}</p>
                       </div>
 
-                      {/* Top right controls */}
-                      <div className="absolute top-3 right-3 flex gap-2">
-                        {/* Fullscreen button */}
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
-                          onClick={handleFullscreen}
-                          data-testid="button-fullscreen"
-                        >
-                          <Expand className="w-4 h-4" />
-                        </Button>
-
-                        {!isSaved ? (
-                          // Remove button for unsaved images
+                      {/* Top right controls - only show for current card */}
+                      {displayOffset === 0 && (
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          {/* Fullscreen button */}
                           <Button
                             size="sm"
-                            variant="destructive"
-                            className="h-8 w-8 p-0"
-                            onClick={() => removeImage(img.id)}
-                            data-testid={`button-remove-${idx}`}
+                            variant="secondary"
+                            className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
+                            onClick={handleFullscreen}
+                            data-testid="button-fullscreen"
                           >
-                            <X className="w-4 h-4" />
+                            <Expand className="w-4 h-4" />
                           </Button>
-                        ) : (
-                          // 3-dot menu for saved images
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
-                                data-testid="button-image-menu"
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                              <DropdownMenuItem 
-                                onClick={() => {
-                                  setIsSaved(false);
-                                  toast({
-                                    title: "Edit mode enabled",
-                                    description: "You can now modify images",
-                                  });
-                                }}
-                                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit Images
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => navigator.clipboard.writeText(img.url)}
-                                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Copy className="w-4 h-4 mr-2" />
-                                Copy Image URL
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => {
-                                  const link = document.createElement('a');
-                                  link.href = img.url;
-                                  link.download = img.name || `image_${idx + 1}`;
-                                  link.click();
-                                }}
-                                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download Image
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
+
+                          {!isSaved ? (
+                            // Remove button for unsaved images
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="h-8 w-8 p-0"
+                              onClick={() => removeImage(img.id)}
+                              data-testid={`button-remove-${idx}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            // 3-dot menu for saved images
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
+                                  data-testid="button-image-menu"
+                                >
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    setIsSaved(false);
+                                    toast({
+                                      title: "Edit mode enabled",
+                                      description: "You can now modify images",
+                                    });
+                                  }}
+                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit Images
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => navigator.clipboard.writeText(img.url)}
+                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Copy Image URL
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    const link = document.createElement('a');
+                                    link.href = img.url;
+                                    link.download = img.name || `image_${idx + 1}`;
+                                    link.click();
+                                  }}
+                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Download Image
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
