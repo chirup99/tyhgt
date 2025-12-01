@@ -421,59 +421,16 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             </div>
           </div>
         ) : (
-          // Image display with carousel slider effect
-          <div className="h-full relative bg-gradient-to-b from-gray-900 to-black flex items-center justify-center overflow-hidden" style={{ perspective: '1000px' }}>
-            {/* Stacked carousel effect */}
-            <div className="relative h-full w-full flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
-              {/* Background stacked images */}
-              {images.map((img, idx) => {
-                const offset = idx - currentIndex;
-                const isVisible = Math.abs(offset) <= 2;
-                
-                if (!isVisible) return null;
-                
-                return (
-                  <div
-                    key={img.id}
-                    className="absolute transition-all duration-500 ease-out"
-                    style={{
-                      transform: offset === 0 
-                        ? 'translateY(0) scale(1) rotateX(0deg) rotateZ(0deg)' 
-                        : offset > 0
-                          ? `translateY(${offset * 20}px) scale(${1 - offset * 0.05}) rotateX(${offset * 5}deg) rotateZ(${offset * 2}deg)`
-                          : `translateY(${offset * 20}px) scale(${1 + offset * 0.05}) rotateX(${offset * 5}deg) rotateZ(${offset * 2}deg)`,
-                      zIndex: 100 - Math.abs(offset),
-                      opacity: offset === 0 ? 1 : 0.7 - Math.abs(offset) * 0.15,
-                    }}
-                  >
-                    <div className="relative">
-                      <img
-                        src={img.url}
-                        alt={img.name}
-                        className="max-w-2xl max-h-96 object-contain rounded-lg shadow-2xl"
-                        data-testid={`img-carousel-${idx}`}
-                        style={{
-                          filter: offset !== 0 ? 'brightness(0.8)' : 'brightness(1)',
-                        }}
-                      />
-                      {/* Image label on stacked images */}
-                      {offset !== 0 && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white px-4 py-2 rounded-b-lg">
-                          <p className="text-sm font-medium truncate">{img.name}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Main image info */}
-              {currentImage && (
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white text-center pointer-events-none">
-                  <h3 className="text-lg font-semibold mb-2">{currentImage.name}</h3>
-                  <p className="text-sm text-gray-300">{currentIndex + 1} / {images.length}</p>
-                </div>
-              )}
+          // Image display with navigation
+          <div className="h-full relative">
+            {/* Current Image */}
+            <div className="h-full w-full relative flex items-center justify-center">
+              <img
+                src={currentImage.url}
+                alt={currentImage.name}
+                className="max-w-full max-h-full object-contain"
+                data-testid={`img-current-${currentIndex}`}
+              />
               
               {/* Image overlay info - moved to bottom center for saved posts */}
               {!isSaved && (
@@ -485,12 +442,12 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               )}
 
               {/* Top right controls */}
-              <div className="absolute top-4 right-4 flex gap-2 z-50">
+              <div className="absolute top-4 right-4 flex gap-2">
                 {/* Fullscreen button */}
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800"
+                  className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
                   onClick={handleFullscreen}
                   data-testid="button-fullscreen"
                 >
@@ -515,7 +472,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800"
+                        className="h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white border-none"
                         data-testid="button-image-menu"
                       >
                         <MoreVertical className="w-4 h-4" />
@@ -560,33 +517,33 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               </div>
             </div>
 
-            {/* Navigation arrows - left and right sides */}
+            {/* Navigation arrows at bottom right */}
             {images.length > 1 && (
-              <>
+              <div className="absolute bottom-4 right-4 flex gap-2">
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 bg-white/90 hover:bg-white text-gray-800 z-40"
+                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800"
                   onClick={navigateLeft}
                   data-testid="button-nav-left"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 bg-white/90 hover:bg-white text-gray-800 z-40"
+                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800"
                   onClick={navigateRight}
                   data-testid="button-nav-right"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
-              </>
+              </div>
             )}
 
             {/* Bottom controls - only show for unsaved posts */}
             {!isSaved && (
-              <div className="absolute bottom-4 left-4 flex gap-2 z-40">
+              <div className="absolute bottom-4 left-4 flex gap-2">
                 <Button
                   size="sm"
                   className="bg-green-600 hover:bg-green-700 text-white"
@@ -608,6 +565,15 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                   <Plus className="w-4 h-4 mr-1" />
                   {isUploading ? 'Uploading...' : 'Add More'}
                 </Button>
+              </div>
+            )}
+
+            {/* Bottom center image counter for saved posts */}
+            {isSaved && images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-lg">
+                <span className="text-sm font-medium">
+                  {currentIndex + 1} / {images.length}
+                </span>
               </div>
             )}
           </div>
