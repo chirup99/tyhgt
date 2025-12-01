@@ -12433,6 +12433,15 @@ ${
                                   </div>
                                 )}
                                 
+                                {/* Candle Count Display */}
+                                <div 
+                                  ref={journalCandleCountRef}
+                                  className="absolute top-1 right-2 z-40 text-xs font-bold text-blue-600 dark:text-blue-400 pointer-events-none"
+                                  data-testid="search-chart-candle-count"
+                                >
+                                  0
+                                </div>
+
                                 {/* Search Chart OHLC Display */}
                                 {hoveredCandleOhlc && journalChartData && journalChartData.length > 0 && (
                                   <div 
