@@ -13017,7 +13017,7 @@ ${
                                       className="text-xs border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900"
                                       data-testid="button-daily-factors-dropdown"
                                     >
-                                      <Heart className="w-3 h-3" />
+                                      <Activity className="w-3 h-3" />
                                       <span className="ml-1 text-xs font-semibold">{selectedDailyFactors.length}</span>
                                       <ChevronDown className="w-3 h-3 ml-1" />
                                     </Button>
