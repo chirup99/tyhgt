@@ -5758,12 +5758,11 @@ ${
             // Create new price line with current LTP and countdown
             journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
               price: liveCandle.close,
-              color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',  price: liveCandle.close,
               color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',
               lineWidth: 1,
               lineStyle: 2, // Dashed
-         
-              title: ` ${countdownFormatted}`, // Show only countdown with icon
+              axisLabelVisible: true, // Show countdown label
+              title: countdownFormatted, // Display countdown on price line
             });
           }
           
@@ -12434,15 +12433,6 @@ ${
                                   </div>
                                 )}
                                 
-                                {/* Candle Count Display */}
-                                <div 
-                                  ref={journalCandleCountRef}
-                                  className="absolute top-1 right-2 z-40 text-xs font-bold text-blue-600 dark:text-blue-400 pointer-events-none"
-                                  data-testid="search-chart-candle-count"
-                                >
-                                  0
-                                </div>
-
                                 {/* Search Chart OHLC Display */}
                                 {hoveredCandleOhlc && journalChartData && journalChartData.length > 0 && (
                                   <div 
