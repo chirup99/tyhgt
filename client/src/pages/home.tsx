@@ -3671,6 +3671,10 @@ ${
     target: "",
   });
 
+  // Save Confirmation Dialog State
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+  const [saveConfirmationData, setSaveConfirmationData] = useState<any>(null);
+
   // Trade History Data State
   const [tradeHistoryData, setTradeHistoryData] = useState([
     {
@@ -8514,17 +8518,16 @@ ${
 
           const saveLocation = isDemoMode ? "Demo (Shared)" : "Personal (Firebase)";
           
-          alert(
-            `✅ Trading data saved successfully!\n\n📅 Date: ${formattedDate}\n💾 Saved to: ${saveLocation}\n\n📊 Saved data:\n• Trades: ${
-              safeTradeHistory.length
-            }\n• Notes: ${safeNotesContent ? "✓" : "✗"}\n• Tags: ${
-              safeTags.length > 0 ? safeTags.join(', ') : "None"
-            }\n• Images: ${
-              safeImages.length
-            }\n• Net P&L: ₹${safePerformanceMetrics.netPnL.toLocaleString(
-              "en-IN",
-            )}`,
-          );
+          setSaveConfirmationData({
+            formattedDate,
+            saveLocation,
+            trades: safeTradeHistory.length,
+            notes: safeNotesContent ? "✓" : "✗",
+            tags: safeTags.length > 0 ? safeTags.join(', ') : "None",
+            images: safeImages.length,
+            netPnL: safePerformanceMetrics.netPnL.toLocaleString("en-IN")
+          });
+          setShowSaveConfirmation(true);
         }
       } else {
         const errorText = await response.text();
@@ -8540,9 +8543,11 @@ ${
       console.error("❌ Error saving to Google Cloud journal database:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      alert(
-        `❌ Failed to save trading data to Google Cloud: ${errorMessage}. Please try again.`,
-      );
+      setSaveConfirmationData({
+        error: true,
+        errorMessage
+      });
+      setShowSaveConfirmation(true);
     }
   };
 
@@ -16617,6 +16622,66 @@ ${
                 </button>
                 <span className="text-[10px] text-gray-400">Demo mode - no real trades</span>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Save Confirmation Dialog - Minimalistic Design */}
+        <Dialog open={showSaveConfirmation} onOpenChange={setShowSaveConfirmation}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader className="space-y-2">
+              {saveConfirmationData?.error ? (
+                <>
+                  <DialogTitle className="text-red-600">Save Failed</DialogTitle>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {saveConfirmationData.errorMessage}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <DialogTitle className="text-green-600">Saved Successfully</DialogTitle>
+                  <div className="space-y-2 text-sm mt-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Date:</span>
+                      <span className="font-medium">{saveConfirmationData?.formattedDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Saved to:</span>
+                      <span className="font-medium">{saveConfirmationData?.saveLocation}</span>
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Trades:</span>
+                        <span>{saveConfirmationData?.trades}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Notes:</span>
+                        <span>{saveConfirmationData?.notes}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Tags:</span>
+                        <span>{saveConfirmationData?.tags}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Images:</span>
+                        <span>{saveConfirmationData?.images}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span className="text-gray-600 dark:text-gray-400">Net P&L:</span>
+                        <span>₹{saveConfirmationData?.netPnL}</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </DialogHeader>
+            <div className="flex justify-center gap-3 mt-4">
+              <Button
+                onClick={() => setShowSaveConfirmation(false)}
+                variant={saveConfirmationData?.error ? "outline" : "default"}
+              >
+                OK
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
