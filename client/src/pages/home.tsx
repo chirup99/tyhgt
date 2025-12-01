@@ -15714,7 +15714,7 @@ ${
               <div className="border border-gray-200 dark:border-gray-800 rounded-md p-3">
                 <div className="flex flex-wrap items-end gap-2">
                   {/* Symbol Search */}
-                  <div className="flex-1 min-w-[180px] relative pointer-events-auto">
+                  <div className="flex-1 min-w-[180px] relative pointer-events-auto" id="paper-trade-search-container">
                     <div className="relative pointer-events-auto">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
                       <Input
@@ -15736,9 +15736,15 @@ ${
                         data-testid="input-paper-trade-search"
                       />
                     </div>
-                    {/* Dropdown */}
+                    {/* Dropdown - Using fixed positioning to escape dialog overflow */}
                     {paperTradeSymbolSearch && !paperTradeSymbol && (
-                      <div className="absolute z-[9999] left-0 right-0 mt-1 max-h-40 overflow-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg pointer-events-auto">
+                      <div className="fixed z-[9999] max-h-40 overflow-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg pointer-events-auto" 
+                        style={{
+                          top: (document.getElementById('paper-trade-search-container')?.getBoundingClientRect().bottom ?? 0) + 4,
+                          left: document.getElementById('paper-trade-search-container')?.getBoundingClientRect().left ?? 0,
+                          width: (document.getElementById('paper-trade-search-container')?.offsetWidth ?? 0)
+                        }}
+                      >
                         {paperTradeSearchLoading ? (
                           <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
                             <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
