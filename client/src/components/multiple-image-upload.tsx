@@ -181,50 +181,66 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         >
           {/* Main Carousel Area */}
           <div className="flex-1 relative bg-gray-900 flex items-center justify-center overflow-visible">
-            {/* 5 Empty Colored Cards - Swipeable */}
-            {[
-              { id: 'card-1', color: 'bg-blue-500' },
-              { id: 'card-2', color: 'bg-purple-500' },
-              { id: 'card-3', color: 'bg-pink-500' },
-              { id: 'card-4', color: 'bg-green-500' },
-              { id: 'card-5', color: 'bg-orange-500' },
-            ].map((card, idx) => {
-              const offset = idx - currentIndex;
-              let displayOffset = offset;
-              if (displayOffset < -5 / 2) {
-                displayOffset += 5;
-              } else if (displayOffset > 5 / 2) {
-                displayOffset -= 5;
-              }
+            {/* Cards - Real Images or Colored Placeholders */}
+            {(() => {
+              const cardsToShow = images.length > 0 ? images : [
+                { id: 'card-1', color: 'bg-blue-500', name: 'Card 1' },
+                { id: 'card-2', color: 'bg-purple-500', name: 'Card 2' },
+                { id: 'card-3', color: 'bg-pink-500', name: 'Card 3' },
+                { id: 'card-4', color: 'bg-green-500', name: 'Card 4' },
+                { id: 'card-5', color: 'bg-orange-500', name: 'Card 5' },
+              ];
+              
+              return cardsToShow.map((card, idx) => {
+                const offset = idx - currentIndex;
+                let displayOffset = offset;
+                const totalCards = cardsToShow.length;
+                
+                if (displayOffset < -totalCards / 2) {
+                  displayOffset += totalCards;
+                } else if (displayOffset > totalCards / 2) {
+                  displayOffset -= totalCards;
+                }
 
-              if (Math.abs(displayOffset) > 4) return null;
+                if (Math.abs(displayOffset) > 2) return null;
 
-              const rotation = displayOffset * 6;
-              const translateX = displayOffset * 35;
-              const translateY = Math.abs(displayOffset) * 10;
-              const scale = 1 - Math.abs(displayOffset) * 0.04;
-              const zIndex = 100 - Math.abs(displayOffset);
-              const opacity = displayOffset === 0 ? 1 : 0.75;
+                const rotation = displayOffset * 8;
+                const translateX = displayOffset * 45;
+                const translateY = Math.abs(displayOffset) * 15;
+                const scale = 1 - Math.abs(displayOffset) * 0.06;
+                const zIndex = 100 - Math.abs(displayOffset);
+                const opacity = displayOffset === 0 ? 1 : 0.65;
 
-              return (
-                <div
-                  key={card.id}
-                  className="absolute transition-all duration-300 ease-out"
-                  style={{
-                    transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
-                    zIndex: zIndex,
-                    opacity: opacity,
-                  }}
-                >
-                  <div className={`relative ${card.color} rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow`} style={{ width: '280px', height: '200px' }}>
-                    {/* Empty card with subtle center text */}
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium opacity-70">Card {idx + 1}</span>
+                return (
+                  <div
+                    key={card.id}
+                    className="absolute transition-all duration-400 ease-out"
+                    style={{
+                      transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
+                      zIndex: zIndex,
+                      opacity: opacity,
+                    }}
+                  >
+                    <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ width: '300px', height: '220px' }}>
+                      {images.length > 0 && 'url' in card ? (
+                        // Real image
+                        <img
+                          src={card.url}
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                          data-testid={`img-card-${idx}`}
+                        />
+                      ) : (
+                        // Colored placeholder
+                        <div className={`w-full h-full ${(card as any).color} flex items-center justify-center`}>
+                          <span className="text-white text-sm font-medium opacity-70">{(card as any).name}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
 
             {/* Navigation arrows */}
             <>
@@ -306,8 +322,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               preserveAspectRatio="none"
             >
               <path
-                d="M 0 40 Q 200 10, 400 25 T 800 40"
-                stroke="#4b5563"
+                d="M 0 15 Q 400 50, 800 15"
+                stroke="#6b7280"
                 strokeWidth="2"
                 fill="none"
               />
