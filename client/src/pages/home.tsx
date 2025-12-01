@@ -16047,7 +16047,22 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  // Drag and drop disabled for position-based system
+                                  const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
+                                  if (sourceField && sourceField !== "time") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      positions: {
+                                        ...prev.positions,
+                                        time: prev.positions[sourceField],
+                                        [sourceField]: []
+                                      },
+                                      displayValues: {
+                                        ...prev.displayValues!,
+                                        time: prev.displayValues[sourceField],
+                                        [sourceField]: ""
+                                      }
+                                    }));
+                                  }
                                 }}
                               >
                                 {buildModeData.positions.time.length > 0 ? (
@@ -16115,7 +16130,22 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  // Drag and drop disabled for position-based system
+                                  const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
+                                  if (sourceField && sourceField !== "order") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      positions: {
+                                        ...prev.positions,
+                                        order: prev.positions[sourceField],
+                                        [sourceField]: []
+                                      },
+                                      displayValues: {
+                                        ...prev.displayValues!,
+                                        order: prev.displayValues[sourceField],
+                                        [sourceField]: ""
+                                      }
+                                    }));
+                                  }
                                 }}
                               >
                                 {buildModeData.positions.order.length > 0 ? (
@@ -16183,7 +16213,22 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  // Drag and drop disabled for position-based system
+                                  const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
+                                  if (sourceField && sourceField !== "symbol") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      positions: {
+                                        ...prev.positions,
+                                        symbol: prev.positions[sourceField],
+                                        [sourceField]: []
+                                      },
+                                      displayValues: {
+                                        ...prev.displayValues!,
+                                        symbol: prev.displayValues[sourceField],
+                                        [sourceField]: ""
+                                      }
+                                    }));
+                                  }
                                 }}
                               >
                                 {buildModeData.positions.symbol.length > 0 ? (
@@ -16251,7 +16296,22 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  // Drag and drop disabled for position-based system
+                                  const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
+                                  if (sourceField && sourceField !== "type") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      positions: {
+                                        ...prev.positions,
+                                        type: prev.positions[sourceField],
+                                        [sourceField]: []
+                                      },
+                                      displayValues: {
+                                        ...prev.displayValues!,
+                                        type: prev.displayValues[sourceField],
+                                        [sourceField]: ""
+                                      }
+                                    }));
+                                  }
                                 }}
                               >
                                 {buildModeData.positions.type.length > 0 ? (
@@ -16319,7 +16379,22 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  // Drag and drop disabled for position-based system
+                                  const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
+                                  if (sourceField && sourceField !== "qty") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      positions: {
+                                        ...prev.positions,
+                                        qty: prev.positions[sourceField],
+                                        [sourceField]: []
+                                      },
+                                      displayValues: {
+                                        ...prev.displayValues!,
+                                        qty: prev.displayValues[sourceField],
+                                        [sourceField]: ""
+                                      }
+                                    }));
+                                  }
                                 }}
                               >
                                 {buildModeData.positions.qty.length > 0 ? (
@@ -16387,7 +16462,22 @@ ${
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  // Drag and drop disabled for position-based system
+                                  const sourceField = e.dataTransfer.getData("sourceField") as keyof typeof buildModeData.positions;
+                                  if (sourceField && sourceField !== "price") {
+                                    setBuildModeData(prev => ({
+                                      ...prev,
+                                      positions: {
+                                        ...prev.positions,
+                                        price: prev.positions[sourceField],
+                                        [sourceField]: []
+                                      },
+                                      displayValues: {
+                                        ...prev.displayValues!,
+                                        price: prev.displayValues[sourceField],
+                                        [sourceField]: ""
+                                      }
+                                    }));
+                                  }
                                 }}
                               >
                                 {buildModeData.positions.price.length > 0 ? (
