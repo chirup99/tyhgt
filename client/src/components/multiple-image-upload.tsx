@@ -358,31 +358,61 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               </div>
             </div>
 
-            {/* Thumbnail Strip Below - Separate from Modal */}
-            <div className="flex gap-2 mt-4 overflow-x-auto pb-2 max-w-4xl w-full items-center justify-center flex-shrink-0">
+            {/* Thumbnail Strip Below - Tiny All Cards */}
+            <div 
+              className="flex gap-2 mt-6 overflow-x-auto pb-2 w-full items-center justify-center flex-shrink-0"
+              onTouchStart={(e) => {
+                touchStartX.current = e.touches[0].clientX;
+              }}
+              onTouchMove={(e) => {
+                const currentX = e.touches[0].clientX;
+                const deltaX = currentX - touchStartX.current;
+                if (Math.abs(deltaX) > 50) {
+                  const currentImageIndex = cardsToShow.findIndex(card => card.image?.id === selectedImage.id);
+                  if (deltaX > 0) {
+                    // Swiped right - previous
+                    const prevIdx = currentImageIndex > 0 ? currentImageIndex - 1 : cardsToShow.length - 1;
+                    if (cardsToShow[prevIdx].image) {
+                      setSelectedImage(cardsToShow[prevIdx].image);
+                    }
+                  } else {
+                    // Swiped left - next
+                    const nextIdx = currentImageIndex < cardsToShow.length - 1 ? currentImageIndex + 1 : 0;
+                    if (cardsToShow[nextIdx].image) {
+                      setSelectedImage(cardsToShow[nextIdx].image);
+                    }
+                  }
+                  touchStartX.current = currentX;
+                }
+              }}
+              style={{ maxWidth: '500px' }}
+            >
               {cardsToShow.map((card, idx) => (
-                card.image && (
-                  <button
-                    key={card.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedImage(card.image);
-                    }}
-                    className={`flex-shrink-0 rounded-lg overflow-hidden transition-all cursor-pointer ${
-                      selectedImage.id === card.image.id 
-                        ? 'ring-2 ring-white scale-110' 
-                        : 'hover:scale-105 opacity-75 hover:opacity-100'
-                    }`}
-                    style={{ width: '60px', height: '60px' }}
-                    data-testid={`button-thumbnail-${idx}`}
-                  >
+                <button
+                  key={card.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    card.image && setSelectedImage(card.image);
+                  }}
+                  className={`flex-shrink-0 rounded-md overflow-hidden transition-all cursor-pointer ${
+                    card.image && selectedImage.id === card.image.id 
+                      ? 'ring-2 ring-white' 
+                      : card.image ? 'opacity-70 hover:opacity-100' : 'opacity-40'
+                  }`}
+                  style={{ width: '48px', height: '48px' }}
+                  data-testid={`button-thumbnail-${idx}`}
+                  disabled={!card.image}
+                >
+                  {card.image ? (
                     <img
                       src={card.image.url}
                       alt={card.image.name}
                       className="w-full h-full object-cover"
                     />
-                  </button>
-                )
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400" />
+                  )}
+                </button>
               ))}
             </div>
 
