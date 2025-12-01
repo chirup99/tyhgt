@@ -6922,6 +6922,14 @@ ${
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [tempNotesContent, setTempNotesContent] = useState(notesContent);
 
+  // Get all valid trading tags from tradingTagSystem
+  const getAllValidTags = () => {
+    const allTags: string[] = [];
+    // Note: tradingTagSystem is defined below, so we need to reference it carefully
+    // For now, we'll create a helper after tradingTagSystem is defined
+    return allTags;
+  };
+
   // Trading tags state
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -7188,6 +7196,12 @@ ${
     return Object.values(tradingTagSystem).flatMap((category) => category.tags);
   };
 
+  // Filter tags to only include valid trading tags (remove indicators that might be mixed in)
+  const getValidTags = (tags: string[]) => {
+    const validTagsList = getAllTags();
+    return tags.filter((tag) => validTagsList.includes(tag));
+  };
+
   // Tag validation functions
   const validateTagSelection = (newTags: string[]) => {
     const errors: string[] = [];
@@ -7245,12 +7259,13 @@ ${
 
   // Enhanced toggle tag function with validation
   const toggleTagWithValidation = (tag: string) => {
-    const newTags = selectedTags.includes(tag)
-      ? selectedTags.filter((t) => t !== tag)
-      : [...selectedTags, tag];
+    const validCurrentTags = getValidTags(selectedTags);
+    const newTags = validCurrentTags.includes(tag)
+      ? validCurrentTags.filter((t) => t !== tag)
+      : [...validCurrentTags, tag];
 
     // Only check basic limits when adding tags
-    if (!selectedTags.includes(tag)) {
+    if (!validCurrentTags.includes(tag)) {
       // Check total limit
       if (newTags.length > tagValidationRules.maxTotalTags) {
         alert(`Maximum ${tagValidationRules.maxTotalTags} tags allowed`);
@@ -7274,8 +7289,9 @@ ${
       }
     }
 
-    setSelectedTags(newTags);
-    localStorage.setItem("tradingTags", JSON.stringify(newTags));
+    const validTags = getValidTags(newTags);
+    setSelectedTags(validTags);
+    localStorage.setItem("tradingTags", JSON.stringify(validTags));
   };
 
   // Get category for a tag
@@ -7891,7 +7907,12 @@ ${
       const newTags = prev.includes(tag)
         ? prev.filter((t) => t !== tag)
         : [...prev, tag];
-      return newTags;
+      // Filter to ensure only valid tags are stored
+      const validTags = getValidTags(newTags);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tradingTags", JSON.stringify(validTags));
+      }
+      return validTags;
     });
   };
 
@@ -13330,9 +13351,9 @@ ${
                                       </div>
 
                                       {/* Selected Tags Display */}
-                                      {selectedTags.length > 0 && (
+                                      {getValidTags(selectedTags).length > 0 && (
                                         <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-                                          {selectedTags.map((tag) => (
+                                          {getValidTags(selectedTags).map((tag) => (
                                             <span
                                               key={tag}
                                               className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
@@ -13472,10 +13493,10 @@ ${
                             ) : (
                               <div className="flex-1 w-full p-2 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white overflow-y-auto custom-thin-scrollbar">
                                 {/* Display tags inline when they exist */}
-                                {selectedTags.length > 0 && (
+                                {getValidTags(selectedTags).length > 0 && (
                                   <div className="mb-2 pb-2 border-b border-gray-300 dark:border-gray-600">
                                     <div className="flex flex-wrap gap-1">
-                                      {selectedTags.map((tag) => (
+                                      {getValidTags(selectedTags).map((tag) => (
                                         <span
                                           key={tag}
                                           className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors group"
