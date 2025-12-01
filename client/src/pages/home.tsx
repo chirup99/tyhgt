@@ -16587,29 +16587,72 @@ ${
                             size="sm"
                             className="gap-1.5"
                             onClick={() => {
-                              // Initialize with empty positions - user will select text manually
+                              // Auto-extract from first line
                               const firstLine = importData.trim().split('\n')[0] || "";
+                              
+                              // Simple pattern: time order symbol type qty price
+                              // Example: "84.9 10:25:20 BUY BANKNIFTY SEP 39500 CE NFO MIS 25"
+                              const parts = firstLine.split(/\s+/);
+                              
+                              // Find positions by matching patterns
+                              let timePos = -1, orderPos = -1, symbolPos = -1, typePos = -1, qtyPos = -1, pricePos = -1;
+                              let timeVal = "", orderVal = "", symbolVal = "", typeVal = "", qtyVal = "", priceVal = "";
+                              
+                              for (let i = 0; i < parts.length; i++) {
+                                const part = parts[i];
+                                // Time pattern: HH:MM:SS
+                                if (!timeVal && /^\d{1,2}:\d{2}:\d{2}$/.test(part)) {
+                                  timePos = firstLine.indexOf(part);
+                                  timeVal = part;
+                                }
+                                // Order: BUY/SELL
+                                if (!orderVal && /^(BUY|SELL)$/i.test(part)) {
+                                  orderPos = firstLine.indexOf(part);
+                                  orderVal = part;
+                                }
+                                // Symbol: all caps before expiry/numbers
+                                if (!symbolVal && /^[A-Z]+$/.test(part) && timeVal && orderVal) {
+                                  symbolPos = firstLine.indexOf(part);
+                                  symbolVal = part;
+                                }
+                                // Type: numbers after symbol (lot size or strike)
+                                if (symbolVal && !typeVal && /^[A-Z]/.test(part)) {
+                                  typePos = firstLine.indexOf(part);
+                                  typeVal = part;
+                                }
+                                // Qty: number at end
+                                if (/^\d+$/.test(part) && i === parts.length - 1) {
+                                  qtyPos = firstLine.indexOf(part);
+                                  qtyVal = part;
+                                }
+                                // Price: number before qty
+                                if (/^\d+$/.test(part) && i === parts.length - 2) {
+                                  pricePos = firstLine.indexOf(part);
+                                  priceVal = part;
+                                }
+                              }
+                              
                               setBuildModeData({
                                 sampleLine: firstLine,
                                 positions: {
-                                  time: [],
-                                  order: [],
-                                  symbol: [],
-                                  type: [],
-                                  qty: [],
-                                  price: []
+                                  time: timePos >= 0 ? [timePos] : [],
+                                  order: orderPos >= 0 ? [orderPos] : [],
+                                  symbol: symbolPos >= 0 ? [symbolPos] : [],
+                                  type: typePos >= 0 ? [typePos] : [],
+                                  qty: qtyPos >= 0 ? [qtyPos] : [],
+                                  price: pricePos >= 0 ? [pricePos] : []
                                 },
                                 displayValues: {
-                                  time: "",
-                                  order: "",
-                                  symbol: "",
-                                  type: "",
-                                  qty: "",
-                                  price: ""
+                                  time: timeVal,
+                                  order: orderVal,
+                                  symbol: symbolVal,
+                                  type: typeVal,
+                                  qty: qtyVal,
+                                  price: priceVal
                                 }
                               });
                               setIsBuildMode(true);
-                              console.log("🔨 Build mode activated - select text to map positions");
+                              console.log("🔨 Build mode - auto-extracted from first line. Edit if needed.", { timeVal, orderVal, symbolVal, typeVal, qtyVal, priceVal });
                             }}
                             data-testid="button-build"
                           >
