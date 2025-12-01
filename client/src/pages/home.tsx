@@ -15848,7 +15848,7 @@ ${
                       <thead>
                         <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400">
                           <th className="px-2 py-1.5 text-left font-medium">Symbol</th>
-                          <th className="px-2 py-1.5 text-center font-medium">Side</th>
+                          <th className="px-2 py-1.5 text-center font-medium">Order</th>
                           <th className="px-2 py-1.5 text-right font-medium">Qty</th>
                           <th className="px-2 py-1.5 text-right font-medium">Avg</th>
                           <th className="px-2 py-1.5 text-right font-medium">LTP</th>
@@ -15897,7 +15897,7 @@ ${
                               <td className="px-2 py-1.5 font-medium">{position.symbol}</td>
                               <td className="px-2 py-1.5 text-center">
                                 <span className={`text-[10px] ${position.action === 'BUY' ? 'text-green-600' : 'text-red-600'}`}>
-                                  {position.action === 'BUY' ? 'L' : 'S'}
+                                  {position.action === 'BUY' ? 'BUY' : 'SELL'}
                                 </span>
                               </td>
                               <td className="px-2 py-1.5 text-right">{position.quantity}</td>
