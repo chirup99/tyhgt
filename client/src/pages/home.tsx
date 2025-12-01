@@ -15835,7 +15835,7 @@ ${
                   </Button>
 
                   {/* SL Button with Dropdown */}
-                  <div className="relative">
+                  <div className="relative ml-auto">
                     <Button
                       onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
                       size="sm"
@@ -15846,7 +15846,7 @@ ${
                       SL
                     </Button>
                     {showPaperTradeSLDropdown && (
-                      <div className="absolute z-50 top-8 left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         <div className="p-3 space-y-2 min-w-[220px]">
                           <div>
                             <label className="text-[10px] text-gray-500 uppercase">Type</label>
