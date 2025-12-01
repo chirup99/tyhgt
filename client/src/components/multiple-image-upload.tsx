@@ -258,31 +258,34 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           </Button>
         </div>
 
-        {/* Curved Line Footer */}
-        <div className="h-16 relative bg-gray-900 flex items-center justify-center overflow-hidden border-t border-gray-800">
+        {/* Curved Line Footer - Matches Paper Trading Dialog */}
+        <div className="h-16 relative bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 rounded-t-2xl shadow-lg">
           <svg
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full opacity-40"
             viewBox="0 0 800 60"
             preserveAspectRatio="none"
           >
             <path
               d="M 0 15 Q 400 50, 800 15"
-              stroke="#6b7280"
-              strokeWidth="2"
+              stroke="#9ca3af"
+              strokeWidth="1.5"
               fill="none"
             />
           </svg>
 
           {/* Counter Badge - Slides with drag like audio player seek line */}
           <div 
-            className={`relative z-10 bg-white text-gray-900 rounded-full w-12 h-12 flex items-center justify-center shadow-lg font-bold text-sm ${
+            className={`relative z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-2xl font-bold text-sm border-2 border-blue-400 ${
               isDragging ? '' : 'transition-transform duration-400 ease-out'
             }`}
             style={{
               transform: `translateX(${(dragOffset * 0.5)}px)`
             }}
           >
-            {currentIndex + 1}/{cardsToShow.length}
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-xs font-semibold opacity-90">Pos</span>
+              <span className="text-sm font-bold">{currentIndex + 1}/{cardsToShow.length}</span>
+            </div>
           </div>
         </div>
 
