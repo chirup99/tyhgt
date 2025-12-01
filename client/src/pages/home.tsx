@@ -3627,7 +3627,7 @@ ${
     }
   }, [showImportModal, currentUser?.userId]);
 
-  // Auto-detect format when pasting data
+  // Auto-detect format when pasting data or when formats load
   useEffect(() => {
     if (importData.trim() && Object.keys(savedFormats).length > 0) {
       const firstLine = importData.trim().split('\n')[0];
@@ -3649,7 +3649,7 @@ ${
       setActiveFormat(null);
       setDetectedFormatLabel(null);
     }
-  }, [importData, savedFormats]);
+  }, [importData, savedFormats, showImportModal]);
 
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
