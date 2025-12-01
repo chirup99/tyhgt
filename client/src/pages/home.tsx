@@ -4245,7 +4245,7 @@ ${
     });
   };
   
-  // 🔴 NEW: Record all paper trades to personal tradebook heatmap (today's date only)
+  // 🔴 NEW: Record all paper trades - opens Trade History Summary (like Import P&L does)
   const recordAllPaperTrades = () => {
     if (paperTradeHistory.length === 0) {
       toast({
@@ -4260,26 +4260,43 @@ ${
     if (isDemoMode) {
       console.log("🔄 Auto-switching to personal mode to record trades...");
       setIsDemoMode(false);
-      // Continue recording after state updates
       setTimeout(() => {
         recordAllPaperTrades();
       }, 100);
       return;
     }
     
-    // Get today's date in YYYY-MM-DD format
+    console.log("📊 Converting paper trades to journal format...");
+    
+    // Convert paper trades to trade journal format (time, order, symbol, type, qty, price)
+    const convertedTrades = paperTradeHistory.map((trade: any) => ({
+      time: trade.time,
+      order: trade.action, // BUY or SELL
+      symbol: trade.symbol,
+      type: trade.type || 'MIS',
+      qty: trade.quantity,
+      price: trade.price,
+      pnl: trade.pnl || '-',
+      duration: trade.closedAt ? '0m 0s' : '-'
+    }));
+    
+    // 1️⃣ Calculate P&L (same as Import P&L does)
+    const processedData = calculateSimplePnL(convertedTrades);
+    
+    // 2️⃣ Add to trade history summary (opens the summary window)
+    setTradeHistoryData((prev) => [...processedData, ...prev]);
+    
+    // 3️⃣ Also record to today's personal heatmap for tracking
     const today = new Date();
     const todayKey = formatDateKey(today);
-    
-    // Get existing trades for today (if any)
     const existingData = tradingDataByDate[todayKey] || {};
     const existingTrades = existingData.tradeHistory || [];
     
-    // Convert paper trades to heatmap trade format
-    const convertedTrades = paperTradeHistory.map((trade: any) => ({
+    // Convert for heatmap storage (different format)
+    const heatmapTrades = paperTradeHistory.map((trade: any) => ({
       symbol: trade.symbol,
       type: trade.type || 'MIS',
-      action: trade.action, // BUY or SELL
+      action: trade.action,
       quantity: trade.quantity,
       price: trade.price,
       time: trade.time,
@@ -4287,17 +4304,13 @@ ${
       closedAt: trade.closedAt
     }));
     
-    // Merge with existing trades (append new ones)
-    const mergedTrades = [...existingTrades, ...convertedTrades];
-    
-    // Update tradingDataByDate with merged trades
+    const mergedTrades = [...existingTrades, ...heatmapTrades];
     const updatedData = {
       ...existingData,
       tradeHistory: mergedTrades,
-      // Re-calculate summary stats
       profitLossAmount: mergedTrades.reduce((sum: number, trade: any) => {
         if (trade.pnl && trade.pnl !== '-') {
-          const pnlStr = trade.pnl.replace('₹', '').replace('+', '');
+          const pnlStr = String(trade.pnl).replace('₹', '').replace('+', '');
           return sum + (parseFloat(pnlStr) || 0);
         }
         return sum;
@@ -4305,22 +4318,26 @@ ${
       totalTrades: mergedTrades.length
     };
     
-    // Update personal heatmap (not demo)
     setPersonalTradingDataByDate((prev: any) => ({
       ...prev,
       [todayKey]: updatedData
     }));
     
-    // Save to localStorage
     localStorage.setItem("personalTradingDataByDate", JSON.stringify({
       ...personalTradingDataByDate,
       [todayKey]: updatedData
     }));
     
+    // 4️⃣ Close paper trading dialog and show summary
+    setShowPaperTradingModal(false);
+    setShowOrderModal(true);
+    
     toast({
       title: "Trades Recorded",
-      description: `Recorded ${convertedTrades.length} trades to today's personal tradebook`
+      description: `Recorded ${convertedTrades.length} trades to today's summary and personal tradebook`
     });
+    
+    console.log("✅ Paper trades recorded to journal summary and heatmap");
   };
 
   // Exit all open positions at once
