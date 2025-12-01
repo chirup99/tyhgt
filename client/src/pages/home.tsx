@@ -8516,7 +8516,7 @@ ${
             year: "numeric",
           });
 
-          const saveLocation = isDemoMode ? "Demo (Shared)" : "Personal (Firebase)";
+          const saveLocation = isDemoMode ? "Demo" : "Personal";
           
           setSaveConfirmationData({
             formattedDate,
