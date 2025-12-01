@@ -5594,24 +5594,33 @@ ${
       return;
     }
 
-    // Get stock token info - use selectedInstrument if available (for dynamic search), otherwise use hardcoded mapping
+    // Get stock token info
+    // 🔶 IN SEARCH MODE: ALWAYS use selectedJournalSymbol (manual search)
+    // Otherwise: Try selectedInstrument (from heatmap) or fallback to mapping
     let stockToken: { token: string, exchange: string, tradingSymbol: string } | undefined;
     
-    if (selectedInstrument) {
+    if (journalChartMode === 'search') {
+      // Search mode: Use selectedJournalSymbol with Angel One token mapping
+      const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
+      stockToken = journalAngelOneTokens[cleanSymbol];
+      console.log(`✅ [SSE SEARCH MODE] Using selectedJournalSymbol: ${selectedJournalSymbol} → ${cleanSymbol}, Token: ${stockToken?.token}`);
+    } else if (selectedInstrument) {
+      // Heatmap mode: Use dynamically selected instrument
       stockToken = {
         token: selectedInstrument.token,
         exchange: selectedInstrument.exchange,
         tradingSymbol: selectedInstrument.tradingSymbol
       };
-      console.log('🔴 [SSE] Using dynamically selected instrument:', selectedInstrument);
+      console.log('✅ [SSE HEATMAP MODE] Using dynamically selected instrument:', selectedInstrument);
     } else {
+      // Fallback: Use hardcoded mapping
       const cleanSymbol = getJournalAngelOneSymbol(selectedJournalSymbol);
       stockToken = journalAngelOneTokens[cleanSymbol];
-      console.log('🔴 [SSE] Using hardcoded token mapping for:', cleanSymbol);
+      console.log('✅ [SSE FALLBACK] Using hardcoded token mapping for:', cleanSymbol);
     }
     
     if (!stockToken) {
-      console.warn('🔴 [SSE] No token found for symbol:', selectedJournalSymbol);
+      console.warn(`❌ [SSE] No token found for symbol: ${selectedJournalSymbol} (mode: ${journalChartMode})`);
       return;
     }
 
@@ -5858,7 +5867,7 @@ ${
       }
       setIsJournalStreaming(false);
     };
-  }, [activeTab, selectedJournalSymbol, selectedJournalInterval]);
+  }, [activeTab, selectedJournalSymbol, selectedJournalInterval, journalChartMode]);
 
   // Keep ref in sync with state for SSE logic (avoid recreating SSE on every data change)
   useEffect(() => {
