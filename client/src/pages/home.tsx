@@ -16115,25 +16115,41 @@ ${
                 </div>
               )}
 
-              {/* Trade History - Compact */}
+              {/* Trade History - With Header */}
               {paperTradeHistory.length > 0 && (
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                     History
                   </div>
-                  <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden max-h-32 overflow-y-auto custom-thin-scrollbar">
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden max-h-40 overflow-y-auto custom-thin-scrollbar">
                     <table className="w-full text-[11px]">
+                      <thead className="sticky top-0">
+                        <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400">
+                          <th className="px-2 py-1.5 text-left font-medium">Time</th>
+                          <th className="px-2 py-1.5 text-center font-medium">Order</th>
+                          <th className="px-2 py-1.5 text-left font-medium">Symbol</th>
+                          <th className="px-2 py-1.5 text-center font-medium">Type</th>
+                          <th className="px-2 py-1.5 text-right font-medium">Qty</th>
+                          <th className="px-2 py-1.5 text-right font-medium">Price</th>
+                          <th className="px-2 py-1.5 text-right font-medium">P&L</th>
+                        </tr>
+                      </thead>
                       <tbody>
-                        {[...paperTradeHistory].reverse().slice(0, 10).map(trade => (
-                          <tr key={trade.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                            <td className="px-2 py-1.5 text-gray-400 w-16">{trade.time}</td>
-                            <td className="px-2 py-1.5">
-                              <span className={trade.action === 'BUY' ? 'text-green-600' : 'text-red-600'}>
+                        {[...paperTradeHistory].reverse().map(trade => (
+                          <tr key={trade.id} className="border-t border-gray-100 dark:border-gray-800">
+                            <td className="px-2 py-1.5 text-gray-400">{trade.time}</td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                                trade.action === 'BUY' 
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              }`}>
                                 {trade.action}
                               </span>
                             </td>
                             <td className="px-2 py-1.5 font-medium">{trade.symbol}</td>
-                            <td className="px-2 py-1.5 text-right text-gray-500">{trade.quantity}</td>
+                            <td className="px-2 py-1.5 text-center text-gray-500">{trade.type || 'MIS'}</td>
+                            <td className="px-2 py-1.5 text-right">{trade.quantity}</td>
                             <td className="px-2 py-1.5 text-right">₹{trade.price.toFixed(2)}</td>
                             <td className={`px-2 py-1.5 text-right font-medium ${
                               !trade.pnl ? 'text-gray-400' : trade.pnl.includes('+') ? 'text-green-600' : 'text-red-600'

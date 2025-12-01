@@ -565,3 +565,19 @@
 [x] 4129.   5. SELL entries added to History section
 [x] 4130.   6. Toast shows: "All Positions Closed - Profit/Loss | Exited X positions | Total P&L: ₹XXX"
 [x] 4131. EXIT ALL POSITIONS FEATURE 100% COMPLETE!
+
+[x] 4132. PAPER TRADING - HISTORY TABLE UI UPDATE - COMPLETED
+[x] 4133. Date: December 1, 2025
+[x] 4134. User Request: Update History section to display all trades with proper table header UI
+[x] 4135. Changes Made (lines 16121-16168):
+[x] 4136.   1. Added proper table header row matching Open Positions style:
+[x] 4137.      - Time, Order, Symbol, Type, Qty, Price, P&L columns
+[x] 4138.      - Sticky header with bg-gray-50 dark:bg-gray-800/50
+[x] 4139.   2. BUY/SELL badges styled with colored backgrounds:
+[x] 4140.      - BUY: green background (bg-green-100 dark:bg-green-900/30)
+[x] 4141.      - SELL: red background (bg-red-100 dark:bg-red-900/30)
+[x] 4142.   3. Added Type column (MIS/LIM) - defaults to 'MIS'
+[x] 4143.   4. Removed slice(0, 10) limit - now shows ALL trade history
+[x] 4144.   5. Increased max-h from 32 to 40 for more visible rows
+[x] 4145.   6. Consistent styling with Open Positions table
+[x] 4146. HISTORY TABLE UI UPDATE 100% COMPLETE!
