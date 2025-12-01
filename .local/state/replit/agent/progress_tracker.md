@@ -527,3 +527,16 @@
 [x] 4093.   - BUY: Green arrow (↑) below bar with "BUY {time}" text
 [x] 4094.   - SELL: Red arrow (↓) above bar with "SELL {time}" text
 [x] 4095. TIME-BASED CHART MARKERS FEATURE 100% COMPLETE!
+
+[x] 4096. PAPER TRADING SL BUTTON UI FIX - COMPLETED
+[x] 4097. Date: December 1, 2025
+[x] 4098. User Request: 
+[x] 4099.   - Move SL button to right side corner (was on left side)
+[x] 4100.   - Disable SL button - only activate when BUY/SELL button activates
+[x] 4101. Changes Applied (client/src/pages/home.tsx lines 15840-15853):
+[x] 4102.   1. Added `ml-auto` class to SL button container → pushes to right corner
+[x] 4103.   2. Added disabled condition: `disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}`
+[x] 4104.   3. Changed dropdown position from `left-0` to `right-0` for proper right-side positioning
+[x] 4105. Before: SL button on left, always enabled
+[x] 4106. After: SL button on right corner, disabled until instrument selected + qty + price ready
+[x] 4107. SL BUTTON RELOCATION AND DISABLE FIX 100% COMPLETE!

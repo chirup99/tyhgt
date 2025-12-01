@@ -15834,10 +15834,11 @@ ${
                     SELL
                   </Button>
 
-                  {/* SL Button with Dropdown */}
-                  <div className="relative">
+                  {/* SL Button with Dropdown - Right Corner */}
+                  <div className="relative ml-auto">
                     <Button
                       onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
+                      disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
                       size="sm"
                       variant="outline"
                       className="h-8 px-3 text-xs"
@@ -15846,7 +15847,7 @@ ${
                       SL
                     </Button>
                     {showPaperTradeSLDropdown && (
-                      <div className="absolute z-50 top-8 left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         <div className="p-3 space-y-2 min-w-[220px]">
                           <div>
                             <label className="text-[10px] text-gray-500 uppercase">Type</label>
