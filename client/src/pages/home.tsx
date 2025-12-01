@@ -12833,6 +12833,59 @@ ${
                                 TRADING NOTES
                               </h3>
                               <div className="flex items-center gap-1">
+                                {/* Old Tags Button - Overview */}
+                                <Popover
+                                  open={isTagDropdownOpen}
+                                  onOpenChange={setIsTagDropdownOpen}
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs border-indigo-300 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900"
+                                      data-testid="button-tags-dropdown"
+                                    >
+                                      <Tag className="w-3 h-3 mr-1" />
+                                      Tags ({selectedTags.length})
+                                      <ChevronDown className="w-3 h-3 ml-1" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-80 p-3">
+                                    <div className="space-y-2">
+                                      <h4 className="text-xs font-semibold">All Selected Tags</h4>
+                                      {selectedTags.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1">
+                                          {selectedTags.map((tag) => (
+                                            <span
+                                              key={tag}
+                                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
+                                              onClick={() => toggleTag(tag)}
+                                              data-testid={`selected-tag-${tag}`}
+                                            >
+                                              {tag}
+                                              <X className="w-3 h-3 ml-1" />
+                                            </span>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-gray-500">No tags selected</p>
+                                      )}
+                                      {selectedTags.length > 0 && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={clearAllTags}
+                                          className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 mt-2 w-full"
+                                          data-testid="button-clear-tags"
+                                        >
+                                          <Trash2 className="w-3 h-3 mr-1" />
+                                          Clear All
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+
                                 {/* Market Tags Dropdown */}
                                 <Popover open={showMarketDropdown} onOpenChange={setShowMarketDropdown}>
                                   <PopoverTrigger asChild>
