@@ -5712,8 +5712,9 @@ ${
             return position;
           }));
           
-          // Also update current price for trade entry form if symbol matches
-          if (selectedJournalSymbol.includes(paperTradeSymbol)) {
+          // 🔴 FIX: Only update current price for trade entry form if user EXPLICITLY selected an instrument in paper trading
+          // WITHOUT THIS CHECK: Empty paperTradeSymbol caused "".includes to be true for all strings!
+          if (paperTradeSymbol && selectedJournalSymbol.includes(paperTradeSymbol)) {
             setPaperTradeCurrentPrice(liveCandle.close);
           }
         }
