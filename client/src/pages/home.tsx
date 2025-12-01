@@ -13251,23 +13251,6 @@ ${
                                         </div>
                                       </div>
 
-                                      {/* Selected Indicators Display */}
-                                      {selectedIndicators.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-                                          {selectedIndicators.map((indicator) => (
-                                            <span
-                                              key={indicator}
-                                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-full cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
-                                              onClick={() => toggleIndicator(indicator)}
-                                              data-testid={`selected-indicator-${indicator}`}
-                                            >
-                                              {indicator}
-                                              <X className="w-3 h-3 ml-1" />
-                                            </span>
-                                          ))}
-                                        </div>
-                                      )}
-
                                       {/* Available Indicators Grid */}
                                       <div className="grid grid-cols-2 gap-1">
                                         {indicatorList.map((indicator) => {
@@ -13457,6 +13440,23 @@ ${
                                   </Button>
                                 )}
                               </div>
+                              
+                              {/* Selected Indicators Display - Moved outside dropdowns */}
+                              {selectedIndicators.length > 0 && (
+                                <div className="flex flex-wrap gap-1 p-2 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/30 rounded-md">
+                                  {selectedIndicators.map((indicator) => (
+                                    <span
+                                      key={indicator}
+                                      className="inline-flex items-center px-2 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-full cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
+                                      onClick={() => toggleIndicator(indicator)}
+                                      data-testid={`selected-indicator-${indicator}`}
+                                    >
+                                      {indicator}
+                                      <X className="w-3 h-3 ml-1" />
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
 
                             {isEditingNotes ? (
