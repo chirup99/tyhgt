@@ -4328,8 +4328,9 @@ ${
       [todayKey]: updatedData
     }));
     
-    // 4️⃣ Auto-select today's date on heatmap
+    // 4️⃣ Auto-select today's date on both heatmap AND journal calendar
     setHeatmapSelectedDate(todayKey);
+    setSelectedDate(today);
     
     // 5️⃣ Close paper trading dialog and show summary
     setShowPaperTradingModal(false);
