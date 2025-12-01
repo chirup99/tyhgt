@@ -5987,39 +5987,6 @@ ${
     journalChartDataRef.current = journalChartData;
   }, [journalChartData]);
 
-  // 🔴 CONTINUOUS COUNTDOWN UPDATER: Updates countdown bar every 100ms (independent of SSE)
-  useEffect(() => {
-    if (activeTab !== 'journal' || !journalCountdownBarRef.current) {
-      return;
-    }
-
-    const updateCountdown = () => {
-      // Convert selected timeframe to seconds (from header)
-      const intervalSeconds = parseInt(selectedJournalInterval || "1") * 60;
-      
-      // Get current time aligned to the selected interval
-      const currentTime = Math.floor(Date.now() / 1000);
-      const currentCandleStartTime = Math.floor(currentTime / intervalSeconds) * intervalSeconds;
-      const nextCandleTime = currentCandleStartTime + intervalSeconds;
-      const remainingSeconds = Math.max(0, nextCandleTime - currentTime);
-      
-      // Update countdown bar width (respects header timeframe)
-      const percentRemaining = (remainingSeconds / intervalSeconds) * 100;
-      if (journalCountdownBarRef.current) {
-        journalCountdownBarRef.current.style.width = `${Math.max(0, Math.min(100, percentRemaining))}%`;
-        journalCountdownBarRef.current.title = `${remainingSeconds}s / ${intervalSeconds}s`;
-      }
-    };
-
-    // Update immediately
-    updateCountdown();
-    
-    // Then update every 100ms for smooth animation (runs every time, recalculates with current interval)
-    const interval = setInterval(updateCountdown, 100);
-    
-    return () => clearInterval(interval);
-  }, [activeTab, selectedJournalInterval]);
-
   // ❌ REMOVED: useEffect that fetched based on journalSelectedDate
   // Manual search chart is now standalone - only fetches on explicit button click
 
