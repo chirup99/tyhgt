@@ -169,7 +169,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
     return (
       <>
-        {/* Main Container - Always visible */}
+        {/* Main Container - Minimal, just cards */}
         <div
           ref={containerRef}
           className="w-full h-full flex flex-col bg-gray-900"
@@ -179,7 +179,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           onDrop={handleDrop}
           data-testid="image-upload-container"
         >
-          {/* Main Carousel Area */}
+          {/* Carousel - Full screen height */}
           <div className="flex-1 relative bg-gray-900 flex items-center justify-center overflow-visible">
             {/* Cards - Real Images or Colored Placeholders */}
             {(() => {
@@ -242,77 +242,27 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               });
             })()}
 
-            {/* Navigation arrows */}
-            <>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
-                onClick={navigateLeft}
-                data-testid="button-nav-left"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/90 hover:bg-white text-gray-800 z-20"
-                onClick={navigateRight}
-                data-testid="button-nav-right"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </>
-
-            {/* Upload overlay when no images */}
-            {images.length === 0 && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer bg-black/20 hover:bg-black/30 z-10"
-                data-testid="empty-upload-button"
-              >
-                <Plus className="w-16 h-16" />
-                <p className="text-sm">Upload images</p>
-              </button>
-            )}
+            {/* Navigation arrows - Minimal */}
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/80 hover:bg-white text-gray-800 z-20"
+              onClick={navigateLeft}
+              data-testid="button-nav-left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-white/80 hover:bg-white text-gray-800 z-20"
+              onClick={navigateRight}
+              data-testid="button-nav-right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
 
-          {/* Thumbnail Row - show for images */}
-          {images.length > 0 && (
-            <div className="h-24 bg-gray-800 px-4 py-2 overflow-x-auto flex gap-2 items-center border-t border-gray-700">
-              {images.map((img, idx) => (
-                <div
-                  key={img.id}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`flex-shrink-0 rounded-md overflow-hidden cursor-pointer transition-all duration-200 ${
-                    idx === currentIndex
-                      ? 'ring-2 ring-blue-500 scale-105'
-                      : 'hover:ring-1 hover:ring-gray-600'
-                  }`}
-                  style={{ width: '80px', height: '80px' }}
-                  data-testid={`thumbnail-${idx}`}
-                >
-                  <img
-                    src={img.url}
-                    alt={`Thumbnail ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-
-              {/* Add more slot */}
-              {!isSaved && (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-shrink-0 rounded-md border-2 border-dashed border-gray-600 hover:border-gray-500 flex items-center justify-center transition-colors"
-                  style={{ width: '80px', height: '80px' }}
-                  data-testid="button-add-thumbnail"
-                >
-                  <Plus className="w-6 h-6 text-gray-500" />
-                </button>
-              )}
-            </div>
-          )}
 
           {/* Curved Line Footer with Counter - Always show */}
           <div className="h-16 relative bg-gray-900 flex items-center justify-center overflow-hidden border-t border-gray-800">
