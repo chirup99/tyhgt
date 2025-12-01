@@ -13467,12 +13467,12 @@ ${
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2 mr-2">
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                {isDemoMode ? "Demo" : "Personal"}
+                                {isDemoMode ? "Preview" : "Personal"}
                               </span>
                               <Switch
                                 checked={isDemoMode}
                                 onCheckedChange={(checked) => {
-                                  console.log(`🔄 Demo mode toggle: ${checked ? 'ON (Demo)' : 'OFF (Personal)'}`);
+                                  console.log(`🔄 Demo mode toggle: ${checked ? 'ON (Preview)' : 'OFF (Personal)'}`);
                                   
                                   // Mark that user has manually toggled (prevents auto-switching)
                                   setHasManuallyToggledMode(true);
@@ -13490,7 +13490,7 @@ ${
                                   setTradeHistoryData([]);
                                   setTradingImages([]);
                                   
-                                  console.log(`✅ Switched to ${checked ? 'Demo' : 'Personal'} mode - heatmap will load data automatically`);
+                                  console.log(`✅ Switched to ${checked ? 'Preview' : 'Personal'} mode - heatmap will load data automatically`);
                                 }}
                                 data-testid="switch-demo-mode"
                               />
