@@ -15661,102 +15661,58 @@ ${
           </DialogContent>
         </Dialog>
 
-        {/* Paper Trading (Demo Trading) Modal - Like TradingView Practice Account */}
+        {/* Paper Trading (Demo Trading) Modal - Minimalist Design */}
         <Dialog open={showPaperTradingModal} onOpenChange={setShowPaperTradingModal}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-thin-scrollbar">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <Play className="h-5 w-5 text-white" />
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto custom-thin-scrollbar p-0">
+            {/* Compact Header */}
+            <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Paper Trading</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                    paperTradingWsStatus === 'connected' 
+                      ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`} data-testid="paper-trading-ws-status">
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${
+                      paperTradingWsStatus === 'connected' ? 'bg-green-500' : 'bg-gray-400'
+                    }`} />
+                    {paperTradingWsStatus === 'connected' ? 'Live' : 'Offline'}
+                  </span>
                 </div>
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
-                  Paper Trading Account
-                </span>
-                <span className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full">
-                  Demo Mode
-                </span>
-                {/* WebSocket Status Indicator */}
-                <span 
-                  className={`text-xs px-2 py-1 rounded-full flex items-center gap-1.5 ${
-                    paperTradingWsStatus === 'connected' 
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
-                      : paperTradingWsStatus === 'connecting'
-                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
-                  }`}
-                  data-testid="paper-trading-ws-status"
-                >
-                  <span className={`w-2 h-2 rounded-full ${
-                    paperTradingWsStatus === 'connected' 
-                      ? 'bg-green-500 animate-pulse' 
-                      : paperTradingWsStatus === 'connecting'
-                      ? 'bg-yellow-500 animate-pulse'
-                      : 'bg-gray-400'
-                  }`} />
-                  {paperTradingWsStatus === 'connected' ? 'Live' : paperTradingWsStatus === 'connecting' ? 'Connecting...' : 'Offline'}
-                </span>
-              </DialogTitle>
-            </DialogHeader>
+                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                  <span>Capital: <span className="font-medium text-gray-900 dark:text-gray-100">₹{paperTradingCapital.toLocaleString('en-IN')}</span></span>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <span className={paperTradingTotalPnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                    P&L: <span className="font-medium" data-testid="paper-trading-total-pnl">{paperTradingTotalPnl >= 0 ? '+' : ''}₹{paperTradingTotalPnl.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
 
-            <div className="space-y-6">
-              {/* Account Summary */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                  <div className="text-xs text-green-600 dark:text-green-400 font-medium">Available Capital</div>
-                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                    ₹{paperTradingCapital.toLocaleString('en-IN')}
-                  </div>
+            <div className="p-4 space-y-4">
+              {/* Compact Stats Row */}
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-500 dark:text-gray-400">Positions:</span>
+                  <span className="font-medium">{paperPositions.filter(p => p.isOpen).length}</span>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Open Positions</div>
-                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                    {paperPositions.filter(p => p.isOpen).length}
-                  </div>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                  <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Total Trades</div>
-                  <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                    {paperTradeHistory.length}
-                  </div>
-                </div>
-                {/* Total Unrealized P&L - Live Updates */}
-                <div className={`bg-gradient-to-br ${
-                  paperTradingTotalPnl >= 0 
-                    ? 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800' 
-                    : 'from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-800'
-                } rounded-lg p-4 border`}>
-                  <div className={`text-xs font-medium flex items-center gap-1 ${
-                    paperTradingTotalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {paperTradingWsStatus === 'connected' && <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />}
-                    Unrealized P&L
-                  </div>
-                  <div className={`text-2xl font-bold ${
-                    paperTradingTotalPnl >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'
-                  }`} data-testid="paper-trading-total-pnl">
-                    {paperTradingTotalPnl >= 0 ? '+' : ''}₹{paperTradingTotalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-500 dark:text-gray-400">Trades:</span>
+                  <span className="font-medium">{paperTradeHistory.length}</span>
                 </div>
               </div>
 
-              {/* Trade Entry Form */}
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                  <Target className="h-4 w-4 text-purple-500" />
-                  New Trade
-                </h4>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {/* Stock Search */}
-                  <div className="col-span-2 relative">
-                    <Label className="text-xs font-medium">
-                      Search {paperTradeType === 'MCX' ? 'MCX Commodities' : paperTradeType === 'FUTURES' ? 'Futures' : paperTradeType === 'OPTIONS' ? 'Options' : 'Stock'}
-                    </Label>
-                    <div className="relative mt-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              {/* Trade Entry - Compact Inline Form */}
+              <div className="border border-gray-200 dark:border-gray-800 rounded-md p-3">
+                <div className="flex flex-wrap items-end gap-2">
+                  {/* Symbol Search */}
+                  <div className="flex-1 min-w-[180px] relative">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                       <Input
                         type="text"
-                        placeholder={getSearchPlaceholder()}
+                        placeholder="Search instrument..."
                         value={paperTradeSymbolSearch}
                         onChange={(e) => {
                           const query = e.target.value;
@@ -15769,23 +15725,22 @@ ${
                             setPaperTradeSearchResults([]);
                           }
                         }}
-                        className="pl-10"
+                        className="h-8 pl-8 text-xs"
                         data-testid="input-paper-trade-search"
                       />
                     </div>
-                    
-                    {/* Stock Dropdown - Dynamic Search Results */}
+                    {/* Dropdown */}
                     {paperTradeSymbolSearch && !paperTradeSymbol && (
-                      <div className="absolute z-[100] left-0 right-0 mt-1 max-h-48 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg" style={{ top: '100%' }}>
+                      <div className="absolute z-[100] left-0 right-0 mt-1 max-h-40 overflow-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         {paperTradeSearchLoading ? (
                           <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
-                            <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                             Searching...
                           </div>
                         ) : paperTradeSearchResults.length === 0 ? (
-                          <div className="px-3 py-2 text-xs text-gray-500">No instruments found</div>
+                          <div className="px-3 py-2 text-xs text-gray-500">No results</div>
                         ) : (
-                          paperTradeSearchResults.map((stock, idx) => (
+                          paperTradeSearchResults.slice(0, 6).map((stock, idx) => (
                             <button
                               key={`${stock.symbol}-${stock.exchange}-${idx}`}
                               onClick={() => {
@@ -15794,35 +15749,11 @@ ${
                                 setPaperTradeSymbolSearch(stock.symbol);
                                 fetchPaperTradePrice(stock);
                               }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
+                              className="w-full text-left px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between text-xs"
                               data-testid={`select-stock-${stock.symbol}`}
                             >
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm truncate">{stock.symbol}</div>
-                                <div className="text-xs text-gray-500 truncate">{stock.name} {stock.expiry ? `(${stock.expiry})` : ''}</div>
-                              </div>
-                              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                                {stock.instrumentType && (
-                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                    stock.instrumentType === 'FUTCOM' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' :
-                                    stock.instrumentType === 'FUTSTK' || stock.instrumentType === 'FUTIDX' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-300' :
-                                    stock.instrumentType === 'OPTFUT' || stock.instrumentType === 'OPTSTK' || stock.instrumentType === 'OPTIDX' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300' :
-                                    'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                  }`}>
-                                    {stock.instrumentType === 'FUTCOM' ? 'FUT' :
-                                     stock.instrumentType === 'FUTSTK' ? 'FUT' :
-                                     stock.instrumentType === 'FUTIDX' ? 'FUT' :
-                                     stock.instrumentType === 'OPTFUT' ? 'OPT' :
-                                     stock.instrumentType === 'OPTSTK' ? 'OPT' :
-                                     stock.instrumentType === 'OPTIDX' ? 'OPT' :
-                                     stock.instrumentType === 'COMDTY' ? 'SPOT' :
-                                     stock.instrumentType || 'EQ'}
-                                  </span>
-                                )}
-                                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded">
-                                  {stock.exchange}
-                                </span>
-                              </div>
+                              <span className="font-medium truncate">{stock.symbol}</span>
+                              <span className="text-[10px] text-gray-400 ml-2">{stock.exchange}</span>
                             </button>
                           ))
                         )}
@@ -15830,190 +15761,120 @@ ${
                     )}
                   </div>
 
-                  {/* Type Selector */}
-                  <div>
-                    <Label className="text-xs font-medium">Type</Label>
-                    <Select 
-                      value={paperTradeType} 
-                      onValueChange={(v) => {
-                        const newType = v as 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX';
-                        setPaperTradeType(newType);
-                        setPaperTradeSymbol("");
-                        setPaperTradeSymbolSearch("");
-                        setPaperTradeSearchResults([]);
-                        setPaperTradeCurrentPrice(null);
-                        setSelectedPaperTradingInstrument(null);
-                      }}
-                    >
-                      <SelectTrigger className="mt-1" data-testid="select-paper-trade-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="STOCK">Stock</SelectItem>
-                        <SelectItem value="FUTURES">Futures</SelectItem>
-                        <SelectItem value="OPTIONS">Options</SelectItem>
-                        <SelectItem value="MCX">MCX</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Type */}
+                  <Select 
+                    value={paperTradeType} 
+                    onValueChange={(v) => {
+                      const newType = v as 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX';
+                      setPaperTradeType(newType);
+                      setPaperTradeSymbol("");
+                      setPaperTradeSymbolSearch("");
+                      setPaperTradeSearchResults([]);
+                      setPaperTradeCurrentPrice(null);
+                      setSelectedPaperTradingInstrument(null);
+                    }}
+                  >
+                    <SelectTrigger className="w-24 h-8 text-xs" data-testid="select-paper-trade-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STOCK">Stock</SelectItem>
+                      <SelectItem value="FUTURES">Futures</SelectItem>
+                      <SelectItem value="OPTIONS">Options</SelectItem>
+                      <SelectItem value="MCX">MCX</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   {/* Quantity */}
-                  <div>
-                    <Label className="text-xs font-medium">Quantity</Label>
-                    <Input
-                      type="number"
-                      placeholder="10"
-                      value={paperTradeQuantity}
-                      onChange={(e) => setPaperTradeQuantity(e.target.value)}
-                      className="mt-1"
-                      min="1"
-                      data-testid="input-paper-trade-qty"
-                    />
-                  </div>
-                </div>
+                  <Input
+                    type="number"
+                    placeholder="Qty"
+                    value={paperTradeQuantity}
+                    onChange={(e) => setPaperTradeQuantity(e.target.value)}
+                    className="w-20 h-8 text-xs text-center"
+                    min="1"
+                    data-testid="input-paper-trade-qty"
+                  />
 
-                {/* Price Display */}
-                {paperTradeSymbol && (
-                  <div className="mt-4 flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-                    <div>
-                      <div className="text-sm font-semibold">{paperTradeSymbol}</div>
-                      <div className="text-xs text-gray-500">Live Market Price</div>
-                    </div>
-                    <div className="text-right">
-                      {paperTradePriceLoading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                          <span className="text-sm text-gray-500">Fetching...</span>
-                        </div>
-                      ) : paperTradeCurrentPrice ? (
-                        <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                          ₹{paperTradeCurrentPrice.toFixed(2)}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-500">--</span>
-                      )}
-                    </div>
+                  {/* Price Display */}
+                  <div className="w-24 h-8 flex items-center justify-center text-xs font-medium border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800/50">
+                    {paperTradePriceLoading ? (
+                      <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    ) : paperTradeCurrentPrice ? (
+                      <span>₹{paperTradeCurrentPrice.toFixed(2)}</span>
+                    ) : (
+                      <span className="text-gray-400">--</span>
+                    )}
                   </div>
-                )}
 
-                {/* Trade Value Preview */}
-                {paperTradeSymbol && paperTradeQuantity && paperTradeCurrentPrice && (
-                  <div className="mt-3 text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-                    <span className="text-xs text-purple-600 dark:text-purple-400">
-                      Trade Value: ₹{(parseInt(paperTradeQuantity) * paperTradeCurrentPrice).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                )}
-
-                {/* Buy/Sell Buttons */}
-                <div className="mt-4 flex gap-3">
+                  {/* Buy/Sell Buttons */}
                   <Button
-                    onClick={() => {
-                      setPaperTradeAction('BUY');
-                      executePaperTrade();
-                    }}
+                    onClick={() => { setPaperTradeAction('BUY'); executePaperTrade(); }}
                     disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    size="sm"
+                    className="h-8 px-4 bg-green-600 hover:bg-green-700 text-white text-xs"
                     data-testid="button-paper-buy"
                   >
-                    <TrendingUp className="h-4 w-4 mr-2" />
                     BUY
                   </Button>
                   <Button
-                    onClick={() => {
-                      setPaperTradeAction('SELL');
-                      executePaperTrade();
-                    }}
+                    onClick={() => { setPaperTradeAction('SELL'); executePaperTrade(); }}
                     disabled={!paperTradeSymbol || !paperTradeQuantity || !paperTradeCurrentPrice}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    size="sm"
+                    className="h-8 px-4 bg-red-600 hover:bg-red-700 text-white text-xs"
                     data-testid="button-paper-sell"
                   >
-                    <TrendingDown className="h-4 w-4 mr-2" />
                     SELL
                   </Button>
                 </div>
+
+                {/* Trade Value - Inline */}
+                {paperTradeSymbol && paperTradeQuantity && paperTradeCurrentPrice && (
+                  <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-400">
+                    Value: ₹{(parseInt(paperTradeQuantity) * paperTradeCurrentPrice).toLocaleString('en-IN')}
+                  </div>
+                )}
               </div>
 
-              {/* Open Positions - Live WebSocket Updates */}
+              {/* Open Positions - Compact Table */}
               {paperPositions.filter(p => p.isOpen).length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-blue-500" />
+                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
                     Open Positions
-                    {paperTradingWsStatus === 'connected' && (
-                      <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-normal">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                        Live
-                      </span>
-                    )}
-                  </h4>
-                  <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full text-xs">
-                      <thead className="bg-gray-100 dark:bg-gray-700">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Symbol</th>
-                          <th className="px-3 py-2 text-left">Type</th>
-                          <th className="px-3 py-2 text-right">Qty</th>
-                          <th className="px-3 py-2 text-right">Entry</th>
-                          <th className="px-3 py-2 text-right">
-                            <span className="flex items-center justify-end gap-1">
-                              Current
-                              {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
-                            </span>
-                          </th>
-                          <th className="px-3 py-2 text-right">
-                            <span className="flex items-center justify-end gap-1">
-                              P&L
-                              {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
-                            </span>
-                          </th>
-                          <th className="px-3 py-2 text-right">%</th>
+                    {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
+                  </div>
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400">
+                          <th className="px-2 py-1.5 text-left font-medium">Symbol</th>
+                          <th className="px-2 py-1.5 text-center font-medium">Side</th>
+                          <th className="px-2 py-1.5 text-right font-medium">Qty</th>
+                          <th className="px-2 py-1.5 text-right font-medium">Avg</th>
+                          <th className="px-2 py-1.5 text-right font-medium">LTP</th>
+                          <th className="px-2 py-1.5 text-right font-medium">P&L</th>
                         </tr>
                       </thead>
                       <tbody>
                         {paperPositions.filter(p => p.isOpen).map(position => (
                           <tr 
                             key={position.id} 
-                            className={`border-t border-gray-200 dark:border-gray-700 transition-colors duration-300 ${
-                              paperTradingWsStatus === 'connected' ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''
-                            }`}
+                            className="border-t border-gray-100 dark:border-gray-800"
                             data-testid={`position-row-${position.symbol}`}
                           >
-                            <td className="px-3 py-2 font-medium">
-                              <span className="flex items-center gap-1.5">
-                                {position.symbol}
-                                {paperTradingWsStatus === 'connected' && (
-                                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" title="Live price streaming" />
-                                )}
+                            <td className="px-2 py-1.5 font-medium">{position.symbol}</td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`text-[10px] ${position.action === 'BUY' ? 'text-green-600' : 'text-red-600'}`}>
+                                {position.action === 'BUY' ? 'L' : 'S'}
                               </span>
                             </td>
-                            <td className="px-3 py-2">
-                              <span className="flex items-center gap-1">
-                                <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                                  position.action === 'BUY' 
-                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
-                                    : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                                }`}>
-                                  {position.action === 'BUY' ? 'LONG' : 'SHORT'}
-                                </span>
-                                <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded text-xs">
-                                  {position.type}
-                                </span>
-                              </span>
+                            <td className="px-2 py-1.5 text-right">{position.quantity}</td>
+                            <td className="px-2 py-1.5 text-right text-gray-500">{position.entryPrice.toFixed(2)}</td>
+                            <td className="px-2 py-1.5 text-right" data-testid={`position-ltp-${position.symbol}`}>
+                              {position.currentPrice.toFixed(2)}
                             </td>
-                            <td className="px-3 py-2 text-right">{position.quantity}</td>
-                            <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-400">₹{position.entryPrice.toFixed(2)}</td>
-                            <td className={`px-3 py-2 text-right font-medium ${
-                              position.currentPrice > position.entryPrice ? 'text-green-600 dark:text-green-400' : 
-                              position.currentPrice < position.entryPrice ? 'text-red-600 dark:text-red-400' : ''
-                            }`} data-testid={`position-ltp-${position.symbol}`}>
-                              ₹{position.currentPrice.toFixed(2)}
-                            </td>
-                            <td className={`px-3 py-2 text-right font-bold ${position.pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} data-testid={`position-pnl-${position.symbol}`}>
-                              {position.pnl >= 0 ? '+' : ''}₹{position.pnl.toFixed(2)}
-                            </td>
-                            <td className={`px-3 py-2 text-right font-medium ${position.pnlPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
+                            <td className={`px-2 py-1.5 text-right font-medium ${position.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid={`position-pnl-${position.symbol}`}>
+                              {position.pnl >= 0 ? '+' : ''}{position.pnl.toFixed(0)}
                             </td>
                           </tr>
                         ))}
@@ -16023,44 +15884,28 @@ ${
                 </div>
               )}
 
-              {/* Trade History */}
+              {/* Trade History - Compact */}
               {paperTradeHistory.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-purple-500" />
-                    Trade History
-                  </h4>
-                  <div className="border rounded-lg overflow-hidden max-h-48 overflow-y-auto custom-thin-scrollbar">
-                    <table className="w-full text-xs">
-                      <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Time</th>
-                          <th className="px-3 py-2 text-left">Action</th>
-                          <th className="px-3 py-2 text-left">Symbol</th>
-                          <th className="px-3 py-2 text-right">Qty</th>
-                          <th className="px-3 py-2 text-right">Price</th>
-                          <th className="px-3 py-2 text-right">P&L</th>
-                        </tr>
-                      </thead>
+                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                    History
+                  </div>
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden max-h-32 overflow-y-auto custom-thin-scrollbar">
+                    <table className="w-full text-[11px]">
                       <tbody>
-                        {[...paperTradeHistory].reverse().map(trade => (
-                          <tr key={trade.id} className="border-t border-gray-200 dark:border-gray-700">
-                            <td className="px-3 py-2 text-gray-500">{trade.time}</td>
-                            <td className="px-3 py-2">
-                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                trade.action === 'BUY' 
-                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
-                                  : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                              }`}>
+                        {[...paperTradeHistory].reverse().slice(0, 10).map(trade => (
+                          <tr key={trade.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                            <td className="px-2 py-1.5 text-gray-400 w-16">{trade.time}</td>
+                            <td className="px-2 py-1.5">
+                              <span className={trade.action === 'BUY' ? 'text-green-600' : 'text-red-600'}>
                                 {trade.action}
                               </span>
                             </td>
-                            <td className="px-3 py-2 font-medium">{trade.symbol}</td>
-                            <td className="px-3 py-2 text-right">{trade.quantity}</td>
-                            <td className="px-3 py-2 text-right">₹{trade.price.toFixed(2)}</td>
-                            <td className={`px-3 py-2 text-right font-medium ${
-                              !trade.pnl ? 'text-gray-400' : 
-                              trade.pnl.includes('+') ? 'text-green-600' : 'text-red-600'
+                            <td className="px-2 py-1.5 font-medium">{trade.symbol}</td>
+                            <td className="px-2 py-1.5 text-right text-gray-500">{trade.quantity}</td>
+                            <td className="px-2 py-1.5 text-right">₹{trade.price.toFixed(2)}</td>
+                            <td className={`px-2 py-1.5 text-right font-medium ${
+                              !trade.pnl ? 'text-gray-400' : trade.pnl.includes('+') ? 'text-green-600' : 'text-red-600'
                             }`}>
                               {trade.pnl || '-'}
                             </td>
@@ -16072,22 +15917,16 @@ ${
                 </div>
               )}
 
-              {/* Footer Actions */}
-              <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                  variant="outline"
-                  size="sm"
+              {/* Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button
                   onClick={resetPaperTradingAccount}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
                   data-testid="button-reset-paper-trading"
                 >
-                  <RotateCcw className="h-4 w-4 mr-2" />
                   Reset Account
-                </Button>
-                <div className="text-xs text-gray-500 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  Demo trades do not affect real account
-                </div>
+                </button>
+                <span className="text-[10px] text-gray-400">Demo mode - no real trades</span>
               </div>
             </div>
           </DialogContent>
