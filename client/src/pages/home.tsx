@@ -5761,8 +5761,8 @@ ${
               color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',
               lineWidth: 1,
               lineStyle: 2, // Dashed
-              axisLabelVisible: true, // Show countdown label
-              title: countdownFormatted, // Display countdown on price line
+              axisLabelVisible: false, // Hide price to avoid duplicate
+              title: `⏱️ ${countdownFormatted}`, // Show only countdown with icon
             });
           }
           
