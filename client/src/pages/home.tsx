@@ -15714,9 +15714,9 @@ ${
               <div className="border border-gray-200 dark:border-gray-800 rounded-md p-3">
                 <div className="flex flex-wrap items-end gap-2">
                   {/* Symbol Search */}
-                  <div className="flex-1 min-w-[180px] relative pointer-events-auto" id="paper-trade-search-container">
-                    <div className="relative pointer-events-auto">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+                  <div className="flex-1 min-w-[180px] relative">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                       <Input
                         type="text"
                         placeholder="Search instrument..."
@@ -15732,19 +15732,13 @@ ${
                             setPaperTradeSearchResults([]);
                           }
                         }}
-                        className="h-8 pl-8 text-xs pointer-events-auto"
+                        className="h-8 pl-8 text-xs"
                         data-testid="input-paper-trade-search"
                       />
                     </div>
-                    {/* Dropdown - Using fixed positioning to escape dialog overflow */}
+                    {/* Dropdown */}
                     {paperTradeSymbolSearch && !paperTradeSymbol && (
-                      <div className="fixed z-[9999] max-h-40 overflow-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg pointer-events-auto" 
-                        style={{
-                          top: (document.getElementById('paper-trade-search-container')?.getBoundingClientRect().bottom ?? 0) + 4,
-                          left: document.getElementById('paper-trade-search-container')?.getBoundingClientRect().left ?? 0,
-                          width: (document.getElementById('paper-trade-search-container')?.offsetWidth ?? 0)
-                        }}
-                      >
+                      <div className="absolute z-[100] left-0 right-0 mt-1 max-h-40 overflow-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         {paperTradeSearchLoading ? (
                           <div className="px-3 py-2 text-xs text-gray-500 flex items-center gap-2">
                             <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
@@ -15841,12 +15835,9 @@ ${
                   </Button>
 
                   {/* SL Button with Dropdown */}
-                  <div className="relative ml-auto" onMouseDown={(e) => e.stopPropagation()}>
+                  <div className="relative ml-auto">
                     <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown);
-                      }}
+                      onClick={() => setShowPaperTradeSLDropdown(!showPaperTradeSLDropdown)}
                       size="sm"
                       variant="outline"
                       className="h-8 px-3 text-xs"
@@ -15855,11 +15846,11 @@ ${
                       SL
                     </Button>
                     {showPaperTradeSLDropdown && (
-                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
+                      <div className="absolute z-50 top-8 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
                         <div className="p-3 space-y-2 min-w-[220px]">
                           <div>
                             <label className="text-[10px] text-gray-500 uppercase">Type</label>
-                            <Select value={paperTradeSLType} onValueChange={(v: any) => { e.stopPropagation?.(); setPaperTradeSLType(v); }}>
+                            <Select value={paperTradeSLType} onValueChange={(v: any) => setPaperTradeSLType(v)}>
                               <SelectTrigger className="h-7 text-xs mt-1">
                                 <SelectValue />
                               </SelectTrigger>
@@ -15876,7 +15867,7 @@ ${
                           {(paperTradeSLType === 'high' || paperTradeSLType === 'low') && (
                             <div>
                               <label className="text-[10px] text-gray-500 uppercase">Timeframe</label>
-                              <Select value={paperTradeSLTimeframe} onValueChange={(v) => { setPaperTradeSLTimeframe(v); }}>
+                              <Select value={paperTradeSLTimeframe} onValueChange={(v) => setPaperTradeSLTimeframe(v)}>
                                 <SelectTrigger className="h-7 text-xs mt-1">
                                   <SelectValue />
                                 </SelectTrigger>
@@ -15903,7 +15894,7 @@ ${
                                 className="h-7 text-xs flex-1"
                                 data-testid="input-paper-sl-duration"
                               />
-                              <Select value={paperTradeSLDurationUnit} onValueChange={(v) => { setPaperTradeSLDurationUnit(v); }}>
+                              <Select value={paperTradeSLDurationUnit} onValueChange={(v) => setPaperTradeSLDurationUnit(v)}>
                                 <SelectTrigger className="h-7 text-xs w-16">
                                   <SelectValue />
                                 </SelectTrigger>
@@ -15927,9 +15918,9 @@ ${
                           )}
 
                           <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onClick={() => {
                               setShowPaperTradeSLDropdown(false);
+                              // SL will be applied to next trade
                             }}
                             size="sm"
                             className="w-full h-7 text-xs bg-gray-600 hover:bg-gray-700 text-white"
