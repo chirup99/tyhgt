@@ -273,19 +273,16 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             />
           </svg>
 
-          {/* Counter Badge - Slides with drag like audio player seek line */}
+          {/* Counter Badge - Tiny and minimalistic */}
           <div 
-            className={`relative z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-2xl font-bold text-sm border-2 border-blue-400 ${
+            className={`relative z-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-semibold ${
               isDragging ? '' : 'transition-transform duration-400 ease-out'
             }`}
             style={{
               transform: `translateX(${(dragOffset * 0.5)}px)`
             }}
           >
-            <div className="flex flex-col items-center justify-center">
-              <span className="text-xs font-semibold opacity-90">Pos</span>
-              <span className="text-sm font-bold">{currentIndex + 1}/{cardsToShow.length}</span>
-            </div>
+            {currentIndex + 1}/{cardsToShow.length}
           </div>
         </div>
 
