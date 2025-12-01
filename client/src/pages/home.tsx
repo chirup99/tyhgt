@@ -5724,6 +5724,10 @@ ${
           
           // Get the last candle from the chart (use ref to avoid triggering re-render)
           const chartData = journalChartDataRef.current;
+          if (!chartData || chartData.length === 0) {
+            console.warn('⚠️ Chart data ref is empty, skipping update');
+            return;
+          }
           const lastChartCandle = chartData[chartData.length - 1];
           if (!lastChartCandle) return;
           
