@@ -8607,6 +8607,37 @@ ${
     return parts.length > 0 ? parts.join(' ') : '0s';
   };
 
+  // Helper to normalize duration string for display (handles old "210m 49s" format -> "3h 30m 49s")
+  const normalizeDurationForDisplay = (durationStr: string): string => {
+    if (!durationStr || durationStr === '-') return '-';
+    
+    // Check if already in new format (contains 'd', 'h', 'm', 's')
+    if (/\d+[dhms]/.test(durationStr)) {
+      return durationStr;
+    }
+    
+    // Parse old format: "210m 49s" -> convert to milliseconds and reformat
+    const minuteMatch = durationStr.match(/(\d+)m/);
+    const secondMatch = durationStr.match(/(\d+)s/);
+    
+    const minutes = minuteMatch ? parseInt(minuteMatch[1]) : 0;
+    const seconds = secondMatch ? parseInt(secondMatch[1]) : 0;
+    
+    const totalSeconds = minutes * 60 + seconds;
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    
+    const parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (mins > 0) parts.push(`${mins}m`);
+    if (secs > 0) parts.push(`${secs}s`);
+    
+    return parts.length > 0 ? parts.join(' ') : '-';
+  };
+
   // Import handling functions
   const calculateSimplePnL = (trades: any[]) => {
     const processedTrades = [...trades];
@@ -13243,7 +13274,7 @@ ${
                                           }${percentage.toFixed(2)}%`;
                                         })()}
                                       </td>
-                                      <td className="p-1">{trade.duration}</td>
+                                      <td className="p-1">{normalizeDurationForDisplay(trade.duration)}</td>
                                     </tr>
                                     ))
                                   )}
@@ -13403,7 +13434,7 @@ ${
                                         }${percentage.toFixed(2)}%`;
                                       })()}
                                     </td>
-                                    <td className="px-2 py-2 text-violet-600 dark:text-violet-300 font-medium">{trade.duration}</td>
+                                    <td className="px-2 py-2 text-violet-600 dark:text-violet-300 font-medium">{normalizeDurationForDisplay(trade.duration)}</td>
                                   </tr>
                                 ))
                               )}
