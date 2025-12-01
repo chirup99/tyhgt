@@ -3616,21 +3616,6 @@ ${
               if (Object.keys(formats).length > 0) {
                 console.log("📦 Formats now available in dropdown:", Object.keys(formats).join(", "));
               }
-              
-              // Auto-detect format if data is already present (fix for first-visit timing issue)
-              if (importData.trim() && Object.keys(formats).length > 0) {
-                const firstLine = importData.trim().split('\n')[0];
-                for (const [label, format] of Object.entries(formats)) {
-                  if (format.sampleLine && firstLine === format.sampleLine) {
-                    setActiveFormat(format);
-                    setDetectedFormatLabel(label);
-                    console.log("🎯 ⚡ Auto-detected format on dialog open:", label);
-                    return;
-                  }
-                }
-                setActiveFormat(null);
-                setDetectedFormatLabel(null);
-              }
             }
           }
         } catch (err) {
@@ -3640,7 +3625,7 @@ ${
         }
       })();
     }
-  }, [showImportModal, currentUser?.userId, importData]);
+  }, [showImportModal, currentUser?.userId]);
 
   // Auto-detect format when pasting data
   useEffect(() => {
