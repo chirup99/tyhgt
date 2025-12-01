@@ -228,7 +228,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                     opacity: opacity,
                   }}
                 >
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600" style={{ width: '300px', height: '220px' }}>
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg bg-white dark:bg-black border border-gray-300 dark:border-gray-700" style={{ width: '300px', height: '220px' }}>
                     {(card as any).image ? (
                       <img
                         src={(card as any).image.url}
@@ -237,8 +237,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                         data-testid={`img-card-${idx}`}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4 bg-gray-100 dark:bg-gray-600">
-                        <span className="text-gray-800 dark:text-gray-100 text-xs font-medium text-center">{(card as any).label}</span>
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4 bg-gray-100 dark:bg-gray-900">
+                        <span className="text-gray-800 dark:text-white text-xs font-medium text-center">{(card as any).label}</span>
                         <span className="text-gray-500 dark:text-gray-300 text-xs opacity-75">Paste or upload image</span>
                       </div>
                     )}
