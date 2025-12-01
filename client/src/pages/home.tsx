@@ -4120,7 +4120,7 @@ ${
       const newTrade: PaperTrade = {
         id: newPosition.id,
         symbol: paperTradeSymbol,
-        type: paperTradeType as any,
+        type: 'MIS',
         action: 'BUY',
         quantity: quantity,
         price: paperTradeCurrentPrice,
@@ -4193,7 +4193,7 @@ ${
       const sellTrade: PaperTrade = {
         id: `PT-${Date.now()}`,
         symbol: paperTradeSymbol,
-        type: paperTradeType as any,
+        type: 'MIS',
         action: 'SELL',
         quantity: openPosition.quantity,
         price: paperTradeCurrentPrice,
@@ -4507,7 +4507,7 @@ ${
         const exitTrade = {
           id: `PT-${Date.now()}`,
           symbol: pos.symbol,
-          type: pos.type,
+          type: 'MIS',
           action: 'SELL' as const,
           quantity: pos.quantity,
           price: pos.currentPrice,

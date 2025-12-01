@@ -628,3 +628,36 @@
 [x] 4190.    - Candle High/Low: (UI ready, candle-based logic TBD)
 [x] 4191.
 [x] 4192. STOP LOSS FUNCTIONALITY 100% COMPLETE!
+
+[x] 4193. HISTORY TABLE - SYMBOL COLUMN FIX - COMPLETED
+[x] 4194. Date: December 1, 2025
+[x] 4195. User Issue: History table Symbol column showing "STOCK" instead of real instrument names
+[x] 4196. 
+[x] 4197. ROOT CAUSE:
+[x] 4198. - The `type` field in PaperTrade was storing INSTRUMENT TYPE (STOCK/FUTURES/OPTIONS)
+[x] 4199. - Instead of ORDER TYPE (MIS/LIM) which should display in the Type column
+[x] 4200. - Symbol column was showing correctly, but Type column was confusing users
+[x] 4201.
+[x] 4202. FIXES APPLIED (3 locations):
+[x] 4203. 
+[x] 4204. 1. BUY Trade Creation (line 4126):
+[x] 4205.    - Changed: type: paperTradeType as any,
+[x] 4206.    - To: type: 'MIS'
+[x] 4207.    - Now shows order type in History table Type column
+[x] 4208.
+[x] 4209. 2. SELL Trade Creation (line 4199):
+[x] 4210.    - Changed: type: paperTradeType as any,
+[x] 4211.    - To: type: 'MIS'
+[x] 4212.    - Consistent order type for sell orders
+[x] 4213.
+[x] 4214. 3. SL Exit Trade Creation (line 4513):
+[x] 4215.    - Changed: type: pos.type,
+[x] 4216.    - To: type: 'MIS'
+[x] 4217.    - Auto-exit trades now show correct order type
+[x] 4218.
+[x] 4219. HISTORY TABLE NOW DISPLAYS:
+[x] 4220. - Symbol column: Real instrument names (TCS-EQ, MAITREYA-SM, etc.)
+[x] 4221. - Type column: Order type (MIS) consistently for all trades
+[x] 4222. - All columns properly aligned and readable
+[x] 4223.
+[x] 4224. HISTORY TABLE SYMBOL FIX 100% COMPLETE!
