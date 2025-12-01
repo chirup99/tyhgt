@@ -540,3 +540,28 @@
 [x] 4105. Before: SL button on left, always enabled
 [x] 4106. After: SL button on right corner, disabled until instrument selected + qty + price ready
 [x] 4107. SL BUTTON RELOCATION AND DISABLE FIX 100% COMPLETE!
+
+[x] 4108. PAPER TRADING - EXIT ALL POSITIONS BUTTON - COMPLETED
+[x] 4109. Date: December 1, 2025
+[x] 4110. User Request: Add "Exit All" button to Open Positions section (right corner)
+[x] 4111. Implementation:
+[x] 4112.   1. Created exitAllPaperPositions() function (lines 4191-4262)
+[x] 4113.      - Loops through all open positions
+[x] 4114.      - Calculates P&L for each position using current prices
+[x] 4115.      - Closes all positions (sets isOpen: false)
+[x] 4116.      - Creates SELL entries in trade history for each position
+[x] 4117.      - Returns capital (sale values) to account balance
+[x] 4118.      - Shows toast with total P&L summary
+[x] 4119.   2. Added "Exit All" button in Open Positions header (lines 16031-16038)
+[x] 4120.      - Positioned on right corner using justify-between
+[x] 4121.      - Red styled button (text-red-500, border-red-300)
+[x] 4122.      - Compact size (h-5 px-2 text-[10px])
+[x] 4123.      - data-testid="button-exit-all-positions"
+[x] 4124. User Workflow:
+[x] 4125.   1. Open Paper Trading modal
+[x] 4126.   2. Execute some BUY trades (positions appear in Open Positions table)
+[x] 4127.   3. Click "Exit All" button (right corner of Open Positions header)
+[x] 4128.   4. All positions closed with current prices
+[x] 4129.   5. SELL entries added to History section
+[x] 4130.   6. Toast shows: "All Positions Closed - Profit/Loss | Exited X positions | Total P&L: ₹XXX"
+[x] 4131. EXIT ALL POSITIONS FEATURE 100% COMPLETE!

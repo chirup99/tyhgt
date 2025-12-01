@@ -4185,6 +4185,80 @@ ${
     });
   };
   
+  // Exit all open positions at once
+  const exitAllPaperPositions = () => {
+    const openPositions = paperPositions.filter(p => p.isOpen);
+    
+    if (openPositions.length === 0) {
+      toast({
+        title: "No Positions",
+        description: "No open positions to exit",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    let totalPnl = 0;
+    let newCapital = paperTradingCapital;
+    const newHistoryEntries: PaperTrade[] = [];
+    const exitTime = new Date().toLocaleTimeString();
+    
+    // Close all positions and calculate total P&L
+    const updatedPositions = paperPositions.map(p => {
+      if (!p.isOpen) return p;
+      
+      // Calculate P&L for this position
+      const pnl = (p.currentPrice - p.entryPrice) * p.quantity;
+      const pnlPercent = ((p.currentPrice - p.entryPrice) / p.entryPrice) * 100;
+      totalPnl += pnl;
+      
+      // Add sale value back to capital
+      const saleValue = p.quantity * p.currentPrice;
+      newCapital += saleValue;
+      
+      // Create sell trade entry for history
+      const sellTrade: PaperTrade = {
+        id: `PT-EXIT-${Date.now()}-${p.id}`,
+        symbol: p.symbol,
+        type: p.type,
+        action: 'SELL',
+        quantity: p.quantity,
+        price: p.currentPrice,
+        time: exitTime,
+        pnl: `${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`,
+        closedAt: exitTime
+      };
+      newHistoryEntries.push(sellTrade);
+      
+      // Return closed position
+      return {
+        ...p,
+        isOpen: false,
+        pnl,
+        pnlPercent
+      };
+    });
+    
+    // Update positions
+    setPaperPositions(updatedPositions);
+    localStorage.setItem("paperPositions", JSON.stringify(updatedPositions));
+    
+    // Update capital
+    setPaperTradingCapital(newCapital);
+    localStorage.setItem("paperTradingCapital", String(newCapital));
+    
+    // Add all sell trades to history
+    const updatedHistory = [...paperTradeHistory, ...newHistoryEntries];
+    setPaperTradeHistory(updatedHistory);
+    localStorage.setItem("paperTradeHistory", JSON.stringify(updatedHistory));
+    
+    // Show toast with summary
+    toast({
+      title: totalPnl >= 0 ? "All Positions Closed - Profit!" : "All Positions Closed - Loss",
+      description: `Exited ${openPositions.length} position${openPositions.length > 1 ? 's' : ''} | Total P&L: ${totalPnl >= 0 ? '+' : ''}₹${totalPnl.toFixed(2)}`
+    });
+  };
+  
   // Persist paper trading positions to localStorage when they change
   useEffect(() => {
     localStorage.setItem("paperPositions", JSON.stringify(paperPositions));
@@ -15946,9 +16020,20 @@ ${
               {/* Open Positions - Compact Table */}
               {paperPositions.filter(p => p.isOpen).length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
-                    Open Positions
-                    {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
+                  <div className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      Open Positions
+                      {paperTradingWsStatus === 'connected' && <span className="w-1 h-1 bg-green-500 rounded-full" />}
+                    </div>
+                    <Button
+                      onClick={exitAllPaperPositions}
+                      size="sm"
+                      variant="outline"
+                      className="h-5 px-2 text-[10px] text-red-500 border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-red-700 dark:hover:bg-red-900/20"
+                      data-testid="button-exit-all-positions"
+                    >
+                      Exit All
+                    </Button>
                   </div>
                   <div className="border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
                     <table className="w-full text-[11px]">
