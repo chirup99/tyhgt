@@ -163,14 +163,20 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
       setDragOffset(0);
     };
 
-    // Determine cards to show
-    const cardsToShow = images.length > 0 ? images : [
-      { id: 'card-1', color: 'bg-blue-500', name: 'Upload Image', icon: Image },
-      { id: 'card-2', color: 'bg-purple-500', name: 'Upload Articles Images', icon: BookOpen },
-      { id: 'card-3', color: 'bg-pink-500', name: 'Technical Analysis', icon: TrendingUp },
-      { id: 'card-4', color: 'bg-green-500', name: 'Fundamentals', icon: DollarSign },
-      { id: 'card-5', color: 'bg-orange-500', name: 'Strategy Image', icon: Lightbulb },
+    // Define card slots with labels
+    const cardSlots = [
+      { id: 'card-1', label: 'Upload Image' },
+      { id: 'card-2', label: 'Upload Articles Images' },
+      { id: 'card-3', label: 'Technical Analysis' },
+      { id: 'card-4', label: 'Fundamentals' },
+      { id: 'card-5', label: 'Strategy Image' },
     ];
+
+    // Map uploaded images to card slots, keep empty slots for remaining
+    const cardsToShow = cardSlots.map((slot, idx) => ({
+      ...slot,
+      image: images[idx] || null,
+    }));
 
     return (
       <div className="w-full h-full flex flex-col bg-transparent relative overflow-hidden">
@@ -222,18 +228,18 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                     opacity: opacity,
                   }}
                 >
-                  <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ width: '300px', height: '220px' }}>
-                    {images.length > 0 && 'url' in card ? (
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700" style={{ width: '300px', height: '220px' }}>
+                    {(card as any).image ? (
                       <img
-                        src={card.url}
-                        alt={card.name}
+                        src={(card as any).image.url}
+                        alt={(card as any).label}
                         className="w-full h-full object-cover"
                         data-testid={`img-card-${idx}`}
                       />
                     ) : (
-                      <div className={`w-full h-full ${(card as any).color} flex flex-col items-center justify-center gap-3`}>
-                        {(card as any).icon && createElement((card as any).icon, { className: "w-10 h-10 text-white opacity-90" })}
-                        <span className="text-white text-xs font-medium opacity-80 text-center px-2">{(card as any).name}</span>
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
+                        <span className="text-gray-500 dark:text-gray-400 text-xs font-medium text-center">{(card as any).label}</span>
+                        <span className="text-gray-400 dark:text-gray-500 text-xs opacity-60">Click to upload</span>
                       </div>
                     )}
                   </div>
