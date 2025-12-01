@@ -5613,10 +5613,9 @@ ${
     }
   }, [journalChartData]);
 
-  // 🔴 TRIGGER: When user opens journal tab first time, ensure SSE starts
+  // 🔴 DISCONNECT: When user leaves journal tab, close SSE
   useEffect(() => {
     if (activeTab !== 'journal') {
-      // Disconnect SSE when leaving journal tab
       if (journalEventSourceRef.current) {
         journalEventSourceRef.current.close();
         journalEventSourceRef.current = null;
@@ -5626,25 +5625,11 @@ ${
       }
       return;
     }
-    
-    // ✅ FIX: Ensure chart data is loaded before SSE connection
-    if (!journalChartData || journalChartData.length === 0) {
-      console.log('📡 [SSE] Waiting for historical chart data to load...');
-      return;
-    }
-    
-    console.log('✅ [SSE TRIGGER] Journal tab active with chart data loaded - starting SSE connection');
-  }, [activeTab]); // Only trigger on tab change
+  }, [activeTab]);
 
-  // Live streaming SSE connection for Journal Chart
+  // ✅ LIVE STREAMING: SSE connection starts immediately on journal tab open (no delay)
   useEffect(() => {
     if (activeTab !== 'journal') {
-      return;
-    }
-
-    // Only start SSE if we have historical chart data loaded
-    if (!journalChartData || journalChartData.length === 0) {
-      console.log('📡 [SSE] Waiting for historical chart data to load...');
       return;
     }
 
@@ -5684,8 +5669,9 @@ ${
       journalEventSourceRef.current = null;
     }
 
-    // Get the last candle from chart data for initial OHLC values
-    const lastCandle = journalChartData[journalChartData.length - 1];
+    // 🔴 FIX: Get last candle from chart data for initial OHLC values (if available)
+    // Don't block SSE connection if chart data isn't ready yet - SSE starts independently
+    const lastCandle = journalChartData && journalChartData.length > 0 ? journalChartData[journalChartData.length - 1] : undefined;
     
     // 🔶 Convert selected timeframe to seconds (selectedJournalInterval is in minutes)
     const intervalSeconds = parseInt(selectedJournalInterval || "1") * 60;
