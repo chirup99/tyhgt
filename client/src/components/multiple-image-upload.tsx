@@ -184,7 +184,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         {/* Main Carousel Area - Full height, no wrapper */}
         <div 
           ref={carouselRef}
-          className="flex-1 relative bg-transparent flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
+          className={`flex-1 relative bg-transparent flex items-center justify-center select-none cursor-grab active:cursor-grabbing transition-opacity ${selectedImage ? 'opacity-0 pointer-events-none' : ''}`}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
