@@ -11626,9 +11626,9 @@ ${
                                 >
                                   <PopoverTrigger asChild>
                                     <Button
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      className="bg-gray-800 text-white border-gray-600 hover:bg-gray-700 h-8 px-2 md:px-3 text-xs md:text-sm"
+                                      className="h-8 px-2 md:px-3 text-xs md:text-sm text-slate-700 dark:text-slate-300"
                                       data-testid="button-stock-search"
                                     >
                                       <Search className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
@@ -11666,7 +11666,7 @@ ${
                                             setStockSearchQuery('');
                                             setSearchedInstruments([]);
                                           }}
-                                          className="bg-gray-800 text-white border border-gray-600 rounded px-2 text-xs"
+                                          className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded px-2 text-xs"
                                           data-testid="select-journal-type"
                                         >
                                           <option value="STOCK">Stock</option>
@@ -11893,7 +11893,7 @@ ${
                                 <div className="flex items-center gap-1">
                                   {/* Heatmap Symbol Display - ONLY in Heatmap Mode */}
                                   {journalChartMode === 'heatmap' && (
-                                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-200 px-2 py-1 rounded bg-gray-100 dark:bg-gray-700/50">
+                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800/50">
                                       {
                                         (() => {
                                           const sym = heatmapSelectedSymbol.replace('NSE:', '').replace('-INDEX', '').replace('-EQ', '');
@@ -11913,9 +11913,9 @@ ${
                                   {/* Next Symbol Button - ONLY in Heatmap Mode */}
                                   {journalChartMode === 'heatmap' && tradedSymbols.length > 1 && (
                                     <Button
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      className="h-8 px-2 text-xs"
+                                      className="h-8 px-2 text-xs text-slate-700 dark:text-slate-300"
                                       onClick={() => {
                                         console.log(`⏭️  NEXT CLICKED | Mode: HEATMAP | Index: ${currentSymbolIndex}/${tradedSymbols.length}`);
                                         
@@ -11960,23 +11960,23 @@ ${
                                   <Popover open={showJournalTimeframeDropdown} onOpenChange={setShowJournalTimeframeDropdown}>
                                     <PopoverTrigger asChild>
                                       <Button
-                                        variant="outline"
-                                        className="h-8 px-2 text-xs min-w-[60px] justify-between"
+                                        variant="ghost"
+                                        className="h-8 px-2 text-xs min-w-[60px] justify-between text-slate-700 dark:text-slate-300"
                                         data-testid="button-journal-timeframe-dropdown"
                                       >
                                         <span>{getJournalTimeframeLabel(journalChartTimeframe)}</span>
                                         <ChevronDown className="w-3 h-3 ml-1" />
                                       </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-56 p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
+                                    <PopoverContent className="w-56 p-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" align="start">
                                       <div className="grid gap-1">
                                         {journalTimeframeOptions.map((tf) => (
                                           <button 
                                             key={tf.value}
                                             className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
                                               journalChartTimeframe === tf.value 
-                                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium' 
-                                                : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-medium' 
+                                                : 'text-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                             }`}
                                             onClick={() => {
                                               setJournalChartTimeframe(tf.value);
@@ -11997,23 +11997,23 @@ ${
                                   <Popover open={showHeatmapTimeframeDropdown} onOpenChange={setShowHeatmapTimeframeDropdown}>
                                     <PopoverTrigger asChild>
                                       <Button
-                                        variant="outline"
-                                        className="h-8 px-2 text-xs min-w-[60px] justify-between"
+                                        variant="ghost"
+                                        className="h-8 px-2 text-xs min-w-[60px] justify-between text-slate-700 dark:text-slate-300"
                                         data-testid="button-heatmap-timeframe-dropdown"
                                       >
                                         <span>{getJournalTimeframeLabel(heatmapChartTimeframe)}</span>
                                         <ChevronDown className="w-3 h-3 ml-1" />
                                       </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-56 p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" align="start">
+                                    <PopoverContent className="w-56 p-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" align="start">
                                       <div className="grid gap-1">
                                         {journalTimeframeOptions.map((tf) => (
                                           <button 
                                             key={tf.value}
                                             className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
                                               heatmapChartTimeframe === tf.value 
-                                                ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium' 
-                                                : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-medium' 
+                                                : 'text-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                             }`}
                                             onClick={() => {
                                               setHeatmapChartTimeframe(tf.value);
