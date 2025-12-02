@@ -337,7 +337,10 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         {selectedCardIndex !== null && (
           <div 
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300 flex flex-col items-center justify-center"
-            onClick={() => setSelectedCardIndex(null)}
+            onClick={() => {
+              setSelectedCardIndex(null);
+              setSelectedImage(null);
+            }}
             onTouchStart={(e) => {
               touchStartX.current = e.touches[0].clientX;
               touchStartY.current = 0;
@@ -372,7 +375,10 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             >
               {/* Close Button */}
               <button
-                onClick={() => setSelectedCardIndex(null)}
+                onClick={() => {
+                  setSelectedCardIndex(null);
+                  setSelectedImage(null);
+                }}
                 className="absolute top-4 right-4 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 data-testid="button-close-modal"
               >
