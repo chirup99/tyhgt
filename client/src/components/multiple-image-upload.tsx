@@ -238,7 +238,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                       <img
                         src={(card as any).image.url}
                         alt={(card as any).label}
-                        className="w-full h-full object-contain bg-gray-50 dark:bg-gray-800"
+                        className="w-full h-full object-contain bg-gray-50 dark:bg-gray-800 pointer-events-none"
                         data-testid={`img-card-${idx}`}
                       />
                     ) : (
