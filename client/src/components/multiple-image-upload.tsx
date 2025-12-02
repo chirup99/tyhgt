@@ -182,7 +182,25 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     }));
 
     return (
-      <div className="w-full h-full flex flex-col bg-transparent relative overflow-hidden">
+      <div 
+        className="w-full h-full flex flex-col bg-transparent relative overflow-hidden"
+        onPaste={(e) => {
+          e.preventDefault();
+          const items = e.clipboardData?.items;
+          if (items) {
+            const files: File[] = [];
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
+                const file = items[i].getAsFile();
+                if (file) files.push(file);
+              }
+            }
+            if (files.length > 0) {
+              processFiles(files);
+            }
+          }
+        }}
+      >
         {/* Main Carousel Area - Full height, no wrapper */}
         <div 
           ref={carouselRef}
@@ -234,7 +252,13 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                   <div 
                     className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700 cursor-pointer transition-transform hover:scale-105" 
                     style={{ width: '300px', height: '220px' }}
-                    onClick={() => (card as any).image && setSelectedImage((card as any).image)}
+                    onClick={() => {
+                      if ((card as any).image) {
+                        setSelectedImage((card as any).image);
+                      } else {
+                        fileInputRef.current?.click();
+                      }
+                    }}
                   >
                     {(card as any).image ? (
                       <img
@@ -245,6 +269,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4 bg-gray-200 dark:bg-gray-900">
+                        <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                         <span className="text-gray-800 dark:text-white text-xs font-medium text-center">{(card as any).label}</span>
                         <span className="text-gray-600 dark:text-gray-300 text-xs opacity-75">Paste or upload image</span>
                       </div>
