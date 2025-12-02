@@ -3483,15 +3483,18 @@ ${
       price: ""
     }
   });
-  const [savedFormatLabel, setSavedFormatLabel] = useState("");
-  const [selectedBroker, setSelectedBroker] = useState("zerodha");
-  const [availableBrokers, setAvailableBrokers] = useState<string[]>(["zerodha", "groww", "angel-one", "fyers", "custom"]);
-  const [customBrokerName, setCustomBrokerName] = useState("");
+  const [brokerSearchInput, setBrokerSearchInput] = useState("");
+  const [showBrokerSuggestions, setShowBrokerSuggestions] = useState(false);
+  const [availableBrokers, setAvailableBrokers] = useState<string[]>(["Zerodha", "Groww", "Angel One", "Fyers"]);
   const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>({});
   const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
   const [detectedFormatLabel, setDetectedFormatLabel] = useState<string | null>(null);
   const [formatsLoading, setFormatsLoading] = useState(false);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const filteredBrokers = brokerSearchInput.trim() 
+    ? availableBrokers.filter(b => b.toLowerCase().includes(brokerSearchInput.toLowerCase()))
+    : [];
   // Helper function to save formats to Universal Broker Library
   const saveFormatToUniversalLibrary = async (formatLabel: string, format: FormatData, brokerName: string) => {
     if (!currentUser?.userId) {
@@ -15887,68 +15890,62 @@ ${
                           Build Mode - Select text, click +, X to delete
                         </div>
                         <div className="flex items-center gap-2">
-                          <Input
-                            placeholder="Format label"
-                            value={savedFormatLabel}
-                            onChange={(e) => setSavedFormatLabel(e.target.value)}
-                            className="h-8 w-32 text-xs"
-                            data-testid="input-format-label"
-                          />
-                          <select
-                            value={selectedBroker}
-                            onChange={(e) => {
-                              if (e.target.value === "custom") {
-                                setCustomBrokerName("");
-                              } else {
-                                setSelectedBroker(e.target.value);
-                              }
-                            }}
-                            className="h-7 text-xs px-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded"
-                            data-testid="select-broker"
-                          >
-                            {availableBrokers.map(b => (
-                              <option key={b} value={b}>{b === "angel-one" ? "Angel One" : b.charAt(0).toUpperCase() + b.slice(1)}</option>
-                            ))}
-                          </select>
-                          {selectedBroker === "custom" && (
-                            <input
-                              type="text"
-                              placeholder="Custom broker name"
-                              value={customBrokerName}
-                              onChange={(e) => setCustomBrokerName(e.target.value)}
-                              className="h-7 text-xs px-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded"
-                              data-testid="input-custom-broker"
+                          <div className="relative">
+                            <Input
+                              placeholder="Type broker name (e.g., Zerodha, Angel One...)"
+                              value={brokerSearchInput}
+                              onChange={(e) => {
+                                setBrokerSearchInput(e.target.value);
+                                setShowBrokerSuggestions(true);
+                              }}
+                              onFocus={() => setShowBrokerSuggestions(true)}
+                              onBlur={() => setTimeout(() => setShowBrokerSuggestions(false), 200)}
+                              className="h-8 w-56 text-xs"
+                              data-testid="input-broker-search"
                             />
-                          )}
+                            {showBrokerSuggestions && filteredBrokers.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-md z-50">
+                                {filteredBrokers.map((broker) => (
+                                  <div
+                                    key={broker}
+                                    onClick={() => {
+                                      setBrokerSearchInput(broker);
+                                      setShowBrokerSuggestions(false);
+                                    }}
+                                    className="px-3 py-1.5 text-xs cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                    data-testid={`broker-suggestion-${broker}`}
+                                  >
+                                    {broker}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={!currentUser?.userId}
-                            title={!currentUser?.userId ? "Log in to save formats" : ""}
+                            disabled={!currentUser?.userId || !brokerSearchInput.trim()}
+                            title={!currentUser?.userId ? "Log in to save formats" : brokerSearchInput.trim() ? "" : "Enter broker name"}
                             onClick={async () => {
-                              if (!savedFormatLabel.trim()) {
-                                alert("Please enter a label for this format");
-                                return;
-                              }
-                              const brokerName = selectedBroker === "custom" ? customBrokerName : selectedBroker;
-                              if (!brokerName.trim()) {
+                              if (!brokerSearchInput.trim()) {
                                 alert("Please enter a broker name");
                                 return;
                               }
+                              const brokerName = brokerSearchInput.trim();
+                              const formatLabel = `${brokerName} Format`;
                               // Save to universal library
-                              const saved = await saveFormatToUniversalLibrary(savedFormatLabel, buildModeData, brokerName);
+                              const saved = await saveFormatToUniversalLibrary(formatLabel, buildModeData, brokerName);
                               if (saved) {
                                 setActiveFormat(buildModeData);
-                                setSavedFormatLabel("");
-                                setCustomBrokerName("");
-                                console.log("✅ Format saved to library:", savedFormatLabel, buildModeData.positions);
+                                setBrokerSearchInput("");
+                                console.log("✅ Format saved to library for:", brokerName, buildModeData.positions);
                               }
                             }}
                             data-testid="button-save-format"
-                            className="h-7 text-xs px-2"
+                            className="h-8 text-xs px-2"
                           >
                             <Save className="w-3 h-3 mr-1" />
-                            Save to Library
+                            Save
                           </Button>
                           <Button
                             variant="ghost"
