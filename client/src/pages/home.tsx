@@ -3764,7 +3764,7 @@ ${
     }
   }, [showImportModal, currentUser?.userId]);
 
-  // Auto-detect format from universal library when pasting data
+  // Auto-apply saved formats to live preview when data is pasted
   useEffect(() => {
     if (!importData.trim()) {
       setActiveFormat(null);
@@ -3772,6 +3772,19 @@ ${
       return;
     }
 
+    // PRIORITY 1: Always try saved formats first
+    if (Object.keys(savedFormats).length > 0) {
+      // Use the first saved format automatically for live preview
+      const firstFormatLabel = Object.keys(savedFormats)[0];
+      const firstFormat = savedFormats[firstFormatLabel];
+      
+      console.log(`📲 Auto-applying saved format: "${firstFormatLabel}" for live preview`);
+      setActiveFormat(firstFormat);
+      setDetectedFormatLabel(firstFormatLabel);
+      return;
+    }
+
+    // PRIORITY 2: Fall back to universal library detection if no saved formats
     const autoDetect = async () => {
       try {
         const firstLine = importData.trim().split('\n')[0];
@@ -3784,7 +3797,7 @@ ${
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.format) {
-            console.log(`🎯 Auto-detected format from ${data.brokerName}: ${data.format.formatName} (${(data.confidence * 100).toFixed(0)}% confidence)`);
+            console.log(`🎯 Auto-detected format from universal library - ${data.brokerName}: ${data.format.formatName} (${(data.confidence * 100).toFixed(0)}% confidence)`);
             setActiveFormat(data.format);
             setDetectedFormatLabel(`${data.brokerName}/${data.format.formatName}`);
           } else {
@@ -3800,7 +3813,7 @@ ${
     };
 
     autoDetect();
-  }, [importData, showImportModal]);
+  }, [importData, savedFormats, showImportModal]);
 
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
