@@ -3808,15 +3808,15 @@ ${
   const getExchangeForTradeType = (type: 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'): string => {
     switch (type) {
       case 'STOCK':
-        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for stocks
+        return 'NSE,BSE';  // Equity stocks
       case 'FUTURES':
-        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for futures
+        return 'NFO,BFO';  // NSE F&O + BSE F&O for futures
       case 'OPTIONS':
-        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for options
+        return 'NFO,BFO';  // NSE F&O + BSE F&O for options
       case 'MCX':
-        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for commodities
+        return 'MCX,NCDEX';  // MCX + NCDEX for commodities
       default:
-        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';
+        return 'NSE,BSE';
     }
   };
 
@@ -3979,7 +3979,7 @@ ${
       const exchange = getExchangeForTradeType(paperTradeType);
       console.log(`🔍 [PAPER-TRADE] Searching for "${query}" on exchange: ${exchange} (type: ${paperTradeType})`);
       
-      const url = `/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&filterType=${encodeURIComponent(paperTradeType)}&limit=50`;
+      const url = `/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&limit=50`;
       console.log(`🔍 [PAPER-TRADE] API URL: ${url}`);
       
       const response = await fetch(url);

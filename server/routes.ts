@@ -8202,15 +8202,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let results = instrumentCache;
 
-      // Mapping for exchange segment codes and names - ALL 7 EXCHANGES
+      // Mapping for exchange segment codes and names
       const exchangeMapping: { [key: string]: string[] } = {
-        'NSE': ['1', 'NSE'],                          // NSE Equity
-        'BSE': ['6', 'BSE'],                          // BSE Equity
-        'NFO': ['2', 'NFO'],                          // NSE F&O
-        'BFO': ['4', 'BFO', '7'],                     // BSE F&O
-        'MCX': ['3', 'MCX'],                          // MCX Commodities
-        'NCDEX': ['5', 'NCDEX'],                      // NCDEX Commodities
-        'CDS': ['13', 'CDS', 'CDSCURR']               // Currency Derivatives
+        'NSE': ['1', 'NSE'],
+        'BSE': ['6', 'BSE'],
+        'MCX': ['3', 'MCX', '5', 'NCDEX'],  // MCX (3) and NCDEX (5)
+        'NFO': ['2', 'NFO', 'BFO', '7'],    // NFO (2) and BFO/7
+        'NCDEX': ['5', 'NCDEX']
       };
 
       // Filter by exchange if specified
@@ -8222,21 +8220,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (exchangeMapping[exch]) {
             exchangeMapping[exch].forEach(code => validSegCodes.add(code));
           } else {
-            // If exchange is not in mapping, try adding it directly as a fallback
             validSegCodes.add(exch);
           }
         });
 
-        console.log(`🔍 [SEARCH] Requested exchanges: ${requestedExchanges.join(', ')} -> Segment codes: ${Array.from(validSegCodes).join(', ')}`);
-
         results = results.filter(inst => {
           const segCode = String(inst.exch_seg || '').toUpperCase();
-          const matchesExchange = validSegCodes.has(segCode);
-          return matchesExchange;
+          return validSegCodes.has(segCode);
         });
       } else {
-        // Default to all 7 exchanges
-        const defaultSegCodes = new Set(['1', 'NSE', '2', 'NFO', '3', 'MCX', '4', 'BFO', '5', 'NCDEX', '6', 'BSE', '7', '13', 'CDS', 'CDSCURR']);
+        // Default to NSE, BSE, MCX only
+        const defaultSegCodes = new Set(['1', 'NSE', '6', 'BSE', '3', 'MCX', '5', 'NCDEX']);
         results = results.filter(inst => {
           const segCode = String(inst.exch_seg || '').toUpperCase();
           return defaultSegCodes.has(segCode);
@@ -8252,45 +8246,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           inst.tradingsymbol?.toUpperCase().includes(searchTerm) ||
           inst.expiry?.toString().includes(query)
         );
-      }
-
-      // Filter by instrument type based on trade type
-      const filterType = req.query.filterType ? (req.query.filterType as string).toUpperCase() : null;
-      if (filterType) {
-        const validInstrumentTypes = new Set<string>();
-        
-        switch (filterType) {
-          case 'STOCK':
-            // Equity and Index only
-            validInstrumentTypes.add('EQT');
-            validInstrumentTypes.add('INDEX');
-            break;
-          case 'FUTURES':
-            // Index and Stock futures only (no MCX commodities)
-            validInstrumentTypes.add('FUTIDX');     // Index futures
-            validInstrumentTypes.add('FUTSTK');     // Stock futures
-            break;
-          case 'OPTIONS':
-            // Stock and Index options only (no MCX commodities)
-            validInstrumentTypes.add('OPTSTK');     // Stock options
-            validInstrumentTypes.add('OPTFUT');     // Futures options
-            validInstrumentTypes.add('OPTIDX');     // Index options
-            break;
-          case 'MCX':
-            // MCX commodities only: Index, Futures, Options
-            validInstrumentTypes.add('INDEX');
-            validInstrumentTypes.add('FUTCOMM');
-            validInstrumentTypes.add('OPTCOMM');
-            break;
-        }
-        
-        if (validInstrumentTypes.size > 0) {
-          results = results.filter(inst => {
-            const instType = String(inst.instrumenttype || '').toUpperCase();
-            return validInstrumentTypes.has(instType);
-          });
-          console.log(`🔍 [FILTER] Type: ${filterType} -> Valid types: ${Array.from(validInstrumentTypes).join(', ')} -> Found ${results.length} instruments`);
-        }
       }
 
       // Limit results
