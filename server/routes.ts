@@ -61,11 +61,39 @@ import { brokerFormatsLibrary, type UniversalFormatData } from './broker-formats
 
 // 🔶 Angel One Stock Token Mappings for historical data
 const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
+  // NSE Indices
   'NIFTY50': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
+  'NIFTY': { token: '99926000', exchange: 'NSE', tradingSymbol: 'Nifty 50' },
   'BANKNIFTY': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+  'NIFTYBANK': { token: '99926009', exchange: 'NSE', tradingSymbol: 'Nifty Bank' },
+  'FINNIFTY': { token: '99926037', exchange: 'NSE', tradingSymbol: 'Nifty Fin Service' },
+  'NIFTYFIN': { token: '99926037', exchange: 'NSE', tradingSymbol: 'Nifty Fin Service' },
+  'MIDCPNIFTY': { token: '99926074', exchange: 'NSE', tradingSymbol: 'NIFTY MID SELECT' },
+  'NIFTYMIDCAP': { token: '99926074', exchange: 'NSE', tradingSymbol: 'NIFTY MID SELECT' },
+  'NIFTYIT': { token: '99926013', exchange: 'NSE', tradingSymbol: 'Nifty IT' },
+  'NIFTYPHARMA': { token: '99926015', exchange: 'NSE', tradingSymbol: 'Nifty Pharma' },
+  'NIFTYMETAL': { token: '99926016', exchange: 'NSE', tradingSymbol: 'Nifty Metal' },
+  'NIFTYAUTO': { token: '99926017', exchange: 'NSE', tradingSymbol: 'Nifty Auto' },
+  'NIFTYFMCG': { token: '99926018', exchange: 'NSE', tradingSymbol: 'Nifty FMCG' },
+  'NIFTYENERGY': { token: '99926019', exchange: 'NSE', tradingSymbol: 'Nifty Energy' },
+  'NIFTYREALTY': { token: '99926020', exchange: 'NSE', tradingSymbol: 'Nifty Realty' },
+  'NIFTYPSUBANK': { token: '99926021', exchange: 'NSE', tradingSymbol: 'Nifty PSU Bank' },
+  'NIFTYMEDIA': { token: '99926022', exchange: 'NSE', tradingSymbol: 'Nifty Media' },
+  'NIFTY100': { token: '99926004', exchange: 'NSE', tradingSymbol: 'Nifty 100' },
+  'NIFTY500': { token: '99926008', exchange: 'NSE', tradingSymbol: 'Nifty 500' },
+  'NIFTYNEXT50': { token: '99926011', exchange: 'NSE', tradingSymbol: 'Nifty Next 50' },
+  // BSE Indices
   'SENSEX': { token: '99919000', exchange: 'BSE', tradingSymbol: 'SENSEX' },
+  'BANKEX': { token: '99919001', exchange: 'BSE', tradingSymbol: 'BANKEX' },
+  // MCX Commodities
   'GOLD': { token: '99920003', exchange: 'MCX', tradingSymbol: 'MCXGOLDEX' },
   'MCXGOLDEX': { token: '99920003', exchange: 'MCX', tradingSymbol: 'MCXGOLDEX' },
+  'SILVER': { token: '99920004', exchange: 'MCX', tradingSymbol: 'MCXSILVEREX' },
+  'MCXSILVEREX': { token: '99920004', exchange: 'MCX', tradingSymbol: 'MCXSILVEREX' },
+  'CRUDEOIL': { token: '99920001', exchange: 'MCX', tradingSymbol: 'MCXCRUDEX' },
+  'MCXCRUDEX': { token: '99920001', exchange: 'MCX', tradingSymbol: 'MCXCRUDEX' },
+  'NATURALGAS': { token: '99920002', exchange: 'MCX', tradingSymbol: 'MCXNATGASEX' },
+  'MCXNATGASEX': { token: '99920002', exchange: 'MCX', tradingSymbol: 'MCXNATGASEX' },
   'RELIANCE': { token: '2885', exchange: 'NSE', tradingSymbol: 'RELIANCE-EQ' },
   'TCS': { token: '11536', exchange: 'NSE', tradingSymbol: 'TCS-EQ' },
   'HDFCBANK': { token: '1333', exchange: 'NSE', tradingSymbol: 'HDFCBANK-EQ' },
@@ -3072,9 +3100,46 @@ async function getRealChartData(symbol: string, timeframe: string) {
       stockToken = ANGEL_ONE_STOCK_TOKENS[noSpaceSymbol];
     }
     
+    // 🔶 Dynamic lookup from instrument master if not in static mapping
     if (!stockToken) {
-      console.log(`⚠️ No Angel One token for ${symbol} (${cleanSymbol})`);
-      console.log(`📋 Available tokens: ${Object.keys(ANGEL_ONE_STOCK_TOKENS).slice(0, 20).join(', ')}...`);
+      console.log(`🔍 Token not in static mapping, searching instrument master for: ${cleanSymbol}`);
+      try {
+        // Search the instrument master for this symbol
+        const instruments = await angelOneInstruments.searchInstruments(cleanSymbol, ['NSE', 'BSE', 'MCX']);
+        
+        if (instruments && instruments.length > 0) {
+          // Find exact match or best match (prefer equity/index over derivatives)
+          const exactMatch = instruments.find((inst: any) => 
+            inst.symbol?.toUpperCase() === cleanSymbol ||
+            inst.tradingsymbol?.toUpperCase() === cleanSymbol ||
+            inst.name?.toUpperCase().includes(cleanSymbol)
+          );
+          
+          const bestMatch = exactMatch || instruments.find((inst: any) => {
+            const instType = (inst.instrumentType || '').toUpperCase();
+            // Skip futures and options
+            return !instType.includes('FUT') && !instType.includes('OPT') && 
+                   !instType.includes('CE') && !instType.includes('PE');
+          }) || instruments[0];
+          
+          if (bestMatch) {
+            stockToken = {
+              token: bestMatch.token?.toString() || bestMatch.symbolToken?.toString(),
+              exchange: bestMatch.exchange || 'NSE',
+              tradingSymbol: bestMatch.tradingsymbol || bestMatch.symbol || cleanSymbol
+            };
+            console.log(`✅ Found token from instrument master: ${JSON.stringify(stockToken)}`);
+          }
+        }
+      } catch (searchError) {
+        console.log(`⚠️ Instrument master search failed for ${cleanSymbol}:`, searchError);
+      }
+    }
+    
+    if (!stockToken) {
+      console.log(`⚠️ No Angel One token found for ${symbol} (${cleanSymbol})`);
+      console.log(`📋 Available static tokens: ${Object.keys(ANGEL_ONE_STOCK_TOKENS).slice(0, 20).join(', ')}...`);
+      console.log(`💡 Tip: Ensure the instrument exists on NSE/BSE/MCX`);
       return [];
     }
     

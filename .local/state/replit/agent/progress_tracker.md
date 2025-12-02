@@ -250,3 +250,33 @@ const istTime = new Date(utcTime + istOffset);
 ✅ Shows exchange badge (NSE, BSE, MCX) for each result
 ✅ Results include symbol, name, and exchange
 ✅ Click to add, X to remove selected instruments
+
+=========================================================
+## FUNDAMENTAL WINDOW CHART FIX - ALL INSTRUMENTS - December 2, 2025 📈
+
+[x] 1. Added FINNIFTY to static token mapping (token: 99926037)
+[x] 2. Added all major NSE indices: MIDCPNIFTY, NIFTYIT, NIFTYPHARMA, etc.
+[x] 3. Added BSE indices: SENSEX, BANKEX
+[x] 4. Added MCX commodities: SILVER, CRUDEOIL, NATURALGAS
+[x] 5. Implemented dynamic token lookup from instrument master
+[x] 6. Workflow restarted and verified
+
+### Changes Made:
+**Backend (server/routes.ts):**
+- Expanded ANGEL_ONE_STOCK_TOKENS with 30+ indices and instruments:
+  - NSE Indices: FINNIFTY, MIDCPNIFTY, NIFTYIT, NIFTYPHARMA, NIFTYMETAL, NIFTYAUTO, NIFTYFMCG, NIFTYENERGY, NIFTYREALTY, NIFTYPSUBANK, NIFTYMEDIA, NIFTY100, NIFTY500, NIFTYNEXT50
+  - BSE Indices: SENSEX, BANKEX
+  - MCX Commodities: GOLD, SILVER, CRUDEOIL, NATURALGAS
+- Added alternative symbol mappings (e.g., NIFTYBANK -> BANKNIFTY, NIFTYFIN -> FINNIFTY)
+- Implemented dynamic token lookup in getRealChartData():
+  - If symbol not in static mapping, searches instrument master
+  - Finds exact or best match (excludes futures/options)
+  - Returns chart data for ANY NSE/BSE/MCX instrument
+
+### Result:
+✅ FINNIFTY chart now works in Fundamental window
+✅ All NSE indices supported (NIFTYIT, NIFTYPHARMA, etc.)
+✅ BSE indices supported (SENSEX, BANKEX)
+✅ MCX commodities supported (GOLD, SILVER, CRUDEOIL, NATURALGAS)
+✅ Dynamic lookup for any symbol not in static mapping
+✅ Charts load for any searchable NSE/BSE/MCX instrument
