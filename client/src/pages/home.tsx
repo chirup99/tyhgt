@@ -3488,7 +3488,7 @@ ${
   const [availableBrokers, setAvailableBrokers] = useState<string[]>([
     // Top Discount Brokers
     "Zerodha", "Groww", "Angel One", "Upstox", "5paisa", "Fyers", "Paytm Money", "Alice Blue",
-    "Shoonya by Finvasia", "AngelBroking", "Samco Securities", "Motilal Oswal",
+    "Shoonya by Finvasia", "Samco Securities", "Motilal Oswal",
     
     // Full-Service Brokers
     "ICICI Securities", "HDFC Securities", "Kotak Securities", "Axis Securities",
@@ -16001,7 +16001,7 @@ ${
                               data-testid="input-broker-search"
                             />
                             {showBrokerSuggestions && filteredBrokers.length > 0 && (
-                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-md z-50 max-h-64 overflow-y-auto">
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-md z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-900">
                                 {filteredBrokers.map((broker) => (
                                   <div
                                     key={broker}
