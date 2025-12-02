@@ -1834,6 +1834,7 @@ const getFullApiUrl = (path: string): string => {
 
 export default function Home() {
   const [location, setLocation] = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("trading-home");
   const [showTutorOverlay, setShowTutorOverlay] = useState(false);
   const [swipeStartY, setSwipeStartY] = useState(0);
@@ -3406,8 +3407,6 @@ ${
     fromDate: format(new Date(), "yyyy-MM-dd"),
     toDate: format(new Date(), "yyyy-MM-dd"),
   });
-
-  const { theme, toggleTheme } = useTheme();
 
   // Event images - using gradient placeholders for cloud deployment
   const getEventImage = (eventName: string) => {
@@ -11261,6 +11260,23 @@ ${
                             data-testid="nav-settings"
                           >
                             setting & privacy
+                          </button>
+                          <button
+                            onClick={toggleTheme}
+                            className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
+                            data-testid="nav-dark-theme"
+                          >
+                            {theme === 'dark' ? (
+                              <>
+                                <Sun className="h-4 w-4" />
+                                <span>light mode</span>
+                              </>
+                            ) : (
+                              <>
+                                <Moon className="h-4 w-4" />
+                                <span>dark mode</span>
+                              </>
+                            )}
                           </button>
                           <button
                             onClick={async () => {
