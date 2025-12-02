@@ -14692,16 +14692,14 @@ ${
                                   </div>
                                   
                                   {/* Share Icon */}
-                                  <div className="flex flex-col items-center justify-center">
-                                    <button
-                                      className="flex items-center justify-center w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors"
-                                      onClick={() => setShowShareDialog(true)}
-                                      data-testid="button-share-tradebook"
-                                      title="Share tradebook"
-                                    >
-                                      <Share2 className="w-3.5 h-3.5 text-white" />
-                                    </button>
-                                  </div>
+                                  <button
+                                    className="flex items-center justify-center w-6 h-6 bg-white/20 rounded hover:bg-white/30 transition-colors"
+                                    onClick={() => setShowShareDialog(true)}
+                                    data-testid="button-share-tradebook"
+                                    title="Share tradebook"
+                                  >
+                                    <Share2 className="w-4 h-4 text-white" />
+                                  </button>
                                   
                                   {/* 3-Dot Menu Button */}
                                   <Popover>
