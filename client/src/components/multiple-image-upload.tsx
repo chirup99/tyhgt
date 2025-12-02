@@ -176,11 +176,16 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
       { id: 'card-5', label: 'Strategy Image' },
     ];
 
-    // Map uploaded images to card slots, keep empty slots for remaining
-    const cardsToShow = cardSlots.map((slot, idx) => ({
+    // Map uploaded images to card slots
+    const allCards = cardSlots.map((slot, idx) => ({
       ...slot,
       image: images[idx] || null,
     }));
+
+    // Reorder: image cards first, then empty cards
+    const imageCards = allCards.filter(card => card.image !== null);
+    const emptyCards = allCards.filter(card => card.image === null);
+    const cardsToShow = [...imageCards, ...emptyCards];
 
     return (
       <div 
