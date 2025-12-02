@@ -3597,7 +3597,7 @@ ${
   if (buildModeData.positions.qty.length === 0) missingColumns.push("Qty");
   if (buildModeData.positions.price.length === 0) missingColumns.push("Price");
   
-  // Helper function to save formats to Universal Broker Library
+  // Helper function to save formats to Universal Broker Library AND user personal formats
   const saveFormatToUniversalLibrary = async (formatLabel: string, format: FormatData, brokerName: string) => {
     if (!currentUser?.userId) {
       toast({
@@ -3632,6 +3632,28 @@ ${
       const data = await response.json();
       if (response.ok) {
         console.log(`✅ Format saved to ${brokerName} library`);
+        
+        // SYNC to user's personal formats for live preview
+        const updatedFormats = {
+          ...savedFormats,
+          [formatLabel]: format
+        };
+        setSavedFormats(updatedFormats);
+        
+        // Save to user's personal formats backend
+        const userFormatsResponse = await fetch(`/api/user-formats/${currentUser.userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify(updatedFormats)
+        });
+        
+        if (userFormatsResponse.ok) {
+          console.log(`✅ Format also synced to personal formats for live preview`);
+        }
+        
         toast({
           title: "Format Saved Successfully",
           description: `Your format has been saved to the ${brokerName} library for all users!`
