@@ -263,12 +263,14 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                     }}
                   >
                     {(card as any).image ? (
-                      <img
-                        src={(card as any).image.url}
-                        alt={(card as any).label}
-                        className="w-full h-full object-contain bg-gray-50 dark:bg-gray-800 pointer-events-none"
-                        data-testid={`img-card-${idx}`}
-                      />
+                      <div className="w-full h-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={(card as any).image.url}
+                          alt={(card as any).label}
+                          className="w-full h-full object-contain pointer-events-none"
+                          data-testid={`img-card-${idx}`}
+                        />
+                      </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4 bg-gray-200 dark:bg-gray-900">
                         <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
