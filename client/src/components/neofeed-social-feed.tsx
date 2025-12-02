@@ -478,6 +478,35 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
   const percentChange = baselinePrice !== 0 ? ((priceChange / baselinePrice) * 100).toFixed(2) : '0.00';
   const isPositive = priceChange >= 0;
   
+  // Calculate OHLC values from actual chart data
+  const getOHLCFromChart = () => {
+    if (!chartData || chartData.length === 0) {
+      return {
+        open: analysisData.priceData.open || 0,
+        high: analysisData.priceData.high || 0,
+        low: analysisData.priceData.low || 0,
+        volume: analysisData.priceData.volume || 'N/A'
+      };
+    }
+    
+    const prices = chartData.map((d: any) => Number(d.price) || 0);
+    const volumes = chartData.map((d: any) => Number(d.volume) || 0);
+    
+    const openPrice = chartData[0]?.price || prices[0] || 0;
+    const highPrice = Math.max(...prices);
+    const lowPrice = Math.min(...prices);
+    const totalVolume = volumes.reduce((a: number, b: number) => a + b, 0);
+    
+    return {
+      open: openPrice,
+      high: highPrice,
+      low: lowPrice,
+      volume: totalVolume > 0 ? (totalVolume / 100000).toFixed(2) + 'L' : 'N/A'
+    };
+  };
+  
+  const ohlcData = getOHLCFromChart();
+  
   const timeframes = ['1D', '5D', '1M', '6M', '1Y'];
   
   return (
@@ -615,24 +644,24 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
         </div>
       </div>
       
-      {/* OHLC Data Grid */}
+      {/* OHLC Data Grid - Synced with Chart Data */}
       <div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">Open</span>
-            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.open).toFixed(2)}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(ohlcData.open).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">High</span>
-            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.high).toFixed(2)}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(ohlcData.high).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">Low</span>
-            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.low).toFixed(2)}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(ohlcData.low).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">Vol</span>
-            <span className="text-gray-900 dark:text-white">{analysisData.priceData.volume}</span>
+            <span className="text-gray-900 dark:text-white">{ohlcData.volume}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">52W High</span>
