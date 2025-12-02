@@ -16086,6 +16086,25 @@ ${
                                 setActiveFormat(buildModeData);
                                 setBrokerSearchInput("");
                                 console.log("✅ Format saved to library for:", brokerName, buildModeData.positions);
+                                
+                                // Reload saved formats immediately to trigger auto-apply
+                                if (currentUser?.userId) {
+                                  try {
+                                    const idToken = await auth.currentUser?.getIdToken();
+                                    if (idToken) {
+                                      const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+                                        headers: { 'Authorization': `Bearer ${idToken}` }
+                                      });
+                                      if (response.ok) {
+                                        const updatedFormats = await response.json();
+                                        setSavedFormats(updatedFormats);
+                                        console.log("🔄 Saved formats reloaded - live preview auto-updating:", Object.keys(updatedFormats).length);
+                                      }
+                                    }
+                                  } catch (err) {
+                                    console.error("❌ Failed to reload formats after save:", err);
+                                  }
+                                }
                               }
                             }}
                             data-testid="button-save-format"
