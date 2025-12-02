@@ -310,7 +310,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               transform: `translateX(${(dragOffset * 0.5)}px)`
             }}
           >
-            {currentIndex + 1}/{cardsToShow.length}
+            {images.length}
           </div>
         </div>
 
