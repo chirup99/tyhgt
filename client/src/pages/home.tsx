@@ -11951,14 +11951,6 @@ ${
                         </Button>
                       </div>
 
-                      {/* Mobile Welcome Text - Fixed position in blue area */}
-                      <div className="md:hidden flex items-center justify-center gap-2 pt-4 pb-6 px-4 relative z-10">
-                        <Sparkles className="h-4 w-4 text-blue-400" />
-                        <h1 className="text-base font-normal text-gray-100">
-                          Welcome to Trading Platform
-                        </h1>
-                      </div>
-
                       {/* Trading Tools Section - White container with centered cards */}
                       <div className="bg-white md:pt-4 pt-4 md:pb-4 pb-4 md:rounded-3xl rounded-3xl relative pointer-events-auto touch-pan-y flex-shrink-0 mt-0 w-full">
                         {/* Mobile Search Bar - Fully visible at top */}
