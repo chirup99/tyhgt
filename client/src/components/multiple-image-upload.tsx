@@ -310,7 +310,10 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               transform: `translateX(${(dragOffset * 0.5)}px)`
             }}
           >
-            {images.length}
+            {images.length === 0 
+              ? `${currentIndex + 1}/5`
+              : `${Math.min(currentIndex + 1, images.length)}/${images.length}`
+            }
           </div>
         </div>
 
