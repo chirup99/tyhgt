@@ -3029,7 +3029,11 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
             {/* MiniCast Icon - Toggles Audio MiniCast */}
             <button
               onClick={() => setShowMobileAudioMinicast(!showMobileAudioMinicast)}
-              className="flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className={`flex items-center justify-center flex-1 rounded-full px-4 py-2 transition-all duration-200 ${
+                showMobileAudioMinicast 
+                  ? 'text-purple-600 dark:text-purple-400' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
               data-testid="button-minicast-mobile"
             >
               <Layers className="h-5 w-5" />
