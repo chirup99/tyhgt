@@ -7,13 +7,14 @@ import React, {
 } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { AuthButton } from "@/components/auth-button";
 import { AuthButtonAngelOne, AngelOneStatus, AngelOneApiStatistics, AngelOneSystemStatus, AngelOneLiveMarketPrices } from "@/components/auth-button-angelone";
-import { ConnectionStatus } from "@/components/connection-status";
-import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
-import { SigninDataWindow } from "@/components/signin-data-window";
-import { ApiStatistics } from "@/components/api-statistics";
-import { ErrorPanel } from "@/components/error-panel";
+// REMOVED: All Fyers-related imports
+// import { AuthButton } from "@/components/auth-button";
+// import { ConnectionStatus } from "@/components/connection-status";
+// import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
+// import { SigninDataWindow } from "@/components/signin-data-window";
+// import { ApiStatistics } from "@/components/api-statistics";
+// import { ErrorPanel } from "@/components/error-panel";
 import { TradingViewWidget } from "@/components/tradingview-widget";
 import { AdvancedCandlestickChart } from "@/components/advanced-candlestick-chart";
 import { EnhancedTradingViewWidget } from "@/components/enhanced-tradingview-widget";
@@ -11123,108 +11124,44 @@ ${
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center gap-3">
                     <Star className="h-6 w-6 text-yellow-400" />
-                    <h2 className="text-2xl font-bold text-green-400">Market Dashboard</h2>
+                    <h2 className="text-2xl font-bold text-orange-400">Trading Dashboard - Angel One API</h2>
                   </div>
-                  <p className="text-green-300">Real-time market data and connection status</p>
+                  <p className="text-orange-300">Real-time market data via Angel One SmartAPI</p>
                 </div>
 
-                {/* Fyers API Authentication Required Notice */}
-
-
-                {/* Authentication Status Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <AuthButton />
-                  <ConnectionStatus />
-                </div>
-
-                {/* Live Market Data Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <MonthlyProgressTracker />
-                  <SigninDataWindow />
-                  <ApiStatistics />
-                </div>
-
-                {/* API Provider Selection - Fyers vs Angel One */}
+                {/* Angel One Connection Setup */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
                   <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Trading API Connection</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Choose your broker API provider</p>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Angel One Connection</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Automatic TOTP authentication - No daily token refresh needed</p>
                       </div>
                     </div>
                   </div>
                   <div className="p-6">
-                    <Tabs defaultValue="angelone" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="fyers" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800 dark:data-[state=active]:bg-green-900 dark:data-[state=active]:text-green-200" data-testid="tab-fyers">
-                          Fyers (Paid)
-                        </TabsTrigger>
-                        <TabsTrigger value="angelone" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 dark:data-[state=active]:bg-orange-900 dark:data-[state=active]:text-orange-200" data-testid="tab-angelone">
-                          Angel One (Free)
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="fyers">
-                        <div className="space-y-4">
-                          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                              <strong>Note:</strong> Fyers API requires daily token refresh. Get your token from the Fyers dashboard.
-                            </p>
-                          </div>
-                          <AuthButton />
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="angelone">
-                        <div className="space-y-4">
-                          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                            <p className="text-sm text-green-800 dark:text-green-200">
-                              <strong>Recommended:</strong> Angel One SmartAPI is free and uses automatic TOTP authentication. No daily token refresh needed!
-                            </p>
-                          </div>
-                          <AuthButtonAngelOne />
-                        </div>
-                      </TabsContent>
-                    </Tabs>
+                    <div className="space-y-4">
+                      <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                        <p className="text-sm text-green-800 dark:text-green-200">
+                          <strong>✅ Angel One SmartAPI:</strong> Free API with automatic authentication. Perfect for real-time trading and market data.
+                        </p>
+                      </div>
+                      <AuthButtonAngelOne />
+                    </div>
                   </div>
                 </div>
 
-                {/* Connection Status Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Fyers Status */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                      Fyers Connection
-                    </h4>
-                    <ConnectionStatus />
-                  </div>
-                  
-                  {/* Angel One Status */}
-                  <AngelOneStatus />
-                </div>
+                {/* Angel One Status */}
+                <AngelOneStatus />
 
                 {/* Live Market Prices - BANKNIFTY, SENSEX, GOLD with WebSocket status */}
                 <AngelOneLiveMarketPrices />
 
-                {/* API Statistics Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Fyers API Statistics */}
-                  <ApiStatistics />
-                  
-                  {/* Angel One API Statistics */}
-                  <AngelOneApiStatistics />
-                </div>
+                {/* Angel One API Statistics */}
+                <AngelOneApiStatistics />
 
-                {/* System Status Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Fyers Error Panel and Recent Activity */}
-                  <ErrorPanel />
-                  
-                  {/* Angel One System Status and Recent Activity */}
-                  <AngelOneSystemStatus />
-                </div>
+                {/* Angel One System Status and Recent Activity */}
+                <AngelOneSystemStatus />
 
               </div>
             )}
