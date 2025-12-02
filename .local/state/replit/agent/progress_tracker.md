@@ -178,3 +178,20 @@ The Trading Platform has been successfully migrated to the Replit environment an
 ✅ Line chart displays correctly when authenticated
 ✅ Removed dependency on Fyers API
 ✅ Clear messaging when authentication needed
+
+### Additional Fix Applied - December 2, 2025:
+[x] Added missing `getAngelOneInterval()` helper function (lines 3036-3060)
+    - Converts user-friendly timeframes to Angel One API intervals:
+    - 5m → FIVE_MINUTE
+    - 15m → FIFTEEN_MINUTE
+    - 1h → ONE_HOUR
+    - 1D/1d → FIVE_MINUTE (intraday 5-min candles)
+    - 5D/5d → THIRTY_MINUTE (30-min candles)
+    - 1M → ONE_DAY (daily candles)
+    - 6M/1Y/5Y → ONE_DAY (daily candles)
+
+### Verified Working:
+✅ TCS 1M: 21 data points via ONE_DAY interval
+✅ TCS 1Y: 249 data points via ONE_DAY interval
+✅ TCS 5D: 52 data points via THIRTY_MINUTE interval
+✅ All timeframe buttons working in Fundamental window

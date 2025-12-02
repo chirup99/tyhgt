@@ -3030,6 +3030,32 @@ async function fetchFyersChartDataForDate(symbol: string, dateStr: string, timef
   }
 }
 
+// 🔶 Helper function to convert timeframe to Angel One interval format
+function getAngelOneInterval(timeframe: string): string {
+  switch (timeframe) {
+    case '5m':
+      return 'FIVE_MINUTE';
+    case '15m':
+      return 'FIFTEEN_MINUTE';
+    case '1h':
+      return 'ONE_HOUR';
+    case '1d':
+    case '1D':
+      return 'FIVE_MINUTE'; // 5-minute candles for intraday
+    case '5d':
+    case '5D':
+      return 'THIRTY_MINUTE'; // 30-minute candles for 5-day view
+    case '1M':
+      return 'ONE_DAY'; // Daily candles for monthly view
+    case '6M':
+    case '1Y':
+    case '5Y':
+      return 'ONE_DAY'; // Daily candles for longer periods
+    default:
+      return 'FIVE_MINUTE';
+  }
+}
+
 // 🔶 Get real historical price data for charts (Angel One API ONLY - No Fyers)
 async function getRealChartData(symbol: string, timeframe: string) {
   try {

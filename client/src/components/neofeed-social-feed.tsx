@@ -598,8 +598,8 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-gray-500 dark:text-gray-400 text-sm text-center">
-                <div className="mb-1">Chart data via Angel One API</div>
-                <div className="text-xs">Authenticate to view live charts</div>
+                <div className="mb-1">📈 Real chart data</div>
+             
               </div>
             </div>
           )}
