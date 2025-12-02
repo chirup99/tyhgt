@@ -221,3 +221,32 @@ const istTime = new Date(utcTime + istOffset);
 ✅ Intraday charts now show correct IST time (e.g., 09:15, 15:30)
 ✅ 5-day charts show correct IST day and time
 ✅ All timeframes display in Indian Standard Time
+
+=========================================================
+## CREATE POST - SEARCHABLE INSTRUMENT SELECTOR - December 2, 2025 🔍
+
+[x] 1. Replaced static dropdown with searchable instrument input
+[x] 2. Added API integration with /api/angelone/search-instruments
+[x] 3. Implemented debounced search (300ms delay)
+[x] 4. Added filtering to exclude futures and options (FUT, OPT, CE, PE)
+[x] 5. Show only NSE, BSE, MCX and index instruments
+[x] 6. Workflow restarted and verified
+
+### Changes Made:
+**Frontend (client/src/components/post-creation-panel.tsx):**
+- Added InstrumentResult interface for type safety
+- Added new state: instrumentSearchQuery, instrumentSearchResults, isSearchingInstruments, showInstrumentDropdown
+- Added useEffect with debounced search (300ms) calling /api/angelone/search-instruments
+- Filters out futures/options by checking instrumentType and symbol for FUT, OPT, CE, PE
+- Replaced Select dropdown with Input + dropdown results panel
+- Shows exchange badge (NSE, BSE, MCX) and instrument name in results
+- Click outside closes dropdown
+- Loading spinner while searching
+
+### Result:
+✅ Users can now search for ANY NSE, BSE, MCX instrument
+✅ Type-as-you-search with 300ms debounce
+✅ Futures and options excluded from results
+✅ Shows exchange badge (NSE, BSE, MCX) for each result
+✅ Results include symbol, name, and exchange
+✅ Click to add, X to remove selected instruments

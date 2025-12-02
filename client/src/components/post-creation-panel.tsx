@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check, Plus } from 'lucide-react';
+import { X, Upload, Hash, ImageIcon, TrendingUp, TrendingDown, Minus, Sparkles, Zap, Eye, Copy, Clipboard, Clock, Activity, MessageCircle, Users, UserPlus, ExternalLink, Radio, Check, Plus, Search, Loader2 } from 'lucide-react';
 import { MultipleImageUpload } from './multiple-image-upload';
 import { StackedSwipeableCards } from './stacked-swipeable-cards';
 import { apiRequest } from '@/lib/queryClient';
@@ -16,6 +16,15 @@ import { useToast } from '@/hooks/use-toast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { InsertSocialPost } from '@shared/schema';
 import { useAudioMode } from '@/contexts/AudioModeContext';
+
+interface InstrumentResult {
+  symbol: string;
+  name: string;
+  token: string;
+  exchange: string;
+  instrumentType: string;
+  displayName: string;
+}
 
 const POPULAR_STOCKS = [
   'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR',
@@ -50,6 +59,13 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
   const [uploadedImages, setUploadedImages] = useState<Array<{id: string; url: string; name: string; file?: File}>>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
+  // Instrument search state
+  const [instrumentSearchQuery, setInstrumentSearchQuery] = useState('');
+  const [instrumentSearchResults, setInstrumentSearchResults] = useState<InstrumentResult[]>([]);
+  const [isSearchingInstruments, setIsSearchingInstruments] = useState(false);
+  const [showInstrumentDropdown, setShowInstrumentDropdown] = useState(false);
+  const instrumentSearchRef = useRef<HTMLDivElement>(null);
+  
   // New state for view switching
   const [viewMode, setViewMode] = useState<'post' | 'message' | 'audio'>(initialViewMode);
   const [messageTab, setMessageTab] = useState<'message' | 'community'>('message');
@@ -61,6 +77,77 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
   useEffect(() => {
     setIsAudioMode(viewMode === 'audio');
   }, [viewMode, setIsAudioMode]);
+  
+  // Instrument search with debounce
+  useEffect(() => {
+    const searchInstruments = async () => {
+      if (instrumentSearchQuery.trim().length < 2) {
+        setInstrumentSearchResults([]);
+        setShowInstrumentDropdown(false);
+        return;
+      }
+      
+      setIsSearchingInstruments(true);
+      try {
+        const response = await fetch(`/api/angelone/search-instruments?query=${encodeURIComponent(instrumentSearchQuery)}&exchange=NSE,BSE,MCX&limit=50`);
+        const data = await response.json();
+        
+        if (data.success && data.instruments) {
+          // Filter out futures and options (FUT, OPT, CE, PE, OPTIDX, OPTSTK, FUTIDX, FUTSTK)
+          const filteredInstruments = data.instruments.filter((inst: InstrumentResult) => {
+            const instType = (inst.instrumentType || '').toUpperCase();
+            const symbol = (inst.symbol || '').toUpperCase();
+            
+            // Exclude futures and options
+            if (instType.includes('FUT') || instType.includes('OPT') || 
+                instType.includes('CE') || instType.includes('PE') ||
+                symbol.endsWith('CE') || symbol.endsWith('PE') ||
+                symbol.includes('FUT')) {
+              return false;
+            }
+            return true;
+          });
+          
+          // Filter out already mentioned stocks
+          const uniqueInstruments = filteredInstruments.filter((inst: InstrumentResult) => 
+            !stockMentions.includes(inst.symbol)
+          );
+          
+          setInstrumentSearchResults(uniqueInstruments.slice(0, 20));
+          setShowInstrumentDropdown(uniqueInstruments.length > 0);
+        }
+      } catch (error) {
+        console.error('Error searching instruments:', error);
+      } finally {
+        setIsSearchingInstruments(false);
+      }
+    };
+    
+    const debounceTimer = setTimeout(searchInstruments, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [instrumentSearchQuery, stockMentions]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (instrumentSearchRef.current && !instrumentSearchRef.current.contains(event.target as Node)) {
+        setShowInstrumentDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  // Add instrument from search
+  const addInstrumentFromSearch = (instrument: InstrumentResult) => {
+    if (!stockMentions.includes(instrument.symbol)) {
+      setStockMentions(prev => [...prev, instrument.symbol]);
+    }
+    setInstrumentSearchQuery('');
+    setShowInstrumentDropdown(false);
+    setInstrumentSearchResults([]);
+  };
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -529,36 +616,64 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
             </div>
           </div>
 
-          {/* Stock Selection */}
+          {/* Stock Selection - Searchable */}
           <div className="space-y-2">
             <Label className="text-gray-800 dark:text-gray-200 font-medium text-base">Stock Mentions</Label>
-            <div className="flex gap-2">
-              <Select value={selectedStock} onValueChange={setSelectedStock}>
-                <SelectTrigger className="flex-1 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:border-blue-500">
-                  <SelectValue placeholder="Add stock mention..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                  {POPULAR_STOCKS.filter(stock => !stockMentions.includes(stock)).map(stock => (
-                    <SelectItem key={stock} value={stock} className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">{stock}</SelectItem>
+            <div className="relative" ref={instrumentSearchRef}>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  value={instrumentSearchQuery}
+                  onChange={(e) => setInstrumentSearchQuery(e.target.value)}
+                  onFocus={() => instrumentSearchQuery.length >= 2 && setShowInstrumentDropdown(true)}
+                  placeholder="Search NSE, BSE, MCX instruments..."
+                  className="pl-10 pr-10 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:border-blue-500"
+                  data-testid="input-instrument-search"
+                />
+                {isSearchingInstruments && (
+                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-500 animate-spin" />
+                )}
+              </div>
+              
+              {/* Search Results Dropdown */}
+              {showInstrumentDropdown && instrumentSearchResults.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {instrumentSearchResults.map((instrument, index) => (
+                    <button
+                      key={`${instrument.symbol}-${instrument.exchange}-${index}`}
+                      type="button"
+                      onClick={() => addInstrumentFromSearch(instrument)}
+                      className="w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                      data-testid={`instrument-result-${instrument.symbol}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900 dark:text-white truncate">{instrument.symbol}</span>
+                          <Badge variant="outline" className="text-xs px-1.5 py-0 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600">
+                            {instrument.exchange}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{instrument.name}</p>
+                      </div>
+                      <Plus className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
-              <Button 
-                type="button"
-                onClick={addStockMention}
-                variant="outline"
-                size="sm"
-                disabled={!selectedStock}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="button-add-stock"
-              >
-                <Hash className="h-4 w-4" />
-              </Button>
+                </div>
+              )}
+              
+              {/* No Results Message */}
+              {showInstrumentDropdown && instrumentSearchQuery.length >= 2 && !isSearchingInstruments && instrumentSearchResults.length === 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No instruments found for "{instrumentSearchQuery}"</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Try searching NSE, BSE, or MCX symbols</p>
+                </div>
+              )}
             </div>
             
             {/* Stock Mentions Display */}
             {stockMentions.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {stockMentions.map(stock => (
                   <Badge 
                     key={stock} 
