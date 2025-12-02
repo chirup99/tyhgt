@@ -3484,15 +3484,17 @@ ${
     }
   });
   const [savedFormatLabel, setSavedFormatLabel] = useState("");
+  const [selectedBroker, setSelectedBroker] = useState("zerodha");
+  const [availableBrokers, setAvailableBrokers] = useState<string[]>(["zerodha", "groww", "angel-one", "fyers", "custom"]);
+  const [customBrokerName, setCustomBrokerName] = useState("");
   const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>({});
   const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
   const [detectedFormatLabel, setDetectedFormatLabel] = useState<string | null>(null);
   const [formatsLoading, setFormatsLoading] = useState(false);
   const importDataTextareaRef = useRef<HTMLTextAreaElement>(null);
-  // Helper function to save formats to Firebase
-  const saveFormatsToFirebase = async (formats: Record<string, FormatData>) => {
+  // Helper function to save formats to Universal Broker Library
+  const saveFormatToUniversalLibrary = async (formatLabel: string, format: FormatData, brokerName: string) => {
     if (!currentUser?.userId) {
-      console.log("⏳ No authenticated user, cannot save to Firebase");
       toast({
         title: "Authentication Required",
         description: "Please log in to save formats",
@@ -3502,37 +3504,45 @@ ${
     }
 
     try {
-      console.log("💾 Saving formats to Firebase for userId:", currentUser.userId);
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) return false;
       
-      const response = await fetch(`/api/user-formats/${currentUser.userId}`, {
+      console.log(`💾 Saving format to ${brokerName} library...`);
+      const response = await fetch('/api/broker-formats/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify(formats)
+        body: JSON.stringify({
+          brokerName,
+          formatName: formatLabel,
+          sampleLine: format.sampleLine,
+          positions: format.positions,
+          displayValues: format.displayValues,
+          userId: currentUser.userId
+        })
       });
 
+      const data = await response.json();
       if (response.ok) {
-        console.log("✅ Formats saved to Firebase successfully");
+        console.log(`✅ Format saved to ${brokerName} library`);
         toast({
-          title: "Saved Successfully",
-          description: "Your format has been saved to Firebase"
+          title: "Format Saved Successfully",
+          description: `Your format has been saved to the ${brokerName} library for all users!`
         });
         return true;
       } else {
-        console.error("❌ Failed to save formats to Firebase");
-      toast({
-        title: "Save Failed",
-        description: "Failed to save format to Firebase",
-        variant: "destructive"
-      });
-      return false;
+        console.error("❌ Failed to save format:", data.error);
+        toast({
+          title: "Save Failed",
+          description: data.error || "Failed to save format to library",
+          variant: "destructive"
+        });
+        return false;
       }
     } catch (error) {
-      console.error("❌ Error saving formats to Firebase:", error);
+      console.error("❌ Error saving format:", error);
       toast({
         title: "Network Error",
         description: "Could not connect to server",
@@ -3627,33 +3637,47 @@ ${
     }
   }, [showImportModal, currentUser?.userId]);
 
-  // Auto-detect format when pasting data or when formats load
+  // Auto-detect format from universal library when pasting data
   useEffect(() => {
-    if (importData.trim() && Object.keys(savedFormats).length > 0) {
-      const firstLine = importData.trim().split('\n')[0];
-      
-      // Check if this line matches any saved format's sample line
-      for (const [label, format] of Object.entries(savedFormats)) {
-        if (format.sampleLine && firstLine === format.sampleLine) {
-          setActiveFormat(format);
-          setDetectedFormatLabel(label);
-          console.log("🎯 Auto-detected format:", label, "for line:", firstLine);
-          return;
-        }
-      }
-      // No match found - clear active format
+    if (!importData.trim()) {
       setActiveFormat(null);
       setDetectedFormatLabel(null);
-    } else if (!importData.trim()) {
-      // Clear when data is cleared
-      setActiveFormat(null);
-      setDetectedFormatLabel(null);
+      return;
     }
-  }, [importData, savedFormats, showImportModal]);
+
+    const autoDetect = async () => {
+      try {
+        const firstLine = importData.trim().split('\n')[0];
+        const response = await fetch('/api/broker-formats/detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstLine })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.format) {
+            console.log(`🎯 Auto-detected format from ${data.brokerName}: ${data.format.formatName} (${(data.confidence * 100).toFixed(0)}% confidence)`);
+            setActiveFormat(data.format);
+            setDetectedFormatLabel(`${data.brokerName}/${data.format.formatName}`);
+          } else {
+            setActiveFormat(null);
+            setDetectedFormatLabel(null);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Auto-detection error:', error);
+        setActiveFormat(null);
+        setDetectedFormatLabel(null);
+      }
+    };
+
+    autoDetect();
+  }, [importData, showImportModal]);
 
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
-  const [selectedBroker, setSelectedBroker] = useState<string>("");
+  const [selectedBrokerForImport, setSelectedBrokerForImport] = useState<string>("");
   const [brokerCredentials, setBrokerCredentials] = useState({
     apiKey: "",
     apiSecret: "",
@@ -15870,29 +15894,61 @@ ${
                             className="h-8 w-32 text-xs"
                             data-testid="input-format-label"
                           />
+                          <select
+                            value={selectedBroker}
+                            onChange={(e) => {
+                              if (e.target.value === "custom") {
+                                setCustomBrokerName("");
+                              } else {
+                                setSelectedBroker(e.target.value);
+                              }
+                            }}
+                            className="h-7 text-xs px-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded"
+                            data-testid="select-broker"
+                          >
+                            {availableBrokers.map(b => (
+                              <option key={b} value={b}>{b === "angel-one" ? "Angel One" : b.charAt(0).toUpperCase() + b.slice(1)}</option>
+                            ))}
+                          </select>
+                          {selectedBroker === "custom" && (
+                            <input
+                              type="text"
+                              placeholder="Custom broker name"
+                              value={customBrokerName}
+                              onChange={(e) => setCustomBrokerName(e.target.value)}
+                              className="h-7 text-xs px-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded"
+                              data-testid="input-custom-broker"
+                            />
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
                             disabled={!currentUser?.userId}
                             title={!currentUser?.userId ? "Log in to save formats" : ""}
-                            onClick={async () => {if (!savedFormatLabel.trim()) {
+                            onClick={async () => {
+                              if (!savedFormatLabel.trim()) {
                                 alert("Please enter a label for this format");
                                 return;
                               }
-                              // buildModeData already contains sampleLine and positions
-                              const newFormats = { ...savedFormats, [savedFormatLabel]: buildModeData };
-                              setSavedFormats(newFormats);
-                              setActiveFormat(buildModeData);
-                              await saveFormatsToFirebase(newFormats);
-                              setSavedFormatLabel("");
-                              alert(`Format "${savedFormatLabel}" saved with position mapping! Import will now use these positions.`);
-                              console.log("✅ Format saved with positions:", savedFormatLabel, buildModeData.positions);
+                              const brokerName = selectedBroker === "custom" ? customBrokerName : selectedBroker;
+                              if (!brokerName.trim()) {
+                                alert("Please enter a broker name");
+                                return;
+                              }
+                              // Save to universal library
+                              const saved = await saveFormatToUniversalLibrary(savedFormatLabel, buildModeData, brokerName);
+                              if (saved) {
+                                setActiveFormat(buildModeData);
+                                setSavedFormatLabel("");
+                                setCustomBrokerName("");
+                                console.log("✅ Format saved to library:", savedFormatLabel, buildModeData.positions);
+                              }
                             }}
                             data-testid="button-save-format"
                             className="h-7 text-xs px-2"
                           >
                             <Save className="w-3 h-3 mr-1" />
-                            Save
+                            Save to Library
                           </Button>
                           <Button
                             variant="ghost"

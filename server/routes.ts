@@ -57,6 +57,7 @@ import { angelOneInstruments } from './angel-one-instruments';
 import { angelOneWebSocket } from './angel-one-websocket';
 import { simpleLiveTicker } from './simple-live-ticker';
 import { angelOneRealTicker } from './angel-one-real-ticker';
+import { brokerFormatsLibrary, type UniversalFormatData } from './broker-formats-library';
 
 // 🔶 Angel One Stock Token Mappings for historical data
 const ANGEL_ONE_STOCK_TOKENS: { [key: string]: { token: string; exchange: string; tradingSymbol: string } } = {
@@ -5066,6 +5067,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==========================================
   // END USER-SPECIFIC TRADING JOURNAL
   // ==========================================
+
+  // ==========================================
+  // UNIVERSAL BROKER FORMATS LIBRARY
+  // ==========================================
+
+  // Get all available brokers in the universal library
+  app.get('/api/broker-formats/brokers', async (req, res) => {
+    try {
+      const brokers = await brokerFormatsLibrary.getAllBrokers();
+      res.json({ brokers, count: brokers.length });
+    } catch (error) {
+      console.error('❌ Error fetching brokers:', error);
+      res.status(500).json({ error: 'Failed to fetch brokers' });
+    }
+  });
+
+  // Save a new format to the universal library
+  app.post('/api/broker-formats/save', async (req, res) => {
+    try {
+      const { brokerName, formatName, sampleLine, positions, displayValues, userId } = req.body;
+
+      // Validate required fields
+      if (!brokerName || !formatName || !sampleLine || !positions || !userId) {
+        return res.status(400).json({ error: 'Missing required format fields' });
+      }
+
+      // Verify authentication
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const format: Omit<UniversalFormatData, 'savedAt'> = {
+        brokerName,
+        formatName,
+        sampleLine,
+        positions,
+        displayValues,
+        userId
+      };
+
+      const formatId = await brokerFormatsLibrary.saveFormatToLibrary(format);
+      res.json({ 
+        success: true, 
+        formatId, 
+        message: `Format saved to ${brokerName} library` 
+      });
+    } catch (error) {
+      console.error('❌ Error saving format:', error);
+      res.status(500).json({ error: 'Failed to save format' });
+    }
+  });
+
+  // Auto-detect format from pasted data using universal library
+  app.post('/api/broker-formats/detect', async (req, res) => {
+    try {
+      const { firstLine } = req.body;
+
+      if (!firstLine) {
+        return res.status(400).json({ error: 'Missing first line of data' });
+      }
+
+      const match = await brokerFormatsLibrary.autoDetectFormat(firstLine);
+
+      if (match) {
+        res.json({
+          success: true,
+          format: match.format,
+          confidence: match.confidence,
+          brokerName: match.brokerName,
+          message: `Detected ${match.brokerName} format (${(match.confidence * 100).toFixed(0)}% confidence)`
+        });
+      } else {
+        res.json({
+          success: false,
+          message: 'No matching format found in library'
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error detecting format:', error);
+      res.status(500).json({ error: 'Failed to detect format' });
+    }
+  });
+
+  // Get all formats for a specific broker
+  app.get('/api/broker-formats/list/:brokerName', async (req, res) => {
+    try {
+      const { brokerName } = req.params;
+      const formats = await brokerFormatsLibrary.getFormatsByBroker(brokerName);
+      res.json({ broker: brokerName, formats, count: formats.length });
+    } catch (error) {
+      console.error('❌ Error listing formats:', error);
+      res.status(500).json({ error: 'Failed to list formats' });
+    }
+  });
 
   app.get('/api/stock-news/:symbol', async (req, res) => {
     const { symbol } = req.params;
