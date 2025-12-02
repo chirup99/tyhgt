@@ -3900,13 +3900,14 @@ ${
     }
   };
 
-  // Sort instruments by category: Index -> Futures (near, next, far) -> Options
+  // Sort instruments by category: Equity -> Index -> Futures (near, next, far) -> Options
   const sortInstruments = (instruments: any[]): any[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     // Categorize instruments
     const categories: any = {
+      equity: [],
       index: [],
       futuresNear: [],
       futuresNext: [],
@@ -3918,8 +3919,12 @@ ${
     instruments.forEach((inst) => {
       const instrumentType = inst.instrumentType || '';
       
+      // Check if it's an equity stock (EQTSTK, EQ)
+      if (instrumentType === 'EQTSTK' || instrumentType === 'EQ') {
+        categories.equity.push(inst);
+      }
       // Check if it's an index (NIFTY50, NIFTY, BANKNIFTY, etc)
-      if (instrumentType === 'FUTIDX' || instrumentType === 'OPTIDX' || 
+      else if (instrumentType === 'FUTIDX' || instrumentType === 'OPTIDX' || 
           inst.symbol?.match(/^(NIFTY50|NIFTY|BANKNIFTY|FINNIFTY|MIDCPNIFTY)$/i)) {
         if (instrumentType === 'OPTIDX') {
           categories.options.push(inst);
@@ -3955,8 +3960,9 @@ ${
       }
     });
     
-    // Combine in order: Index -> Futures Near -> Futures Next -> Futures Far -> Options -> Others
+    // Combine in order: Equity -> Index -> Futures Near -> Futures Next -> Futures Far -> Options -> Others
     return [
+      ...categories.equity,
       ...categories.index,
       ...categories.futuresNear,
       ...categories.futuresNext,
