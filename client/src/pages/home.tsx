@@ -11380,6 +11380,38 @@ ${
                     </div>
                   </div>
 
+                  {/* Mobile Greeting - Visible only on mobile */}
+                  <div className="w-full md:hidden bg-blue-900 px-4 py-3 flex justify-center">
+                    <div className="text-center">
+                      {isViewOnlyMode ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Sparkles className="h-4 w-4 text-blue-400" />
+                          <h1 className="text-lg font-normal text-gray-100">
+                            Welcome to Trading Platform
+                          </h1>
+                        </div>
+                      ) : showingInitialGreeting ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Sparkles className="h-4 w-4 text-blue-400" />
+                          <h1 className="text-lg font-normal text-gray-100">
+                            Hey {currentUser?.displayName || currentUser?.username || "Trader"}
+                          </h1>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          {animatedStocks[currentStockIndex].isProfit ? (
+                            <TrendingUp className="h-4 w-4 text-green-400" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-red-400" />
+                          )}
+                          <span className={`text-sm font-semibold ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`}>
+                            {animatedStocks[currentStockIndex].symbol}: {animatedStocks[currentStockIndex].price}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
                   <div className="h-[75vh] md:h-[69vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
@@ -11401,19 +11433,16 @@ ${
                               </h1>
                             </>
                           ) : (
-                            <>
-                              <Sparkles className={`h-5 w-5 transition-colors duration-500 ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`} />
-                              <div className="flex items-center gap-2 animate-fade-in">
-                                {animatedStocks[currentStockIndex].isProfit ? (
-                                  <TrendingUp className="h-5 w-5 text-green-400" />
-                                ) : (
-                                  <TrendingDown className="h-5 w-5 text-red-400" />
-                                )}
-                                <span className={`text-lg font-semibold ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`}>
-                                  {animatedStocks[currentStockIndex].symbol}: {animatedStocks[currentStockIndex].price}
-                                </span>
-                              </div>
-                            </>
+                            <div className="flex items-center gap-2 animate-fade-in">
+                              {animatedStocks[currentStockIndex].isProfit ? (
+                                <TrendingUp className="h-5 w-5 text-green-400" />
+                              ) : (
+                                <TrendingDown className="h-5 w-5 text-red-400" />
+                              )}
+                              <span className={`text-lg font-semibold ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`}>
+                                {animatedStocks[currentStockIndex].symbol}: {animatedStocks[currentStockIndex].price}
+                              </span>
+                            </div>
                           )}
                         </div>
                       </div>
