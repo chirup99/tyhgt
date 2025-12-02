@@ -189,7 +189,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
 
     return (
       <div 
-        className="w-full h-full flex flex-col bg-transparent relative overflow-hidden"
+        className="w-full h-full flex flex-col bg-transparent relative"
         onPaste={(e) => {
           e.preventDefault();
           const items = e.clipboardData?.items;
@@ -207,18 +207,21 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           }
         }}
       >
-        {/* Main Carousel Area - Full height, no wrapper */}
-        <div 
-          ref={carouselRef}
-          className={`flex-1 relative bg-transparent flex items-center justify-center select-none cursor-grab active:cursor-grabbing transition-opacity ${selectedImage ? 'opacity-0 pointer-events-none' : ''}`}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
+        {/* Constrained Card Container */}
+        <div className="w-full max-w-3xl mx-auto p-4">
+          <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+            {/* Main Carousel Area - Inside Card */}
+            <div 
+              ref={carouselRef}
+              className={`relative bg-gray-50 dark:bg-gray-800 flex items-center justify-center select-none cursor-grab active:cursor-grabbing transition-opacity h-80 ${selectedImage ? 'opacity-0 pointer-events-none' : ''}`}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
           {/* Cards Container */}
           <div className="absolute inset-0 flex items-center justify-center">
             {cardsToShow.map((card, idx) => {
@@ -287,12 +290,12 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                 </div>
               );
             })}
-          </div>
+            </div>
 
-        </div>
+            </div>
 
-        {/* Curved Line Footer - Transparent Background */}
-        <div className="h-16 relative bg-transparent flex items-center justify-center overflow-hidden">
+            {/* Curved Line Footer - Inside Card */}
+            <div className="h-16 relative bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-t border-gray-200 dark:border-gray-700">
           <svg
             className="absolute inset-0 w-full h-full opacity-40"
             viewBox="0 0 800 60"
@@ -319,6 +322,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               ? `${currentIndex + 1}/5`
               : `${Math.min(currentIndex + 1, images.length)}/${images.length}`
             }
+            </div>
+            </div>
           </div>
         </div>
 
