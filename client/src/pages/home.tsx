@@ -16098,7 +16098,15 @@ ${
                                       if (response.ok) {
                                         const updatedFormats = await response.json();
                                         setSavedFormats(updatedFormats);
-                                        console.log("🔄 Saved formats reloaded - live preview auto-updating:", Object.keys(updatedFormats).length);
+                                        
+                                        // IMMEDIATELY apply first saved format to live preview
+                                        if (Object.keys(updatedFormats).length > 0) {
+                                          const firstLabel = Object.keys(updatedFormats)[0];
+                                          const firstFormat = updatedFormats[firstLabel];
+                                          setActiveFormat(firstFormat);
+                                          console.log("✨ Live preview auto-applying first format:", firstLabel);
+                                        }
+                                        console.log("🔄 Saved formats reloaded - live preview updated:", Object.keys(updatedFormats).length);
                                       }
                                     }
                                   } catch (err) {
