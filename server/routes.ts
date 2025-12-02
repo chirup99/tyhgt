@@ -8202,13 +8202,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let results = instrumentCache;
 
-      // Mapping for exchange segment codes and names
+      // Mapping for exchange segment codes and names - ALL 7 EXCHANGES
       const exchangeMapping: { [key: string]: string[] } = {
-        'NSE': ['1', 'NSE'],
-        'BSE': ['6', 'BSE'],
-        'MCX': ['3', 'MCX', '5', 'NCDEX'],  // MCX (3) and NCDEX (5)
-        'NFO': ['2', 'NFO', 'BFO', '7'],    // NFO (2) and BFO/7
-        'NCDEX': ['5', 'NCDEX']
+        'NSE': ['1', 'NSE'],                          // NSE Equity
+        'BSE': ['6', 'BSE'],                          // BSE Equity
+        'NFO': ['2', 'NFO'],                          // NSE F&O
+        'BFO': ['4', 'BFO', '7'],                     // BSE F&O
+        'MCX': ['3', 'MCX'],                          // MCX Commodities
+        'NCDEX': ['5', 'NCDEX'],                      // NCDEX Commodities
+        'CDS': ['13', 'CDS', 'CDSCURR']               // Currency Derivatives
       };
 
       // Filter by exchange if specified
@@ -8220,17 +8222,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (exchangeMapping[exch]) {
             exchangeMapping[exch].forEach(code => validSegCodes.add(code));
           } else {
+            // If exchange is not in mapping, try adding it directly as a fallback
             validSegCodes.add(exch);
           }
         });
 
+        console.log(`🔍 [SEARCH] Requested exchanges: ${requestedExchanges.join(', ')} -> Segment codes: ${Array.from(validSegCodes).join(', ')}`);
+
         results = results.filter(inst => {
           const segCode = String(inst.exch_seg || '').toUpperCase();
-          return validSegCodes.has(segCode);
+          const matchesExchange = validSegCodes.has(segCode);
+          return matchesExchange;
         });
       } else {
-        // Default to NSE, BSE, MCX only
-        const defaultSegCodes = new Set(['1', 'NSE', '6', 'BSE', '3', 'MCX', '5', 'NCDEX']);
+        // Default to all 7 exchanges
+        const defaultSegCodes = new Set(['1', 'NSE', '2', 'NFO', '3', 'MCX', '4', 'BFO', '5', 'NCDEX', '6', 'BSE', '7', '13', 'CDS', 'CDSCURR']);
         results = results.filter(inst => {
           const segCode = String(inst.exch_seg || '').toUpperCase();
           return defaultSegCodes.has(segCode);
