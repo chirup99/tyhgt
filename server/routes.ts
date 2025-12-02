@@ -8266,20 +8266,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             validInstrumentTypes.add('INDEX');
             break;
           case 'FUTURES':
-            // All futures types
+            // Index and Stock futures only (no MCX commodities)
             validInstrumentTypes.add('FUTIDX');     // Index futures
             validInstrumentTypes.add('FUTSTK');     // Stock futures
-            validInstrumentTypes.add('FUTCOMM');    // Commodity futures
             break;
           case 'OPTIONS':
-            // All options types
+            // Stock and Index options only (no MCX commodities)
             validInstrumentTypes.add('OPTSTK');     // Stock options
             validInstrumentTypes.add('OPTFUT');     // Futures options
             validInstrumentTypes.add('OPTIDX');     // Index options
-            validInstrumentTypes.add('OPTCOMM');    // Commodity options
             break;
           case 'MCX':
-            // MCX commodities: Index, Futures, Options
+            // MCX commodities only: Index, Futures, Options
             validInstrumentTypes.add('INDEX');
             validInstrumentTypes.add('FUTCOMM');
             validInstrumentTypes.add('OPTCOMM');
