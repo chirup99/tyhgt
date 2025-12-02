@@ -435,7 +435,16 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
     refetchOnMount: false, // Use cached data on mount for faster loading
     refetchOnWindowFocus: false // Reduce unnecessary refetches
   });
-  const currentPrice = analysisData.priceData.close || 2695.80;
+  // Get current price from chart data (latest point) or fallback to analysis data
+  const getLatestChartPrice = () => {
+    if (chartData && chartData.length > 0) {
+      // Use the last data point from the chart as the current price
+      return chartData[chartData.length - 1]?.price || analysisData.priceData.close || 0;
+    }
+    return analysisData.priceData.close || 0;
+  };
+  
+  const currentPrice = getLatestChartPrice();
   
   // Calculate price difference based on selected timeframe
   const getTimeframeBaseline = () => {
@@ -611,15 +620,15 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">Open</span>
-            <span className="text-gray-900 dark:text-white">₹{analysisData.priceData.open}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.open).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">High</span>
-            <span className="text-gray-900 dark:text-white">₹{analysisData.priceData.high}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.high).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">Low</span>
-            <span className="text-gray-900 dark:text-white">₹{analysisData.priceData.low}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.low).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">Vol</span>
@@ -627,11 +636,11 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">52W High</span>
-            <span className="text-gray-900 dark:text-white">₹{analysisData.priceData.high52W}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.high52W).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 dark:text-gray-400">52W Low</span>
-            <span className="text-gray-900 dark:text-white">₹{analysisData.priceData.low52W}</span>
+            <span className="text-gray-900 dark:text-white">₹{Number(analysisData.priceData.low52W).toFixed(2)}</span>
           </div>
         </div>
       </div>
