@@ -386,6 +386,22 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {/* X Button to deactivate Audio MiniCast - Only show when audio mode active */}
+            {viewMode === 'audio' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setViewMode('post');
+                  setIsAudioMode(false);
+                  if (onMinimize) onMinimize();
+                }}
+                className="h-8 w-8 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                data-testid="button-deactivate-audio"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
             {/* Audio Toggle Switch - Desktop only */}
             {!hideAudioMode && (
               <div className="hidden md:flex items-center gap-2">
