@@ -497,7 +497,7 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
               /* Post Selection Instructions - Only show when no posts selected */
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 cursor-pointer flex-1" onClick={onMinimize}>
                     <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
                       Select Posts for Audio MiniCast
@@ -509,10 +509,10 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
                       size="sm"
                       variant="ghost"
                       onClick={onMinimize}
-                      className="h-6 w-6 p-0 hover:bg-purple-200 dark:hover:bg-purple-800"
-                      data-testid="button-minimize-audio"
+                      className="h-6 w-6 p-0 hover:bg-purple-200 dark:hover:bg-purple-800 flex-shrink-0"
+                      data-testid="button-close-audio-select"
                     >
-                      <Minus className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      <X className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     </Button>
                   )}
                 </div>
