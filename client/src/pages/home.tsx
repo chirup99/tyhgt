@@ -1904,6 +1904,7 @@ export default function Home() {
 
   // Animated greeting stocks state
   const [currentStockIndex, setCurrentStockIndex] = useState(0);
+  const [showingInitialGreeting, setShowingInitialGreeting] = useState(true);
   const animatedStocks = [
     { symbol: "NIFTY", price: "59273.80", change: +1.24, isProfit: true },
     { symbol: "BANKNIFTY", price: "52841.35", change: +0.87, isProfit: true },
@@ -1921,13 +1922,25 @@ export default function Home() {
   const [pendingTab, setPendingTab] = useState<string>("");
   const [showSavedFormatsDropdown, setShowSavedFormatsDropdown] = useState(false);
 
-  // Auto-rotate stock display in greeting every 3 seconds
+  // Show initial greeting for 2 seconds, then switch to animated stocks
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStockIndex(prev => (prev + 1) % animatedStocks.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [animatedStocks.length]);
+    if (!isViewOnlyMode) {
+      const initialTimer = setTimeout(() => {
+        setShowingInitialGreeting(false);
+      }, 2000);
+      return () => clearTimeout(initialTimer);
+    }
+  }, [isViewOnlyMode]);
+
+  // Auto-rotate stock display every 3 seconds (only after initial greeting)
+  useEffect(() => {
+    if (!isViewOnlyMode && !showingInitialGreeting) {
+      const interval = setInterval(() => {
+        setCurrentStockIndex(prev => (prev + 1) % animatedStocks.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [animatedStocks.length, isViewOnlyMode, showingInitialGreeting]);
 
   // Expose toggle nav function to window for profile icon in right sidebar
   useEffect(() => {
@@ -11380,12 +11393,16 @@ ${
                                 Welcome to Trading Platform
                               </h1>
                             </>
-                          ) : (
+                          ) : showingInitialGreeting ? (
                             <>
-                              <Sparkles className={`h-5 w-5 transition-colors duration-500 ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`} />
+                              <Sparkles className="h-5 w-5 text-blue-400" />
                               <h1 className="text-2xl font-normal text-gray-100">
                                 Hey {currentUser?.displayName || currentUser?.username || "Trader"}
                               </h1>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className={`h-5 w-5 transition-colors duration-500 ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`} />
                               <div className="flex items-center gap-2 animate-fade-in">
                                 {animatedStocks[currentStockIndex].isProfit ? (
                                   <TrendingUp className="h-5 w-5 text-green-400" />
