@@ -509,12 +509,16 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
                   Click on any post below to add it to your audio minicast (up to 5 posts). 
                   Your selected posts will be combined with your thoughts into an audio experience.
                 </p>
-                {/* Hand Click Icon - Bottom Right */}
-                <div className="absolute bottom-2 right-2 text-purple-500 dark:text-purple-400 opacity-60 hover:opacity-100 transition-opacity">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10.5 1.5H9.5v2h1V1.5zM4.72 3.72l-.71-.71L3.3 4.13l.71.71 1.01-1.12zM15.28 3.72l-1.01-1.12.71-.71 1.01 1.12-.71.71zM2 9.5H0v1h2v-1zm18 0h-2v1h2v-1zM4.72 16.28l-1.01 1.12-.71-.71 1.01-1.12.71.71zM15.28 16.28l.71.71-1.01 1.12-.71-.71 1.01-1.12zM10.5 18.5v-2h-1v2h1z" />
-                    <path d="M10 2C5.58 2 2 5.58 2 10c0 2.67 1.31 5.05 3.3 6.54l.71-.71C4.25 14.52 3 12.46 3 10c0-3.86 3.14-7 7-7s7 3.14 7 7c0 2.46-1.25 4.52-3.01 5.83l.71.71c1.99-1.49 3.3-3.87 3.3-6.54 0-4.42-3.58-8-8-8z" />
-                  </svg>
+                {/* Cards Icon with Hand Click Indicator - Bottom Right */}
+                <div className="absolute bottom-2 right-2 opacity-60 hover:opacity-100 transition-opacity">
+                  <div className="relative w-6 h-6">
+                    <Layers className="w-6 h-6 text-purple-500 dark:text-purple-400" />
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-purple-600 dark:bg-purple-300 rounded-full flex items-center justify-center">
+                      <svg className="w-1.5 h-1.5 text-white dark:text-purple-900" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 6a2 2 0 11-4 0 2 2 0 014 0zM2 9a1 1 0 100-2 1 1 0 000 2z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
