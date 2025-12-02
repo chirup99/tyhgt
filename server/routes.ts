@@ -3146,28 +3146,36 @@ async function getRealChartData(symbol: string, timeframe: string) {
       
       if (candleData && Array.isArray(candleData) && candleData.length > 0) {
         // Format data for chart display with proper time labels based on timeframe
+        // Convert all timestamps to IST (Indian Standard Time, UTC+5:30)
         const formattedData = candleData.map((candle: any) => {
           const timestamp = new Date(candle.timestamp);
+          
+          // Convert to IST by adding 5 hours 30 minutes offset
+          // IST is UTC+5:30, so we need to get the time in IST timezone
+          const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+          const utcTime = timestamp.getTime() + (timestamp.getTimezoneOffset() * 60 * 1000); // Convert to UTC
+          const istTime = new Date(utcTime + istOffset); // Convert UTC to IST
+          
           let timeLabel: string;
           
           // Use different time formats based on timeframe
           if (['1D', '1d', '5m', '15m', '1h'].includes(timeframe)) {
-            // Intraday - show HH:MM
-            const hours = timestamp.getHours();
-            const minutes = timestamp.getMinutes();
+            // Intraday - show HH:MM in IST
+            const hours = istTime.getHours();
+            const minutes = istTime.getMinutes();
             timeLabel = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
           } else if (['5D', '5d'].includes(timeframe)) {
-            // 5-day - show Day HH:MM
+            // 5-day - show Day HH:MM in IST
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const hours = timestamp.getHours();
-            timeLabel = `${days[timestamp.getDay()]} ${hours.toString().padStart(2, '0')}:00`;
+            const hours = istTime.getHours();
+            timeLabel = `${days[istTime.getDay()]} ${hours.toString().padStart(2, '0')}:00`;
           } else if (timeframe === '1M') {
-            // Monthly - show DD/MM
-            timeLabel = `${timestamp.getDate().toString().padStart(2, '0')}/${(timestamp.getMonth() + 1).toString().padStart(2, '0')}`;
+            // Monthly - show DD/MM in IST
+            timeLabel = `${istTime.getDate().toString().padStart(2, '0')}/${(istTime.getMonth() + 1).toString().padStart(2, '0')}`;
           } else {
-            // 6M, 1Y, 5Y - show MMM DD
+            // 6M, 1Y, 5Y - show MMM DD in IST
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            timeLabel = `${months[timestamp.getMonth()]} ${timestamp.getDate()}`;
+            timeLabel = `${months[istTime.getMonth()]} ${istTime.getDate()}`;
           }
           
           return {

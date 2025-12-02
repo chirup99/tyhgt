@@ -195,3 +195,29 @@ The Trading Platform has been successfully migrated to the Replit environment an
 ✅ TCS 1Y: 249 data points via ONE_DAY interval
 ✅ TCS 5D: 52 data points via THIRTY_MINUTE interval
 ✅ All timeframe buttons working in Fundamental window
+
+=========================================================
+## FUNDAMENTAL CHART IST TIMEZONE FIX - December 2, 2025 🕐
+
+[x] 1. Fixed time scale on Fundamental window line chart to use IST timezone
+[x] 2. Updated getRealChartData() function to convert timestamps to IST (UTC+5:30)
+[x] 3. Workflow restarted and verified
+
+### Changes Made:
+**Backend (server/routes.ts) - Lines 3150-3160:**
+- Added IST timezone conversion for all chart timestamps
+- Converts UTC timestamps to IST (Indian Standard Time, UTC+5:30)
+- Applied to all timeframe formats: 1D, 5D, 1M, 6M, 1Y
+
+### Technical Details:
+```javascript
+// Convert to IST by adding 5 hours 30 minutes offset
+const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+const utcTime = timestamp.getTime() + (timestamp.getTimezoneOffset() * 60 * 1000);
+const istTime = new Date(utcTime + istOffset);
+```
+
+### Result:
+✅ Intraday charts now show correct IST time (e.g., 09:15, 15:30)
+✅ 5-day charts show correct IST day and time
+✅ All timeframes display in Indian Standard Time
