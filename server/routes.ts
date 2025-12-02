@@ -8254,6 +8254,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
 
+      // Filter by instrument type based on trade type
+      const filterType = req.query.filterType ? (req.query.filterType as string).toUpperCase() : null;
+      if (filterType) {
+        const validInstrumentTypes = new Set<string>();
+        
+        switch (filterType) {
+          case 'STOCK':
+            // Equity and Index only
+            validInstrumentTypes.add('EQT');
+            validInstrumentTypes.add('INDEX');
+            break;
+          case 'FUTURES':
+            // All futures types
+            validInstrumentTypes.add('FUTIDX');     // Index futures
+            validInstrumentTypes.add('FUTSTK');     // Stock futures
+            validInstrumentTypes.add('FUTCOMM');    // Commodity futures
+            break;
+          case 'OPTIONS':
+            // All options types
+            validInstrumentTypes.add('OPTSTK');     // Stock options
+            validInstrumentTypes.add('OPTFUT');     // Futures options
+            validInstrumentTypes.add('OPTIDX');     // Index options
+            validInstrumentTypes.add('OPTCOMM');    // Commodity options
+            break;
+          case 'MCX':
+            // MCX commodities: Index, Futures, Options
+            validInstrumentTypes.add('INDEX');
+            validInstrumentTypes.add('FUTCOMM');
+            validInstrumentTypes.add('OPTCOMM');
+            break;
+        }
+        
+        if (validInstrumentTypes.size > 0) {
+          results = results.filter(inst => {
+            const instType = String(inst.instrumenttype || '').toUpperCase();
+            return validInstrumentTypes.has(instType);
+          });
+          console.log(`🔍 [FILTER] Type: ${filterType} -> Valid types: ${Array.from(validInstrumentTypes).join(', ')} -> Found ${results.length} instruments`);
+        }
+      }
+
       // Limit results
       const maxResults = limit ? parseInt(limit as string, 10) : 100;
       results = results.slice(0, maxResults);

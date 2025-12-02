@@ -3979,7 +3979,7 @@ ${
       const exchange = getExchangeForTradeType(paperTradeType);
       console.log(`🔍 [PAPER-TRADE] Searching for "${query}" on exchange: ${exchange} (type: ${paperTradeType})`);
       
-      const url = `/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&limit=50`;
+      const url = `/api/angelone/search-instruments?query=${encodeURIComponent(query)}&exchange=${encodeURIComponent(exchange)}&filterType=${encodeURIComponent(paperTradeType)}&limit=50`;
       console.log(`🔍 [PAPER-TRADE] API URL: ${url}`);
       
       const response = await fetch(url);
