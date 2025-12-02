@@ -3808,15 +3808,15 @@ ${
   const getExchangeForTradeType = (type: 'STOCK' | 'FUTURES' | 'OPTIONS' | 'MCX'): string => {
     switch (type) {
       case 'STOCK':
-        return 'NSE,BSE';  // Equity stocks
+        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for stocks
       case 'FUTURES':
-        return 'NFO,BFO';  // NSE F&O + BSE F&O for futures
+        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for futures
       case 'OPTIONS':
-        return 'NFO,BFO';  // NSE F&O + BSE F&O for options
+        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for options
       case 'MCX':
-        return 'MCX,NCDEX';  // MCX + NCDEX for commodities
+        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';  // ALL exchanges for commodities
       default:
-        return 'NSE,BSE';
+        return 'NSE,BSE,NFO,BFO,MCX,NCDEX,CDS';
     }
   };
 
