@@ -466,14 +466,6 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               ))}
             </div>
 
-            {/* Close Button Text */}
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="mt-4 px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex-shrink-0"
-              data-testid="button-close-modal-bottom"
-            >
-              Close
-            </button>
           </div>
         )}
       </div>
