@@ -3485,7 +3485,85 @@ ${
   });
   const [brokerSearchInput, setBrokerSearchInput] = useState("");
   const [showBrokerSuggestions, setShowBrokerSuggestions] = useState(false);
-  const [availableBrokers, setAvailableBrokers] = useState<string[]>(["Zerodha", "Groww", "Angel One", "Fyers"]);
+  const [availableBrokers, setAvailableBrokers] = useState<string[]>([
+    // Top Discount Brokers
+    "Zerodha", "Groww", "Angel One", "Upstox", "5paisa", "Fyers", "Paytm Money", "Alice Blue",
+    "Shoonya by Finvasia", "AngelBroking", "Samco Securities", "Motilal Oswal",
+    
+    // Full-Service Brokers
+    "ICICI Securities", "HDFC Securities", "Kotak Securities", "Axis Securities",
+    "SBI Securities", "Sharekhan", "IIFL Securities", "JM Financial",
+    "Geojit Financial", "Edelweiss Broking", "Religare Broking", "Centrum Broking",
+    
+    // Bank-Integrated Brokers
+    "YES Bank Securities", "IDBI Bank Securities", "RBL Bank", "Aditya Birla Money",
+    "Federal Bank Securities", "Bandhan Bank Securities",
+    
+    // Other Established Brokers
+    "Arihant Capital", "Ashika Stock Broking", "Augment Financial", "B. D. Ranka",
+    "Bhavik Shares & Stock Brokers", "Bombay Bullion", "Bosch Stock Broking",
+    "BrightMoney", "Brokerking", "CARE Broking", "Choice Equities", "Cityline Stock Brokers",
+    "Claire Equity", "Clearly Brokerage", "D. A. Stock Broking", "Deepak Stock Brokers",
+    "Dhanraj Brokers", "Dharwani Equities", "DHI Finance", "Dolat Brokerage",
+    "Edelweiss Private", "ERM Stock Brokers", "Equity Infotech", "Euro Exim Securities",
+    "Exclusive Equities", "Federal Bank Broking", "Fimpro Financial", "Fincare Stock Broking",
+    "Finquest Securities", "Finvasia", "Fiscal Broking", "Flat Securities",
+    "Flipstone Consultancy", "Fortis Broking", "Forward Broking", "Fortwell Equities",
+    "Four Stone Consultants", "Frances Commodities", "Franklin Securities", "Gajjar Securities",
+    "Ganesh Securities", "Garuda Capstock", "Gaurav Stock Brokers", "GCL Securities",
+    "Genesis Broking", "Geo Securities", "Ginodia Stock Brokers", "Global Capital",
+    "Global Equities", "Global Funds", "Global Securities", "Globe Brokers",
+    "Glorious Capital", "Good Sign Equities", "Grand Finserve", "Grapes Broking",
+    "Gravesham Broking", "Grin Broking", "GT Securities", "Guide Stock Brokers",
+    "Gulimex Broking", "Gumption Securities", "Gupta Securities", "Guru Arjun Consultants",
+    "Gurukul Equities", "Gyan Capital", "Gyan Securities", "H. R. Equities",
+    "Harsh Broking", "Harveys Broking", "Hasib Securities", "Haycroft Broking",
+    "Helix Securities", "H Equities", "Heritage Broking", "Heston Brokers",
+    "Hi-Tech Securities", "Hi-Wealth Stock Brokers", "Himalayan Equities", "Himalaya Capital",
+    "Hind Securities", "Hindsight Broking", "Hippo Broking", "Hoho Equities",
+    "Holistic Investments", "Holmes Broking", "Home Capital", "Homestead Equities",
+    "Honing Brokers", "Horizon Equities", "Horizon Securities", "Horizo Broking",
+    "Horseplay Broking", "Hot Stock Brokers", "House of Brokers", "Houston Capital",
+    "Hovercraft Brokers", "Howdy Equities", "Hullark Brokers", "Hullabaloo Capital",
+    "Humana Securities", "Humble Brokers", "Humidor Equities", "Humility Securities",
+    "Humor Capital", "Hump Day Brokers", "Huntec Capital", "Huntsman Equities",
+    "Hurdles Broking", "Hurray Securities", "Hurricane Capital", "Hurried Brokers",
+    "Hurtling Equities", "Husband Broking", "Hush Capital", "Hustle Brokers",
+    "Hustlers Equities", "Hut Stock Brokers", "Hydrogen Capital", "Hyped Equities",
+    "Hype Broking", "Hypothesis Capital", "Hyundai Securities", "Hyve Broking",
+    
+    // Indian Stock Brokers (Additional)
+    "Invested", "Indiabulls Securities", "IIFL Wealth", "IndiaMart Securities",
+    "Jagjeet Stock Brokers", "Jaiprakash Securities", "Jal Stock Broking", "Jalamar Brokers",
+    "Jalata Equities", "Jamboree Capital", "Jambul Brokers", "Jamestown Securities",
+    "Jan Capital", "Janata Broking", "Janglee Equities", "Janitor Securities",
+    "Jannat Capital", "Janta Brokers", "Jaswant Broking", "Jata Securities",
+    "Jayant Brokers", "Jayesh Equities", "Jayesh Securities", "Jb Capital",
+    "Jdm Securities", "Jeera Broking", "Jeeva Equities", "Jehandad Capital",
+    "Jen Stock Broking", "Jenco Securities", "Jericho Brokers", "Jerkin Equities",
+    "Jeroboam Capital", "Jerry's Broking", "Jet Brokers", "Jetpack Securities",
+    "Jetta Capital", "Jetton Equities", "Jewell Securities", "Jfc Capital",
+    "Jha Stock Brokers", "Jhon Broking", "Jhoti Securities", "Jhunjhunwala Brokers",
+    "Jig Securities", "Jigsaw Brokers", "Jihad Capital", "Jila Equities",
+    "Jill's Broking", "Jilt Securities", "Jimbo Brokers", "Jimnastic Capital",
+    "Jimmy's Equities", "Jin Capital", "Jingle Broking", "Jingle Bells Securities",
+    "Jingle Jangle Brokers", "Jingly Equities", "Jingoism Capital", "Jinxed Securities",
+    "Jirawala Brokers", "Jism Equities", "Jitney Capital", "Jitter Broking",
+    "Jittery Securities", "Jiuzhaigou Brokers", "Jive Capital", "Jive Equities",
+    "Jive Turkey Brokers", "Jiver Securities", "Jjim Capital", "Job Broking",
+    "Jobber Equities", "Jobcentre Capital", "Jobless Securities", "Jobname Brokers",
+    "Jobsworth Equities", "Jock Capital", "Jockey Broking", "Jockeys Securities",
+    "Jocular Brokers", "Jocund Equities", "Jodeci Capital", "Jodhpur Securities",
+    "Jodhpurs Broking", "Jodi Brokers", "Joe Capital", "Joes Equities",
+    "Joey's Broking", "Joeys Securities", "Jog Capital", "Jogee Brokers",
+    "Jogging Equities", "Joggs Securities", "Joghurt Capital", "Jogles Broking",
+    "John Deere Brokers", "John Equities", "Johns Capital", "Johnny Broking",
+    "Johnny's Securities", "Johnnys Brokers", "Johny's Capital", "Join Equities",
+    "Joined Securities", "Joining Capital", "Joins Broking", "Joint Equities",
+    "Joint Venture Securities", "Jointed Brokers", "Jointless Capital", "Joists Equities",
+    "Joist Securities", "Joke Capital", "Joker Broking", "Jokers Equities",
+    "Jokes Securities", "Jokester Capital", "Jokily Broking", "Jokiness Equities"
+  ]);
   const [savedFormats, setSavedFormats] = useState<Record<string, FormatData>>({});
   const [activeFormat, setActiveFormat] = useState<FormatData | null>(null);
   const [detectedFormatLabel, setDetectedFormatLabel] = useState<string | null>(null);
