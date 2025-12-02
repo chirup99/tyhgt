@@ -207,49 +207,86 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
           }
         }}
       >
-        {/* Main Grid Area - Show all 5 cards compact */}
+        {/* Main Carousel Area - Full height, no wrapper */}
         <div 
           ref={carouselRef}
-          className={`flex-1 relative bg-transparent flex items-center justify-center select-none transition-opacity ${selectedImage ? 'opacity-0 pointer-events-none' : ''}`}
+          className={`flex-1 relative bg-transparent flex items-center justify-center select-none cursor-grab active:cursor-grabbing transition-opacity ${selectedImage ? 'opacity-0 pointer-events-none' : ''}`}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
-          {/* Cards Grid Container */}
-          <div className="flex gap-2 items-center justify-center px-4">
-            {cardsToShow.map((card, idx) => (
-              <div
-                key={card.id}
-                className="flex-shrink-0"
-              >
-                <div 
-                  className="relative rounded-lg overflow-hidden shadow-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-lg transition-all hover:scale-105" 
-                  style={{ width: '90px', height: '90px' }}
-                  onClick={() => {
-                    setSelectedCardIndex(idx);
-                    if ((card as any).image) {
-                      setSelectedImage((card as any).image);
-                    } else {
-                      setSelectedImage(null);
-                    }
+          {/* Cards Container */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {cardsToShow.map((card, idx) => {
+              const offset = idx - currentIndex;
+              let displayOffset = offset;
+              const totalCards = cardsToShow.length;
+              
+              if (displayOffset < -totalCards / 2) {
+                displayOffset += totalCards;
+              } else if (displayOffset > totalCards / 2) {
+                displayOffset -= totalCards;
+              }
+
+              if (Math.abs(displayOffset) > 2) return null;
+
+              // Only apply drag offset to the center/top card (displayOffset === 0)
+              const dragOffsetForThisCard = isDragging && displayOffset === 0 ? dragOffset : 0;
+              const dragRotationForThisCard = isDragging && displayOffset === 0 ? (dragOffset * 0.15) : 0;
+
+              const rotation = displayOffset * 8 + dragRotationForThisCard;
+              const translateX = displayOffset * 45 + dragOffsetForThisCard * 0.3;
+              const translateY = Math.abs(displayOffset) * 15;
+              const scale = 1 - Math.abs(displayOffset) * 0.06;
+              const zIndex = 10 - Math.abs(displayOffset);
+              const opacity = displayOffset === 0 ? 1 : 0.65;
+
+              return (
+                <div
+                  key={card.id}
+                  className={`absolute ${isDragging ? '' : 'transition-all duration-400 ease-out'}`}
+                  style={{
+                    transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale}) rotate(${rotation}deg)`,
+                    zIndex: zIndex,
+                    opacity: opacity,
                   }}
-                  data-testid={`card-compact-${idx}`}
                 >
-                  {(card as any).image ? (
-                    <div className="w-full h-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center overflow-hidden">
-                      <img
-                        src={(card as any).image.url}
-                        alt={(card as any).label}
-                        className="w-full h-full object-cover pointer-events-none"
-                        data-testid={`img-card-${idx}`}
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2 bg-gray-150 dark:bg-gray-850">
-                      <Plus className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                      <span className="text-gray-700 dark:text-gray-300 text-xs font-medium text-center leading-tight line-clamp-2">{(card as any).label}</span>
-                    </div>
-                  )}
+                  <div 
+                    className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700 cursor-pointer transition-transform hover:scale-105" 
+                    style={{ width: '200px', height: '150px' }}
+                    onClick={() => {
+                      setSelectedCardIndex(idx);
+                      if ((card as any).image) {
+                        setSelectedImage((card as any).image);
+                      } else {
+                        setSelectedImage(null);
+                      }
+                    }}
+                  >
+                    {(card as any).image ? (
+                      <div className="w-full h-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={(card as any).image.url}
+                          alt={(card as any).label}
+                          className="w-full h-full object-contain pointer-events-none"
+                          data-testid={`img-card-${idx}`}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-3 bg-gray-200 dark:bg-gray-900">
+                        <Plus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <span className="text-gray-800 dark:text-white text-xs font-medium text-center line-clamp-2">{(card as any).label}</span>
+                        <span className="text-gray-600 dark:text-gray-300 text-xs opacity-75">Paste or upload</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
         </div>
