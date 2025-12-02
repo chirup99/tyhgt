@@ -242,7 +242,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
               const translateX = displayOffset * 45 + dragOffsetForThisCard * 0.3;
               const translateY = Math.abs(displayOffset) * 15;
               const scale = 1 - Math.abs(displayOffset) * 0.06;
-              const zIndex = 100 - Math.abs(displayOffset);
+              const zIndex = 10 - Math.abs(displayOffset);
               const opacity = displayOffset === 0 ? 1 : 0.65;
 
               return (
