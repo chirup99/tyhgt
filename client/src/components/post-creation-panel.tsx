@@ -436,50 +436,8 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
                 }`} />
               </Button>
             )}
-            {/* Message Icon - Only visible on mobile */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'message' ? 'post' : 'message')}
-              className="md:hidden p-2 h-8 w-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
-              data-testid="button-toggle-message"
-            >
-              <MessageCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            </Button>
           </div>
         </CardTitle>
-        
-        {/* Switch tabs for message view */}
-        {viewMode === 'message' && (
-          <div className="flex gap-1 mt-3">
-            <Button
-              variant={messageTab === 'message' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setMessageTab('message')}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                messageTab === 'message' 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-              data-testid="tab-messages"
-            >
-              Messages
-            </Button>
-            <Button
-              variant={messageTab === 'community' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setMessageTab('community')}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                messageTab === 'community'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-              data-testid="tab-community"
-            >
-              Community
-            </Button>
-          </div>
-        )}
       </CardHeader>
       <CardContent className="space-y-4 xl:space-y-6 p-4 xl:p-6 max-h-[calc(100vh-280px)] overflow-y-auto">
         {viewMode === 'audio' ? (
