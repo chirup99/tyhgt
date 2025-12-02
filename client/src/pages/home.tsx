@@ -15,7 +15,6 @@ import { AuthButtonAngelOne, AngelOneStatus, AngelOneApiStatistics, AngelOneSyst
 // import { ApiStatistics } from "@/components/api-statistics";
 // import { ErrorPanel } from "@/components/error-panel";
 import { SigninDataWindow } from "@/components/signin-data-window";
-import { LiveBanner } from "@/components/live-banner";
 import { TradingViewWidget } from "@/components/tradingview-widget";
 import { AdvancedCandlestickChart } from "@/components/advanced-candlestick-chart";
 import { EnhancedTradingViewWidget } from "@/components/enhanced-tradingview-widget";
@@ -11122,13 +11121,10 @@ ${
 
             {activeTab === 'dashboard' && localStorage.getItem('currentUserEmail') === 'chiranjeevi.perala99@gmail.com' && (
               <div className="space-y-8">
-                {/* YouTube Live Banner */}
-                <LiveBanner />
-
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center gap-3">
                     <Star className="h-6 w-6 text-yellow-400" />
-                    <h2 className="text-2xl font-bold text-orange-400">Trading Dashboard - Angel One API</h2>
+                    <h2 className="text-2xl font-bold text-orange-400">Trading Dashboard</h2>
                   </div>
                   <p className="text-orange-300">Real-time market data via Angel One SmartAPI</p>
                 </div>
