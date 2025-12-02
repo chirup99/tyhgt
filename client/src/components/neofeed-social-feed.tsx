@@ -578,11 +578,19 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
                   tickCount={8}
                 />
                 <YAxis 
-                  domain={['dataMin - 10', 'dataMax + 10']}
+                  domain={[(dataMin: number) => {
+                    const prices = chartData.map((d: any) => Number(d.price) || 0);
+                    const min = Math.min(...prices);
+                    return Math.floor(min - (min * 0.01));
+                  }, (dataMax: number) => {
+                    const prices = chartData.map((d: any) => Number(d.price) || 0);
+                    const max = Math.max(...prices);
+                    return Math.ceil(max + (max * 0.01));
+                  }]}
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 10, fill: '#64748b' }}
-                  width={35}
+                  width={40}
                 />
                 <Tooltip 
                   content={({ active, payload, label }) => {
