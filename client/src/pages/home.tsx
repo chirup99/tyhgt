@@ -3490,6 +3490,11 @@ ${
     "Zerodha", "Groww", "Angel One", "Upstox", "5paisa", "Fyers", "Paytm Money", "Alice Blue",
     "Shoonya by Finvasia", "Samco Securities", "Motilal Oswal",
     
+    // Crypto Exchanges & Brokers
+    "Coinbase", "Kraken", "Binance", "Delta Exchange", "WazirX", "Bybit", "OKX", "Huobi",
+    "Kucoin", "FTX", "Gemini", "Bitstamp", "Upbit", "Bithumb", "Crypto.com", "Bitcoin India",
+    "CoinDCX", "Zebpay", "BTCXIndia", "Unocoin", "BTCXINDIA", "Paxful", "LocalBitcoins", "Coinswitch",
+    
     // Full-Service Brokers
     "ICICI Securities", "HDFC Securities", "Kotak Securities", "Axis Securities",
     "SBI Securities", "Sharekhan", "IIFL Securities", "JM Financial",
@@ -15989,7 +15994,7 @@ ${
                         <div className="flex items-center gap-2">
                           <div className="relative">
                             <Input
-                              placeholder="Type broker name (e.g., Zerodha, Angel One...)"
+                              placeholder="Type broker name or custom name (e.g., Zerodha, Coinbase, MyBroker...)"
                               value={brokerSearchInput}
                               onChange={(e) => {
                                 setBrokerSearchInput(e.target.value);
@@ -16025,7 +16030,7 @@ ${
                             disabled={!currentUser?.userId || !brokerSearchInput.trim() || !allColumnsFilledForSave}
                             title={
                               !currentUser?.userId ? "Log in to save formats" : 
-                              !brokerSearchInput.trim() ? "Enter broker name" :
+                              !brokerSearchInput.trim() ? "Enter broker or custom name" :
                               !allColumnsFilledForSave ? `Fill all columns: ${missingColumns.join(", ")}` :
                               ""
                             }
