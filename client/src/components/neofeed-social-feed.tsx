@@ -2570,24 +2570,24 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     };
   }, [lastScrollY]);
   
-  const { data: posts = [], isLoading, error, isFetching, refetch } = useQuery({
+  const { data: posts = [], isLoading, error, isFetching } = useQuery({
     queryKey: ['/api/social-posts', pageNumber],
     queryFn: async (): Promise<SocialPost[]> => {
-      const limit = 20;
+      const limit = 15;
       const offset = (pageNumber - 1) * limit;
-      const response = await fetch(`/api/social-posts?limit=${limit}&offset=${offset}&refresh=${Date.now()}`);
+      const response = await fetch(`/api/social-posts?limit=${limit}&offset=${offset}`);
       if (!response.ok) {
         throw new Error('Failed to fetch posts');
       }
       return await response.json();
     },
-    staleTime: 300000,
+    staleTime: 120000,
     gcTime: 600000,
-    refetchInterval: 180000,
+    refetchInterval: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchIntervalInBackground: false,
-    networkMode: 'offlineFirst'
+    networkMode: 'always'
   });
 
   // Infinite scroll observer
@@ -2673,18 +2673,14 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
   // Smart "All" button functionality
   const handleAllClick = () => {
     setSelectedFilter('All');
-    if (isAtTop) {
-      // If at top, refresh posts with fresh timestamp to get latest
-      refetch();
-    } else {
-      // If not at top, scroll to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    setPageNumber(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Filter change handler
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
+    setPageNumber(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
