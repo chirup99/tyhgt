@@ -2559,7 +2559,43 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     };
   }, [lastScrollY]);
   
-  const { data: posts = [], isLoading, error, isFetching } = useQuery({
+  // Default mock posts for instant display
+  const defaultMockPosts: SocialPost[] = [
+    {
+      id: '1',
+      authorUsername: "Welcome to NeoFeed",
+      content: "Welcome to NeoFeed! 🚀 This is your new social trading platform. Share your market insights with the community!",
+      createdAt: new Date(),
+      likes: 0,
+      comments: 0,
+      reposts: 0,
+      sentiment: "bullish",
+    } as SocialPost,
+    {
+      id: '2',
+      authorUsername: "Nifty Tracker",
+      content: "NIFTY showing consolidation. Support at 24,650 and resistance at 24,950. Watch for breakout. Volume decreasing.",
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      likes: 89,
+      comments: 12,
+      reposts: 28,
+      sentiment: "neutral",
+      ticker: "$NIFTY50",
+    } as SocialPost,
+    {
+      id: '3',
+      authorUsername: "Tech Stock Guru",
+      content: "Warning: $TCS showing bearish divergence. RSI overbought, lower highs forming. Book profits. Target: 3,050",
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+      likes: 203,
+      comments: 34,
+      reposts: 67,
+      sentiment: "bearish",
+      ticker: "$TCS",
+    } as SocialPost,
+  ];
+
+  const { data: posts = defaultMockPosts, isLoading, error, isFetching } = useQuery({
     queryKey: ['/api/social-posts', pageNumber],
     queryFn: async (): Promise<SocialPost[]> => {
       const limit = 15;
@@ -2570,8 +2606,10 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
       }
       return await response.json();
     },
-    staleTime: 120000,
-    gcTime: 600000,
+    placeholderData: defaultMockPosts,
+    staleTime: 60000,
+    gcTime: 300000,
+    retry: 1,
     refetchInterval: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
