@@ -259,11 +259,13 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                     className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700 cursor-pointer transition-transform hover:scale-105" 
                     style={{ width: '200px', height: '150px' }}
                     onClick={() => {
-                      setSelectedCardIndex(idx);
                       if ((card as any).image) {
+                        // If card has image, open modal for viewing/editing
+                        setSelectedCardIndex(idx);
                         setSelectedImage((card as any).image);
                       } else {
-                        setSelectedImage(null);
+                        // If card is empty, directly open file upload
+                        fileInputRef.current?.click();
                       }
                     }}
                   >
