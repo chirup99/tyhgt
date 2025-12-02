@@ -2301,9 +2301,9 @@ const PostCard = memo(function PostCard({ post, currentUserUsername }: { post: F
             </div>
           )}
 
-          {/* Multiple Images Display - Compatible with both old and new schema */}
+          {/* Multiple Images Display - Swipeable Carousel for all images */}
           {(post.hasMedia || post.imageUrl) && (
-            <div className="my-4">
+            <div className="my-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
               {(() => {
                 // Support both single images and JSON arrays of multiple images
                 let images: string[] = [];
@@ -2318,19 +2318,8 @@ const PostCard = memo(function PostCard({ post, currentUserUsername }: { post: F
                   }
                 }
                 
-                if (images.length === 1) {
-                  return (
-                    <img 
-                      src={images[0]} 
-                      alt="Post image" 
-                      className="w-full h-48 object-cover rounded-lg border border-gray-200 dark:border-gray-600 shadow-lg"
-                      onError={(e) => {
-                        console.error('Failed to load image:', images[0]);
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  );
-                } else if (images.length > 1) {
+                // Always use swipeable carousel for consistent card-like experience
+                if (images.length > 0) {
                   return <SwipeableCarousel images={images} />;
                 }
                 return null;
