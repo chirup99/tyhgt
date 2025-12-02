@@ -15927,7 +15927,8 @@ ${
                                 {filteredBrokers.map((broker) => (
                                   <div
                                     key={broker}
-                                    onClick={() => {
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
                                       setBrokerSearchInput(broker);
                                       setShowBrokerSuggestions(false);
                                     }}
