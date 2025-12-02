@@ -495,26 +495,15 @@ export function PostCreationPanel({ hideAudioMode = false, initialViewMode = 'po
               </div>
             ) : (
               /* Post Selection Instructions - Only show when no posts selected */
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 cursor-pointer flex-1" onClick={onMinimize}>
-                    <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                    <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
-                      Select Posts for Audio MiniCast
-                    </h3>
-                  </div>
-                  {onMinimize && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={onMinimize}
-                      className="h-6 w-6 p-0 hover:bg-purple-200 dark:hover:bg-purple-800 flex-shrink-0"
-                      data-testid="button-close-audio-select"
-                    >
-                      <X className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                    </Button>
-                  )}
+              <div 
+                className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                onClick={onMinimize}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Radio className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <h3 className="font-medium text-purple-900 dark:text-purple-100 text-sm">
+                    Select Posts for Audio MiniCast
+                  </h3>
                 </div>
                 <p className="text-sm text-purple-700 dark:text-purple-300">
                   Click on any post below to add it to your audio minicast (up to 5 posts). 
