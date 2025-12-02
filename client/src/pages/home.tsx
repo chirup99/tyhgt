@@ -1902,6 +1902,16 @@ export default function Home() {
   const [selectedPodcast, setSelectedPodcast] = useState<any>(null);
   const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
 
+  // Animated greeting stocks state
+  const [currentStockIndex, setCurrentStockIndex] = useState(0);
+  const animatedStocks = [
+    { symbol: "NIFTY", price: "59273.80", change: +1.24, isProfit: true },
+    { symbol: "BANKNIFTY", price: "52841.35", change: +0.87, isProfit: true },
+    { symbol: "SENSEX", price: "85138.27", change: -0.45, isProfit: false },
+    { symbol: "Top Gainers", price: "TCS +2.1%", change: +2.1, isProfit: true },
+    { symbol: "Top Losers", price: "SUNPHARMA -1.8%", change: -1.8, isProfit: false },
+  ];
+
   // Passcode protection state
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState("");
@@ -1910,6 +1920,14 @@ export default function Home() {
   );
   const [pendingTab, setPendingTab] = useState<string>("");
   const [showSavedFormatsDropdown, setShowSavedFormatsDropdown] = useState(false);
+
+  // Auto-rotate stock display in greeting every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStockIndex(prev => (prev + 1) % animatedStocks.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [animatedStocks.length]);
 
   // Expose toggle nav function to window for profile icon in right sidebar
   useEffect(() => {
@@ -11352,13 +11370,34 @@ ${
                   {/* Blue Section: Desktop 69vh, Mobile 75vh */}
                   <div className="h-[75vh] md:h-[69vh] w-full bg-blue-900 flex flex-col items-center justify-start md:py-6 py-0 md:px-4 px-0 relative md:overflow-y-auto">
                     <div className="max-w-4xl w-full md:space-y-4">
-                      {/* Greeting - Hidden on mobile */}
+                      {/* Dynamic Greeting - Hidden on mobile */}
                       <div className="text-center spacey-4 md:block hidden">
                         <div className="flex items-center justify-center gap-3">
-                          <Sparkles className="4-5 w-4 text-blue-400" />
-                          <h1 className="text-2xl font-normal text-gray-100">
-                            Welcome to Trading Platform
-                          </h1>
+                          {isViewOnlyMode ? (
+                            <>
+                              <Sparkles className="h-5 w-5 text-blue-400" />
+                              <h1 className="text-2xl font-normal text-gray-100">
+                                Welcome to Trading Platform
+                              </h1>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className={`h-5 w-5 transition-colors duration-500 ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`} />
+                              <h1 className="text-2xl font-normal text-gray-100">
+                                Hey {currentUser?.displayName || currentUser?.username || "Trader"}
+                              </h1>
+                              <div className="flex items-center gap-2 animate-fade-in">
+                                {animatedStocks[currentStockIndex].isProfit ? (
+                                  <TrendingUp className="h-5 w-5 text-green-400" />
+                                ) : (
+                                  <TrendingDown className="h-5 w-5 text-red-400" />
+                                )}
+                                <span className={`text-lg font-semibold ${animatedStocks[currentStockIndex].isProfit ? 'text-green-400' : 'text-red-400'}`}>
+                                  {animatedStocks[currentStockIndex].symbol}: {animatedStocks[currentStockIndex].price}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
 
