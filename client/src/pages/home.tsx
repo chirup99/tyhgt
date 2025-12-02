@@ -3495,6 +3495,25 @@ ${
   const filteredBrokers = brokerSearchInput.trim() 
     ? availableBrokers.filter(b => b.toLowerCase().includes(brokerSearchInput.toLowerCase()))
     : [];
+  
+  // Check if all columns are filled
+  const allColumnsFilledForSave = 
+    buildModeData.positions.time.length > 0 &&
+    buildModeData.positions.order.length > 0 &&
+    buildModeData.positions.symbol.length > 0 &&
+    buildModeData.positions.type.length > 0 &&
+    buildModeData.positions.qty.length > 0 &&
+    buildModeData.positions.price.length > 0;
+  
+  // Get missing columns for tooltip
+  const missingColumns = [];
+  if (buildModeData.positions.time.length === 0) missingColumns.push("Time");
+  if (buildModeData.positions.order.length === 0) missingColumns.push("Order");
+  if (buildModeData.positions.symbol.length === 0) missingColumns.push("Symbol");
+  if (buildModeData.positions.type.length === 0) missingColumns.push("Type");
+  if (buildModeData.positions.qty.length === 0) missingColumns.push("Qty");
+  if (buildModeData.positions.price.length === 0) missingColumns.push("Price");
+  
   // Helper function to save formats to Universal Broker Library
   const saveFormatToUniversalLibrary = async (formatLabel: string, format: FormatData, brokerName: string) => {
     if (!currentUser?.userId) {
@@ -15924,11 +15943,20 @@ ${
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={!currentUser?.userId || !brokerSearchInput.trim()}
-                            title={!currentUser?.userId ? "Log in to save formats" : brokerSearchInput.trim() ? "" : "Enter broker name"}
+                            disabled={!currentUser?.userId || !brokerSearchInput.trim() || !allColumnsFilledForSave}
+                            title={
+                              !currentUser?.userId ? "Log in to save formats" : 
+                              !brokerSearchInput.trim() ? "Enter broker name" :
+                              !allColumnsFilledForSave ? `Fill all columns: ${missingColumns.join(", ")}` :
+                              ""
+                            }
                             onClick={async () => {
                               if (!brokerSearchInput.trim()) {
                                 alert("Please enter a broker name");
+                                return;
+                              }
+                              if (!allColumnsFilledForSave) {
+                                alert(`Please fill all columns: ${missingColumns.join(", ")}`);
                                 return;
                               }
                               const brokerName = brokerSearchInput.trim();
