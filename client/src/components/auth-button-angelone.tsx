@@ -597,11 +597,24 @@ export function AngelOneSystemStatus() {
 
 // Live Market Prices Component - Shows BANKNIFTY, SENSEX, GOLD with WebSocket status
 export function AngelOneLiveMarketPrices() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Track window visibility - only fetch when dashboard is visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === 'visible');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const { data: indicesData, isLoading, isError } = useQuery<LiveIndicesResponse>({
     queryKey: ["/api/angelone/live-indices"],
-    refetchInterval: 700, // 700ms for tick-by-tick updates
-    retry: 2,
-    staleTime: 0
+    refetchInterval: isVisible ? 700 : false, // Only fetch when window is visible, stop when in background
+    retry: isVisible ? 2 : 0, // No retries when not visible
+    staleTime: 0,
+    enabled: isVisible // Disable query when window is not visible
   });
 
   const formatPrice = (price: number) => {
