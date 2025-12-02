@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { PostCreationPanel } from './post-creation-panel';
@@ -1772,7 +1772,7 @@ function AnalysisPanel({ ticker, isOpen, onClose }: { ticker: string; isOpen: bo
   );
 }
 
-function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUsername?: string }) {
+const PostCard = memo(function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUsername?: string }) {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [liked, setLiked] = useState(false);
   const [reposted, setReposted] = useState(false);
@@ -2502,7 +2502,7 @@ function PostCard({ post, currentUserUsername }: { post: FeedPost; currentUserUs
       </CardContent>
     </Card>
   );
-}
+});
 
 function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void }) {
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
@@ -2518,6 +2518,8 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
   const [showMobileCreatePost, setShowMobileCreatePost] = useState(false);
   const [showMobileAudioMinicast, setShowMobileAudioMinicast] = useState(false);
   const [showMobileMessages, setShowMobileMessages] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const loaderRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
   // Audio mode for text selection
@@ -2569,22 +2571,38 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
   }, [lastScrollY]);
   
   const { data: posts = [], isLoading, error, isFetching, refetch } = useQuery({
-    queryKey: ['/api/social-posts'],
+    queryKey: ['/api/social-posts', pageNumber],
     queryFn: async (): Promise<SocialPost[]> => {
-      const response = await fetch(`/api/social-posts?refresh=${Date.now()}`);
+      const limit = 20;
+      const offset = (pageNumber - 1) * limit;
+      const response = await fetch(`/api/social-posts?limit=${limit}&offset=${offset}&refresh=${Date.now()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch posts');
       }
       return await response.json();
     },
-    staleTime: 300000, // Aggressive 5-minute cache for instant loading
-    gcTime: 600000, // Keep in cache for 10 minutes
-    refetchInterval: 180000, // Refresh every 3 minutes
-    refetchOnMount: false, // Use cached data on mount for instant loading
-    refetchOnWindowFocus: false, // Reduce unnecessary refetches
-    refetchIntervalInBackground: false, // Don't refetch in background
-    networkMode: 'offlineFirst' // Prefer cached data over network
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchInterval: 180000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchIntervalInBackground: false,
+    networkMode: 'offlineFirst'
   });
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isLoading && !isFetching && posts.length > 0) {
+        setPageNumber(prev => prev + 1);
+      }
+    }, { threshold: 0.1 });
+    
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [isLoading, isFetching, posts.length]);
 
   // Scroll detection
   useEffect(() => {
@@ -2779,22 +2797,24 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     ? searchFilteredData.filter(post => post.authorUsername === currentUserUsername || post.user?.handle === currentUserUsername)
     : searchFilteredData.filter(post => post.tags?.some(tag => tag.toLowerCase().includes(selectedFilter.toLowerCase())));
 
-  // Sort posts - prioritize posts with symbols (stockMentions) to display on top
-  const feedData: FeedPost[] = filteredData.sort((a, b) => {
-    // Posts with symbols/stockMentions come first
-    const aHasSymbols = a.stockMentions && a.stockMentions.length > 0;
-    const aHasTicker = a.ticker && a.ticker.length > 0;
-    const bHasSymbols = b.stockMentions && b.stockMentions.length > 0;
-    const bHasTicker = b.ticker && b.ticker.length > 0;
-    
-    if ((aHasSymbols || aHasTicker) && !(bHasSymbols || bHasTicker)) return -1;
-    if (!(aHasSymbols || aHasTicker) && (bHasSymbols || bHasTicker)) return 1;
-    
-    // If both have symbols or neither have symbols, sort by creation date (newest first)
-    const aDate = new Date(a.timestamp || 0).getTime();
-    const bDate = new Date(b.timestamp || 0).getTime();
-    return bDate - aDate;
-  });
+  // Sort posts - memoized to prevent re-sorting on every render
+  const feedData: FeedPost[] = useMemo(() => {
+    return filteredData.sort((a, b) => {
+      // Posts with symbols/stockMentions come first
+      const aHasSymbols = a.stockMentions && a.stockMentions.length > 0;
+      const aHasTicker = a.ticker && a.ticker.length > 0;
+      const bHasSymbols = b.stockMentions && b.stockMentions.length > 0;
+      const bHasTicker = b.ticker && b.ticker.length > 0;
+      
+      if ((aHasSymbols || aHasTicker) && !(bHasSymbols || bHasTicker)) return -1;
+      if (!(aHasSymbols || aHasTicker) && (bHasSymbols || bHasTicker)) return 1;
+      
+      // If both have symbols or neither have symbols, sort by creation date (newest first)
+      const aDate = new Date(a.timestamp || 0).getTime();
+      const bDate = new Date(b.timestamp || 0).getTime();
+      return bDate - aDate;
+    });
+  }, [filteredData]);
 
   function formatTimestamp(dateStr: string | Date): string {
     const date = new Date(dateStr);
@@ -2984,6 +3004,17 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
             {feedData.map((post) => (
               <PostCard key={post.id} post={post} currentUserUsername={currentUserUsername} />
             ))}
+            
+            {/* Infinite scroll loader trigger */}
+            <div 
+              ref={loaderRef}
+              className="flex justify-center py-8"
+              data-testid="loader-infinite-scroll"
+            >
+              {(isFetching || (isLoading && posts.length > 0)) && (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              )}
+            </div>
           </div>
         </div>
 
