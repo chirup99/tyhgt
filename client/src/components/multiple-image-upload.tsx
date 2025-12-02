@@ -27,6 +27,7 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     const [dragOffset, setDragOffset] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedImage, setSelectedImage] = useState<UploadedImage | null>(null);
+    const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
     const [imageCaptions, setImageCaptions] = useState<Record<string, string>>({});
     const [editingImageId, setEditingImageId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -253,10 +254,11 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                     className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-gray-700 cursor-pointer transition-transform hover:scale-105" 
                     style={{ width: '300px', height: '220px' }}
                     onClick={() => {
+                      setSelectedCardIndex(idx);
                       if ((card as any).image) {
                         setSelectedImage((card as any).image);
                       } else {
-                        fileInputRef.current?.click();
+                        setSelectedImage(null);
                       }
                     }}
                   >
@@ -322,10 +324,10 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
         />
 
         {/* Image Modal Dialog */}
-        {selectedImage && (
+        {selectedCardIndex !== null && (
           <div 
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-300 flex flex-col items-center justify-center"
-            onClick={() => setSelectedImage(null)}
+            onClick={() => setSelectedCardIndex(null)}
             onTouchStart={(e) => {
               touchStartX.current = e.touches[0].clientX;
               touchStartY.current = 0;
@@ -360,76 +362,98 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
             >
               {/* Close Button */}
               <button
-                onClick={() => setSelectedImage(null)}
+                onClick={() => setSelectedCardIndex(null)}
                 className="absolute top-4 right-4 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 data-testid="button-close-modal"
               >
                 <X className="w-5 h-5 text-gray-800 dark:text-white" />
               </button>
 
-              {/* Image Display */}
+              {/* Image Display / Empty State */}
               <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-t-2xl overflow-hidden min-h-96">
-                <img
-                  src={selectedImage.url}
-                  alt={selectedImage.name}
-                  className="max-w-full max-h-full object-contain pointer-events-none"
-                  data-testid="img-modal-display"
-                />
+                {selectedImage ? (
+                  <img
+                    src={selectedImage.url}
+                    alt={selectedImage.name}
+                    className="max-w-full max-h-full object-contain pointer-events-none"
+                    data-testid="img-modal-display"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+                    <Plus className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">No image added</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Click button below to upload or paste an image</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Image Info - Bottom Bar */}
               <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-b-2xl flex items-center justify-between gap-3">
-                {/* Edit Button - Left Corner */}
-                <button
-                  onClick={() => setEditingImageId(editingImageId === selectedImage.id ? null : selectedImage.id)}
-                  className="flex-shrink-0 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  data-testid="button-edit-caption"
-                >
-                  <Edit2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                </button>
+                {selectedImage ? (
+                  <>
+                    {/* Edit Button - Left Corner */}
+                    <button
+                      onClick={() => setEditingImageId(editingImageId === selectedImage.id ? null : selectedImage.id)}
+                      className="flex-shrink-0 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      data-testid="button-edit-caption"
+                    >
+                      <Edit2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    </button>
 
-                {/* Text Input/Display - Center */}
-                <div className="flex-1">
-                  {editingImageId === selectedImage.id ? (
-                    <input
-                      type="text"
-                      value={imageCaptions[selectedImage.id] || ''}
-                      onChange={(e) => setImageCaptions(prev => ({
-                        ...prev,
-                        [selectedImage.id]: e.target.value
-                      }))}
-                      placeholder="Add caption..."
-                      autoFocus
-                      className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      data-testid="input-caption"
-                    />
-                  ) : (
-                    <p className="text-xs font-medium text-center text-gray-800 dark:text-gray-100 truncate">
-                      {imageCaptions[selectedImage.id] || selectedImage.name}
-                    </p>
-                  )}
-                </div>
+                    {/* Text Input/Display - Center */}
+                    <div className="flex-1">
+                      {editingImageId === selectedImage.id ? (
+                        <input
+                          type="text"
+                          value={imageCaptions[selectedImage.id] || ''}
+                          onChange={(e) => setImageCaptions(prev => ({
+                            ...prev,
+                            [selectedImage.id]: e.target.value
+                          }))}
+                          placeholder="Add caption..."
+                          autoFocus
+                          className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          data-testid="input-caption"
+                        />
+                      ) : (
+                        <p className="text-xs font-medium text-center text-gray-800 dark:text-gray-100 truncate">
+                          {imageCaptions[selectedImage.id] || selectedImage.name}
+                        </p>
+                      )}
+                    </div>
 
-                {/* Delete Button - Right Corner (3 dots menu) */}
-                <button
-                  onClick={() => {
-                    setImages(images.filter(img => img.id !== selectedImage.id));
-                    setImageCaptions(prev => {
-                      const updated = { ...prev };
-                      delete updated[selectedImage.id];
-                      return updated;
-                    });
-                    setSelectedImage(null);
-                    toast({
-                      title: "Image deleted",
-                      description: "The image has been removed"
-                    });
-                  }}
-                  className="flex-shrink-0 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  data-testid="button-delete-image"
-                >
-                  <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                </button>
+                    {/* Delete Button - Right Corner */}
+                    <button
+                      onClick={() => {
+                        setImages(images.filter(img => img.id !== selectedImage.id));
+                        setImageCaptions(prev => {
+                          const updated = { ...prev };
+                          delete updated[selectedImage.id];
+                          return updated;
+                        });
+                        setSelectedImage(null);
+                        toast({
+                          title: "Image deleted",
+                          description: "The image has been removed"
+                        });
+                      }}
+                      className="flex-shrink-0 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      data-testid="button-delete-image"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-2 px-3 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded text-xs font-medium transition-colors"
+                    data-testid="button-upload-from-dialog"
+                  >
+                    Click to upload image
+                  </button>
+                )}
               </div>
             </div>
 
@@ -467,16 +491,22 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                   key={card.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    card.image && setSelectedImage(card.image);
+                    setSelectedCardIndex(idx);
+                    if (card.image) {
+                      setSelectedImage(card.image);
+                    } else {
+                      setSelectedImage(null);
+                    }
                   }}
                   className={`flex-shrink-0 rounded-md overflow-hidden transition-all cursor-pointer ${
-                    card.image && selectedImage.id === card.image.id 
+                    selectedCardIndex === idx && card.image && selectedImage?.id === card.image.id 
                       ? 'ring-2 ring-white' 
-                      : card.image ? 'opacity-70 hover:opacity-100' : 'opacity-40'
+                      : selectedCardIndex === idx
+                      ? 'ring-2 ring-blue-400'
+                      : card.image ? 'opacity-70 hover:opacity-100' : 'opacity-40 hover:opacity-60'
                   }`}
                   style={{ width: '48px', height: '48px' }}
                   data-testid={`button-thumbnail-${idx}`}
-                  disabled={!card.image}
                 >
                   {card.image ? (
                     <img
