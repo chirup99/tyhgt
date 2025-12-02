@@ -2559,43 +2559,7 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     };
   }, [lastScrollY]);
   
-  // Default mock posts for instant display
-  const defaultMockPosts: SocialPost[] = [
-    {
-      id: '1',
-      authorUsername: "Welcome to NeoFeed",
-      content: "Welcome to NeoFeed! 🚀 This is your new social trading platform. Share your market insights with the community!",
-      createdAt: new Date(),
-      likes: 0,
-      comments: 0,
-      reposts: 0,
-      sentiment: "bullish",
-    } as SocialPost,
-    {
-      id: '2',
-      authorUsername: "Nifty Tracker",
-      content: "NIFTY showing consolidation. Support at 24,650 and resistance at 24,950. Watch for breakout. Volume decreasing.",
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      likes: 89,
-      comments: 12,
-      reposts: 28,
-      sentiment: "neutral",
-      ticker: "$NIFTY50",
-    } as SocialPost,
-    {
-      id: '3',
-      authorUsername: "Tech Stock Guru",
-      content: "Warning: $TCS showing bearish divergence. RSI overbought, lower highs forming. Book profits. Target: 3,050",
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      likes: 203,
-      comments: 34,
-      reposts: 67,
-      sentiment: "bearish",
-      ticker: "$TCS",
-    } as SocialPost,
-  ];
-
-  const { data: posts = defaultMockPosts, isLoading, error, isFetching } = useQuery({
+  const { data: posts = [], isLoading, error, isFetching } = useQuery({
     queryKey: ['/api/social-posts', pageNumber],
     queryFn: async (): Promise<SocialPost[]> => {
       const limit = 15;
@@ -2606,7 +2570,6 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
       }
       return await response.json();
     },
-    placeholderData: defaultMockPosts,
     staleTime: 60000,
     gcTime: 300000,
     retry: 1,
@@ -2917,70 +2880,8 @@ function NeoFeedSocialFeedComponent({ onBackClick }: { onBackClick?: () => void 
     );
   }
 
-  // Default mock data if no posts yet
-  const defaultFeedData: FeedPost[] = feedData.length > 0 ? feedData : [
-    {
-      id: '1',
-      user: {
-        initial: "W",
-        username: "Welcome to NeoFeed",
-        handle: "@neofeed_official",
-        verified: true,
-        online: true,
-      },
-      content: "Welcome to NeoFeed! 🚀 This is your new social trading platform. Click the + button below to create your first post and share your market insights with the community!",
-      timestamp: "now",
-      tags: ["#welcome", "#neofeed", "#trading"],
-      sentiment: "bullish",
-      ticker: "$WELCOME",
-      metrics: {
-        comments: 0,
-        reposts: 0,
-        likes: 0,
-      },
-    },
-    {
-      id: '2',
-      user: {
-        initial: "N",
-        username: "Nifty Tracker",
-        handle: "@nifty_watcher",
-        verified: false,
-        online: true,
-      },
-      content: "NIFTY showing some consolidation today. Key support at 24,650 and resistance at 24,950. Watch for a breakout either side for the next big move. Volume is decreasing, indicating a potential breakout soon.",
-      timestamp: "2h",
-      tags: ["#nifty", "#levels", "#support_resistance"],
-      sentiment: "neutral",
-      ticker: "$NIFTY50",
-      metrics: {
-        comments: 12,
-        reposts: 28,
-        likes: 89,
-      },
-    },
-    {
-      id: '3',
-      user: {
-        initial: "T",
-        username: "Tech Stock Guru",
-        handle: "@tech_analyst",
-        verified: true,
-        online: false,
-      },
-      content: "Warning: $TCS showing bearish divergence on multiple timeframes. RSI is overbought and price is forming lower highs. Consider booking profits if you're long. Target: 3,050 levels. ⚠️📉",
-      timestamp: "4h",
-      tags: ["#tcs", "#bearish", "#rsi", "#divergence"],
-      sentiment: "bearish",
-      ticker: "$TCS",
-      metrics: {
-        comments: 34,
-        reposts: 67,
-        likes: 203,
-      },
-      hasMedia: true,
-    },
-  ];
+  // Use feedData directly - don't add mock data
+  const defaultFeedData: FeedPost[] = feedData;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" ref={containerRef}>
