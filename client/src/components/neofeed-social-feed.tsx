@@ -597,8 +597,9 @@ function PriceChartSection({ ticker, analysisData }: { ticker: string; analysisD
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-full">
-              <div className="text-gray-500 dark:text-gray-400 text-sm">
-                📈 Real chart data from Yahoo Finance & Google Finance
+              <div className="text-gray-500 dark:text-gray-400 text-sm text-center">
+                <div className="mb-1">Chart data via Angel One API</div>
+                <div className="text-xs">Authenticate to view live charts</div>
               </div>
             </div>
           )}

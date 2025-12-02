@@ -151,3 +151,30 @@
 
 ### Migration Complete! 🎉
 The Trading Platform has been successfully migrated to the Replit environment and is fully operational. All core features are working, and the application is ready for use.
+
+=========================================================
+## NEO FEED FUNDAMENTAL CHART FIX - December 2, 2025 📊
+
+[x] 1. Update getRealChartData() to use Angel One API ONLY (removed Fyers fallback)
+[x] 2. Improved symbol normalization for token lookup
+[x] 3. Added better time formatting based on timeframe (1D, 5D, 1M, 6M, 1Y)
+[x] 4. Updated frontend placeholder message to show "Chart data via Angel One API"
+[x] 5. Workflow restarted and verified
+
+### Changes Made:
+**Backend (server/routes.ts):**
+- Removed all Fyers API fallback calls from getRealChartData()
+- Now uses Angel One API exclusively for chart data
+- Improved symbol cleaning: handles NSE:, BSE:, MCX: prefixes
+- Better error messages when token not found or not authenticated
+- Enhanced time label formatting per timeframe
+
+**Frontend (neofeed-social-feed.tsx):**
+- Updated placeholder text from "Yahoo Finance & Google Finance" to "Chart data via Angel One API"
+- Added "Authenticate to view live charts" message
+
+### Result:
+✅ Chart data fetched via Angel One API only
+✅ Line chart displays correctly when authenticated
+✅ Removed dependency on Fyers API
+✅ Clear messaging when authentication needed

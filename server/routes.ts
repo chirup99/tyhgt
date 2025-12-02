@@ -3030,18 +3030,32 @@ async function fetchFyersChartDataForDate(symbol: string, dateStr: string, timef
   }
 }
 
-// 🔶 Get real historical price data for charts (Angel One API)
+// 🔶 Get real historical price data for charts (Angel One API ONLY - No Fyers)
 async function getRealChartData(symbol: string, timeframe: string) {
   try {
-    console.log(`🔶 Fetching real chart data for ${symbol} (${timeframe}) - Angel One API`);
+    console.log(`🔶 Fetching real chart data for ${symbol} (${timeframe}) - Angel One API ONLY`);
     
-    // Get Angel One stock token
-    const cleanSymbol = symbol.replace(/^\$+/, '').replace('NSE:', '').replace('-EQ', '').replace('-INDEX', '');
-    const stockToken = ANGEL_ONE_STOCK_TOKENS[cleanSymbol];
+    // Clean and normalize symbol for lookup
+    const cleanSymbol = symbol.replace(/^\$+/, '').replace('NSE:', '').replace('BSE:', '').replace('MCX:', '').replace('-EQ', '').replace('-INDEX', '').toUpperCase();
+    let stockToken = ANGEL_ONE_STOCK_TOKENS[cleanSymbol];
+    
+    // Try alternative lookups if not found
+    if (!stockToken) {
+      // Try without spaces
+      const noSpaceSymbol = cleanSymbol.replace(/\s+/g, '');
+      stockToken = ANGEL_ONE_STOCK_TOKENS[noSpaceSymbol];
+    }
     
     if (!stockToken) {
-      console.log(`⚠️ No Angel One token for ${symbol}, falling back to Fyers`);
-      return await fetchFyersChartData(symbol, timeframe);
+      console.log(`⚠️ No Angel One token for ${symbol} (${cleanSymbol})`);
+      console.log(`📋 Available tokens: ${Object.keys(ANGEL_ONE_STOCK_TOKENS).slice(0, 20).join(', ')}...`);
+      return [];
+    }
+    
+    // Check if Angel One is authenticated FIRST
+    if (!angelOneApi.isAuthenticated) {
+      console.log(`⚠️ Angel One not authenticated - Please authenticate to view chart data`);
+      return [];
     }
     
     // Calculate date range based on timeframe
@@ -3095,12 +3109,6 @@ async function getRealChartData(symbol: string, timeframe: string) {
     
     console.log(`🔶 Angel One request: ${stockToken.tradingSymbol} ${angelOneInterval} from ${fromDateTime} to ${toDateTime}`);
     
-    // Check if Angel One is authenticated
-    if (!angelOneApi.isAuthenticated) {
-      console.log(`⚠️ Angel One not authenticated, falling back to Fyers`);
-      return await fetchFyersChartData(symbol, timeframe);
-    }
-    
     try {
       const candleData = await angelOneApi.getCandleData(
         stockToken.exchange,
@@ -3111,12 +3119,30 @@ async function getRealChartData(symbol: string, timeframe: string) {
       );
       
       if (candleData && Array.isArray(candleData) && candleData.length > 0) {
-        // Format data for chart display
+        // Format data for chart display with proper time labels based on timeframe
         const formattedData = candleData.map((candle: any) => {
           const timestamp = new Date(candle.timestamp);
-          const hours = timestamp.getHours();
-          const minutes = timestamp.getMinutes();
-          const timeLabel = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          let timeLabel: string;
+          
+          // Use different time formats based on timeframe
+          if (['1D', '1d', '5m', '15m', '1h'].includes(timeframe)) {
+            // Intraday - show HH:MM
+            const hours = timestamp.getHours();
+            const minutes = timestamp.getMinutes();
+            timeLabel = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          } else if (['5D', '5d'].includes(timeframe)) {
+            // 5-day - show Day HH:MM
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const hours = timestamp.getHours();
+            timeLabel = `${days[timestamp.getDay()]} ${hours.toString().padStart(2, '0')}:00`;
+          } else if (timeframe === '1M') {
+            // Monthly - show DD/MM
+            timeLabel = `${timestamp.getDate().toString().padStart(2, '0')}/${(timestamp.getMonth() + 1).toString().padStart(2, '0')}`;
+          } else {
+            // 6M, 1Y, 5Y - show MMM DD
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            timeLabel = `${months[timestamp.getMonth()]} ${timestamp.getDate()}`;
+          }
           
           return {
             time: timeLabel,
@@ -3127,14 +3153,14 @@ async function getRealChartData(symbol: string, timeframe: string) {
         
         console.log(`✅ Angel One returned ${formattedData.length} data points for ${symbol}`);
         return formattedData;
+      } else {
+        console.log(`⚠️ No data returned from Angel One for ${symbol}`);
+        return [];
       }
     } catch (angelError: any) {
-      console.log(`⚠️ Angel One error for ${symbol}:`, angelError.message);
+      console.log(`❌ Angel One error for ${symbol}:`, angelError.message);
+      return [];
     }
-    
-    // Fallback to Fyers if Angel One fails
-    console.log(`🔄 Falling back to Fyers for ${symbol}`);
-    return await fetchFyersChartData(symbol, timeframe);
     
   } catch (error) {
     console.error(`❌ Error fetching chart data for ${symbol}:`, error);
