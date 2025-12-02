@@ -12,6 +12,7 @@ import { z } from "zod";
 import { desc, sql, eq } from "drizzle-orm";
 import { intradayAnalyzer } from "./intraday-market-session";
 import { googleCloudService } from './google-cloud-service';
+import { awsDynamoDBService } from './aws-dynamodb-service';
 import { createGoogleCloudSigninBackupService, type SigninDataRecord } from './google-cloud-signin-backup-service';
 import { IntradayPatternDetector } from "./intraday-patterns";
 import { Enhanced4CandleProcessor } from "./enhanced-four-candle-processor";
@@ -4673,30 +4674,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Journal Database API endpoints with Firebase Google Cloud as primary storage
-  // NO local memory storage - ONLY Firebase data
+  // Journal Database API endpoints with AWS DynamoDB as primary storage
+  // NO local memory storage - ONLY AWS data
 
-  // ✅ SIMPLIFIED: Get ALL journal dates from Firebase - NO FILTERING
-  // Returns ALL data from Firebase so heatmaps and windows can display everything
-  // NO localStorage, NO caching, NO complex filtering - Just pure Firebase data
+  // ✅ SIMPLIFIED: Get ALL journal dates from AWS DynamoDB - NO FILTERING
+  // Returns ALL data from AWS so heatmaps and windows can display everything
+  // NO localStorage, NO caching, NO complex filtering - Just pure AWS data
   app.get('/api/journal/all-dates', async (req, res) => {
     try {
-      console.log('📊 Fetching ALL journal data from Firebase journal-database (no filtering)...');
+      console.log('📊 Fetching ALL journal data from AWS DynamoDB (no filtering)...');
       
-      // Fetch ALL data from journal-database - the single source of truth
-      const allData = await googleCloudService.getAllCollectionData('journal-database');
+      // Fetch ALL data from AWS DynamoDB - the single source of truth
+      const allData = await awsDynamoDBService.getAllJournalData();
       
       if (allData && Object.keys(allData).length > 0) {
-        // ✅ NO FILTERING - Send ALL data from Firebase
+        // ✅ NO FILTERING - Send ALL data from AWS
         // Heatmap and windows will handle what to display
-        console.log(`✅ Firebase: Loaded ${Object.keys(allData).length} dates (ALL data, no filtering)`);
+        console.log(`✅ AWS: Loaded ${Object.keys(allData).length} dates (ALL data, no filtering)`);
         res.json(allData);
       } else {
-        console.log('⚠️ No journal data found in Firebase journal-database');
+        console.log('⚠️ No journal data found in AWS DynamoDB');
         res.json({});
       }
     } catch (error) {
-      console.error('❌ Error fetching journal dates from Firebase:', error);
+      console.error('❌ Error fetching journal dates from AWS:', error);
       res.status(500).json({ error: 'Failed to fetch journal dates', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
@@ -4783,50 +4784,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { date } = req.params;
       const key = `journal_${date}`;
       console.log(`📖 Fetching journal data for date: ${date}, key: ${key}`);
-      console.log(`🔍 DEBUG: Starting Google Cloud retrieval for ${key}`);
+      console.log(`🔍 DEBUG: Starting AWS DynamoDB retrieval for ${key}`);
       
-      let journalData = null;
-      let googleCloudWorking = false;
-      
-      // Try ALL Google Cloud collections for journal data
-      const collectionsToSearch = [
-        'journal-database',    // Primary journal collection
-        'cache',              // Cache collection
-        'trading-data',       // Trading data collection
-        'journal-entries',    // Alternative journal collection
-        'user-data',          // User data collection
-        'images',             // Images collection
-        'trading-journal',    // Alternative trading journal collection
-        'perala-data'         // Perala data collection
-      ];
-      
-      for (const collectionName of collectionsToSearch) {
-        if (journalData) break; // Stop if we found data
-        
-        try {
-          console.log(`🔍 Searching collection '${collectionName}' for ${key}...`);
-          const cloudResult = await googleCloudService.getCachedData(key, collectionName);
-          if (cloudResult) {
-            journalData = cloudResult;
-            console.log(`☁️ SUCCESS! Found data in '${collectionName}' for ${key}:`, journalData);
-            googleCloudWorking = true;
-            break;
-          } else {
-            console.log(`☁️ No data found in '${collectionName}' for ${key}`);
-          }
-        } catch (error) {
-          console.log(`⚠️ Collection '${collectionName}' unavailable:`, error instanceof Error ? error.message : error);
-        }
-      }
+      // Get journal data from AWS DynamoDB
+      const journalData = await awsDynamoDBService.getJournalData(key);
       
       if (journalData) {
+        console.log(`✅ AWS: Found data for ${key}`);
         res.json(journalData);
       } else {
         console.log(`ℹ️ No journal data found for ${key}, returning empty object with 200 status`);
         res.json({}); // Return empty object with 200 status (not an error - just no data for this date)
       }
     } catch (error) {
-      console.error('❌ Error fetching journal data:', error);
+      console.error('❌ Error fetching journal data from AWS:', error);
       res.status(500).json({ error: 'Failed to fetch journal data', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
@@ -4841,36 +4812,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`💾 Saving journal data for date: ${date}, key: ${key}`);
       console.log(`📊 Data being saved:`, JSON.stringify(journalData, null, 2));
       
-      let saveSuccess = false;
+      // Save to AWS DynamoDB
+      const saveSuccess = await awsDynamoDBService.saveJournalData(key, journalData);
       
-      // Try to save to Google Cloud 'journal-database' first (primary storage)
-      try {
-        console.log(`☁️ Attempting to save journal data to Google Cloud 'journal-database' for ${key}...`);
-        await googleCloudService.cacheData(key, journalData, 'journal-database');
-        console.log(`✅ Google Cloud 'journal-database' save successful for ${key}`);
-        saveSuccess = true;
-      } catch (error) {
-        console.log(`⚠️ Google Cloud 'journal-database' save failed for ${key}:`, error instanceof Error ? error.message : error);
-        
-        // Try backup 'cache' collection if quota exceeded
-        if (error instanceof Error && error.message.includes('quota')) {
-          console.log(`🔄 Quota exceeded, trying backup 'cache' collection for journal data...`);
-          try {
-            await googleCloudService.cacheData(key, journalData, 'cache');
-            console.log(`✅ Backup 'cache' collection save successful for ${key}`);
-            saveSuccess = true;
-          } catch (backupError) {
-            console.log(`⚠️ Backup save also failed:`, backupError instanceof Error ? backupError.message : backupError);
-          }
-        }
-        
-        if (!saveSuccess) {
-          console.log(`⚠️ Firebase save failed - data not persisted`);
-          return res.status(500).json({ error: 'Failed to save to Firebase' });
-        }
+      if (saveSuccess) {
+        console.log(`✅ AWS DynamoDB save successful for ${key}`);
+        res.json({ success: true, message: 'Journal data saved successfully to AWS' });
+      } else {
+        console.log(`⚠️ AWS DynamoDB save failed for ${key}`);
+        res.status(500).json({ error: 'Failed to save to AWS DynamoDB' });
       }
-      
-      res.json({ success: true, message: 'Journal data saved successfully to Firebase' });
     } catch (error) {
       console.error('❌ Error saving journal data:', error);
       res.status(500).json({ error: 'Failed to save journal data' });
@@ -4882,27 +4833,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { date } = req.params;
       const journalData = req.body;
+      const key = `journal_${date}`;
       
       console.log(`📝 Updating journal data for date: ${date}`, journalData);
       
-      // Try Google Cloud 'journal-database' first, with quota handling
-      try {
-        await googleCloudService.cacheData(`journal_${date}`, journalData, 'journal-database');
-        console.log(`✅ Google Cloud 'journal-database' update successful for ${date}`);
-      } catch (error) {
-        console.log(`⚠️ Google Cloud update failed, trying backup collection...`);
-        if (error instanceof Error && error.message.includes('quota')) {
-          await googleCloudService.cacheData(`journal_${date}`, journalData, 'cache');
-          console.log(`✅ Backup 'cache' collection update successful for ${date}`);
-        } else {
-          throw error; // Re-throw if not quota issue
-        }
+      // Update in AWS DynamoDB
+      const updateSuccess = await awsDynamoDBService.saveJournalData(key, journalData);
+      
+      if (updateSuccess) {
+        console.log(`✅ AWS DynamoDB update successful for ${date}`);
+        res.json({ success: true, message: 'Journal data updated successfully' });
+      } else {
+        console.log(`⚠️ AWS DynamoDB update failed for ${date}`);
+        res.status(500).json({ error: 'Failed to update in AWS DynamoDB' });
       }
-      
-      // Also save to memory store as backup
-      journalMemoryStore.set(`journal_${date}`, journalData);
-      
-      res.json({ success: true, message: 'Journal data updated successfully' });
     } catch (error) {
       console.error('❌ Error updating journal data:', error);
       res.status(500).json({ error: 'Failed to update journal data' });
