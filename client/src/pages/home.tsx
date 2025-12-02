@@ -12,9 +12,9 @@ import { AuthButtonAngelOne, AngelOneStatus, AngelOneApiStatistics, AngelOneSyst
 // import { AuthButton } from "@/components/auth-button";
 // import { ConnectionStatus } from "@/components/connection-status";
 // import { MonthlyProgressTracker } from "@/components/monthly-progress-tracker";
-// import { SigninDataWindow } from "@/components/signin-data-window";
 // import { ApiStatistics } from "@/components/api-statistics";
 // import { ErrorPanel } from "@/components/error-panel";
+import { SigninDataWindow } from "@/components/signin-data-window";
 import { LiveBanner } from "@/components/live-banner";
 import { TradingViewWidget } from "@/components/tradingview-widget";
 import { AdvancedCandlestickChart } from "@/components/advanced-candlestick-chart";
@@ -11154,6 +11154,9 @@ ${
                     </div>
                   </div>
                 </div>
+
+                {/* SignIn Data Window with YouTube Link */}
+                <SigninDataWindow />
 
                 {/* Angel One Status */}
                 <AngelOneStatus />
