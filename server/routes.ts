@@ -8204,10 +8204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Mapping for exchange segment codes and names
       const exchangeMapping: { [key: string]: string[] } = {
-        'NSE': ['1', 'NSE', 'EQ', 'NSEEQ', 'NSEFO', 'NFO'],  // NSE equity and F&O
-        'BSE': ['6', 'BSE', 'BX', 'BSEEQ', 'BSEFO'],  // BSE equity and F&O
-        'MCX': ['3', 'MCX', '5', 'NCDEX', 'MX'],  // MCX (3) and NCDEX (5)
-        'NFO': ['2', 'NFO', 'BFO', '7', 'FO', '1', 'NSE'],    // NFO (2) and BFO/7, also NSE for futures
+        'NSE': ['1', 'NSE'],
+        'BSE': ['6', 'BSE'],
+        'MCX': ['3', 'MCX', '5', 'NCDEX'],  // MCX (3) and NCDEX (5)
+        'NFO': ['2', 'NFO', 'BFO', '7'],    // NFO (2) and BFO/7
         'NCDEX': ['5', 'NCDEX']
       };
 
@@ -8230,7 +8230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // Default to NSE, BSE, MCX only
-        const defaultSegCodes = new Set(['1', 'NSE', 'EQ', 'NSEEQ', 'NSEFO', '6', 'BSE', 'BX', 'BSEEQ', 'BSEFO', '3', 'MCX', '5', 'NCDEX', 'MX', '2', 'NFO', 'BFO', '7', 'FO']);
+        const defaultSegCodes = new Set(['1', 'NSE', '6', 'BSE', '3', 'MCX', '5', 'NCDEX']);
         results = results.filter(inst => {
           const segCode = String(inst.exch_seg || '').toUpperCase();
           return defaultSegCodes.has(segCode);
