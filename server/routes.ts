@@ -49,8 +49,9 @@ import { Cycle3TradingExecutionEngine } from './cycle3-trading-execution-engine'
 import eventImageRoutes from "./routes/generate-event-images.js";
 import geminiRoutes from "./gemini-routes";
 import { sentimentAnalyzer, type SentimentAnalysisRequest } from './sentiment-analysis';
-import backupRoutes, { initializeBackupRoutes } from './backup-routes';
-import { createBackupDataService, BackupQueryParams } from './backup-data-service';
+// REMOVED: Backup routes for auto-fetch OHLC data to reduce Firebase costs
+// import backupRoutes, { initializeBackupRoutes } from './backup-routes';
+// import { createBackupDataService, BackupQueryParams } from './backup-data-service';
 import { detectPatterns } from './routes/pattern-detection';
 import { angelOneLiveStream } from './angel-one-live-stream';
 import { angelOneOptionChain } from './angel-one-option-chain';
@@ -179,8 +180,8 @@ candleProgressionIntegration.integrate();
 // Initialize Google Cloud Signin Backup Service - same pattern as NIFTY data service
 const googleCloudSigninBackupService = createGoogleCloudSigninBackupService();
 
-// Initialize backup data service
-const backupDataService = createBackupDataService();
+// REMOVED: Backup data service to reduce Firebase storage costs
+// const backupDataService = createBackupDataService();
 
 // Safe activity logging wrapper - silently fails if Firebase is unavailable
 async function safeAddActivityLog(log: { type: string; message: string }): Promise<void> {
@@ -4626,7 +4627,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add news routes
   app.use(newsRouter);
   // Add backup data routes for historical data failover
-  app.use('/api/backup', initializeBackupRoutes(angelOneApi));
+  // REMOVED: Backup routes disabled to reduce Firebase storage billing
+  // app.use('/api/backup', initializeBackupRoutes(angelOneApi));
   
   // Stock Analysis endpoints
   app.get('/api/stock-analysis/:symbol', async (req, res) => {

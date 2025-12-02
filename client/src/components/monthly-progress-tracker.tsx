@@ -35,14 +35,33 @@ interface CompletionStatus {
 }
 
 export function MonthlyProgressTracker() {
-  const [selectedMonths, setSelectedMonths] = useState(2); // Default to 2 months
-
-  const { data: backupStatus, isLoading, error, isFetching } = useQuery<BackupStatus>({
-    queryKey: ['/api/backup/status'],
-    refetchInterval: 8000, // Update every 8 seconds (reduced frequency to prevent blinking)
-    staleTime: 4000, // Consider data stale after 4 seconds
-    retry: 1, // Reduce retries to prevent rapid failures
-  });
+  // REMOVED: Auto-fetch OHLC data collection to reduce Firebase storage costs
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Data Collection (Disabled)</CardTitle>
+        <CardDescription>
+          OHLC data collection and Firebase storage has been disabled to reduce billing costs
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="p-4 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="h-5 w-5 text-amber-600" />
+            <span className="font-semibold text-amber-900 dark:text-amber-100">Auto-fetch Disabled</span>
+          </div>
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            The automatic OHLC data collection and Firebase storage system has been completely removed to eliminate excessive storage billing charges.
+          </p>
+          <div className="mt-3 text-xs text-amber-700 dark:text-amber-300 space-y-1">
+            <p>✓ No more 42,000+ records being stored</p>
+            <p>✓ Firebase billing completely stopped</p>
+            <p>✓ Backend fetching disabled</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   // Create synthetic completion status from backup status data
   const completionStatus = backupStatus ? {
