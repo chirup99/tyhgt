@@ -3438,6 +3438,8 @@ ${
   
   // Define the format type with position-based structure (supports multiple positions per field)
   type FormatData = {
+    id?: string;  // Unique ID for the format (generated on save)
+    label?: string;  // Human-readable label for display
     sampleLine: string;  // Original first line of trade data
     positions: {
       time: number[];  // Array of positions
@@ -3612,7 +3614,17 @@ ${
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) return false;
       
-      console.log(`💾 Saving format to ${brokerName} library...`);
+      // Generate a unique ID for this format (timestamp + random suffix)
+      const uniqueFormatId = `${brokerName}_${formatLabel}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      
+      // Create format with ID and label embedded
+      const formatWithMetadata: FormatData = {
+        ...format,
+        id: uniqueFormatId,
+        label: formatLabel
+      };
+      
+      console.log(`💾 Saving format "${formatLabel}" to ${brokerName} library with ID: ${uniqueFormatId}`);
       const response = await fetch('/api/broker-formats/save', {
         method: 'POST',
         headers: {
@@ -3634,11 +3646,16 @@ ${
         console.log(`✅ Format saved to ${brokerName} library`);
         
         // SYNC to user's personal formats for live preview
+        // Use unique ID as key to prevent overwriting existing formats with same label
         const updatedFormats = {
           ...savedFormats,
-          [formatLabel]: format
+          [uniqueFormatId]: formatWithMetadata
         };
         setSavedFormats(updatedFormats);
+        
+        // Also set this as the active format immediately
+        setActiveFormat(formatWithMetadata);
+        setDetectedFormatLabel(formatLabel);
         
         // Save to user's personal formats backend
         const userFormatsResponse = await fetch(`/api/user-formats/${currentUser.userId}`, {
@@ -3656,7 +3673,7 @@ ${
         
         toast({
           title: "Format Saved Successfully",
-          description: `Your format has been saved to the ${brokerName} library for all users!`
+          description: `Your format "${formatLabel}" has been saved to the ${brokerName} library!`
         });
         return true;
       } else {
@@ -3764,7 +3781,11 @@ ${
     }
   }, [showImportModal, currentUser?.userId]);
 
+  // Track if user has manually selected a format (to avoid auto-override)
+  const [userSelectedFormatId, setUserSelectedFormatId] = useState<string | null>(null);
+
   // Auto-apply saved formats to live preview when data is pasted
+  // BUT respect user's manual selection if they've chosen a specific format
   useEffect(() => {
     if (!importData.trim()) {
       setActiveFormat(null);
@@ -3772,15 +3793,33 @@ ${
       return;
     }
 
-    // PRIORITY 1: Always try saved formats first
-    if (Object.keys(savedFormats).length > 0) {
+    // If user has manually selected a format, don't auto-override
+    if (userSelectedFormatId && savedFormats[userSelectedFormatId]) {
+      console.log(`🔒 Respecting user's manual format selection: ${userSelectedFormatId}`);
+      const userFormat = savedFormats[userSelectedFormatId];
+      const currentFirstLine = importData.trim().split('\n')[0];
+      const recalculatedFormat = recalculateFormatPositions(userFormat, currentFirstLine);
+      setActiveFormat(recalculatedFormat);
+      setDetectedFormatLabel(userFormat.label || userSelectedFormatId);
+      return;
+    }
+
+    // PRIORITY 1: Auto-apply first saved format only if no manual selection
+    if (Object.keys(savedFormats).length > 0 && !userSelectedFormatId) {
       // Use the first saved format automatically for live preview
-      const firstFormatLabel = Object.keys(savedFormats)[0];
-      const firstFormat = savedFormats[firstFormatLabel];
+      const firstFormatId = Object.keys(savedFormats)[0];
+      const firstFormat = savedFormats[firstFormatId];
       
-      console.log(`📲 Auto-applying saved format: "${firstFormatLabel}" for live preview`);
-      setActiveFormat(firstFormat);
-      setDetectedFormatLabel(firstFormatLabel);
+      // CRITICAL FIX: Recalculate positions based on current pasted data's first line
+      const currentFirstLine = importData.trim().split('\n')[0];
+      const recalculatedFormat = recalculateFormatPositions(firstFormat, currentFirstLine);
+      
+      const displayLabel = firstFormat.label || firstFormatId;
+      console.log(`📲 Auto-applying saved format: "${displayLabel}" with recalculated positions for live preview`);
+      console.log(`   Original positions:`, firstFormat.positions);
+      console.log(`   Recalculated positions:`, recalculatedFormat.positions);
+      setActiveFormat(recalculatedFormat);
+      setDetectedFormatLabel(displayLabel);
       return;
     }
 
@@ -3813,7 +3852,7 @@ ${
     };
 
     autoDetect();
-  }, [importData, savedFormats, showImportModal]);
+  }, [importData, savedFormats, showImportModal, userSelectedFormatId]);
 
   // Broker Import State
   const [showBrokerImportModal, setShowBrokerImportModal] = useState(false);
@@ -6119,12 +6158,11 @@ ${
             // Create new price line with current LTP and countdown
             journalPriceLineRef.current = journalCandlestickSeriesRef.current.createPriceLine({
               price: liveCandle.close,
-              color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',  price: liveCandle.close,
               color: liveCandle.close >= liveCandle.open ? '#16a34a' : '#dc2626',
               lineWidth: 1,
-              lineStyle: 2, // Dashed
-              axisLabelVisible: true, // Show countdown label
-              title: countdownFormatted, // Display countdown on price line
+              lineStyle: 2,
+              axisLabelVisible: true,
+              title: countdownFormatted,
             });
           }
           
@@ -9548,6 +9586,7 @@ ${
   };
 
   // Helper: Recalculate format positions based on current textarea's first line
+  // Uses SMART FIELD DETECTION for common fields instead of just displayValue matching
   const recalculateFormatPositions = (format: FormatData, currentFirstLine: string): FormatData => {
     if (!currentFirstLine || !format.displayValues) return format;
     
@@ -9562,24 +9601,100 @@ ${
 
     // Get words from current first line
     const currentWords = currentFirstLine.split(/\t+/).flatMap(part => part.split(/\s+/)).filter(w => w.trim());
-
-    // For each field, try to find positions based on displayValues
-    (["time", "order", "symbol", "type", "qty", "price"] as const).forEach(field => {
-      const displayText = format.displayValues[field];
-      if (displayText) {
-        const selectedWords = displayText.split(/\s+/);
-        selectedWords.forEach(word => {
-          const pos = currentWords.findIndex(w => w === word || w.includes(word) || word.includes(w));
-          if (pos >= 0) {
-            recalculatedPositions[field].push(pos);
-          }
-        });
+    
+    // SMART FIELD DETECTION - use patterns to find field positions
+    // This is more robust than just matching displayValues which might be different in new data
+    
+    // 1. ORDER field: Look for BUY or SELL
+    const orderPos = currentWords.findIndex(w => 
+      w.toUpperCase() === "BUY" || w.toUpperCase() === "SELL"
+    );
+    if (orderPos >= 0) {
+      recalculatedPositions.order = [orderPos];
+    }
+    
+    // 2. TIME field: Look for HH:MM:SS pattern
+    const timePos = currentWords.findIndex(w => 
+      /^\d{1,2}:\d{2}(:\d{2})?$/.test(w)
+    );
+    if (timePos >= 0) {
+      recalculatedPositions.time = [timePos];
+    }
+    
+    // 3. TYPE field: Look for MIS, NRML, CNC, etc.
+    const typePos = currentWords.findIndex(w => 
+      ["MIS", "NRML", "CNC", "INTRADAY", "DELIVERY", "MARGIN"].includes(w.toUpperCase())
+    );
+    if (typePos >= 0) {
+      recalculatedPositions.type = [typePos];
+    }
+    
+    // 4. QTY and PRICE: Find numeric values
+    // QTY is usually a whole number, PRICE usually has decimals or is larger
+    const numericPositions: { pos: number; value: number; hasDecimal: boolean }[] = [];
+    currentWords.forEach((word, idx) => {
+      const cleanNum = word.replace(/[₹$,]/g, "");
+      const num = parseFloat(cleanNum);
+      if (!isNaN(num) && num > 0) {
+        // Skip if already assigned to time/order/type
+        if (idx !== orderPos && idx !== timePos && idx !== typePos) {
+          numericPositions.push({ 
+            pos: idx, 
+            value: num, 
+            hasDecimal: cleanNum.includes(".")
+          });
+        }
       }
     });
+    
+    // Usually qty comes before price, qty is typically smaller or whole number
+    if (numericPositions.length >= 2) {
+      // Sort by position (earlier = more likely qty)
+      numericPositions.sort((a, b) => a.pos - b.pos);
+      recalculatedPositions.qty = [numericPositions[0].pos];
+      recalculatedPositions.price = [numericPositions[numericPositions.length - 1].pos];
+    } else if (numericPositions.length === 1) {
+      // If only one numeric, use original format's hint
+      if (format.positions.qty.length > 0) {
+        recalculatedPositions.qty = [numericPositions[0].pos];
+      } else {
+        recalculatedPositions.price = [numericPositions[0].pos];
+      }
+    }
+    
+    // 5. SYMBOL: Everything else between ORDER and TYPE (typically)
+    // Symbol is usually the longest part or contains instrument names
+    const usedPositions = new Set([
+      ...recalculatedPositions.time,
+      ...recalculatedPositions.order,
+      ...recalculatedPositions.type,
+      ...recalculatedPositions.qty,
+      ...recalculatedPositions.price
+    ]);
+    
+    // Find symbol positions - typically comes after order and before type
+    const symbolPositions: number[] = [];
+    for (let i = 0; i < currentWords.length; i++) {
+      if (!usedPositions.has(i)) {
+        const word = currentWords[i];
+        // Skip common non-symbol words
+        if (!["NFO", "NSE", "BSE", "MCX", "w", "CE", "PE", "FUT", "OPT"].includes(word.toUpperCase())) {
+          // Check if it looks like part of a symbol (contains letters)
+          if (/[A-Za-z]/.test(word)) {
+            symbolPositions.push(i);
+          }
+        } else {
+          // Include exchange/option type as part of symbol too
+          symbolPositions.push(i);
+        }
+      }
+    }
+    recalculatedPositions.symbol = symbolPositions;
 
-    console.log("🔄 Recalculated format positions:", {
+    console.log("🔄 SMART Recalculated format positions:", {
       original: format.positions,
       recalculated: recalculatedPositions,
+      currentWords,
       displayValues: format.displayValues
     });
 
@@ -9763,6 +9878,8 @@ ${
         setShowImportModal(false);
         setImportData("");
         setShowOrderModal(true);
+        // Reset user format selection for fresh start next time
+        setUserSelectedFormatId(null);
       } else {
         // Keep modal open to show errors but still set the data
         setShowOrderModal(true);
@@ -16678,9 +16795,11 @@ ${
                                 </tr>
                               </thead>
                               <tbody>
-                                {Object.entries(savedFormats).map(([label, format]) => (
-                                  <tr key={label} className="border-b last:border-b-0 hover-elevate">
-                                    <td className="px-3 py-2 font-medium">{label}</td>
+                                {Object.entries(savedFormats).map(([formatId, format]) => {
+                                  const displayLabel = format.label || formatId;
+                                  return (
+                                  <tr key={formatId} className="border-b last:border-b-0 hover-elevate">
+                                    <td className="px-3 py-2 font-medium">{displayLabel}</td>
                                     <td className="px-3 py-2 font-mono text-muted-foreground truncate max-w-md">
                                       {format.sampleLine || "No sample line saved"}
                                     </td>
@@ -16691,11 +16810,14 @@ ${
                                           size="sm"
                                           className="h-7 text-xs"
                                           onClick={() => {
+                                            // Set user's manual selection
+                                            setUserSelectedFormatId(formatId);
                                             setBuildModeData(format);
                                             setActiveFormat(format);
-                                            console.log("✅ Format loaded from table:", label, format);
+                                            setDetectedFormatLabel(displayLabel);
+                                            console.log("✅ Format loaded from table:", displayLabel, format);
                                           }}
-                                          data-testid={`button-use-format-${label}`}
+                                          data-testid={`button-use-format-${displayLabel}`}
                                         >
                                           Use
                                         </Button>
@@ -16705,25 +16827,30 @@ ${
                                           className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50 disabled:cursor-not-allowed"
                                           disabled={!currentUser?.userId}
                                           title={!currentUser?.userId ? "Log in to delete formats" : ""}
-                                          onClick={async () => {if (confirm(`Delete format "${label}"?`)) {
+                                          onClick={async () => {if (confirm(`Delete format "${displayLabel}"?`)) {
                                               const newFormats = { ...savedFormats };
-                                              delete newFormats[label];
+                                              delete newFormats[formatId];
                                               setSavedFormats(newFormats);
                                               await saveFormatsToFirebase(newFormats);
                                               if (activeFormat === format) {
                                                 setActiveFormat(null);
                                               }
-                                              console.log("🗑️ Format deleted:", label);
+                                              // Clear user selection if deleted format was selected
+                                              if (userSelectedFormatId === formatId) {
+                                                setUserSelectedFormatId(null);
+                                              }
+                                              console.log("🗑️ Format deleted:", displayLabel);
                                             }
                                           }}
-                                          data-testid={`button-delete-format-${label}`}
+                                          data-testid={`button-delete-format-${displayLabel}`}
                                         >
                                           <X className="w-3 h-3" />
                                         </Button>
                                       </div>
                                     </td>
                                   </tr>
-                                ))}
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </div>
@@ -16800,7 +16927,12 @@ ${
                             className="h-9 px-3 text-sm border rounded-md bg-background disabled:opacity-50"
                             onChange={(e) => {
                               if (e.target.value) {
-                                const loadedFormat = savedFormats[e.target.value];
+                                const formatId = e.target.value;
+                                const loadedFormat = savedFormats[formatId];
+                                
+                                // Set user's manual selection to prevent auto-override
+                                setUserSelectedFormatId(formatId);
+                                
                                 // Recalculate positions based on current textarea's first line
                                 const textarea = importDataTextareaRef.current;
                                 if (textarea && loadedFormat) {
@@ -16809,16 +16941,19 @@ ${
                                     const recalculatedFormat = recalculateFormatPositions(loadedFormat, currentFirstLine);
                                     setBuildModeData(recalculatedFormat);
                                     setActiveFormat(recalculatedFormat);
+                                    setDetectedFormatLabel(loadedFormat.label || formatId);
                                   } else {
                                     setBuildModeData(loadedFormat);
                                     setActiveFormat(loadedFormat);
+                                    setDetectedFormatLabel(loadedFormat.label || formatId);
                                   }
                                 } else {
                                   setBuildModeData(loadedFormat);
                                   setActiveFormat(loadedFormat);
+                                  setDetectedFormatLabel(loadedFormat.label || formatId);
                                 }
                                 setIsBuildMode(true);
-                                console.log("✅ Format loaded and activated:", e.target.value, loadedFormat);
+                                console.log("✅ Format manually selected:", loadedFormat.label || formatId, loadedFormat);
                               }
                             }}
                             defaultValue=""
@@ -16830,8 +16965,10 @@ ${
                                 ? "Loading formats..." 
                                 : `Load Saved Format${Object.keys(savedFormats).length > 0 ? ` (${Object.keys(savedFormats).length})` : ""}`}
                             </option>
-                            {Object.keys(savedFormats).map((label) => (
-                              <option key={label} value={label}>{label}</option>
+                            {Object.entries(savedFormats).map(([formatId, format]) => (
+                              <option key={formatId} value={formatId}>
+                                {format.label || formatId}
+                              </option>
                             ))}
                           </select>
                           {currentUser?.userId && (
@@ -17022,6 +17159,8 @@ ${
                     setImportData("");
                     setImportError("");
                     setParseErrors([]);
+                    // Reset user format selection for fresh start next time
+                    setUserSelectedFormatId(null);
                   }}
                   className="h-8 text-xs"
                 >
