@@ -383,3 +383,43 @@ input[type="range"].slider-thumb-purple::-moz-range-track {
 .animate-modal-bounce {
   animation: modalZoom 0.4s ease-out;
 }
+
+/* Ultra-thin scrollbar */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156, 163, 175) rgb(243, 244, 246);
+}
+
+.dark .overflow-y-auto {
+  scrollbar-color: rgb(75, 85, 99) rgb(17, 24, 39);
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgb(243, 244, 246);
+  border-radius: 4px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-track {
+  background: rgb(17, 24, 39);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgb(156, 163, 175);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgb(107, 114, 128);
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgb(75, 85, 99);
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgb(107, 114, 128);
+}

@@ -16001,7 +16001,7 @@ ${
                               data-testid="input-broker-search"
                             />
                             {showBrokerSuggestions && filteredBrokers.length > 0 && (
-                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-md z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-900">
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-md z-50 max-h-64 overflow-y-auto">
                                 {filteredBrokers.map((broker) => (
                                   <div
                                     key={broker}
