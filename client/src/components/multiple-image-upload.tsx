@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle, createElement } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Image, BookOpen, TrendingUp, DollarSign, Lightbulb, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Image, BookOpen, TrendingUp, DollarSign, Lightbulb, X, Edit2, MoreVertical, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadedImage {
@@ -27,6 +27,8 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
     const [dragOffset, setDragOffset] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedImage, setSelectedImage] = useState<UploadedImage | null>(null);
+    const [imageCaptions, setImageCaptions] = useState<Record<string, string>>({});
+    const [editingImageId, setEditingImageId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const touchStartX = useRef(0);
     const touchStartY = useRef(0);
@@ -350,11 +352,59 @@ export const MultipleImageUpload = forwardRef<MultipleImageUploadRef, MultipleIm
                 />
               </div>
 
-              {/* Image Info */}
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-b-2xl">
-                <p className="text-xs font-medium text-gray-800 dark:text-gray-100">
-                  {selectedImage.name}
-                </p>
+              {/* Image Info - Bottom Bar */}
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-b-2xl flex items-center justify-between gap-3">
+                {/* Edit Button - Left Corner */}
+                <button
+                  onClick={() => setEditingImageId(editingImageId === selectedImage.id ? null : selectedImage.id)}
+                  className="flex-shrink-0 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  data-testid="button-edit-caption"
+                >
+                  <Edit2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                </button>
+
+                {/* Text Input/Display - Center */}
+                <div className="flex-1">
+                  {editingImageId === selectedImage.id ? (
+                    <input
+                      type="text"
+                      value={imageCaptions[selectedImage.id] || ''}
+                      onChange={(e) => setImageCaptions(prev => ({
+                        ...prev,
+                        [selectedImage.id]: e.target.value
+                      }))}
+                      placeholder="Add caption..."
+                      autoFocus
+                      className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      data-testid="input-caption"
+                    />
+                  ) : (
+                    <p className="text-xs font-medium text-center text-gray-800 dark:text-gray-100 truncate">
+                      {imageCaptions[selectedImage.id] || selectedImage.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Delete Button - Right Corner (3 dots menu) */}
+                <button
+                  onClick={() => {
+                    setImages(images.filter(img => img.id !== selectedImage.id));
+                    setImageCaptions(prev => {
+                      const updated = { ...prev };
+                      delete updated[selectedImage.id];
+                      return updated;
+                    });
+                    setSelectedImage(null);
+                    toast({
+                      title: "Image deleted",
+                      description: "The image has been removed"
+                    });
+                  }}
+                  className="flex-shrink-0 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  data-testid="button-delete-image"
+                >
+                  <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                </button>
               </div>
             </div>
 
