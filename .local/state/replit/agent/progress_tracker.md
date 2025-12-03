@@ -8,6 +8,7 @@ REPLIT IMPORT MIGRATION - December 3, 2025 ✅
 [x] 2. Restart the workflow to see if the project is working
 [x] 3. Verify the project is working using the screenshot tool
 [x] 4. Inform user the import is completed and they can start building
+[x] 5. Mark import as complete using complete_project_import tool
 
 =========================================================
 FIRESTORE TO DYNAMODB MIGRATION - December 3, 2025 🔄
