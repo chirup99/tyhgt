@@ -17938,6 +17938,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // =========================================================
+  // FIRESTORE TO DYNAMODB MIGRATION ROUTES
+  // =========================================================
+  
+  // Start migration
+  app.post('/api/migration/firestore-to-dynamodb/start', async (req, res) => {
+    try {
+      console.log('🔄 Migration requested via API');
+      const { migration, executeMigration } = await import('./firestore-to-dynamodb-migration');
+      const result = await executeMigration();
+      res.json({
+        success: true,
+        message: 'Migration completed',
+        ...result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Migration error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Migration failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Get migration status
+  app.get('/api/migration/firestore-to-dynamodb/status', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        status: 'ready',
+        message: 'Migration system is ready for execution',
+        features: [
+          'Firestore to DynamoDB data migration',
+          'Data validation and integrity checking',
+          'Migration rollback capability',
+          'Detailed statistics and reporting'
+        ],
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: 'Status check failed'
+      });
+    }
+  });
+
+  // Verify migration
+  app.get('/api/migration/firestore-to-dynamodb/verify', async (req, res) => {
+    try {
+      const { migration } = await import('./firestore-to-dynamodb-migration');
+      const verification = await migration.verifyMigration();
+      res.json({
+        success: true,
+        verification,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Verification error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Verification failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Rollback migration
+  app.post('/api/migration/firestore-to-dynamodb/rollback', async (req, res) => {
+    try {
+      const { dryRun = true } = req.body;
+      console.log(`🔄 Rollback requested (dryRun: ${dryRun})`);
+      const { migration } = await import('./firestore-to-dynamodb-migration');
+      const success = await migration.rollbackMigration(dryRun);
+      res.json({
+        success,
+        message: `Rollback ${dryRun ? 'preview' : 'completed'}`,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Rollback error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Rollback failed',
+        details: error.message
+      });
+    }
+  });
   
   return httpServer;
 }
