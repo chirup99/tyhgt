@@ -18152,6 +18152,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // =========================================================
+  // DIRECT MIGRATION: /api/journal/all-dates → AWS DynamoDB
+  // =========================================================
+  
+  // Migrate all journal data from Firebase to AWS
+  app.post('/api/migration/all-journal-data/to-aws', async (req, res) => {
+    try {
+      console.log('🔄 Starting migration: All Firebase journal data → AWS DynamoDB');
+      const startTime = new Date();
+      
+      // Fetch all data from Firebase via the all-dates endpoint
+      console.log('🔥 Fetching all data from Firebase...');
+      const allFirebaseData = await googleCloudService.getAllCollectionData('journal-database');
+      
+      if (!allFirebaseData || Object.keys(allFirebaseData).length === 0) {
+        console.log('⚠️ No data found in Firebase journal-database');
+        return res.json({
+          success: false,
+          message: 'No data found in Firebase to migrate',
+          stats: {
+            totalProcessed: 0,
+            successCount: 0,
+            failureCount: 0,
+            errors: ['No data found in Firebase']
+          }
+        });
+      }
+
+      console.log(`📊 Found ${Object.keys(allFirebaseData).length} entries in Firebase`);
+
+      let successCount = 0;
+      let failureCount = 0;
+      const errors: string[] = [];
+      const migratedKeys: string[] = [];
+
+      // Migrate each date's data to AWS
+      for (const [dateKey, journalData] of Object.entries(allFirebaseData)) {
+        try {
+          // Use consistent key format for AWS: journal_YYYY-MM-DD
+          const awsKey = dateKey.includes('journal_') ? dateKey : `journal_${dateKey}`;
+          
+          console.log(`📤 Migrating ${dateKey} → AWS (key: ${awsKey})...`);
+          
+          // Save to AWS DynamoDB
+          const saved = await awsDynamoDBService.saveJournalData(awsKey, journalData);
+          
+          if (saved) {
+            console.log(`✅ Migrated: ${dateKey}`);
+            successCount++;
+            migratedKeys.push(awsKey);
+          } else {
+            console.log(`❌ Failed to save: ${dateKey}`);
+            failureCount++;
+            errors.push(`Failed to migrate ${dateKey}`);
+          }
+        } catch (error) {
+          const errorMsg = `Error migrating ${dateKey}: ${error instanceof Error ? error.message : String(error)}`;
+          console.error(`❌ ${errorMsg}`);
+          failureCount++;
+          errors.push(errorMsg);
+        }
+      }
+
+      const endTime = new Date();
+      const duration = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
+
+      console.log('\n' + '='.repeat(70));
+      console.log('✅ MIGRATION COMPLETE');
+      console.log('='.repeat(70));
+      console.log(`Total: ${successCount + failureCount} entries`);
+      console.log(`Success: ${successCount}`);
+      console.log(`Failed: ${failureCount}`);
+      console.log(`Duration: ${duration}s`);
+      console.log('='.repeat(70) + '\n');
+
+      res.json({
+        success: failureCount === 0,
+        message: `Migration completed: ${successCount} successful, ${failureCount} failed`,
+        stats: {
+          totalProcessed: successCount + failureCount,
+          successCount,
+          failureCount,
+          durationSeconds: duration,
+          migratedKeys: migratedKeys,
+          errors: errors.length > 0 ? errors : undefined
+        },
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('❌ Migration error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Migration failed',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Verify AWS migration - check if data exists
+  app.get('/api/migration/verify-aws-journal-data', async (req, res) => {
+    try {
+      console.log('🔍 Verifying AWS DynamoDB journal data...');
+      
+      const allAwsData = await awsDynamoDBService.getAllJournalData();
+      const journalEntries = Object.keys(allAwsData).filter(key => key.startsWith('journal_'));
+      
+      console.log(`📊 Found ${journalEntries.length} journal entries in AWS DynamoDB`);
+
+      // Sample a few entries for verification
+      const sampleEntries: any = {};
+      journalEntries.slice(0, 3).forEach(key => {
+        sampleEntries[key] = {
+          hasTradeHistory: !!allAwsData[key]?.tradeHistory,
+          tradeCount: Array.isArray(allAwsData[key]?.tradeHistory) ? allAwsData[key].tradeHistory.length : 0,
+          hasTags: !!allAwsData[key]?.tradingTags,
+          hasNotes: !!allAwsData[key]?.tradingNotes
+        };
+      });
+
+      res.json({
+        success: true,
+        message: 'AWS migration verification',
+        summary: {
+          totalJournalEntries: journalEntries.length,
+          status: journalEntries.length > 0 ? '✅ Data present' : '⚠️ No data found',
+          sampleEntries,
+          allKeys: journalEntries
+        },
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Verification failed',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
   
   return httpServer;
 }
