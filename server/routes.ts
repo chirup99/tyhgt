@@ -4676,28 +4676,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Journal Database API endpoints with AWS DynamoDB as primary storage
-  // NO local memory storage - ONLY AWS data
+  // Journal Database API endpoints with AWS DynamoDB as PRIMARY storage
+  // Migration complete: AWS DynamoDB is now the source of truth
 
-  // ✅ HEATMAP DEMO DATA: Get from Firebase first, fallback to AWS
-  // Demo heatmap data may still be in Firebase before migration
+  // ✅ JOURNAL ALL-DATES: AWS DynamoDB as PRIMARY source (migration completed Dec 3, 2025)
+  // Firebase is now only used as fallback if AWS is unavailable
   app.get('/api/journal/all-dates', async (req, res) => {
     try {
-      console.log('📊 Fetching demo heatmap data: Trying Firebase first...');
+      console.log('📊 Fetching journal data: AWS DynamoDB (PRIMARY)...');
       
-      // First, try to get demo heatmap data from Firebase (Firestore)
+      let allData: any = {};
+      
+      // PRIMARY: Get data from AWS DynamoDB (migration completed)
+      try {
+        allData = await awsDynamoDBService.getAllJournalData();
+        
+        if (allData && Object.keys(allData).length > 0) {
+          console.log(`✅ AWS DynamoDB: Loaded ${Object.keys(allData).length} journal entries`);
+          return res.json(allData);
+        } else {
+          console.log('⚠️ AWS DynamoDB: No data found, trying Firebase fallback...');
+        }
+      } catch (awsError) {
+        console.error('❌ AWS DynamoDB error, trying Firebase fallback:', awsError);
+      }
+
+      // FALLBACK: Try Firebase if AWS is unavailable or empty
+      console.log('📘 Trying Firebase as fallback...');
       const firebaseCollections = [
+        'journal-database',
         'heatmap-data',
         'demo-heatmap',
         'tradebook-demo',
         'universal-data',
         'heatmap-demo-data',
-        'tradebook-heatmaps-demo',
-        'journal-database'  // Contains actual heatmap data
+        'tradebook-heatmaps-demo'
       ];
-
-      let allData: any = {};
-      let foundInFirebase = false;
 
       for (const collectionName of firebaseCollections) {
         try {
@@ -4705,28 +4719,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const firebaseData = await googleCloudService.getAllCollectionData(collectionName);
           
           if (firebaseData && Object.keys(firebaseData).length > 0) {
-            console.log(`✅ Found ${Object.keys(firebaseData).length} demo entries in Firebase (${collectionName})`);
+            console.log(`✅ Found ${Object.keys(firebaseData).length} entries in Firebase (${collectionName})`);
             allData = firebaseData;
-            foundInFirebase = true;
             break;
           }
         } catch (error) {
-          // Continue to next collection
           console.log(`⏭️ Firebase collection ${collectionName} not found or error`);
         }
       }
 
-      // If not found in Firebase, fallback to AWS DynamoDB
-      if (!foundInFirebase) {
-        console.log('📘 No demo data in Firebase, falling back to AWS DynamoDB...');
-        allData = await awsDynamoDBService.getAllJournalData();
-        
-        if (allData && Object.keys(allData).length > 0) {
-          console.log(`✅ AWS: Loaded ${Object.keys(allData).length} dates`);
-        } else {
-          console.log('⚠️ No journal data found in AWS DynamoDB either');
-          allData = {};
-        }
+      if (Object.keys(allData).length === 0) {
+        console.log('⚠️ No journal data found in AWS or Firebase');
       }
 
       res.json(allData);
