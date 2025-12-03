@@ -4679,27 +4679,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Journal Database API endpoints with AWS DynamoDB as primary storage
   // NO local memory storage - ONLY AWS data
 
-  // ✅ SIMPLIFIED: Get ALL journal dates from AWS DynamoDB - NO FILTERING
-  // Returns ALL data from AWS so heatmaps and windows can display everything
-  // NO localStorage, NO caching, NO complex filtering - Just pure AWS data
+  // ✅ HEATMAP DEMO DATA: Get from Firebase first, fallback to AWS
+  // Demo heatmap data may still be in Firebase before migration
   app.get('/api/journal/all-dates', async (req, res) => {
     try {
-      console.log('📊 Fetching ALL journal data from AWS DynamoDB (no filtering)...');
+      console.log('📊 Fetching demo heatmap data: Trying Firebase first...');
       
-      // Fetch ALL data from AWS DynamoDB - the single source of truth
-      const allData = await awsDynamoDBService.getAllJournalData();
-      
-      if (allData && Object.keys(allData).length > 0) {
-        // ✅ NO FILTERING - Send ALL data from AWS
-        // Heatmap and windows will handle what to display
-        console.log(`✅ AWS: Loaded ${Object.keys(allData).length} dates (ALL data, no filtering)`);
-        res.json(allData);
-      } else {
-        console.log('⚠️ No journal data found in AWS DynamoDB');
-        res.json({});
+      // First, try to get demo heatmap data from Firebase (Firestore)
+      const firebaseCollections = [
+        'heatmap-data',
+        'demo-heatmap',
+        'tradebook-demo',
+        'universal-data',
+        'heatmap-demo-data',
+        'tradebook-heatmaps-demo',
+        'journal-database'  // Contains actual heatmap data
+      ];
+
+      let allData: any = {};
+      let foundInFirebase = false;
+
+      for (const collectionName of firebaseCollections) {
+        try {
+          console.log(`🔥 Checking Firebase collection: ${collectionName}`);
+          const firebaseData = await googleCloudService.getAllCollectionData(collectionName);
+          
+          if (firebaseData && Object.keys(firebaseData).length > 0) {
+            console.log(`✅ Found ${Object.keys(firebaseData).length} demo entries in Firebase (${collectionName})`);
+            allData = firebaseData;
+            foundInFirebase = true;
+            break;
+          }
+        } catch (error) {
+          // Continue to next collection
+          console.log(`⏭️ Firebase collection ${collectionName} not found or error`);
+        }
       }
+
+      // If not found in Firebase, fallback to AWS DynamoDB
+      if (!foundInFirebase) {
+        console.log('📘 No demo data in Firebase, falling back to AWS DynamoDB...');
+        allData = await awsDynamoDBService.getAllJournalData();
+        
+        if (allData && Object.keys(allData).length > 0) {
+          console.log(`✅ AWS: Loaded ${Object.keys(allData).length} dates`);
+        } else {
+          console.log('⚠️ No journal data found in AWS DynamoDB either');
+          allData = {};
+        }
+      }
+
+      res.json(allData);
     } catch (error) {
-      console.error('❌ Error fetching journal dates from AWS:', error);
+      console.error('❌ Error fetching journal dates:', error);
       res.status(500).json({ error: 'Failed to fetch journal dates', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
