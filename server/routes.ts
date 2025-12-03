@@ -18029,6 +18029,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // =========================================================
+  // HEATMAP DEMO DATA MIGRATION (Firestore → DynamoDB)
+  // =========================================================
+  
+  // Migrate heatmap demo data
+  app.post('/api/migration/heatmap-demo/start', async (req, res) => {
+    try {
+      console.log('🔄 Heatmap demo data migration requested');
+      const { heatmapMigration, executeHeatmapMigration } = await import('./firestore-heatmap-demo-to-dynamodb');
+      const result = await executeHeatmapMigration();
+      res.json({
+        success: true,
+        message: 'Heatmap migration completed',
+        ...result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Heatmap migration error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Heatmap migration failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Verify heatmap migration
+  app.get('/api/migration/heatmap-demo/verify', async (req, res) => {
+    try {
+      const { heatmapMigration } = await import('./firestore-heatmap-demo-to-dynamodb');
+      const verification = await heatmapMigration.verifyHeatmapMigration();
+      res.json({
+        success: true,
+        verification,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: 'Verification failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Migrate user-specific heatmap data
+  app.post('/api/migration/heatmap-demo/user/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log(`🔄 Migrating heatmap data for user: ${userId}`);
+      const { heatmapMigration } = await import('./firestore-heatmap-demo-to-dynamodb');
+      const stats = await heatmapMigration.migrateUserHeatmapData(userId);
+      res.json({
+        success: true,
+        message: `Migrated heatmap data for user ${userId}`,
+        stats,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: 'User heatmap migration failed',
+        details: error.message
+      });
+    }
+  });
   
   return httpServer;
 }
