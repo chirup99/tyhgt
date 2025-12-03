@@ -4811,27 +4811,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get journal data for a specific date
+  // Get journal data for a specific date - Try Firebase first, fallback to AWS
   app.get('/api/journal/:date', async (req, res) => {
-    console.log(`🚨 ROUTE HIT: /api/journal/:date`);
     try {
       const { date } = req.params;
-      const key = `journal_${date}`;
-      console.log(`📖 Fetching journal data for date: ${date}, key: ${key}`);
-      console.log(`🔍 DEBUG: Starting AWS DynamoDB retrieval for ${key}`);
+      console.log(`📖 Fetching journal data for date: ${date}`);
       
-      // Get journal data from AWS DynamoDB
-      const journalData = await awsDynamoDBService.getJournalData(key);
+      // First, try Firebase journal-database (has keys like "2025-02-03")
+      console.log(`🔥 Trying Firebase journal-database collection with key: ${date}`);
+      const firebaseData = await googleCloudService.getData('journal-database', date);
+      
+      if (firebaseData) {
+        console.log(`✅ Found data in Firebase for ${date}`);
+        res.json(firebaseData);
+        return;
+      }
+      
+      // Try Firebase with journal_ prefix (fallback)
+      console.log(`🔥 Trying Firebase with journal_ prefix: journal_${date}`);
+      const firebaseDataWithPrefix = await googleCloudService.getData('journal-database', `journal_${date}`);
+      
+      if (firebaseDataWithPrefix) {
+        console.log(`✅ Found data in Firebase (with prefix) for ${date}`);
+        res.json(firebaseDataWithPrefix);
+        return;
+      }
+      
+      // Fallback to AWS DynamoDB
+      console.log(`📘 No Firebase data, trying AWS DynamoDB for journal_${date}`);
+      const awsKey = `journal_${date}`;
+      const journalData = await awsDynamoDBService.getJournalData(awsKey);
       
       if (journalData) {
-        console.log(`✅ AWS: Found data for ${key}`);
+        console.log(`✅ AWS: Found data for ${awsKey}`);
         res.json(journalData);
       } else {
-        console.log(`ℹ️ No journal data found for ${key}, returning empty object with 200 status`);
-        res.json({}); // Return empty object with 200 status (not an error - just no data for this date)
+        console.log(`ℹ️ No journal data found anywhere for ${date}, returning empty object`);
+        res.json({}); // Return empty object with 200 status
       }
     } catch (error) {
-      console.error('❌ Error fetching journal data from AWS:', error);
+      console.error('❌ Error fetching journal data:', error);
       res.status(500).json({ error: 'Failed to fetch journal data', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
