@@ -4819,21 +4819,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // First, try Firebase journal-database (has keys like "2025-02-03")
       console.log(`🔥 Trying Firebase journal-database collection with key: ${date}`);
-      const firebaseData = await googleCloudService.getData('journal-database', date);
+      let firebaseData = await googleCloudService.getData('journal-database', date);
       
       if (firebaseData) {
         console.log(`✅ Found data in Firebase for ${date}`);
-        res.json(firebaseData);
+        // Unwrap the data field if it exists (Firebase stores in { data: {...}, createdAt, expiresAt })
+        const unwrappedData = firebaseData.data || firebaseData;
+        console.log(`📦 Firebase data structure:`, { hasDataField: !!firebaseData.data, unwrappedKeys: Object.keys(unwrappedData) });
+        res.json(unwrappedData);
         return;
       }
       
       // Try Firebase with journal_ prefix (fallback)
       console.log(`🔥 Trying Firebase with journal_ prefix: journal_${date}`);
-      const firebaseDataWithPrefix = await googleCloudService.getData('journal-database', `journal_${date}`);
+      let firebaseDataWithPrefix = await googleCloudService.getData('journal-database', `journal_${date}`);
       
       if (firebaseDataWithPrefix) {
         console.log(`✅ Found data in Firebase (with prefix) for ${date}`);
-        res.json(firebaseDataWithPrefix);
+        // Unwrap if needed
+        const unwrappedData = firebaseDataWithPrefix.data || firebaseDataWithPrefix;
+        res.json(unwrappedData);
         return;
       }
       
