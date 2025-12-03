@@ -21,15 +21,20 @@ class AWSDynamoDBService {
   }
 
   private initialize() {
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const region = process.env.AWS_REGION || "eu-north-1";
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID?.trim();
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY?.trim();
+    const region = (process.env.AWS_REGION || "eu-north-1").trim();
 
     if (!accessKeyId || !secretAccessKey) {
       console.log("⚠️ AWS credentials not found in environment variables");
       console.log("   Required: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION");
       return;
     }
+
+    console.log(`🔐 AWS Credentials check:`);
+    console.log(`   Access Key ID: ${accessKeyId.substring(0, 4)}...${accessKeyId.substring(accessKeyId.length - 4)} (${accessKeyId.length} chars)`);
+    console.log(`   Secret Key: ****${secretAccessKey.substring(secretAccessKey.length - 4)} (${secretAccessKey.length} chars)`);
+    console.log(`   Region: ${region}`);
 
     try {
       this.client = new DynamoDBClient({
